@@ -29,7 +29,7 @@ namespace CK.SqlServer.Parser
 
         public string Value { get; private set; }
 
-        public override string LiteralValue { get { return String.Format( IsUnicode ? "N'{0}'" : "'{0}'", SqlHelper.SqlEncode( Value ) ); } }
+        public override string LiteralValue { get { return String.Format( IsUnicode ? "N'{0}'" : "'{0}'", Value.Replace( "'", "''" ) ); } }
 
     }
 

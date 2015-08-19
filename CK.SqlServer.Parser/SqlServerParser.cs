@@ -16,6 +16,21 @@ namespace CK.SqlServer.Parser
             return SqlAnalyser.ParseStatement( out sqlObject, text );
         }
 
+        public ISqlServerParserError ParseStoredFunctionInlineTable( string text, out ISqlServerFunctionInlineTable sqlFInlineTable )
+        {
+            return SqlAnalyser.ParseStatement( out sqlFInlineTable, text );
+        }
+
+        public ISqlServerParserError ParseStoredFunctionScalar( string text, out ISqlServerFunctionScalar sqlFScalar )
+        {
+            return SqlAnalyser.ParseStatement( out sqlFScalar, text );
+        }
+
+        public ISqlServerParserError ParseStoredFunctionTable( string text, out ISqlServerFunctionTable sqlFTable )
+        {
+            return SqlAnalyser.ParseStatement( out sqlFTable, text );
+        }
+
         public ISqlServerParserError ParseStoredProcedure( string text, out ISqlServerStoredProcedure sqlProcedure )
         {
             return SqlAnalyser.ParseStatement( out sqlProcedure, text );

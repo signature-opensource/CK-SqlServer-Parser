@@ -17,6 +17,11 @@
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
   </PropertyGroup>
+  <PropertyGroup>
+    <StartAction>Program</StartAction>
+    <StartProgram>$(SolutionDir)packages\NUnit.Runners.2.6.4\tools\nunit.exe</StartProgram>
+    <StartArguments>CK.SqlServer.Parser.Tests.dll</StartArguments>
+  </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
@@ -39,6 +44,10 @@
   <ItemGroup>
     <Reference Include="CK.Core">
       <HintPath>..\..\packages\CK.Core.4.2.0\lib\net45\CK.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="CK.SqlServer.Parser.Model, Version=1.0.0.0, Culture=neutral, PublicKeyToken=731c291b31fb8d27, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\CK.SqlServer.Parser.Model.1.0.0\lib\net45\CK.SqlServer.Parser.Model.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="nunit.framework">
       <HintPath>..\..\packages\NUnit.2.6.4\lib\nunit.framework.dll</HintPath>
@@ -66,10 +75,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\CK.SqlServer.Parser.Model\CK.SqlServer.Parser.Model.csproj">
-      <Project>{1d1c5311-2b86-4039-acfa-050c3b405433}</Project>
-      <Name>CK.SqlServer.Parser.Model</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\CK.SqlServer.Parser\CK.SqlServer.Parser.csproj">
       <Project>{c569dc3c-aed5-449d-9c7d-cadc46423687}</Project>
       <Name>CK.SqlServer.Parser</Name>

@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<package xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <metadata xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+    <id>CK.SqlServer.Parser</id>
+    <version>0</version>
+    <authors>Invenietis</authors>
+    <owners>Invenietis</owners>
+    <copyright>Invenietis</copyright>
+    <projectUrl>https://bitbucket.com/</projectUrl>
+    <summary>T-Sql parser implementation.</summary>
+    <description>
+	T-Sql parser implementation.
+    </description>
+    <language>en-US</language>
+	  <dependencies>
+  		<dependency id="CK.Core" version="4.2.0" />
+      <dependency id="CK.SqlServer.Parser.Model" version="1.0.0" />
+	  </dependencies>
+  </metadata>
+  <files>
+	  <file src="CK.SqlServer.Parser\bin\Release\CK.SqlServer.Parser.dll" target="lib\net45" />		
+	  <file src="CK.SqlServer.Parser\bin\Release\CK.SqlServer.Parser.pdb" target="lib\net45" />		
+	  <file src="CK.SqlServer.Parser\bin\Release\CK.SqlServer.Parser.xml" target="lib\net45" />		
+  </files>
+</package>
