@@ -11,6 +11,7 @@ using SimpleGitVersion;
 using Cake.Common.Tools.NuGet.Pack;
 using System.Collections.Generic;
 using Cake.Common.Tools.NuGet.Push;
+using Cake.Common.Tools.NuGet.Restore;
 
 namespace CodeCake
 {
@@ -34,13 +35,14 @@ namespace CodeCake
                 {
                     Cake.CleanDirectory( Cake.Directory( "CK.SqlServer.Parser/bin" ) + Cake.Directory( configuration ) );
                     Cake.CleanDirectory( Cake.Directory( "CK.SqlServer.Parser/obj" ) + Cake.Directory( configuration ) );
+                    Cake.CleanDirectory( nugetOutputDir );
                 } );
 
             Task( "Restore-NuGet-Packages" )
                 .IsDependentOn( "Clean" )
                 .Does( () =>
                 {
-                    Cake.NuGetRestore( "CK-SqlServer-Parser.sln", new Cake.Common.Tools.NuGet.Restore.NuGetRestoreSettings() { ToolPath = nugetExe } );
+                    Cake.NuGetRestore( "CK-SqlServer-Parser.sln", new NuGetRestoreSettings() { ToolPath = nugetExe } );
                 } );
 
             Task( "Build" )
@@ -106,15 +108,15 @@ namespace CodeCake
                 .IsDependentOn( "Create-NuGet-Package" )
                 .Does( () =>
                 {
+                    var settings = new NuGetPushSettings()
+                    {
+                        ApiKey = System.IO.File.ReadAllText( secureDir + Cake.File( "NuGet-Push-ApiKey.txt" ) ),
+                        Verbosity = NuGetVerbosity.Detailed,
+                        Source = "http://proget.app.invenietis.net/nuget/Default",
+                        ToolPath = nugetExe
+                    };
                     foreach( var f in Cake.GetFiles( nugetOutputDir.Path.FullPath + "/*.nupkg" ) )
                     {
-                        var settings = new NuGetPushSettings()
-                        {
-                            ApiKey = System.IO.File.ReadAllText( secureDir + Cake.File( "NuGet-Push-ApiKey.txt" ) ),
-                            Verbosity = NuGetVerbosity.Detailed,
-                            Source = "http://proget.app.invenietis.net/nuget/Default",
-                            ToolPath = nugetExe
-                        };
                         Cake.NuGetPush( f, settings );
                     }
                 } );
