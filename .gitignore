@@ -33,3 +33,4 @@ Runtime/Current/
 CK-Database.Tests.VisualState.xml
 Tests/Logs/
 *GhostDoc.xml
+CodeCakeBuilder/Tools/

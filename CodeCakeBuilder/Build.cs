@@ -15,22 +15,36 @@ using Cake.Common.Tools.NuGet.Restore;
 
 namespace CodeCake
 {
+    [AddPath("CodeCakeBuilder/Tools")]
     public class Build : CodeCakeHost
     {
         public Build()
         {
-            var configuration = Cake.Argument( "configuration", "Release" );
-            var securePath = Cake.Argument( "securePath", "../../_Secure" );
-            var secureDir = Cake.Directory( securePath );
-
-            var nugetExe = Cake.File( Environment.ExpandEnvironmentVariables( "%LOCALAPPDATA%/NuGet/NuGet.exe" ) );
-            if( !Cake.FileExists( nugetExe ) ) throw new Exception( "Unable to find nuget.exe: " + nugetExe );
-
+            string configuration = null;
             var nugetOutputDir = Cake.Directory( "CodeCakeBuilder/Release" );
             SimpleRepositoryInfo gitInfo = null;
-            SignToolSignSettings signSettingsForRelease = null;
+
+            Task( "Check-Repository" )
+                .Does( () =>
+                {
+                    gitInfo = Cake.GetSimpleRepositoryInfo();
+                    if( !gitInfo.IsValid ) throw new Exception( "SimpleGitVersionInfo: This solution is not ready for publishing." );
+                    else
+                    {
+                        if( gitInfo.IsValidRelease )
+                        {
+                            configuration = "Release";
+                        }
+                        else
+                        {
+                            configuration = "Debug";
+                        }
+                        Cake.Log.Information( "Packages in version '{0}' can be published.", gitInfo.NuGetVersion );
+                    }
+                } );
 
             Task( "Clean" )
+                .IsDependentOn( "Check-Repository" )
                 .Does( () =>
                 {
                     Cake.CleanDirectory( Cake.Directory( "CK.SqlServer.Parser/bin" ) + Cake.Directory( configuration ) );
@@ -42,11 +56,11 @@ namespace CodeCake
                 .IsDependentOn( "Clean" )
                 .Does( () =>
                 {
-                    Cake.NuGetRestore( "CK-SqlServer-Parser.sln", new NuGetRestoreSettings() { ToolPath = nugetExe } );
+                    Cake.NuGetRestore( "CK-SqlServer-Parser.sln" );
                 } );
 
             Task( "Build" )
-                .IsDependentOn( "Check-Publish" )
+                .IsDependentOn( "Check-Repository" )
                 .IsDependentOn( "Restore-NuGet-Packages" )
                 .Does( () =>
                 {
@@ -57,41 +71,9 @@ namespace CodeCake
                         .SetNodeReuse( false ) );
                 } );
 
-            Task( "Check-Publish" )
-                .Does( () =>
-                {
-                    gitInfo = Cake.GetSimpleRepositoryInfo();
-                    if( !gitInfo.IsValid ) throw new Exception( "SimpleGitVersionInfo: This solution is not ready for publishing." );
-                    else if( !Cake.DirectoryExists( secureDir ) ) throw new Exception( String.Format( "SecurePath '{0}' not found.", secureDir ) );
-                    else
-                    {
-                        // If the release is a not a CI build, we must sign the artifacts before packaging.
-                        if( gitInfo.IsValidRelease )
-                        {
-                            if( configuration != "Release" ) throw new Exception( "A release version must be published in 'Release' configuration!" );
-                            signSettingsForRelease = new SignToolSignSettings()
-                            {
-                                TimeStampUri = new Uri( "http://timestamp.verisign.com/scripts/timstamp.dll" ),
-                                CertPath = secureDir + Cake.File( "Invenietis-Authenticode.pfx" ),
-                                Password = System.IO.File.ReadAllText( secureDir + Cake.File( "Invenietis-Authenticode.p.txt" ) )
-                            };
-                        }
-                        Cake.Log.Information( "Packages in version '{0}' can be published.", gitInfo.NuGetVersion );
-                    }
-                } );
-
-            Task( "Sign-Authenticode" )
-                .IsDependentOn( "Build" )
-                .WithCriteria( () => signSettingsForRelease != null )
-                .Does( () =>
-                {
-                    Cake.Sign( "CK.SqlServer.Parser/bin/Release/CK.SqlServer.Parser.dll", signSettingsForRelease );
-                } );
-
             Task( "Create-NuGet-Package" )
                 .IsDependentOn( "Build" )
-                .IsDependentOn( "Check-Publish" )
-                .IsDependentOn( "Sign-Authenticode" )
+                .IsDependentOn( "Check-Repository" )
                 .Does( () =>
                 {
                     Cake.CreateDirectory( nugetOutputDir );
@@ -100,7 +82,6 @@ namespace CodeCake
                         Version = gitInfo.NuGetVersion,
                         BasePath = Cake.Environment.WorkingDirectory,
                         OutputDirectory = nugetOutputDir,
-                        ToolPath = nugetExe
                     } );
                 } );
 
@@ -110,10 +91,9 @@ namespace CodeCake
                 {
                     var settings = new NuGetPushSettings()
                     {
-                        ApiKey = System.IO.File.ReadAllText( secureDir + Cake.File( "NuGet-Push-ApiKey.txt" ) ),
-                        Verbosity = NuGetVerbosity.Detailed,
-                        Source = "http://proget.app.invenietis.net/nuget/Default",
-                        ToolPath = nugetExe
+                        ApiKey = Cake.InteractiveEnvironmentVariable( "NUGET_API_KEY" ),
+                        Verbosity = NuGetVerbosity.Normal,
+                        Source = "https://www.nuget.org/api/v2/package"
                     };
                     foreach( var f in Cake.GetFiles( nugetOutputDir.Path.FullPath + "/*.nupkg" ) )
                     {

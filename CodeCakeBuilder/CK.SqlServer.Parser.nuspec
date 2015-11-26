@@ -13,8 +13,8 @@
     </description>
     <language>en-US</language>
 	  <dependencies>
-  		<dependency id="CK.Core" version="4.2.0" />
-      <dependency id="CK.SqlServer.Parser.Model" version="1.0.0" />
+  		<dependency id="CK.Core" version="4.3.0" />
+      <dependency id="CK.SqlServer.Parser.Model" version="1.0.1" />
 	  </dependencies>
   </metadata>
   <files>
