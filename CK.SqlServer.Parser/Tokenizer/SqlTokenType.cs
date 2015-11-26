@@ -196,7 +196,7 @@ namespace CK.SqlServer.Parser
         BitwiseOrAssign = IsAssignOperator | OpLevel07 | 2,
 
         /// <summary>
-        /// Bitwise And assignment (&=).
+        /// Bitwise And assignment (&amp;=).
         /// </summary>
         BitwiseAndAssign = IsAssignOperator | OpLevel07 | 3,
 

@@ -72,7 +72,10 @@
   <ItemGroup>
     <None Include="App.config" />
     <None Include="Bootstrap.ps1" />
-    <None Include="CK.SqlServer.Parser.nuspec" />
+    <None Include="NuSpec\CK.SqlServer.Parser.nuspec" />
+    <None Include="NuSpec\nuspec.xsd">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

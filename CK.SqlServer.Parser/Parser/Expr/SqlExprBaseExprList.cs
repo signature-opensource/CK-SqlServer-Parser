@@ -36,11 +36,10 @@ namespace CK.SqlServer.Parser
         }
 
         /// <summary>
-        /// Initializes a new <see cref="SqlExprBaseExprList{T}"/> of <typeparamref name="T"/> without <see cref="Opener"/> nor <see cref="Closer"/> 
-        /// and with <paramref name="validSeparator"/> that is <see cref="IsCommaSeparator"/> by default.
+        /// Initializes a new <see cref="SqlExprBaseExprList{T}"/> of <typeparamref name="T"/> without Opener nor Closer.
         /// </summary>
         /// <param name="exprOrCommaTokens">List of tokens or expressions.</param>
-        /// <param name="validSeparator">Defaults to a predicate that checks that separators are commas (see <see cref="IsCommaSeparator"/>).</param>
+        /// <param name="allowEmpty">Allows empty list.</param>
         public SqlExprBaseExprList( IList<ISqlItem> exprOrCommaTokens, bool allowEmpty )
             : base( exprOrCommaTokens, allowEmpty, ISqlItemExtension.IsCommaSeparator )
         {

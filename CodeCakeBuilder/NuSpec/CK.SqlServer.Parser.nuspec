@@ -2,7 +2,7 @@
 <package xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <metadata xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
     <id>CK.SqlServer.Parser</id>
-    <version>0</version>
+    <version>$version$</version>
     <authors>Invenietis</authors>
     <owners>Invenietis</owners>
     <copyright>Invenietis</copyright>
@@ -18,8 +18,8 @@
 	  </dependencies>
   </metadata>
   <files>
-	  <file src="CK.SqlServer.Parser\bin\Release\CK.SqlServer.Parser.dll" target="lib\net45" />		
-	  <file src="CK.SqlServer.Parser\bin\Release\CK.SqlServer.Parser.pdb" target="lib\net45" />		
-	  <file src="CK.SqlServer.Parser\bin\Release\CK.SqlServer.Parser.xml" target="lib\net45" />		
+	  <file src="CK.SqlServer.Parser\bin\{{configuration}}\CK.SqlServer.Parser.dll" target="lib\net45" />		
+	  <file src="CK.SqlServer.Parser\bin\{{configuration}}\CK.SqlServer.Parser.pdb" target="lib\net45" />		
+	  <file src="CK.SqlServer.Parser\bin\{{configuration}}\CK.SqlServer.Parser.xml" target="lib\net45" />		
   </files>
 </package>
