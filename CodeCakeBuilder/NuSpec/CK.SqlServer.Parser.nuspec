@@ -6,7 +6,7 @@
     <authors>Invenietis</authors>
     <owners>Invenietis</owners>
     <copyright>Invenietis</copyright>
-    <projectUrl>https://bitbucket.com/</projectUrl>
+    <projectUrl>https://bitbucket.org/olivier_spinelli/ck-sqlserver-parser</projectUrl>
     <summary>T-Sql parser implementation.</summary>
     <description>
 	T-Sql parser implementation.
