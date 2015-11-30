@@ -56,6 +56,7 @@ as begin
 		FETCH NEXT FROM vendor_cursor 
 		INTO @vendor_id, @vendor_name
 	END 
+
 	CLOSE vendor_cursor;
 	DEALLOCATE vendor_cursor;
 end

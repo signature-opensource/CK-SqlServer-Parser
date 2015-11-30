@@ -10,7 +10,6 @@ namespace CK.SqlServer.Parser.Tests
     [TestFixture]
     public class SetStatementTests
     {
-
         [TestCase( "set @v = 5" )]
         [TestCase( "set @v = 5;" )]
         [TestCase( "set @v = 5; select 1" )]

@@ -15,6 +15,7 @@ as begin
 	set @CUser = cursor local fast_forward for 
 		select ActorId from CK.tActorProfile where GroupId = @GroupId and ActorId <> @GroupId;
 	open @CUser;
+
 	fetch from @CUser into @UserId;
 	while @@FETCH_STATUS = 0
 	begin

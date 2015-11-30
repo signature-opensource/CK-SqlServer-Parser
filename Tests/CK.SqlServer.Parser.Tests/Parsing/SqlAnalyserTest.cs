@@ -1,10 +1,3 @@
-#region Proprietary License
-/*----------------------------------------------------------------------------
-* This file (Tests\CK.SqlServer.Parser.Tests\Parsing\SqlAnalyserTest.cs) is part of CK-Database. 
-* Copyright © 2007-2014, Invenietis <http://www.invenietis.com>. All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -520,7 +513,7 @@ namespace CK.SqlServer.Parser.Tests
         {
             CheckStatement<SqlExprStStoredProc>( "sStrange.sql", sp =>
                 {
-                    Assert.That( sp.Name.ToString(), Is.EqualTo( "sStrange\r\n" ) );
+                    Assert.That( sp.Name.ToString(), Is.EqualTo( "sStrange -- funny one\r\n" ) );
                     Assert.That( sp.Parameters, Is.Empty );
                     Assert.That( sp.BodyStatements.Count, Is.EqualTo( 5 ) );
                 } );
@@ -549,7 +542,7 @@ namespace CK.SqlServer.Parser.Tests
         {
             CheckStatement<SqlExprStStoredProc>( "sStoredProcedure02.sql", sp =>
                 {
-                    Assert.That( sp.Name.ToString(), Is.EqualTo( "CK.sResDataStringSet -- Merge inside.\r\n" ) );
+                    Assert.That( sp.Name.ToString(), Is.EqualTo( "CK.sResDataStringSet -- Merge inside!\r\n" ) );
                     Assert.That( sp.Parameters.Count, Is.EqualTo( 2 ) );
                     Assert.That( sp.HasBeginEnd );
                     Assert.That( sp.HasOptions, Is.False );
