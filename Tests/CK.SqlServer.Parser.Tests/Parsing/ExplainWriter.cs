@@ -1,10 +1,3 @@
-#region Proprietary License
-/*----------------------------------------------------------------------------
-* This file (Tests\CK.SqlServer.Parser.Tests\Parsing\ExplainWriter.cs) is part of CK-Database. 
-* Copyright © 2007-2014, Invenietis <http://www.invenietis.com>. All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,7 +18,7 @@ namespace CK.SqlServer.Parser.Tests
         {
             ExplainWriter w = new ExplainWriter();
             w.VisitItem( e );
-            return w.Out.ToString();
+            return w.Out.ToString().NormalizeEOL();
         }
 
         public override SqlItem Visit( SqlExprAssign e )

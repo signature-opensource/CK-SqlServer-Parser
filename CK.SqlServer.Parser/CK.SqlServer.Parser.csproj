@@ -15,12 +15,6 @@
     </NuGetPackageImportStamp>
     <TargetFrameworkProfile />
   </PropertyGroup>
-  <PropertyGroup>
-    <AssemblyOriginatorKeyFile>..\SharedKey.snk</AssemblyOriginatorKeyFile>
-  </PropertyGroup>
-  <PropertyGroup>
-    <SignAssembly>true</SignAssembly>
-  </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
@@ -39,13 +33,20 @@
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>bin\Release\CK.SqlServer.Parser.xml</DocumentationFile>
   </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>..\SharedKey.snk</AssemblyOriginatorKeyFile>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup Condition=" $(GenerateDocumentation) != '' ">
+    <DocumentationFile>bin\$(Configuration)\$(AssemblyName).xml</DocumentationFile>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="CK.Core, Version=4.3.0.0, Culture=neutral, PublicKeyToken=edfa2f62fc978217, processorArchitecture=MSIL">
       <HintPath>..\packages\CK.Core.4.3.0\lib\net45\CK.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="CK.SqlServer.Parser.Model, Version=1.0.0.0, Culture=neutral, PublicKeyToken=731c291b31fb8d27, processorArchitecture=MSIL">
-      <HintPath>..\packages\CK.SqlServer.Parser.Model.1.0.0\lib\net45\CK.SqlServer.Parser.Model.dll</HintPath>
+      <HintPath>..\packages\CK.SqlServer.Parser.Model.1.0.1\lib\net45\CK.SqlServer.Parser.Model.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
@@ -180,17 +181,16 @@
     <Compile Include="Tokenizer\Token\SqlTokenTerminal.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config" />
     <None Include="packages.config" />
     <None Include="Parser\Expr\ExpressionsAndStatements.cd" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Import Project="..\packages\SimpleGitVersionTask.0.10.0\build\SimpleGitVersionTask.targets" Condition="Exists('..\packages\SimpleGitVersionTask.0.10.0\build\SimpleGitVersionTask.targets')" />
+  <Import Project="..\packages\SimpleGitVersionTask.0.11.1\build\SimpleGitVersionTask.targets" Condition="Exists('..\packages\SimpleGitVersionTask.0.11.1\build\SimpleGitVersionTask.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('..\packages\SimpleGitVersionTask.0.10.0\build\SimpleGitVersionTask.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\SimpleGitVersionTask.0.10.0\build\SimpleGitVersionTask.targets'))" />
+    <Error Condition="!Exists('..\packages\SimpleGitVersionTask.0.11.1\build\SimpleGitVersionTask.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\SimpleGitVersionTask.0.11.1\build\SimpleGitVersionTask.targets'))" />
   </Target>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

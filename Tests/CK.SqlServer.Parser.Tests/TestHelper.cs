@@ -1,10 +1,3 @@
-#region Proprietary License
-/*----------------------------------------------------------------------------
-* This file (Tests\CK.SqlServer.Parser.Tests\TestHelper.cs) is part of CK-Database. 
-* Copyright © 2007-2014, Invenietis <http://www.invenietis.com>. All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
 using System.IO;
 using NUnit.Framework;
 using CK.Core;
@@ -27,7 +20,6 @@ namespace CK.SqlServer.Parser.Tests
             _monitor = new ActivityMonitor();
             _monitor.Output.BridgeTarget.HonorMonitorFilter = false;
             _console = new ActivityMonitorConsoleClient();
-            _monitor.Output.RegisterClients( _console );
         }
 
         public static IActivityMonitor ConsoleMonitor
@@ -66,19 +58,20 @@ namespace CK.SqlServer.Parser.Tests
 
         public static string LoadTextFromParsingScripts( string fileName )
         {
-            return File.ReadAllText( TestHelper.GetFolder( "Parsing", "Scripts", fileName ) );
+            return File.ReadAllText( TestHelper.GetFolder( "Parsing", "Scripts", fileName ) ).NormalizeEOL();
         }
 
         [DebuggerStepThrough]
         public static T ParseOneStatementAndCheckString<T>( string text, bool addSemiColon = false ) where T : SqlExprBaseSt
         {
+            text = text.NormalizeEOL();
             if( addSemiColon ) text += ';';
             SqlExprBaseSt statement;
             SqlAnalyser.ErrorResult r = SqlAnalyser.ParseStatement( out statement, text );
             Assert.That( !r.IsError, r.ToString() );
             Assert.That( statement, Is.InstanceOf<T>() );
             T s = (T)statement;
-            Assert.That( statement.ToString(), Is.EqualTo( text ) );
+            Assert.That( statement.ToString().NormalizeEOL(), Is.EqualTo( text ) );
             return s;
         }
 
@@ -91,6 +84,7 @@ namespace CK.SqlServer.Parser.Tests
         [DebuggerStepThrough]
         public static T ParseOneStatement<T>( string text ) where T : SqlExprBaseSt
         {
+            text = text.NormalizeEOL();
             SqlExprBaseSt statement;
             SqlAnalyser.ErrorResult r = SqlAnalyser.ParseStatement( out statement, text );
             Assert.That( !r.IsError, r.ToString() );

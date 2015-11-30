@@ -1,10 +1,3 @@
-#region Proprietary License
-/*----------------------------------------------------------------------------
-* This file (Tests\CK.SqlServer.Parser.Tests\Parsing\SqlAnalyserTest.cs) is part of CK-Database. 
-* Copyright © 2007-2014, Invenietis <http://www.invenietis.com>. All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -95,7 +88,7 @@ namespace CK.SqlServer.Parser.Tests
         }
 
         [Test]
-        public void CollationTests()
+        public void CollationTests() 
         {
             string s = @"
      Select id as ID,
@@ -407,11 +400,13 @@ namespace CK.SqlServer.Parser.Tests
 
         private static void Check( string text, string explained, string textAutoCorrected = null )
         {
+            text = text.NormalizeEOL();
+            explained = explained.NormalizeEOL();
             SqlExpr e;
             var r = SqlAnalyser.ParseExpression( out e, text );
             Assert.That( r.IsError, Is.False, r.ToString() );
             Assert.That( ExplainWriter.Write( e ), Is.EqualTo( Regex.Replace( explained, @"\s*", String.Empty ) ) );
-            Assert.That( e.ToString(), Is.EqualTo( textAutoCorrected ?? text ) );
+            Assert.That( e.ToString().NormalizeEOL(), Is.EqualTo( textAutoCorrected ?? text ) );
         }
 
         [Test]
@@ -436,7 +431,7 @@ namespace CK.SqlServer.Parser.Tests
         {
             var sp = ReadStatement<SqlExprStStoredProc>( "sProcWithoutTerminator.sql" );
 
-            Assert.That( sp.Name.ToString(), Is.EqualTo( "sProcWithoutTerminator\r\n" ) );
+            Assert.That( sp.Name.ToString(), Is.EqualTo( "sProcWithoutTerminator" + Environment.NewLine ) );
             Assert.That( sp.Parameters[0].IsOutput, Is.False );
             Assert.That( sp.Parameters[0].IsReadOnly, Is.False );
             Assert.That( sp.Parameters[0].DefaultValue, Is.Null );
@@ -451,7 +446,7 @@ namespace CK.SqlServer.Parser.Tests
         {
             CheckStatement<SqlExprStFunctionScalar>( "fAclGrantLevel.sql", f =>
             {
-                Assert.That( f.Name.ToString(), Is.EqualTo( "CK.fAclGrantLevel\r\n" ) );
+                Assert.That( f.Name.ToString(), Is.EqualTo( "CK.fAclGrantLevel" + Environment.NewLine ) );
                 Assert.That( f.Parameters[0].IsOutput, Is.False );
                 Assert.That( f.Parameters[0].IsReadOnly, Is.False );
                 Assert.That( f.Parameters[0].DefaultValue, Is.Null );
@@ -478,7 +473,7 @@ namespace CK.SqlServer.Parser.Tests
         {
             CheckStatement<SqlExprStFunctionInlineTable>( "fReadThings.sql", f =>
                 {
-                    Assert.That( f.Name.ToString(), Is.EqualTo( "CK.fReadThings\r\n" ) );
+                    Assert.That( f.Name.ToString(), Is.EqualTo( "CK.fReadThings" + Environment.NewLine ) );
                     Assert.That( f.Parameters[0].IsOutput, Is.False );
                     Assert.That( f.Parameters[0].IsReadOnly, Is.False );
                     Assert.That( f.Parameters[0].DefaultValue, Is.Null );
@@ -505,7 +500,7 @@ namespace CK.SqlServer.Parser.Tests
             //
             CheckStatement<SqlExprStStoredProc>( "sWithOptions.sql", sp =>
                 {
-                    Assert.That( sp.Name.ToString(), Is.EqualTo( "sWithOptions\r\n" ) );
+                    Assert.That( sp.Name.ToString(), Is.EqualTo( "sWithOptions" + Environment.NewLine ) );
                     Assert.That( sp.Parameters.Count, Is.EqualTo( 0 ) );
                     Assert.That( sp.HasOptions );
                     Assert.That( sp.Options.Items.Count(), Is.EqualTo( 4 ), "[with] [recompile] [,] [execute as owner]" );
@@ -520,7 +515,7 @@ namespace CK.SqlServer.Parser.Tests
         {
             CheckStatement<SqlExprStStoredProc>( "sStrange.sql", sp =>
                 {
-                    Assert.That( sp.Name.ToString(), Is.EqualTo( "sStrange\r\n" ) );
+                    Assert.That( sp.Name.ToString(), Is.EqualTo( "sStrange -- funny one" + Environment.NewLine ) );
                     Assert.That( sp.Parameters, Is.Empty );
                     Assert.That( sp.BodyStatements.Count, Is.EqualTo( 5 ) );
                 } );
@@ -531,7 +526,7 @@ namespace CK.SqlServer.Parser.Tests
         {
             CheckStatement<SqlExprStStoredProc>( "sStoredProcedure01.sql", sp =>
                 {
-                    Assert.That( sp.Name.ToString(), Is.EqualTo( "CKCore.sErrorRethrow\r\n" ) );
+                    Assert.That( sp.Name.ToString(), Is.EqualTo( "CKCore.sErrorRethrow" + Environment.NewLine ) );
                     Assert.That( sp.Parameters[0].IsOutput, Is.False );
                     Assert.That( sp.Parameters[0].IsReadOnly, Is.False );
                     Assert.That( sp.Parameters[0].DefaultValue, Is.Null );
@@ -549,7 +544,7 @@ namespace CK.SqlServer.Parser.Tests
         {
             CheckStatement<SqlExprStStoredProc>( "sStoredProcedure02.sql", sp =>
                 {
-                    Assert.That( sp.Name.ToString(), Is.EqualTo( "CK.sResDataStringSet -- Merge inside.\r\n" ) );
+                    Assert.That( sp.Name.ToString(), Is.EqualTo( "CK.sResDataStringSet -- Merge inside!" + Environment.NewLine ) );
                     Assert.That( sp.Parameters.Count, Is.EqualTo( 2 ) );
                     Assert.That( sp.HasBeginEnd );
                     Assert.That( sp.HasOptions, Is.False );
@@ -562,7 +557,7 @@ namespace CK.SqlServer.Parser.Tests
         {
             CheckStatement<SqlExprStStoredProc>( "sStoredProcedure03.sql", sp =>
                 {
-                    Assert.That( sp.Name.ToString(), Is.EqualTo( "InvBack.sOfferCreate\r\n" ) );
+                    Assert.That( sp.Name.ToString(), Is.EqualTo( "InvBack.sOfferCreate" + Environment.NewLine ) );
                     Assert.That( sp.HasBeginEnd );
                     Assert.That( sp.HasOptions, Is.False );
                     Assert.That( sp.Parameters.Count, Is.EqualTo( 7 ) );
@@ -657,7 +652,7 @@ namespace CK.SqlServer.Parser.Tests
         {
             var sp = ReadStatement<SqlExprStStoredProc>( "sGroupRemoveAllUsers.sql" );
 
-            Assert.That( sp.Name.ToString(), Is.EqualTo( "CK.sGroupRemoveAllUsers\r\n" ) );
+            Assert.That( sp.Name.ToString(), Is.EqualTo( "CK.sGroupRemoveAllUsers" + Environment.NewLine ) );
             Assert.That( sp.Parameters.Count, Is.EqualTo( 2 ) );
             Assert.That( sp.BodyStatements.Count, Is.GreaterThan( 1 ) );
         }
@@ -667,7 +662,7 @@ namespace CK.SqlServer.Parser.Tests
         {
             var sp = ReadStatement<SqlExprStStoredProc>( "cursor_usage.sql" );
 
-            Assert.That( sp.Name.ToString(), Is.EqualTo( "cursor_usage\r\n" ) );
+            Assert.That( sp.Name.ToString(), Is.EqualTo( "cursor_usage" + Environment.NewLine ) );
             Assert.That( sp.Parameters.Count, Is.EqualTo( 0 ) );
             Assert.That( sp.BodyStatements.Count, Is.GreaterThan( 1 ) );
         }

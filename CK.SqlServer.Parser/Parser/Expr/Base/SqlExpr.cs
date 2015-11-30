@@ -83,6 +83,12 @@ namespace CK.SqlServer.Parser
             return this;
         }
 
+        /// <summary>
+        /// Creates items betweem parenthesis.
+        /// </summary>
+        /// <param name="openPar">Opening parenthesis token.</param>
+        /// <param name="closePar">Closing parenthesis token.</param>
+        /// <returns>An array of <see cref="ISqlItem"/>.</returns>
         protected ISqlItem[] EncloseComponents( SqlTokenOpenPar openPar, SqlTokenClosePar closePar )
         {
             return CreateEnclosedArray( openPar, Slots, closePar );

@@ -72,6 +72,7 @@
     <Compile Include="Parsing\SqlTokenizerTest.cs" />
     <Compile Include="Parsing\SqlTokenReaderTests.cs" />
     <Compile Include="SetStatementTests.cs" />
+    <Compile Include="StringNormalizationExtension.cs" />
     <Compile Include="TestHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -98,7 +99,6 @@
     <Content Include="Parsing\Scripts\AdventureWorks2012-FullSchema.sql" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

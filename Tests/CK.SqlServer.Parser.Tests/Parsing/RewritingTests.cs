@@ -1,14 +1,10 @@
-﻿using System;
-using System.CodeDom.Compiler;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using CK.Core;
 using NUnit.Framework;
-using CK.Core;
-using System.Diagnostics;
+using System;
+using System.CodeDom.Compiler;
 using System.Data;
+using System.Diagnostics;
+using System.IO;
 
 namespace CK.SqlServer.Parser.Tests.Parsing
 {
