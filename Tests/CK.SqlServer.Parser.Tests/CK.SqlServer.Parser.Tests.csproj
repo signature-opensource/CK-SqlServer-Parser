@@ -98,7 +98,6 @@
     <Content Include="Parsing\Scripts\AdventureWorks2012-FullSchema.sql" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
