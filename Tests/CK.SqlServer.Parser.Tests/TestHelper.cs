@@ -58,19 +58,20 @@ namespace CK.SqlServer.Parser.Tests
 
         public static string LoadTextFromParsingScripts( string fileName )
         {
-            return File.ReadAllText( TestHelper.GetFolder( "Parsing", "Scripts", fileName ) );
+            return File.ReadAllText( TestHelper.GetFolder( "Parsing", "Scripts", fileName ) ).NormalizeEOL();
         }
 
         [DebuggerStepThrough]
         public static T ParseOneStatementAndCheckString<T>( string text, bool addSemiColon = false ) where T : SqlExprBaseSt
         {
+            text = text.NormalizeEOL();
             if( addSemiColon ) text += ';';
             SqlExprBaseSt statement;
             SqlAnalyser.ErrorResult r = SqlAnalyser.ParseStatement( out statement, text );
             Assert.That( !r.IsError, r.ToString() );
             Assert.That( statement, Is.InstanceOf<T>() );
             T s = (T)statement;
-            Assert.That( statement.ToString(), Is.EqualTo( text ) );
+            Assert.That( statement.ToString().NormalizeEOL(), Is.EqualTo( text ) );
             return s;
         }
 
@@ -83,6 +84,7 @@ namespace CK.SqlServer.Parser.Tests
         [DebuggerStepThrough]
         public static T ParseOneStatement<T>( string text ) where T : SqlExprBaseSt
         {
+            text = text.NormalizeEOL();
             SqlExprBaseSt statement;
             SqlAnalyser.ErrorResult r = SqlAnalyser.ParseStatement( out statement, text );
             Assert.That( !r.IsError, r.ToString() );

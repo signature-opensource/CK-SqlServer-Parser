@@ -144,7 +144,8 @@ as
 begin
   declare @g nvarchar ( 42 ) = N'Oups' ;
   exec [a.b] . sOther @p = @X ;
-end";
+end".NormalizeEOL();
+
             p.Reset( s );
 
             StringBuilder b  = new StringBuilder();
@@ -169,8 +170,8 @@ end";
                 .Replace( "sOther", "identifier" );
 
             // Whitespace
-            s = s.Replace( "/* Comment is trivia\r\n(skipped)*/", "" )
-                .Replace( "\r\n", " " )
+            s = s.Replace( "/* Comment is trivia"+Environment.NewLine+"(skipped)*/", "" )
+                .Replace( Environment.NewLine, " " )
                 .Replace( "  ", " " )
                 .Replace( "  ", " " )
                 .Replace( "  ", " " );
@@ -204,10 +205,10 @@ begin
   exec [a.b].sOther @p = @X, @v = $1235.12;
   declare @x1 decimal = .34;
   declare @x2 float = .45e12;
-end";
+end".NormalizeEOL();
             StringBuilder b  = new StringBuilder();
             foreach( var t in p.ParseWithoutError( s ) ) t.Write( b );
-            string s2 = b.ToString();
+            string s2 = b.ToString().NormalizeEOL();
 
             // Fix: .34 is changed as 0.34 (decimal), .45e12 becomes 0.45e12 (float).
             Assert.That( s2, Is.EqualTo( s.Replace( ".34", "0.34" ).Replace( ".45e12", "0.45e12" ) ) );

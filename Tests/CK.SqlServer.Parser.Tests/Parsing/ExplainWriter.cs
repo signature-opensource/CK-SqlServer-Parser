@@ -18,7 +18,7 @@ namespace CK.SqlServer.Parser.Tests
         {
             ExplainWriter w = new ExplainWriter();
             w.VisitItem( e );
-            return w.Out.ToString();
+            return w.Out.ToString().NormalizeEOL();
         }
 
         public override SqlItem Visit( SqlExprAssign e )
