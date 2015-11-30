@@ -95,7 +95,7 @@ namespace CK.SqlServer.Parser.Tests
         }
 
         [Test]
-        public void CollationTests()
+        public void CollationTests() 
         {
             string s = @"
      Select id as ID,
