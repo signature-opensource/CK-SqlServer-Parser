@@ -90,7 +90,20 @@ namespace CK.SqlServer.Parser
         /// <param name="leading">Leading trivia. Can be null.</param>
         /// <param name="trailing">Trailing trivia. Can be null.</param>
         /// <returns>A new immutable node.</returns>
-        public abstract SqlNode SetTrivias( ImmutableList<SqlTrivia> leading, ImmutableList<SqlTrivia> trailing );
+        public SqlNode SetTrivias( ImmutableList<SqlTrivia> leading, ImmutableList<SqlTrivia> trailing )
+        {
+            return Clone( leading, ChildrenNodes, trailing );
+        }
+
+        /// <summary>
+        /// Fundamental method that rebuilds this node with new trivias and content.
+        /// </summary>
+        /// <param name="leading">Leading trivias. Can be null when there is no trivias.</param>
+        /// <param name="children">New content. May be null for an empty content.</param>
+        /// <param name="trailing">Trailing trivias. Can be null when there is no trivias.</param>
+        /// <returns>A new object.</returns>
+        protected abstract SqlNode Clone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing );
+
 
         /// <summary>
         /// Handles null and compares with the current trivias.

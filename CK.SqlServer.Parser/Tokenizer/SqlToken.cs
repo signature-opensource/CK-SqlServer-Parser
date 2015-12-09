@@ -24,7 +24,7 @@ namespace CK.SqlServer.Parser
 
             protected override void DoWrite( StringBuilder b ) { }
             public override string ToString() { return String.Empty; }
-            public override SqlNode SetTrivias( ImmutableList<SqlTrivia> leading, ImmutableList<SqlTrivia> trailing )
+            protected override SqlNode Clone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> content, ImmutableList<SqlTrivia> trailing )
             {
                 return TriviasDiffer( ref leading, ref trailing )
                         ? new EmptyToken( leading, trailing )

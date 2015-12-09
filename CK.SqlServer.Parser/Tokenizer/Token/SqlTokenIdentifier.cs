@@ -80,7 +80,7 @@ namespace CK.SqlServer.Parser
             return String.Compare( _name, name, StringComparison.OrdinalIgnoreCase ) == 0; 
         }
 
-        public override SqlNode SetTrivias( ImmutableList<SqlTrivia> leading, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode Clone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> content, ImmutableList<SqlTrivia> trailing )
         {
             return TriviasDiffer( ref leading, ref trailing )
                     ? new SqlTokenIdentifier( TokenType, _name, leading, trailing )

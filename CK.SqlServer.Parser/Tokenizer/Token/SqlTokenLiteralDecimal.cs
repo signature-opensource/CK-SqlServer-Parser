@@ -77,7 +77,7 @@ namespace CK.SqlServer.Parser
 
         public override string LiteralValue { get { return ValueAsString; } }
 
-        public override SqlNode SetTrivias( ImmutableList<SqlTrivia> leading, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode Clone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> content, ImmutableList<SqlTrivia> trailing )
         {
             return TriviasDiffer( ref leading, ref trailing )
                     ? new SqlTokenLiteralDecimal( this, leading, trailing )
