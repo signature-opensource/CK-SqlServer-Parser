@@ -34,11 +34,11 @@ namespace CK.SqlServer.Parser
         static ISqlItem[] Build( ISelectSpecification left, SqlTokenIdentifier opT, SqlTokenIdentifier allT, ISelectSpecification right, SelectOrderBy orderBy, SelectFor forPart )
         {
             Debug.Assert( left != null && opT != null && right != null );
-            ISqlItem o = allT != null ? (ISqlItem)new SqlExprMultiToken<SqlTokenIdentifier>( opT, allT ) : opT;
+            ISqlItem o = allT != null ? (ISqlItem)new SqlTokenList<SqlTokenIdentifier>( opT, allT ) : opT;
             return Build( SqlToken.EmptyOpenPar, left, o, right, orderBy, forPart, SqlToken.EmptyClosePar );
         }
 
-        static ISqlItem[] Build( SqlExprMultiToken<SqlTokenOpenPar> opener, ISelectSpecification left, ISqlItem op, ISelectSpecification right, SelectOrderBy orderBy, SelectFor forPart, SqlExprMultiToken<SqlTokenClosePar> closer )
+        static ISqlItem[] Build( SqlTokenList<SqlTokenOpenPar> opener, ISelectSpecification left, ISqlItem op, ISelectSpecification right, SelectOrderBy orderBy, SelectFor forPart, SqlTokenList<SqlTokenClosePar> closer )
         {
             Debug.Assert( opener != null && left != null && op != null && right != null && closer != null );
             if( orderBy != null )
@@ -82,9 +82,9 @@ namespace CK.SqlServer.Parser
 
         public ISelectSpecification LeftSelect { get { return (ISelectSpecification)Slots[1]; } }
 
-        SqlExprMultiToken<SqlToken> UnionAll { get { return Slots[2] as SqlExprMultiToken<SqlToken>; } }
+        SqlTokenList<SqlToken> UnionAll { get { return Slots[2] as SqlTokenList<SqlToken>; } }
 
-        SqlTokenIdentifier OperatorT { get { return Slots[2] is SqlTokenIdentifier ? (SqlTokenIdentifier)Slots[2] : ((SqlExprMultiToken<SqlTokenIdentifier>)Slots[2])[0]; } }
+        SqlTokenIdentifier OperatorT { get { return Slots[2] is SqlTokenIdentifier ? (SqlTokenIdentifier)Slots[2] : ((SqlTokenList<SqlTokenIdentifier>)Slots[2])[0]; } }
 
         /// <summary>
         /// Gets the operator token type: it can be: <see cref="SqlTokenType.Union"/>, <see cref="SqlTokenType.Except"/>, <see cref="SqlTokenType.Intersect"/>.

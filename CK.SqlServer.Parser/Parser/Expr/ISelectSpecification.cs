@@ -30,12 +30,12 @@ namespace CK.SqlServer.Parser
         /// <summary>
         /// Gets the opening parenthesis. Can be empty.
         /// </summary>
-        SqlExprMultiToken<SqlTokenOpenPar> Opener { get; }
+        SqlTokenList<SqlTokenOpenPar> Opener { get; }
 
         /// <summary>
         /// Gets the closing parenthesis. Can be empty.
         /// </summary>
-        SqlExprMultiToken<SqlTokenClosePar> Closer { get; }
+        SqlTokenList<SqlTokenClosePar> Closer { get; }
 
     }
 }

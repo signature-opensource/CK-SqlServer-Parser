@@ -1,10 +1,3 @@
-#region Proprietary License
-/*----------------------------------------------------------------------------
-* This file (CK.SqlServer.Parser\Tokenizer\Token\SqlTokenClosePar.cs) is part of CK-Database. 
-* Copyright © 2007-2014, Invenietis <http://www.invenietis.com>. All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,6 +6,7 @@ using System.Linq.Expressions;
 using CK.Core;
 using System.Diagnostics;
 using System.Globalization;
+using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
@@ -21,10 +15,11 @@ namespace CK.SqlServer.Parser
     /// </summary>
     public sealed class SqlTokenClosePar : SqlTokenTerminal 
     {
-        public SqlTokenClosePar( IReadOnlyList<SqlTrivia> leadingTrivia = null, IReadOnlyList<SqlTrivia> trailingTrivia = null )
+        public SqlTokenClosePar( ImmutableList<SqlTrivia> leadingTrivia = null, ImmutableList<SqlTrivia> trailingTrivia = null )
             : base( SqlTokenType.ClosePar, leadingTrivia, trailingTrivia )
         {
         }
+
     }
 
 }

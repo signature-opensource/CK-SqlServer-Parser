@@ -13,15 +13,19 @@ using System.Linq.Expressions;
 using CK.Core;
 using System.Diagnostics;
 using System.Globalization;
+using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
     public struct SqlTrivia
     {
+        readonly SqlTokenType _tokenType;
+        readonly string _text;
+
         /// <summary>
         /// A single space.
         /// </summary>
-        public static readonly IReadOnlyList<SqlTrivia> OneSpace = new CKReadOnlyListMono<SqlTrivia>( new SqlTrivia( SqlTokenType.None, " " ) );
+        public static readonly ImmutableList<SqlTrivia> OneSpace = ImmutableList.Create( new SqlTrivia( SqlTokenType.None, " " ) );
 
         public SqlTrivia( SqlTokenType tokenType, string text )
         {
@@ -29,27 +33,27 @@ namespace CK.SqlServer.Parser
             {
                 throw new ArgumentException( "Must be none, star or line comment.", "tokenType" );
             }
-            if( text == null ) throw new ArgumentNullException( "text" );
-            
-            TokenType = tokenType;
-            Text = text;
+            if( text == null ) text = String.Empty;
+            _tokenType = tokenType;
+            _text = text ?? String.Empty;
         }
 
         /// <summary>
         /// Gets a token type that can be <see cref="SqlTokenType.None"/> for white space
         /// or <see cref="SqlTokenType.LineComment"/> or <see cref="SqlTokenType.StarComment"/>. 
         /// </summary>
-        readonly public SqlTokenType TokenType;
+        public SqlTokenType TokenType { get { return _tokenType; } }
         
         /// <summary>
-        /// Gets the text of this trivia. When it is a <see cref="SqlTokenType.LineComment"/> or <see cref="SqlTokenType.StarComment"/>,
+        /// Gets the text of this trivia. Never null. 
+        /// When it is a <see cref="SqlTokenType.LineComment"/> or <see cref="SqlTokenType.StarComment"/>,
         /// the -- or /* */ characters do not appear.
         /// </summary>
-        readonly public string Text;
+        public string Text { get { return _text ?? String.Empty; } }
 
         public override int GetHashCode()
         {
-            return Util.Hash.Combine( (long)TokenType, Text.GetHashCode()  ).GetHashCode();
+            return Util.Hash.Combine( (long)TokenType, Text.GetHashCode() ).GetHashCode();
         }
 
         public override bool Equals( object obj )

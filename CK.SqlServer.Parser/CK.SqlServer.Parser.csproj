@@ -50,6 +50,10 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Collections.Immutable, Version=1.1.37.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Collections.Immutable.1.1.37\lib\dotnet\System.Collections.Immutable.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System.Core" />
     <Reference Include="System.Data" />
   </ItemGroup>
@@ -155,11 +159,12 @@
     <Compile Include="Parser\SqlAnalyser.LowLevel.cs" />
     <Compile Include="Parser\SqlItemVisitor.cs" />
     <Compile Include="Parser\SqlTokenReader.cs" />
+    <Compile Include="SqlNode.cs" />
     <Compile Include="SqlServerParser.cs" />
     <Compile Include="Tokenizer\ISqlItemExtension.cs" />
     <Compile Include="Tokenizer\SourcePosition.cs" />
     <Compile Include="Tokenizer\SqlTokenExtension.cs" />
-    <Compile Include="Tokenizer\SqlExprMultiToken.cs" />
+    <Compile Include="Tokenizer\SqlTokenList.cs" />
     <Compile Include="Tokenizer\SqlKeyword.cs" />
     <Compile Include="Tokenizer\SqlToken.cs" />
     <Compile Include="Tokenizer\SqlTokenizer.cs" />

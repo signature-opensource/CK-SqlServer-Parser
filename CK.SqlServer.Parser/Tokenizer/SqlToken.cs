@@ -13,33 +13,45 @@ using System.Linq.Expressions;
 using CK.Core;
 using System.Diagnostics;
 using System.Globalization;
+using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
     /// <summary>
     /// Base class for (non comment) tokens. This is an immutable object that carries its optional leading and trailing <see cref="SqlTrivia"/>.
     /// </summary>
-    public abstract class SqlToken : ISqlItem
+    public abstract class SqlToken : SqlNode, ISqlItem
     {
         class EmptyToken : SqlToken
         {
-            internal EmptyToken() : base() { }
+            internal EmptyToken( ImmutableList<SqlTrivia> leading, ImmutableList<SqlTrivia> trailing ) 
+                : base( leading, trailing )
+            {
+            }
+
             protected override void DoWrite( StringBuilder b ) { }
             public override string ToString() { return String.Empty; }
+            public override SqlNode SetTrivias( ImmutableList<SqlTrivia> leading, ImmutableList<SqlTrivia> trailing )
+            {
+                return TriviasDiffer( ref leading, ref trailing )
+                        ? new EmptyToken( leading, trailing )
+                        : this;
+            }
         }
 
         /// <summary>
         /// Empty token has a <see cref="SqlToken.TokenType"/> of <see cref="SqlTokenType.None"/> and empty leading and trailing trivias.
         /// </summary>
-        public static readonly SqlToken Empty = new EmptyToken();
+        public static readonly SqlToken Empty = new EmptyToken( null, null );
 
         /// <summary>
-        /// Private empty ctor for the EmptyToken singleton.
+        /// Private empty ctor for the EmptyToken.
         /// </summary>
-        SqlToken()
+        SqlToken( ImmutableList<SqlTrivia> leading, ImmutableList<SqlTrivia> trailing )
+            : base( leading, trailing )
         {
-            TokenType = SqlTokenType.None;
-            LeadingTrivia = TrailingTrivia = CKReadOnlyListEmpty<SqlTrivia>.Empty;
+            LeadingTrivia = base.LeadingTrivias;
+            TrailingTrivia = base.TrailingTrivias;
         }
 
         /// <summary>
@@ -47,15 +59,16 @@ namespace CK.SqlServer.Parser
         /// When null, trivias are safely sets to an empty readonly list of <see cref="SqlTrivia"/>.
         /// </summary>
         /// <param name="tokenType">Type of the token.</param>
-        /// <param name="leadingTrivia">Leading trivias if any.</param>
-        /// <param name="trailingTrivia">Trailing trivias if any.</param>
-        public SqlToken( SqlTokenType tokenType, IReadOnlyList<SqlTrivia> leadingTrivia = null, IReadOnlyList<SqlTrivia> trailingTrivia = null )
+        /// <param name="leading">Leading trivias if any.</param>
+        /// <param name="trailing">Trailing trivias if any.</param>
+        public SqlToken( SqlTokenType tokenType, ImmutableList<SqlTrivia> leading = null, ImmutableList<SqlTrivia> trailing = null )
+            : base( leading, trailing )
         {
             if( tokenType > 0 && ((tokenType & SqlTokenType.TokenDiscriminatorMask) == 0 || (tokenType&SqlTokenType.IsComment) !=0) ) throw new ArgumentException( "Invalid token type." );
             
             TokenType = tokenType;
-            LeadingTrivia = leadingTrivia ?? CKReadOnlyListEmpty<SqlTrivia>.Empty;
-            TrailingTrivia = trailingTrivia ?? CKReadOnlyListEmpty<SqlTrivia>.Empty;
+            LeadingTrivia = base.LeadingTrivias;
+            TrailingTrivia = base.TrailingTrivias;
         }
 
         /// <summary>
@@ -79,9 +92,9 @@ namespace CK.SqlServer.Parser
         /// <param name="b">The <see cref="StringBuilder"/> to write to.</param>
         public void Write( StringBuilder b )
         {
-            foreach( var t in LeadingTrivia ) t.Write( b );
+            foreach( var t in LeadingTrivias ) t.Write( b );
             DoWrite( b );
-            foreach( var t in TrailingTrivia ) t.Write( b );
+            foreach( var t in TrailingTrivias ) t.Write( b );
         }
 
         /// <summary>
@@ -101,7 +114,7 @@ namespace CK.SqlServer.Parser
 
         /// <summary>
         /// Overriden to return the result of <see cref="WriteWithoutTrivias"/>.
-        /// This should not be overriden anymore.
+        /// Only the empty token and SqlTokenBaseLiteral override this method.
         /// </summary>
         /// <returns>The mere token.</returns>
         public override string ToString()
@@ -123,12 +136,12 @@ namespace CK.SqlServer.Parser
         /// <summary>
         /// Empty parenthesis opener.
         /// </summary>
-        static public readonly SqlExprMultiToken<SqlTokenOpenPar> EmptyOpenPar = SqlExprMultiToken<SqlTokenOpenPar>.Empty;
+        static public readonly SqlTokenList<SqlTokenOpenPar> EmptyOpenPar = SqlTokenList<SqlTokenOpenPar>.Empty;
 
         /// <summary>
         /// Empty parenthesis closer.
         /// </summary>
-        static public readonly SqlExprMultiToken<SqlTokenClosePar> EmptyClosePar = SqlExprMultiToken<SqlTokenClosePar>.Empty;
+        static public readonly SqlTokenList<SqlTokenClosePar> EmptyClosePar = SqlTokenList<SqlTokenClosePar>.Empty;
 
         /// <summary>
         /// True if the <see cref="SqlToken"/> is the terminator ; token or a <see cref="SqlTokenType.IdentifierReservedStatement"/>.

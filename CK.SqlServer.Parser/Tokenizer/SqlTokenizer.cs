@@ -6,6 +6,7 @@ using CK.Core;
 using System.Globalization;
 using System.Collections.Generic;
 using System.Data;
+using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
@@ -29,8 +30,8 @@ namespace CK.SqlServer.Parser
         int			_curC0;
         int			_curC1;
 
-        List<SqlTrivia> _leadingTrivias;
-        List<SqlTrivia> _trailingTrivias;
+        ImmutableList<SqlTrivia>.Builder _leadingTrivias;
+        ImmutableList<SqlTrivia>.Builder _trailingTrivias;
 
         StringBuilder	_buffer;
         string	        _bufferString;
@@ -52,8 +53,8 @@ namespace CK.SqlServer.Parser
         public SqlTokenizer()
         {
             Debug.Assert( _moneyPrefix.IsSortedStrict(), "So that BinaryFind works." );
-            _leadingTrivias = new List<SqlTrivia>();
-            _trailingTrivias = new List<SqlTrivia>();
+            _leadingTrivias = ImmutableList.CreateBuilder<SqlTrivia>();
+            _trailingTrivias = ImmutableList.CreateBuilder<SqlTrivia>();
             _buffer = new StringBuilder( 512 );
             _stringPool = new Dictionary<string, string>();
             _stringPool.Add( " ", " " );
@@ -413,7 +414,7 @@ namespace CK.SqlServer.Parser
                 }
                 if( _tokenType < 0 )
                 {
-                    _token = new SqlTokenError( (SqlTokenTypeError)_tokenType, _leadingTrivias.ToReadOnlyList(), null, String.Format( "Unexpected {0} {1}.", _tokenType, GetTokenPosition() ) );
+                    _token = new SqlTokenError( (SqlTokenTypeError)_tokenType, _leadingTrivias.ToImmutableList(), null, String.Format( "Unexpected {0} {1}.", _tokenType, GetTokenPosition() ) );
                 }
                 else
                 {
@@ -421,8 +422,8 @@ namespace CK.SqlServer.Parser
                     // Captures buffer (if not already done) before reading trailing trivias.
                     var bufferString = _bufferString ?? _buffer.ToString();
                     CollectTrailingTrivias();
-                    var lead = _leadingTrivias.ToReadOnlyList();
-                    var tail = _trailingTrivias.ToReadOnlyList();
+                    var lead = _leadingTrivias.ToImmutableList();
+                    var tail = _trailingTrivias.ToImmutableList();
                     if( (_tokenType & (int)SqlTokenType.IsIdentifier) != 0 )
                     {
                         _token = new SqlTokenIdentifier( (SqlTokenType)_tokenType, _identifierValue, lead, tail );

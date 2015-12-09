@@ -12,12 +12,13 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using CK.Core;
+using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
     public sealed class SqlTokenLiteralDecimal : SqlTokenBaseLiteral
     {
-        public SqlTokenLiteralDecimal( SqlTokenType t, string value, IReadOnlyList<SqlTrivia> leadingTrivia = null, IReadOnlyList<SqlTrivia> trailingTrivia = null )
+        public SqlTokenLiteralDecimal( SqlTokenType t, string value, ImmutableList<SqlTrivia> leadingTrivia = null, ImmutableList<SqlTrivia> trailingTrivia = null )
             : base( t, leadingTrivia, trailingTrivia )
         {
             if( t != SqlTokenType.Decimal ) throw new ArgumentException( "Invalid token type.", "t" );
@@ -44,6 +45,16 @@ namespace CK.SqlServer.Parser
             DecimalValue = d;
         }
 
+        SqlTokenLiteralDecimal( SqlTokenLiteralDecimal x, ImmutableList<SqlTrivia> leadingTrivia, ImmutableList<SqlTrivia> trailingTrivia )
+         : base( x.TokenType, leadingTrivia, trailingTrivia )
+        {
+            ValueAsString = x.ValueAsString;
+            DecimalValue = x.DecimalValue;
+            IsValidDecimalValue = x.IsValidDecimalValue;
+            Precision = x.Precision;
+            Scale = x.Scale;
+        }
+
         /// <summary>
         /// Decimal is kept as a string, it is not converted to a numeric .Net type.
         /// Since .Net <see cref="Decimal"/> type has only 28 digits whereas Sql server numerics has 38.
@@ -66,6 +77,12 @@ namespace CK.SqlServer.Parser
 
         public override string LiteralValue { get { return ValueAsString; } }
 
+        public override SqlNode SetTrivias( ImmutableList<SqlTrivia> leading, ImmutableList<SqlTrivia> trailing )
+        {
+            return TriviasDiffer( ref leading, ref trailing )
+                    ? new SqlTokenLiteralDecimal( this, leading, trailing )
+                    : this;
+        }
     }
 
 }

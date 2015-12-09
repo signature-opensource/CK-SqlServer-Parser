@@ -28,7 +28,7 @@ namespace CK.SqlServer.Parser
         {
         }
 
-        static ISqlItem[] Build( SqlExprMultiToken<SqlTokenOpenPar> opener, SelectHeader header, SelectColumnList columns, SelectInto into, SelectFrom from, SelectWhere where, SelectGroupBy groupBy, SqlExprMultiToken<SqlTokenClosePar> closer )
+        static ISqlItem[] Build( SqlTokenList<SqlTokenOpenPar> opener, SelectHeader header, SelectColumnList columns, SelectInto into, SelectFrom from, SelectWhere where, SelectGroupBy groupBy, SqlTokenList<SqlTokenClosePar> closer )
         {
             if( header == null ) throw new ArgumentNullException( "header" );
             if( columns == null ) throw new ArgumentNullException( "columns" );

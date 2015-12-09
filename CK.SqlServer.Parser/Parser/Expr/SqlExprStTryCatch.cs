@@ -20,25 +20,25 @@ namespace CK.SqlServer.Parser
     /// </summary>
     public class SqlExprStTryCatch : SqlExprBaseSt
     {
-        public SqlExprStTryCatch( SqlExprMultiToken<SqlTokenIdentifier> beginTry, 
+        public SqlExprStTryCatch( SqlTokenList<SqlTokenIdentifier> beginTry, 
                                   SqlExprStatementList body, 
-                                  SqlExprMultiToken<SqlTokenIdentifier> endTryBeginCatch, 
+                                  SqlTokenList<SqlTokenIdentifier> endTryBeginCatch, 
                                   SqlExprStatementList bodycatch, 
-                                  SqlExprMultiToken<SqlTokenIdentifier>  endCatch,
+                                  SqlTokenList<SqlTokenIdentifier>  endCatch,
                                   SqlTokenTerminal statementTerminator = null )
             : base( CreateArray( beginTry, body, endTryBeginCatch, bodycatch, endCatch ), statementTerminator )
         {
         }
 
-        public SqlExprMultiToken<SqlTokenIdentifier> BeginTry { get { return (SqlExprMultiToken<SqlTokenIdentifier>)Slots[0]; } }
+        public SqlTokenList<SqlTokenIdentifier> BeginTry { get { return (SqlTokenList<SqlTokenIdentifier>)Slots[0]; } }
         
         public SqlExprStatementList Body { get { return (SqlExprStatementList)Slots[1]; } }
 
-        public SqlExprMultiToken<SqlTokenIdentifier> EndTryBeginCatch { get { return (SqlExprMultiToken<SqlTokenIdentifier>)Slots[2]; } }
+        public SqlTokenList<SqlTokenIdentifier> EndTryBeginCatch { get { return (SqlTokenList<SqlTokenIdentifier>)Slots[2]; } }
 
         public SqlExprStatementList BodyCatch { get { return (SqlExprStatementList)Slots[3]; } }
 
-        public SqlExprMultiToken<SqlTokenIdentifier> EndCatch { get { return (SqlExprMultiToken<SqlTokenIdentifier>)Slots[4]; } }
+        public SqlTokenList<SqlTokenIdentifier> EndCatch { get { return (SqlTokenList<SqlTokenIdentifier>)Slots[4]; } }
 
         [DebuggerStepThrough]
         internal protected override T Accept<T>( ISqlItemVisitor<T> visitor )

@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using CK.Core;
+using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
@@ -20,7 +21,7 @@ namespace CK.SqlServer.Parser
     /// </summary>
     public abstract class SqlTokenBaseLiteral : SqlToken
     {
-        public SqlTokenBaseLiteral( SqlTokenType t, IReadOnlyList<SqlTrivia> leadingTrivia = null, IReadOnlyList<SqlTrivia> trailingTrivia = null )
+        public SqlTokenBaseLiteral( SqlTokenType t, ImmutableList<SqlTrivia> leadingTrivia = null, ImmutableList<SqlTrivia> trailingTrivia = null )
             : base( t, leadingTrivia, trailingTrivia )
         {
             if( (t & (SqlTokenType.IsString|SqlTokenType.IsNumber)) == 0 ) throw new ArgumentException( "Invalid literal token.", "t" );

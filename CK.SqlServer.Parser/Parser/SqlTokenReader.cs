@@ -374,7 +374,7 @@ namespace CK.SqlServer.Parser
                 var h = TokenRead;
                 if( h != null ) h( _c );
             }
-            if( _c.TokenType == SqlTokenType.Equal && _assignmentContext ) _c = new SqlTokenTerminal( SqlTokenType.Assign, _c.LeadingTrivia, _c.TrailingTrivia );
+            if( _c.TokenType == SqlTokenType.Equal && _assignmentContext ) _c = new SqlTokenTerminal( SqlTokenType.Assign, _c.LeadingTrivias, _c.TrailingTrivias );
             _rawLookup = _e.MoveNext() ? _e.Current : SqlTokenError.EndOfInput;
             return true;
         }

@@ -190,11 +190,11 @@ namespace CK.SqlServer.Parser
                     if( !IsStatementList( out bodyCatch, true ) ) return false;
                     SqlTokenIdentifier endCatch, endCatchToken;
                     if( !R.IsToken( out endCatch, SqlTokenType.End, true ) || !R.IsToken( out endCatchToken, SqlTokenType.Catch, true ) ) return false;
-                    statement = new SqlExprStTryCatch( new SqlExprMultiToken<SqlTokenIdentifier>( id, tranOrTry ), 
+                    statement = new SqlExprStTryCatch( new SqlTokenList<SqlTokenIdentifier>( id, tranOrTry ), 
                                                        body, 
-                                                       new SqlExprMultiToken<SqlTokenIdentifier>( end, endTry, begCatch, begCatchToken), 
+                                                       new SqlTokenList<SqlTokenIdentifier>( end, endTry, begCatch, begCatchToken), 
                                                        bodyCatch, 
-                                                       new SqlExprMultiToken<SqlTokenIdentifier>( endCatch, endCatchToken ), 
+                                                       new SqlTokenList<SqlTokenIdentifier>( endCatch, endCatchToken ), 
                                                        GetOptionalTerminator() );
                     return true;
                 }
@@ -945,7 +945,7 @@ namespace CK.SqlServer.Parser
                 internal static SqlTokenIdentifier FromMultToken( SqlToken mult )
                 {
                     Debug.Assert( mult.TokenType == SqlTokenType.Mult );
-                    return new SqlTokenIdentifier( SqlTokenType.IdentifierStar, "*", mult.LeadingTrivia, mult.TrailingTrivia );
+                    return new SqlTokenIdentifier( SqlTokenType.IdentifierStar, "*", mult.LeadingTrivias, mult.TrailingTrivias );
                 }
 
                 public SqlToken Current

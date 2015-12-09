@@ -57,7 +57,7 @@ namespace CK.SqlServer.Parser
         static ISqlItem[] Build( IList<ISqlItem> exprOrTokens, bool allowEmpty, Predicate<ISqlItem> validSeparator = null )
         {
             if( exprOrTokens == null ) throw new ArgumentNullException( "exprOrTokens" );
-            var c = CreateArray( SqlExprMultiToken<SqlTokenOpenPar>.Empty, exprOrTokens, 0, exprOrTokens.Count, SqlExprMultiToken<SqlTokenClosePar>.Empty );
+            var c = CreateArray( SqlTokenList<SqlTokenOpenPar>.Empty, exprOrTokens, 0, exprOrTokens.Count, SqlTokenList<SqlTokenClosePar>.Empty );
             CheckArray( c, allowEmpty, true, false, validSeparator ?? ISqlItemExtension.IsCommaSeparator );
             return c;
         }
@@ -100,8 +100,8 @@ namespace CK.SqlServer.Parser
                 len -= 2;
                 offset = 1;
                 if( len < 0 ) throw new ArgumentException( "There must be at least the opener/closer pair.", "tokens" );
-                SqlExprMultiToken<SqlTokenOpenPar> opener = t[0] as SqlExprMultiToken<SqlTokenOpenPar>;
-                SqlExprMultiToken<SqlTokenClosePar> closer = t[t.Length - 1] as SqlExprMultiToken<SqlTokenClosePar>;
+                SqlTokenList<SqlTokenOpenPar> opener = t[0] as SqlTokenList<SqlTokenOpenPar>;
+                SqlTokenList<SqlTokenClosePar> closer = t[t.Length - 1] as SqlTokenList<SqlTokenClosePar>;
                 if( opener == null || closer == null ) throw new ArgumentException( "Opener/Closer not found.", "tokens" );
                 if( opener.Count != closer.Count ) throw new ArgumentException( "Opener/Closer are not balanced.", "tokens" );
                 if( atLeastOneOpener && opener.Count == 0 ) throw new ArgumentException( "There must be at least one parenthesis.", "tokens" );

@@ -29,8 +29,8 @@ namespace CK.SqlServer.Parser
         static ISqlItem[] Build( SqlItem left, SqlTokenIdentifier isT, SqlTokenIdentifier notT, SqlTokenIdentifier nullT )
         {
             return notT != null 
-                        ? CreateArray( SqlExprMultiToken<SqlTokenOpenPar>.Empty, left, isT, notT, nullT, SqlExprMultiToken<SqlTokenClosePar>.Empty )
-                        : CreateArray( SqlExprMultiToken<SqlTokenOpenPar>.Empty, left, isT, nullT, SqlExprMultiToken<SqlTokenClosePar>.Empty );
+                        ? CreateArray( SqlTokenList<SqlTokenOpenPar>.Empty, left, isT, notT, nullT, SqlTokenList<SqlTokenClosePar>.Empty )
+                        : CreateArray( SqlTokenList<SqlTokenOpenPar>.Empty, left, isT, nullT, SqlTokenList<SqlTokenClosePar>.Empty );
         }
 
         internal SqlExprIsNull( ISqlItem[] newComponents )

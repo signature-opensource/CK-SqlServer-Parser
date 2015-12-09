@@ -25,19 +25,19 @@ namespace CK.SqlServer.Parser
 
         internal SqlExpr( ISqlItem[] slots )
         {
-            Debug.Assert( slots != null && slots.Length >= 2 && slots[0] is SqlExprMultiToken<SqlTokenOpenPar> && slots[slots.Length - 1] is SqlExprMultiToken<SqlTokenClosePar> );
+            Debug.Assert( slots != null && slots.Length >= 2 && slots[0] is SqlTokenList<SqlTokenOpenPar> && slots[slots.Length - 1] is SqlTokenList<SqlTokenClosePar> );
             Slots = slots;
         }
 
         /// <summary>
         /// Gets the opening parenthesis. Can be empty.
         /// </summary>
-        public SqlExprMultiToken<SqlTokenOpenPar> Opener { get { return (SqlExprMultiToken<SqlTokenOpenPar>)Slots[0]; } }
+        public SqlTokenList<SqlTokenOpenPar> Opener { get { return (SqlTokenList<SqlTokenOpenPar>)Slots[0]; } }
 
         /// <summary>
         /// Gets the closing parenthesis. Can be empty.
         /// </summary>
-        public SqlExprMultiToken<SqlTokenClosePar> Closer { get { return (SqlExprMultiToken<SqlTokenClosePar>)Slots[Slots.Length-1]; } }
+        public SqlTokenList<SqlTokenClosePar> Closer { get { return (SqlTokenList<SqlTokenClosePar>)Slots[Slots.Length-1]; } }
 
         /// <summary>
         /// Gets the last token of the expression.
@@ -78,8 +78,8 @@ namespace CK.SqlServer.Parser
 
         internal SqlExpr MutableEnclose( SqlTokenOpenPar openPar, SqlTokenClosePar closePar )
         {
-            Slots[0] = SqlExprMultiToken<SqlTokenOpenPar>.Create( openPar, Opener );
-            Slots[Slots.Length-1] = SqlExprMultiToken<SqlTokenClosePar>.Create( Closer, closePar );
+            Slots[0] = SqlTokenList<SqlTokenOpenPar>.Create( openPar, Opener );
+            Slots[Slots.Length-1] = SqlTokenList<SqlTokenClosePar>.Create( Closer, closePar );
             return this;
         }
 
