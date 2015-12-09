@@ -332,10 +332,10 @@ namespace CK.SqlServer.Parser
                     // If it is not a reserved keyword, it can only be 
                     // a label definition.
                     SqlTokenTerminal colon;
-                    if( id.TrailingTrivia.Count > 0
+                    if( id.TrailingTrivias.Count > 0
                         || (colon = R.RawLookup as SqlTokenTerminal) == null
                         || colon.TokenType != SqlTokenType.Colon
-                        || colon.LeadingTrivia.Count > 0 )
+                        || colon.LeadingTrivias.Count > 0 )
                     {
                         if( expected ) R.SetCurrentError( "Statement expected." );
                         return false;

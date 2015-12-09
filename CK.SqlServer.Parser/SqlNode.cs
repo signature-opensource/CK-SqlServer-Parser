@@ -19,8 +19,14 @@ namespace CK.SqlServer.Parser
             TrailingTrivias = trailing ?? ImmutableList<SqlTrivia>.Empty;
         }
 
+        /// <summary>
+        /// Leading <see cref="SqlTrivia"/>. Never null but can be empty.
+        /// </summary>
         public readonly ImmutableList<SqlTrivia> LeadingTrivias;
 
+        /// <summary>
+        /// Trailing <see cref="SqlTrivia"/>. Never null but can be empty.
+        /// </summary>
         public readonly ImmutableList<SqlTrivia> TrailingTrivias;
 
         public abstract SqlNode SetTrivias( ImmutableList<SqlTrivia> leading, ImmutableList<SqlTrivia> trailing );

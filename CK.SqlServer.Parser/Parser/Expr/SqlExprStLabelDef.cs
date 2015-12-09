@@ -30,10 +30,10 @@ namespace CK.SqlServer.Parser
             if( id == null
                 || id.IsQuoted
                 || SqlKeyword.IsReservedKeyword( id.Name )
-                || id.TrailingTrivia.Count > 0
+                || id.TrailingTrivias.Count > 0
                 || colon == null
                 || colon.TokenType != SqlTokenType.Colon
-                || colon.LeadingTrivia.Count > 0 ) throw new ArgumentException( "Invalid 'label:' definition." );
+                || colon.LeadingTrivias.Count > 0 ) throw new ArgumentException( "Invalid 'label:' definition." );
             return CreateArray( id, colon );
         }
 

@@ -43,8 +43,7 @@ namespace CK.SqlServer.Parser
         SqlToken( ImmutableList<SqlTrivia> leading, ImmutableList<SqlTrivia> trailing )
             : base( leading, trailing )
         {
-            LeadingTrivia = base.LeadingTrivias;
-            TrailingTrivia = base.TrailingTrivias;
+            Debug.Assert( TokenType == SqlTokenType.None );
         }
 
         /// <summary>
@@ -58,26 +57,13 @@ namespace CK.SqlServer.Parser
             : base( leading, trailing )
         {
             if( tokenType > 0 && ((tokenType & SqlTokenType.TokenDiscriminatorMask) == 0 || (tokenType&SqlTokenType.IsComment) !=0) ) throw new ArgumentException( "Invalid token type." );
-            
             TokenType = tokenType;
-            LeadingTrivia = base.LeadingTrivias;
-            TrailingTrivia = base.TrailingTrivias;
         }
 
         /// <summary>
         /// Token type. It is necessarily positive (not an error). Only <see cref="Empty"/> has <see cref="SqlTokenType.None"/> type.
         /// </summary>
         public readonly SqlTokenType TokenType;
-
-        /// <summary>
-        /// Leading <see cref="SqlTrivia"/>. Never null but can be empty.
-        /// </summary>
-        public readonly IReadOnlyList<SqlTrivia> LeadingTrivia;
-
-        /// <summary>
-        /// Trailing <see cref="SqlTrivia"/>. Never null but can be empty.
-        /// </summary>
-        public readonly IReadOnlyList<SqlTrivia> TrailingTrivia;
 
         /// <summary>
         /// Writes the token with its <see cref="LeadingTrivia"/> and <see cref="TrailingTrivia"/>.

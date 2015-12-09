@@ -81,13 +81,13 @@ namespace CK.SqlServer.Parser.Tests
 
             p.Reset( "\r\n\t " );
             IsEndOfInput( p );
-            CollectionAssert.AreEquivalent( p.Token.LeadingTrivia.Select( t => t.Text ), new[] { "\r\n\t " } );
-            CollectionAssert.IsEmpty( p.Token.TrailingTrivia );
+            CollectionAssert.AreEquivalent( p.Token.LeadingTrivias.Select( t => t.Text ), new[] { "\r\n\t " } );
+            CollectionAssert.IsEmpty( p.Token.TrailingTrivias );
 
             p.Reset( "\r\n\t  --Comment\r\n \t\r\n /*Other\r\nComment...*/ \r\n" );
             IsEndOfInput( p );
-            CollectionAssert.AreEquivalent( p.Token.LeadingTrivia.Select( t => t.Text ), new[] { "\r\n\t  ", "Comment", " \t\r\n ", "Other\r\nComment...", " \r\n" } );
-            CollectionAssert.IsEmpty( p.Token.TrailingTrivia );
+            CollectionAssert.AreEquivalent( p.Token.LeadingTrivias.Select( t => t.Text ), new[] { "\r\n\t  ", "Comment", " \t\r\n ", "Other\r\nComment...", " \r\n" } );
+            CollectionAssert.IsEmpty( p.Token.TrailingTrivias );
         }
 
         private static void IsEndOfInput( SqlTokenizer p )
@@ -342,11 +342,11 @@ end".NormalizeEOL();
             var tokens = p.Parse( s ).ToArray();
             Assert.That( tokens.Length == 2 );
             Assert.That( tokens[0].TokenType == SqlTokenType.String );
-            Assert.That( tokens[0].TrailingTrivia.Count == 2 );
-            Assert.That( tokens[0].TrailingTrivia[0].TokenType == SqlTokenType.None );
-            Assert.That( tokens[0].TrailingTrivia[0].Text == " " );
-            Assert.That( tokens[0].TrailingTrivia[1].TokenType == SqlTokenType.LineComment );
-            Assert.That( tokens[0].TrailingTrivia[1].Text == " CancelDate" );
+            Assert.That( tokens[0].TrailingTrivias.Count == 2 );
+            Assert.That( tokens[0].TrailingTrivias[0].TokenType == SqlTokenType.None );
+            Assert.That( tokens[0].TrailingTrivias[0].Text == " " );
+            Assert.That( tokens[0].TrailingTrivias[1].TokenType == SqlTokenType.LineComment );
+            Assert.That( tokens[0].TrailingTrivias[1].Text == " CancelDate" );
             Assert.That( tokens[1].TokenType == SqlTokenType.EndOfInput );
         }
         
@@ -359,14 +359,14 @@ TOKEN";
             var tokens = p.Parse( s ).ToArray();
             Assert.That( tokens.Length == 3 );
             Assert.That( tokens[0].TokenType == SqlTokenType.String );
-            Assert.That( tokens[0].TrailingTrivia.Count == 2 );
-            Assert.That( tokens[0].TrailingTrivia[0].TokenType == SqlTokenType.None );
-            Assert.That( tokens[0].TrailingTrivia[0].Text == " " );
-            Assert.That( tokens[0].TrailingTrivia[1].TokenType == SqlTokenType.LineComment );
-            Assert.That( tokens[0].TrailingTrivia[1].Text == " CancelDate", "No line endings into it." );
+            Assert.That( tokens[0].TrailingTrivias.Count == 2 );
+            Assert.That( tokens[0].TrailingTrivias[0].TokenType == SqlTokenType.None );
+            Assert.That( tokens[0].TrailingTrivias[0].Text == " " );
+            Assert.That( tokens[0].TrailingTrivias[1].TokenType == SqlTokenType.LineComment );
+            Assert.That( tokens[0].TrailingTrivias[1].Text == " CancelDate", "No line endings into it." );
             Assert.That( tokens[1].TokenType == SqlTokenType.IdentifierStandard );
-            Assert.That( tokens[1].LeadingTrivia.Count == 0 );
-            Assert.That( tokens[1].TrailingTrivia.Count == 0 );
+            Assert.That( tokens[1].LeadingTrivias.Count == 0 );
+            Assert.That( tokens[1].TrailingTrivias.Count == 0 );
             Assert.That( tokens[2].TokenType == SqlTokenType.EndOfInput );
         }
     }

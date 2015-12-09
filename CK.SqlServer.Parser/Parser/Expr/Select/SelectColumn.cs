@@ -58,8 +58,8 @@ namespace CK.SqlServer.Parser
             if( colName == null ) throw new ArgumentNullException( "colName" );
             if( asT == null )
             {
-                var leftTrivia = definition.LastOrEmptyT.TrailingTrivia;
-                var rightTrivia = colName.FirstOrEmptyT.LeadingTrivia;
+                var leftTrivia = definition.LastOrEmptyT.TrailingTrivias;
+                var rightTrivia = colName.FirstOrEmptyT.LeadingTrivias;
                 if( leftTrivia.Count == 0 )
                 {
                     if( rightTrivia.Count == 0 ) asT = _autoAsT;

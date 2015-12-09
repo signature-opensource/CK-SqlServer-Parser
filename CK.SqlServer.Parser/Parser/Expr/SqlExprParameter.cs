@@ -133,7 +133,7 @@ namespace CK.SqlServer.Parser
             get 
             {
                 if( OutputT == null ) return false;
-                return Tokens.SelectMany( t => t.LeadingTrivia.Concat( t.TrailingTrivia ).Where( trivia => trivia.TokenType != SqlTokenType.None ) ).Any( trivia => trivia.Text.Contains( "input" ) );
+                return Tokens.SelectMany( t => t.LeadingTrivias.Concat( t.TrailingTrivias ).Where( trivia => trivia.TokenType != SqlTokenType.None ) ).Any( trivia => trivia.Text.Contains( "input" ) );
             } 
         }
 
