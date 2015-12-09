@@ -58,9 +58,14 @@ namespace CK.SqlServer.Parser
             return new SqlTokenList<T>( tail._tokens.AddRange( tail._tokens ), null, null );
         }
 
-        public ImmutableList<T> Tokens { get { return _tokens; } }
+        /// <summary>
+        /// Gets the <see cref="Tokens"/>.
+        /// </summary>
+        public override IReadOnlyList<SqlNode> ChildrenNodes => _tokens;
 
-        IEnumerable<SqlToken> ISqlItem.Tokens  { get { return _tokens; } }
+        public ImmutableList<T> Tokens => _tokens;
+
+        IEnumerable<SqlToken> ISqlItem.Tokens => _tokens;
 
         public override SqlNode SetTrivias( ImmutableList<SqlTrivia> leading, ImmutableList<SqlTrivia> trailing )
         {

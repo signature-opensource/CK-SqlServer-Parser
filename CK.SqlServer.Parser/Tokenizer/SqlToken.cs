@@ -66,6 +66,11 @@ namespace CK.SqlServer.Parser
         public readonly SqlTokenType TokenType;
 
         /// <summary>
+        /// Gets an empty node list.
+        /// </summary>
+        public override IReadOnlyList<SqlNode> ChildrenNodes => Util.EmptyArray<SqlNode>.Empty;
+
+        /// <summary>
         /// Writes the token with its <see cref="LeadingTrivia"/> and <see cref="TrailingTrivia"/>.
         /// </summary>
         /// <param name="b">The <see cref="StringBuilder"/> to write to.</param>
