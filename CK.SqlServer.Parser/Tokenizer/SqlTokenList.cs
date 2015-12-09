@@ -67,22 +67,21 @@ namespace CK.SqlServer.Parser
 
         IEnumerable<SqlToken> ISqlItem.Tokens => _tokens;
 
-        protected override SqlNode Clone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> content, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> content, ImmutableList<SqlTrivia> trailing )
         {
-            return TriviasDiffer( ref leading, ref trailing ) || content != _tokens
-                    ? new SqlTokenList<T>( _tokens == content ? _tokens : content.Cast<T>().ToReadOnlyList(), leading, trailing )
-                    : this;
+            return new SqlTokenList<T>( _tokens == content ? _tokens : content.Cast<T>().ToReadOnlyList(), leading, trailing );
         }
 
         public SqlToken LastOrEmptyT { get { return _tokens.Count == 0 ? SqlToken.Empty : _tokens[_tokens.Count-1]; } }
 
         public SqlToken FirstOrEmptyT { get { return _tokens.Count == 0 ? SqlToken.Empty : _tokens[0]; ; } }
 
-        public override string ToString()
+        protected override void DoWrite( StringBuilder b )
         {
-            var b = new StringBuilder();
-            _tokens.WriteTokensWithoutTrivias( String.Empty, b );
-            return b.ToString();
+            foreach( var t in _tokens )
+            {
+                t.Write( b );
+            }
         }
     }
 

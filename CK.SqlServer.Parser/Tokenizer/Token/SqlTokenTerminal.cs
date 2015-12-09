@@ -27,11 +27,9 @@ namespace CK.SqlServer.Parser
             if( (t & SqlTokenType.TerminalMask) == 0 ) throw new ArgumentException( "Invalid token type.", "t" );
         }
 
-        protected override SqlNode Clone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> content, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> content, ImmutableList<SqlTrivia> trailing )
         {
-            return TriviasDiffer( ref leading, ref trailing )
-                    ? new SqlTokenTerminal( TokenType, leading, trailing )
-                    : this;
+            return new SqlTokenTerminal( TokenType, leading, trailing );
         }
 
         protected override void DoWrite( StringBuilder b )

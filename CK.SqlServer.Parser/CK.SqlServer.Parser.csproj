@@ -62,6 +62,7 @@
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="ISqlItem.cs" />
+    <Compile Include="SqlTreeMutator.cs" />
     <Compile Include="Parser\Expr\ISqlExprCursor.cs" />
     <Compile Include="Parser\Expr\SqlExprCursorSql92.cs" />
     <Compile Include="Parser\Expr\SqlExprCursor.cs" />
@@ -163,7 +164,7 @@
     <Compile Include="SqlServerParser.cs" />
     <Compile Include="Tokenizer\ISqlItemExtension.cs" />
     <Compile Include="Tokenizer\SourcePosition.cs" />
-    <Compile Include="Tokenizer\SqlTokenExtension.cs" />
+    <Compile Include="Tokenizer\SqlNodeExtension.cs" />
     <Compile Include="Tokenizer\SqlTokenList.cs" />
     <Compile Include="Tokenizer\SqlKeyword.cs" />
     <Compile Include="Tokenizer\SqlToken.cs" />

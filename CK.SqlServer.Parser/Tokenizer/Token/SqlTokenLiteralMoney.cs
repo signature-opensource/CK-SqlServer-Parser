@@ -25,11 +25,9 @@ namespace CK.SqlServer.Parser
 
         public override string LiteralValue { get { return Value; } }
 
-        protected override SqlNode Clone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> content, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> content, ImmutableList<SqlTrivia> trailing )
         {
-            return TriviasDiffer( ref leading, ref trailing )
-                    ? new SqlTokenLiteralMoney( TokenType, Value, leading, trailing )
-                    : this;
+            return new SqlTokenLiteralMoney( TokenType, Value, leading, trailing );
         }
     }
 

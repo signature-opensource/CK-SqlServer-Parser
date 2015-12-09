@@ -33,7 +33,7 @@ namespace CK.SqlServer.Parser.Tests
 
         public override SqlItem Visit( SqlExprCollate e)
         {
-            e.Tokens.WriteTokensWithoutTrivias( "-", Out );
+            e.Tokens.WriteWithoutTrivias( "-", Out );
  	         return e;
         }
 
@@ -61,7 +61,7 @@ namespace CK.SqlServer.Parser.Tests
 
         void WriteIdentifier( ISqlIdentifier id )
         {
-            id.TokensWithoutParenthesis.WriteTokensWithoutTrivias( String.Empty, Out );
+            id.TokensWithoutParenthesis.WriteWithoutTrivias( String.Empty, Out );
             //Out.Append( String.Join( ".", id.Select( n => n.Name ) ) );
         }
 
@@ -128,7 +128,7 @@ namespace CK.SqlServer.Parser.Tests
                 {
                     VisitItem( iE );
                 }
-                else item.Tokens.WriteTokensWithoutTrivias( "-", Out );
+                else item.Tokens.WriteWithoutTrivias( "-", Out );
             }
             Out.Append( "}¤" );
             return e;
@@ -136,7 +136,7 @@ namespace CK.SqlServer.Parser.Tests
 
         public override SqlItem Visit( SqlExprTypeDecl e )
         {
-            e.Tokens.WriteTokensWithoutTrivias( "-", Out );
+            e.Tokens.WriteWithoutTrivias( "-", Out );
             return e;
         }
 
@@ -281,7 +281,7 @@ namespace CK.SqlServer.Parser.Tests
 
         public override SqlItem Visit( SelectHeader e )
         {
-            e.Tokens.WriteTokensWithoutTrivias( "-", Out );
+            e.Tokens.WriteWithoutTrivias( "-", Out );
             return e;
         }
 
@@ -417,7 +417,7 @@ namespace CK.SqlServer.Parser.Tests
         {
             Out.Append( '[' );
             VisitItem( e.Left );
-            e.Operator.Tokens.WriteTokensWithoutTrivias( "-", Out );
+            e.Operator.Tokens.WriteWithoutTrivias( "-", Out );
             VisitItem( e.Right );
             Out.Append( ']' );
             return e;

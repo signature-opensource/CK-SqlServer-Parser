@@ -24,11 +24,9 @@ namespace CK.SqlServer.Parser
 
             protected override void DoWrite( StringBuilder b ) { }
             public override string ToString() { return String.Empty; }
-            protected override SqlNode Clone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> content, ImmutableList<SqlTrivia> trailing )
+            protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> content, ImmutableList<SqlTrivia> trailing )
             {
-                return TriviasDiffer( ref leading, ref trailing )
-                        ? new EmptyToken( leading, trailing )
-                        : this;
+                return new EmptyToken( leading, trailing );
             }
         }
 
@@ -69,44 +67,6 @@ namespace CK.SqlServer.Parser
         /// Gets an empty node list.
         /// </summary>
         public override IReadOnlyList<SqlNode> ChildrenNodes => Util.EmptyArray<SqlNode>.Empty;
-
-        /// <summary>
-        /// Writes the token with its <see cref="LeadingTrivia"/> and <see cref="TrailingTrivia"/>.
-        /// </summary>
-        /// <param name="b">The <see cref="StringBuilder"/> to write to.</param>
-        public void Write( StringBuilder b )
-        {
-            foreach( var t in LeadingTrivias ) t.Write( b );
-            DoWrite( b );
-            foreach( var t in TrailingTrivias ) t.Write( b );
-        }
-
-        /// <summary>
-        /// Writes the token without its leading nor traling trivias.
-        /// </summary>
-        /// <param name="b">The <see cref="StringBuilder"/> to write to.</param>
-        public void WriteWithoutTrivias( StringBuilder b )
-        {
-            DoWrite( b );
-        }
-
-        /// <summary>
-        /// When implemented by concrete specialization, this must write the token itself.
-        /// </summary>
-        /// <param name="b">The <see cref="StringBuilder"/> to write to.</param>
-        abstract protected void DoWrite( StringBuilder b );
-
-        /// <summary>
-        /// Overriden to return the result of <see cref="WriteWithoutTrivias"/>.
-        /// Only the empty token and SqlTokenBaseLiteral override this method.
-        /// </summary>
-        /// <returns>The mere token.</returns>
-        public override string ToString()
-        {
-            StringBuilder b = new StringBuilder();
-            DoWrite( b );
-            return b.ToString();
-        }
 
         IEnumerable<SqlToken> ISqlItem.Tokens
         {

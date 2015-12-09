@@ -22,11 +22,9 @@ namespace CK.SqlServer.Parser
 
         public override string LiteralValue { get { return Value.ToString( CultureInfo.InvariantCulture ); } }
 
-        protected override SqlNode Clone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> content, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> content, ImmutableList<SqlTrivia> trailing )
         {
-            return TriviasDiffer( ref leading, ref trailing )
-                    ? new SqlTokenLiteralInteger( TokenType, Value, leading, trailing )
-                    : this;
+            return new SqlTokenLiteralInteger( TokenType, Value, leading, trailing );
         }
 
     }

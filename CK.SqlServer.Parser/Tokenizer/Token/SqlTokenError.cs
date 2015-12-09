@@ -42,11 +42,9 @@ namespace CK.SqlServer.Parser
 
         public new SqlTokenTypeError TokenType { get { return (SqlTokenTypeError)base.TokenType; } }
 
-        protected override SqlNode Clone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> content, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> content, ImmutableList<SqlTrivia> trailing )
         {
-            return TriviasDiffer( ref leading, ref trailing )
-                    ? new SqlTokenError( TokenType, leading, trailing, ErrorMessage )
-                    : this;
+            return new SqlTokenError( TokenType, leading, trailing, ErrorMessage );
         }
 
         public bool IsEndOfInput { get { return base.TokenType == SqlTokenType.EndOfInput; } }
