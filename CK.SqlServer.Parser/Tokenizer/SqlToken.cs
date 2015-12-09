@@ -7,13 +7,14 @@ using CK.Core;
 using System.Diagnostics;
 using System.Globalization;
 using System.Collections.Immutable;
+using System.Collections;
 
 namespace CK.SqlServer.Parser
 {
     /// <summary>
     /// Base class for (non comment) tokens. 
     /// </summary>
-    public abstract class SqlToken : SqlNode, ISqlItem
+    public abstract class SqlToken : SqlNode, ISqlItem, IEnumerable<SqlToken>
     {
         class EmptyToken : SqlToken
         {
@@ -68,14 +69,26 @@ namespace CK.SqlServer.Parser
         /// </summary>
         public override IReadOnlyList<SqlNode> ChildrenNodes => Util.EmptyArray<SqlNode>.Empty;
 
-        IEnumerable<SqlToken> ISqlItem.Tokens
-        {
-            get { return new CKReadOnlyListMono<SqlToken>( this ); }
-        }
-
         SqlToken ISqlItem.LastOrEmptyT { get { return this; } }
 
         SqlToken ISqlItem.FirstOrEmptyT { get { return this; } }
+
+        #region IEnumerable<SqlToken> ISqlItem.Tokens auto implementation
+        IEnumerable<SqlToken> ISqlItem.Tokens
+        {
+            get { return this; }
+        }
+
+        IEnumerator<SqlToken> IEnumerable<SqlToken>.GetEnumerator()
+        {
+            return new CKEnumeratorMono<SqlToken>( this );
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return new CKEnumeratorMono<SqlToken>( this );
+        }
+        #endregion
 
         /// <summary>
         /// Empty parenthesis opener.
