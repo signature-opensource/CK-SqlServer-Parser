@@ -142,7 +142,7 @@ namespace CK.SqlServer.Parser.Tests.Parsing
 
         public override SqlItem Visit( SqlExprBinaryOperator e )
         {
-            for( int i = 0; i < e.Opener.Count; ++i ) _w.Write( "(" );
+            for( int i = 0; i < e.Opener.Tokens.Count; ++i ) _w.Write( "(" );
             VisitItem( e.Left );
             _w.Write( " " );
             string op;
@@ -157,7 +157,7 @@ namespace CK.SqlServer.Parser.Tests.Parsing
             _w.Write( op );
             _w.Write( " " );
             VisitItem( e.Right );
-            if( e.Closer.Count > 0 ) _w.Write( ")" );
+            if( e.Closer.Tokens.Count > 0 ) _w.Write( ")" );
             return e;
         }
 

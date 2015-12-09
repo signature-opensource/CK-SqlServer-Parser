@@ -7,6 +7,10 @@ using System.Threading.Tasks;
 
 namespace CK.SqlServer.Parser
 {
+    /// <summary>
+    /// Base class for all Sql nodes.
+    /// This is an immutable object that carries leading and trailing <see cref="SqlTrivia"/>.
+    /// </summary>
     public abstract class SqlNode
     {
         protected SqlNode( ImmutableList<SqlTrivia> leading = null, ImmutableList<SqlTrivia> trailing = null )

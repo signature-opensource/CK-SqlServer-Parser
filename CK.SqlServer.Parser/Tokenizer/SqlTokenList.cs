@@ -12,7 +12,7 @@ namespace CK.SqlServer.Parser
     /// Used with <see cref="SqlTokenOpenPar"/> and <see cref="SqlTokenClosePar"/>.
     /// </summary>
     /// <typeparam name="T">Token type (must be a <see cref="SqlToken"/>).</typeparam>
-    public sealed class SqlTokenList<T> : SqlNode, ISqlItem, IReadOnlyList<T> where T : SqlToken
+    public sealed class SqlTokenList<T> : SqlNode, ISqlItem where T : SqlToken
     {
         readonly ImmutableList<T> _tokens;
 
@@ -55,7 +55,7 @@ namespace CK.SqlServer.Parser
             if( tail == null ) throw new ArgumentNullException( "tail" );
             if( head._tokens.IsEmpty ) return tail;
             if( tail._tokens.IsEmpty ) return head;
-            return new SqlTokenList<T>( tail._tokens.AddRange( tail ), null, null );
+            return new SqlTokenList<T>( tail._tokens.AddRange( tail._tokens ), null, null );
         }
 
         public ImmutableList<T> Tokens { get { return _tokens; } }
@@ -73,25 +73,25 @@ namespace CK.SqlServer.Parser
 
         public SqlToken FirstOrEmptyT { get { return _tokens.IsEmpty ? SqlToken.Empty : _tokens[0]; ; } }
 
-        public T this[int index]
-        {
-            get { return _tokens[index]; }
-        }
+        //public T this[int index]
+        //{
+        //    get { return _tokens[index]; }
+        //}
 
-        public int Count
-        {
-            get { return _tokens.Count; }
-        }
+        //public int Count
+        //{
+        //    get { return _tokens.Count; }
+        //}
 
-        public IEnumerator<T> GetEnumerator()
-        {
-            return _tokens.GetEnumerator();
-        }
+        //public IEnumerator<T> GetEnumerator()
+        //{
+        //    return _tokens.GetEnumerator();
+        //}
 
-        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
-        {
-            return _tokens.GetEnumerator();
-        }
+        //System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+        //{
+        //    return _tokens.GetEnumerator();
+        //}
 
         public override string ToString()
         {

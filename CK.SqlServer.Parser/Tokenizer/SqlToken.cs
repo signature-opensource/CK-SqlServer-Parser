@@ -1,10 +1,3 @@
-#region Proprietary License
-/*----------------------------------------------------------------------------
-* This file (CK.SqlServer.Parser\Tokenizer\SqlToken.cs) is part of CK-Database. 
-* Copyright © 2007-2014, Invenietis <http://www.invenietis.com>. All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,7 +11,7 @@ using System.Collections.Immutable;
 namespace CK.SqlServer.Parser
 {
     /// <summary>
-    /// Base class for (non comment) tokens. This is an immutable object that carries its optional leading and trailing <see cref="SqlTrivia"/>.
+    /// Base class for (non comment) tokens. 
     /// </summary>
     public abstract class SqlToken : SqlNode, ISqlItem
     {

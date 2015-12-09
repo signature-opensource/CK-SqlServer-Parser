@@ -42,12 +42,12 @@ namespace CK.SqlServer.Parser
         /// <summary>
         /// Gets the last token of the expression.
         /// </summary>
-        public sealed override SqlToken LastOrEmptyT { get { return Closer.Count > 0 ? Closer.LastOrEmptyT : Slots[Slots.Length - 2].LastOrEmptyT; } }
+        public sealed override SqlToken LastOrEmptyT { get { return Closer.Tokens.Count > 0 ? Closer.LastOrEmptyT : Slots[Slots.Length - 2].LastOrEmptyT; } }
 
         /// <summary>
         /// Gets the first token of the expression.
         /// </summary>
-        public sealed override SqlToken FirstOrEmptyT { get { return Opener.Count > 0 ? Opener.FirstOrEmptyT : Slots[1].FirstOrEmptyT; } }
+        public sealed override SqlToken FirstOrEmptyT { get { return Opener.Tokens.Count > 0 ? Opener.FirstOrEmptyT : Slots[1].FirstOrEmptyT; } }
 
         /// <summary>
         /// Gets the items of this expression: it is a mix of <see cref="SqlToken"/> and <see cref="SqlItem"/>.
@@ -73,7 +73,7 @@ namespace CK.SqlServer.Parser
         /// <returns>True if this is single token of the given type.</returns>
         public bool IsToken( SqlTokenType type, bool allowEnclosingParenthesis = false )
         {
-            return Slots.Length == 3 && Slots[1].IsToken( type ) && (allowEnclosingParenthesis || Opener.Count == 0);
+            return Slots.Length == 3 && Slots[1].IsToken( type ) && (allowEnclosingParenthesis || Opener.Tokens.Count == 0);
         }
 
         internal SqlExpr MutableEnclose( SqlTokenOpenPar openPar, SqlTokenClosePar closePar )

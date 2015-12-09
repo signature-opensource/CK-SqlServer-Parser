@@ -103,8 +103,8 @@ namespace CK.SqlServer.Parser
                 SqlTokenList<SqlTokenOpenPar> opener = t[0] as SqlTokenList<SqlTokenOpenPar>;
                 SqlTokenList<SqlTokenClosePar> closer = t[t.Length - 1] as SqlTokenList<SqlTokenClosePar>;
                 if( opener == null || closer == null ) throw new ArgumentException( "Opener/Closer not found.", "tokens" );
-                if( opener.Count != closer.Count ) throw new ArgumentException( "Opener/Closer are not balanced.", "tokens" );
-                if( atLeastOneOpener && opener.Count == 0 ) throw new ArgumentException( "There must be at least one parenthesis.", "tokens" );
+                if( opener.Tokens.Count != closer.Tokens.Count ) throw new ArgumentException( "Opener/Closer are not balanced.", "tokens" );
+                if( atLeastOneOpener && opener.Tokens.Count == 0 ) throw new ArgumentException( "There must be at least one parenthesis.", "tokens" );
             }
             if( (len % 2) == 0 && (len != 0 || !allowEmpty) ) throw new ArgumentException( "There must be an odd number of elements.", "tokens" );
             len = (len + 1) / 2;

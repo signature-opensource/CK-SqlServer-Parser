@@ -66,9 +66,9 @@ namespace CK.SqlServer.Parser
             Debug.Assert( IsValidOperator( OperatorT.TokenType ) 
                                 && (UnionAll == null
                                     || (UnionAll != null
-                                        && UnionAll[0].TokenType == SqlTokenType.Union
-                                        && UnionAll[1] is SqlTokenIdentifier
-                                        && ((SqlTokenIdentifier)UnionAll[1]).NameEquals( "all" ))) );
+                                        && UnionAll.Tokens[0].TokenType == SqlTokenType.Union
+                                        && UnionAll.Tokens[1] is SqlTokenIdentifier
+                                        && ((SqlTokenIdentifier)UnionAll.Tokens[1]).NameEquals( "all" ))) );
         }
 
         static public bool IsValidOperator( SqlTokenType op )
@@ -84,7 +84,7 @@ namespace CK.SqlServer.Parser
 
         SqlTokenList<SqlToken> UnionAll { get { return Slots[2] as SqlTokenList<SqlToken>; } }
 
-        SqlTokenIdentifier OperatorT { get { return Slots[2] is SqlTokenIdentifier ? (SqlTokenIdentifier)Slots[2] : ((SqlTokenList<SqlTokenIdentifier>)Slots[2])[0]; } }
+        SqlTokenIdentifier OperatorT { get { return Slots[2] is SqlTokenIdentifier ? (SqlTokenIdentifier)Slots[2] : ((SqlTokenList<SqlTokenIdentifier>)Slots[2]).Tokens[0]; } }
 
         /// <summary>
         /// Gets the operator token type: it can be: <see cref="SqlTokenType.Union"/>, <see cref="SqlTokenType.Except"/>, <see cref="SqlTokenType.Intersect"/>.
