@@ -12,6 +12,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using CK.Core;
+using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
@@ -19,16 +20,16 @@ namespace CK.SqlServer.Parser
     /// Base for all statements. It is a <see cref="SqlNoExpr"/> that handles the mandatory 
     /// statement terminator ';' that is required by ANSI SQL and future Sql Server versions.
     /// </summary>
-    public abstract class SqlExprBaseSt : SqlNoExpr
+    public abstract class SqlExprBaseSt : SqlItem
     {
         readonly SqlTokenTerminal _stmtTerminator;
 
-        protected SqlExprBaseSt( IList<ISqlItem> content, SqlTokenTerminal statementTerminator = null )
-            : this( Build( content, statementTerminator ) )
+        protected SqlExprBaseSt( IList<SqlNode> content, SqlTokenTerminal statementTerminator = null, ImmutableList<SqlTrivia> leading = null, ImmutableList<SqlTrivia> trailing = null )
+            : this( leading, Build( content, statementTerminator ), trailing )
         {
         }
 
-        private static ISqlItem[] Build( IList<ISqlItem> content, SqlTokenTerminal statementTerminator )
+        private static SqlNode[] Build( IList<SqlNode> content, SqlTokenTerminal statementTerminator )
         {
             if( statementTerminator != null )
             {
@@ -38,10 +39,10 @@ namespace CK.SqlServer.Parser
             return content.ToArray();
         }
 
-        protected SqlExprBaseSt( ISqlItem[] items )
-            : base( items )
+        protected SqlExprBaseSt( ImmutableList<SqlTrivia> leading, SqlNode[] slots, ImmutableList<SqlTrivia> trailing )
+            : base( leading, slots, trailing )
         {
-            _stmtTerminator = items[items.Length-1] as SqlTokenTerminal;
+            _stmtTerminator = slots[slots.Length-1] as SqlTokenTerminal;
             if( _stmtTerminator != null && _stmtTerminator.TokenType != SqlTokenType.SemiColon ) _stmtTerminator = null;
         }
 
@@ -52,7 +53,7 @@ namespace CK.SqlServer.Parser
 
         public SqlTokenTerminal StatementTerminator { get { return _stmtTerminator; } }
 
-        public IEnumerable<ISqlItem> ComponentsWithoutTerminator
+        public IEnumerable<SqlNode> ComponentsWithoutTerminator
         {
             get { return _stmtTerminator != null ? Slots.Take( Slots.Length - 1 ) : Slots; }
         }

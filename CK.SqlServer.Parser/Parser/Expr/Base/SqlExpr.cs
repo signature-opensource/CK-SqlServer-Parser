@@ -13,6 +13,7 @@ using System.Linq.Expressions;
 using CK.Core;
 using System.Diagnostics;
 using System.Globalization;
+using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
@@ -21,12 +22,10 @@ namespace CK.SqlServer.Parser
     /// </summary>
     public abstract class SqlExpr : SqlItem
     {
-        readonly protected ISqlItem[] Slots;
-
-        internal SqlExpr( ISqlItem[] slots )
+        internal SqlExpr( ImmutableList<SqlTrivia> leading, SqlNode[] slots, ImmutableList<SqlTrivia> trailing )
+            : base( leading, slots, trailing )
         {
             Debug.Assert( slots != null && slots.Length >= 2 && slots[0] is SqlTokenList<SqlTokenOpenPar> && slots[slots.Length - 1] is SqlTokenList<SqlTokenClosePar> );
-            Slots = slots;
         }
 
         /// <summary>
@@ -48,12 +47,6 @@ namespace CK.SqlServer.Parser
         /// Gets the first token of the expression.
         /// </summary>
         public sealed override SqlToken FirstOrEmptyT { get { return Opener.Tokens.Count > 0 ? Opener.FirstOrEmptyT : Slots[1].FirstOrEmptyT; } }
-
-        /// <summary>
-        /// Gets the items of this expression: it is a mix of <see cref="SqlToken"/> and <see cref="SqlItem"/>.
-        /// Never null nor empty since an expression has at least an opener and a closer (even if they are empty).
-        /// </summary>
-        public sealed override IEnumerable<ISqlItem> Items { get { return Slots; } }
 
         /// <summary>
         /// Gets the sql items without the enclosing parenthesis if they exist.

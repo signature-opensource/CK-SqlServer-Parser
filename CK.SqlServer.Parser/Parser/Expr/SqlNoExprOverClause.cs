@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
@@ -17,16 +18,21 @@ namespace CK.SqlServer.Parser
     /// <summary>
     /// Captures a select column definition. 
     /// </summary>
-    public class SqlNoExprOverClause : SqlNoExpr
+    public class SqlNoExprOverClause : SqlItem
     {
         public SqlNoExprOverClause( SqlTokenIdentifier overT, SqlExpr overExpression )
-            : this( CreateArray( overT, overExpression ) )
+            : this( null, CreateArray<SqlNode>( overT, overExpression ), null )
         {
         }
 
-        internal SqlNoExprOverClause( ISqlItem[] items )
-            : base( items )
+        internal SqlNoExprOverClause( ImmutableList<SqlTrivia> leading, SqlNode[] slots, ImmutableList<SqlTrivia> trailing )
+            : base( leading, slots, trailing )
         {
+        }
+
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        {
+            return new SqlNoExprOverClause( leading, children, trailing );
         }
 
         public SqlTokenIdentifier OverT { get { return (SqlTokenIdentifier)Slots[0]; } }

@@ -6,6 +6,7 @@ using System.Linq.Expressions;
 using CK.Core;
 using System.Diagnostics;
 using System.Globalization;
+using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
@@ -14,14 +15,19 @@ namespace CK.SqlServer.Parser
     /// and <see cref="SqlNoExpr"/> (not enclosable and base class for <see cref="SqlExprBaseSt">statements</see>).
     /// It should not be specialized directly: inherit from SqlExpr or SqlNoExpr.
     /// </summary>
-    public abstract class SqlItem : ISqlItem
+    public abstract class SqlItem : SqlNode
     {
-        /// <summary>
-        /// Gets the components of this expression: it is a mix of <see cref="SqlToken"/> and <see cref="SqlExpr"/>.
-        /// Never null but can be empty.
-        /// </summary>
-        public abstract IEnumerable<ISqlItem> Items { get; }
+        protected readonly SqlNode[] Slots;
 
+        protected SqlItem( ImmutableList<SqlTrivia> leading, SqlNode[] slots, ImmutableList<SqlTrivia> trailing )
+            : base( leading, trailing )
+        {
+            Debug.Assert( slots != null );
+            Slots = slots;
+        }
+
+        public sealed override IReadOnlyList<SqlNode> ChildrenNodes => Slots;
+        
         /// <summary>
         /// Gets the last token of the expression.
         /// </summary>
@@ -33,57 +39,30 @@ namespace CK.SqlServer.Parser
         public abstract SqlToken FirstOrEmptyT { get; }
 
         /// <summary>
-        /// Gets the tokens that compose this expression.
+        /// Gets the tokens that compose this item.
         /// </summary>
-        public virtual IEnumerable<SqlToken> AllTokens  { get { return Flatten( Items ); } }
+        public override IEnumerable<SqlToken> AllTokens => Slots.ToTokens();
 
-        /// <summary>
-        /// Overridden to generate the representation of an expression as the result of the <see cref="Write"/> method.
-        /// This includes the trivias.
-        /// </summary>
-        /// <returns>String representation.</returns>
-        public override string ToString()
+        protected override void DoWrite( StringBuilder b, SqlTriviaWriteOption option )
         {
-            StringBuilder b = new StringBuilder();
-            Write( b );
-            return b.ToString();
+            foreach( var t in Slots )
+            {
+                t.Write( b, option );
+            }
         }
-
-        /// <summary>
-        /// Writing an expression is, by default, calling <see cref="SqlToken.Write"/> on each of its <see cref="AllTokens"/>.
-        /// This includes the trivias.
-        /// </summary>
-        /// <param name="b">StringBuilder to write into.</param>
-        public void Write( StringBuilder b )
-        {
-            foreach( var t in AllTokens ) t.Write( b );
-        }
-
 
         internal protected abstract T Accept<T>( ISqlItemVisitor<T> visitor );
 
-        static internal ISqlItem[] CreateArray( params ISqlItem[] e )
+        static internal T[] CreateArray<T>( params T[] e )
         {
             Debug.Assert( e != null && e.All( i => i != null ) );
             return e;
         }
 
-        static internal SqlToken[] CreateArray( params SqlToken[] e )
-        {
-            Debug.Assert( e != null && e.All( i => i != null ) );
-            return e;
-        }
-
-        static internal SqlTokenIdentifier[] CreateArray( params SqlTokenIdentifier[] e )
-        {
-            Debug.Assert( e != null && e.All( i => i != null ) );
-            return e;
-        }
-
-        static internal ISqlItem[] CreateArray( IEnumerable<ISqlItem> content, int contentLength, ISqlItem suffix )
+        static internal T[] CreateArray<T>( IEnumerable<T> content, int contentLength, T suffix )
         {
             Debug.Assert( content != null && suffix != null && contentLength <= content.Count() && contentLength >= 0 );
-            var c = new ISqlItem[contentLength + 1];
+            var c = new T[contentLength + 1];
             int i = 0;
             foreach( var e in content )
             {
@@ -94,11 +73,11 @@ namespace CK.SqlServer.Parser
             return c;
         }
 
-        static internal ISqlItem[] CreateArray( ISqlItem prefix, IEnumerable<ISqlItem> content, int skippedContent, int contentLength, ISqlItem suffix )
+        static internal T[] CreateArray<T>( T prefix, IEnumerable<T> content, int skippedContent, int contentLength, T suffix )
         {
             Debug.Assert( content != null && suffix != null && prefix != null 
                             && skippedContent >= 0 && contentLength >= 0 && skippedContent + contentLength <= content.Count() );
-            var c = new ISqlItem[++contentLength + 1];
+            var c = new T[++contentLength + 1];
             c[0] = prefix;
             int i = 0;
             foreach( var e in content.Skip( skippedContent ) )
@@ -110,19 +89,19 @@ namespace CK.SqlServer.Parser
             return c;
         }
 
-        static internal ISqlItem[] CreateArray( SqlTokenOpenPar openPar, IEnumerable<ISqlItem> content, int contentLength, SqlTokenClosePar closePar )
+        static internal SqlNode[] CreateArray( SqlTokenOpenPar openPar, IEnumerable<SqlNode> content, int contentLength, SqlTokenClosePar closePar )
         {
             Debug.Assert( contentLength == 0 || !(content.First() is SqlTokenList<SqlTokenOpenPar>) );
             return CreateArray( SqlTokenList<SqlTokenOpenPar>.Create( openPar ), content, 0, contentLength, SqlTokenList<SqlTokenClosePar>.Create( closePar ) );
         }
 
-        static internal ISqlItem[] CreateEnclosedArray( IReadOnlyList<ISqlItem> content )
+        static internal SqlNode[] CreateEnclosedArray( IReadOnlyList<SqlNode> content )
         {
             Debug.Assert( content.Count == 0 || !(content.First() is SqlTokenList<SqlTokenOpenPar>) );
             return CreateArray( SqlToken.EmptyOpenPar, content, 0, content.Count, SqlToken.EmptyClosePar );
         }
 
-        static internal ISqlItem[] CreateEnclosedArray( SqlTokenOpenPar prefix, IReadOnlyList<ISqlItem> alreadyEnclosedComponents, SqlTokenClosePar suffix )
+        static internal SqlNode[] CreateEnclosedArray( SqlTokenOpenPar prefix, IReadOnlyList<SqlNode> alreadyEnclosedComponents, SqlTokenClosePar suffix )
         {
             Debug.Assert( prefix != null && alreadyEnclosedComponents != null && suffix != null );
             Debug.Assert( alreadyEnclosedComponents.Count >= 2 );
@@ -134,17 +113,6 @@ namespace CK.SqlServer.Parser
 
             return CreateArray( SqlTokenList<SqlTokenOpenPar>.Create( prefix, existOpen ), alreadyEnclosedComponents, 1, alreadyEnclosedComponents.Count - 2, SqlTokenList<SqlTokenClosePar>.Create( existClose, suffix ) );
         }
-
-        static internal IEnumerable<SqlToken> Flatten( IEnumerable<ISqlItem> e )
-        {
-            foreach( var a in e )
-            {
-                SqlToken t = a as SqlToken;
-                if( t != null ) yield return t;
-                else foreach( var ta in Flatten( a.AllTokens ) ) yield return ta;
-            }
-        }
-
 
     }
 
