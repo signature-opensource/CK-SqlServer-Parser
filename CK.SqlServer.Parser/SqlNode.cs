@@ -79,6 +79,12 @@ namespace CK.SqlServer.Parser
         /// </summary>
         public IEnumerable<SqlTrivia> FullTrailingTrivias => TrailingNodes.Reverse().SelectMany( n => n.TrailingTrivias );
 
+        /// <summary>
+        /// Gets the tokens that compose this node.
+        /// Never null but can be empty for empty objects like <see cref="SqlToken.EmptyOpenPar"/> or <see cref="SqlToken.EmptyClosePar"/>.
+        /// </summary>
+        public abstract IEnumerable<SqlToken> AllTokens { get; }
+
         SqlNode DoLift( ImmutableList<SqlTrivia>.Builder hL, ImmutableList<SqlTrivia>.Builder tL, SqlNode n, bool root )
         {
             if( hL != null ) hL.AddRange( n.LeadingTrivias );

@@ -33,6 +33,8 @@ namespace CK.SqlServer.Parser.Tests
 
             public override IReadOnlyList<SqlNode> ChildrenNodes => _nodes;
 
+            public override IEnumerable<SqlToken> AllTokens => Enumerable.Empty<SqlToken>();
+
             protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
             {
                 return new TestNode( Name, leading, children.Cast<TestNode>().ToReadOnlyList(), trailing );

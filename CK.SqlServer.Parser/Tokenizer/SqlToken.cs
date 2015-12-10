@@ -22,6 +22,7 @@ namespace CK.SqlServer.Parser
                 : base( leading, trailing )
             {
             }
+            public override IEnumerable<SqlToken> AllTokens => Util.EmptyArray<SqlToken>.Empty;
 
             protected override void DoWrite( StringBuilder b ) { }
             public override string ToString() { return String.Empty; }
@@ -89,11 +90,8 @@ namespace CK.SqlServer.Parser
         /// <param name="b">The string builder to use.</param>
         protected abstract void DoWrite( StringBuilder b );
 
-        #region IEnumerable<SqlToken> ISqlItem.Tokens auto implementation
-        IEnumerable<SqlToken> ISqlItem.AllTokens
-        {
-            get { return this; }
-        }
+        #region IEnumerable<SqlToken> AllTokens auto implementation
+        public override IEnumerable<SqlToken> AllTokens => this;
 
         IEnumerator<SqlToken> IEnumerable<SqlToken>.GetEnumerator()
         {

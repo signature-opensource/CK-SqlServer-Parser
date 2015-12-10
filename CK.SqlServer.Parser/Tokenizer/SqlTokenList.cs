@@ -59,13 +59,19 @@ namespace CK.SqlServer.Parser
         }
 
         /// <summary>
-        /// Gets the <see cref="Tokens"/>.
+        /// Gets the <see cref="Tokens"/>: the children of this list are its tokens.
         /// </summary>
         public override IReadOnlyList<SqlNode> ChildrenNodes => _tokens;
 
+        /// <summary>
+        /// Gets the list of tokens.
+        /// </summary>
         public IReadOnlyList<T> Tokens => _tokens;
 
-        IEnumerable<SqlToken> ISqlItem.AllTokens => _tokens;
+        /// <summary>
+        /// Gets all tokens of this list: same as <see cref="Tokens"/>.
+        /// </summary>
+        public override IEnumerable<SqlToken> AllTokens => _tokens;
 
         protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> content, ImmutableList<SqlTrivia> trailing )
         {
