@@ -73,8 +73,24 @@ namespace CK.SqlServer.Parser
 
         SqlToken ISqlItem.FirstOrEmptyT { get { return this; } }
 
+        /// <summary>
+        /// Implements to rely without trivia option that is useless for tokens.
+        /// </summary>
+        /// <param name="b">The string builder to use.</param>
+        /// <param name="option">Unused option.</param>
+        protected sealed override void DoWrite( StringBuilder b, SqlTriviaWriteOption option )
+        {
+            DoWrite( b );
+        }
+
+        /// <summary>
+        /// Must write the token (without trivias).
+        /// </summary>
+        /// <param name="b">The string builder to use.</param>
+        protected abstract void DoWrite( StringBuilder b );
+
         #region IEnumerable<SqlToken> ISqlItem.Tokens auto implementation
-        IEnumerable<SqlToken> ISqlItem.Tokens
+        IEnumerable<SqlToken> ISqlItem.AllTokens
         {
             get { return this; }
         }

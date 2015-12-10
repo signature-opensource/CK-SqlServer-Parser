@@ -1,10 +1,3 @@
-#region Proprietary License
-/*----------------------------------------------------------------------------
-* This file (CK.SqlServer.Parser\Tokenizer\SqlTrivia.cs) is part of CK-Database. 
-* Copyright © 2007-2014, Invenietis <http://www.invenietis.com>. All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -43,7 +36,12 @@ namespace CK.SqlServer.Parser
         /// or <see cref="SqlTokenType.LineComment"/> or <see cref="SqlTokenType.StarComment"/>. 
         /// </summary>
         public SqlTokenType TokenType { get { return _tokenType; } }
-        
+
+        /// <summary>
+        /// Gets whether this trivia is empty.
+        /// </summary>
+        public bool IsEmpty => _tokenType == SqlTokenType.None && (_text == null || _text.Length == 0);
+
         /// <summary>
         /// Gets the text of this trivia. Never null. 
         /// When it is a <see cref="SqlTokenType.LineComment"/> or <see cref="SqlTokenType.StarComment"/>,
@@ -76,14 +74,57 @@ namespace CK.SqlServer.Parser
             return Text;
         }
 
-        public void Write( StringBuilder b )
+        public string ToString( SqlTriviaWriteOption option )
         {
             switch( TokenType )
             {
-                case SqlTokenType.LineComment: b.Append( "--" ).Append( Text ).Append( Environment.NewLine ); break;
-                case SqlTokenType.StarComment: b.Append( "/*" ).Append( Text ).Append( "*/" ); break;
-                default: b.Append( Text ); break;
+                case SqlTokenType.LineComment: return option == SqlTriviaWriteOption.None 
+                                                        ? "--" + Text + Environment.NewLine
+                                                        : " ";
+                case SqlTokenType.StarComment: return option == SqlTriviaWriteOption.None
+                                                        ? "/*" + Text + "*/"
+                                                        : " ";
             }
+            if( _text != null && _text.Length > 0 )
+            {
+                return option == SqlTriviaWriteOption.None ? _text : " ";
+            }
+            return String.Empty;
+        }
+
+
+        /// <summary>
+        /// Writes this trivia either its normal content or only one space.
+        /// Note that when <see cref="IsEmpty"/> is true, nothing is written and false is returned.
+        /// </summary>
+        /// <param name="b">The StringBuilder to use.</param>
+        /// <param name="option">The write option.</param>
+        /// <returns>True if something has been written.</returns>
+        public bool Write( StringBuilder b, SqlTriviaWriteOption option )
+        {
+            switch( TokenType )
+            {
+                case SqlTokenType.LineComment:
+                    {
+                        if( option == SqlTriviaWriteOption.OneSpace ) b.Append( ' ' );
+                        else b.Append( "--" ).Append( Text ).Append( Environment.NewLine );
+                        break;
+                    }
+                case SqlTokenType.StarComment:
+                    {
+                        if( option == SqlTriviaWriteOption.OneSpace ) b.Append( ' ' );
+                        else b.Append( "/*" ).Append( Text ).Append( "*/" );
+                        break;
+                    }
+                default:
+                    {
+                        if( _text == null || _text.Length == 0 ) return false;
+                        if( option == SqlTriviaWriteOption.OneSpace ) b.Append( ' ' );
+                        else b.Append( _text );
+                        break;
+                    }
+            }
+            return true;
         }
     }
 

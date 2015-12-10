@@ -1,10 +1,3 @@
-#region Proprietary License
-/*----------------------------------------------------------------------------
-* This file (CK.SqlServer.Parser\Parser\Expr\Base\SqlItem.cs) is part of CK-Database. 
-* Copyright © 2007-2014, Invenietis <http://www.invenietis.com>. All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -42,7 +35,7 @@ namespace CK.SqlServer.Parser
         /// <summary>
         /// Gets the tokens that compose this expression.
         /// </summary>
-        public virtual IEnumerable<SqlToken> Tokens  { get { return Flatten( Items ); } }
+        public virtual IEnumerable<SqlToken> AllTokens  { get { return Flatten( Items ); } }
 
         /// <summary>
         /// Overridden to generate the representation of an expression as the result of the <see cref="Write"/> method.
@@ -57,13 +50,13 @@ namespace CK.SqlServer.Parser
         }
 
         /// <summary>
-        /// Writing an expression is, by default, calling <see cref="SqlToken.Write"/> on each of its <see cref="Tokens"/>.
+        /// Writing an expression is, by default, calling <see cref="SqlToken.Write"/> on each of its <see cref="AllTokens"/>.
         /// This includes the trivias.
         /// </summary>
         /// <param name="b">StringBuilder to write into.</param>
         public void Write( StringBuilder b )
         {
-            foreach( var t in Tokens ) t.Write( b );
+            foreach( var t in AllTokens ) t.Write( b );
         }
 
 
@@ -148,7 +141,7 @@ namespace CK.SqlServer.Parser
             {
                 SqlToken t = a as SqlToken;
                 if( t != null ) yield return t;
-                else foreach( var ta in Flatten( a.Tokens ) ) yield return ta;
+                else foreach( var ta in Flatten( a.AllTokens ) ) yield return ta;
             }
         }
 

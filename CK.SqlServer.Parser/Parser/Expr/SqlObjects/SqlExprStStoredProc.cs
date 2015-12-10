@@ -86,7 +86,7 @@ namespace CK.SqlServer.Parser
         /// </summary>
         public string ObjectName 
         {
-            get { return Name.Tokens.ToStringWithoutTrivias( String.Empty ); } 
+            get { return Name.AllTokens.ToStringWithoutTrivias( String.Empty ); } 
         }
 
         /// <summary>
@@ -116,12 +116,12 @@ namespace CK.SqlServer.Parser
 
         public string ToStringSignature( bool withOptions )
         {
-            string s = Name.Tokens.ToStringWithoutTrivias( String.Empty );
+            string s = Name.AllTokens.ToStringWithoutTrivias( String.Empty );
             s += ' ' + Parameters.ToStringClean();
             if( withOptions && HasOptions )
             {
                 s += ' ';
-                s += Options.Tokens.ToStringWithoutTrivias( " " );
+                s += Options.AllTokens.ToStringWithoutTrivias( " " );
             }
             return s;
         }

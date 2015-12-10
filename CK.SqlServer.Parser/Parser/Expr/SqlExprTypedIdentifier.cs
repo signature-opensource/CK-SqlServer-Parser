@@ -50,7 +50,7 @@ namespace CK.SqlServer.Parser
         public string ToStringClean()
         {
             string s = Identifier.Name;
-            s += " " + TypeDecl.Tokens.ToStringWithoutTrivias( String.Empty );
+            s += " " + TypeDecl.AllTokens.ToStringWithoutTrivias( String.Empty );
             return s;
         }
 

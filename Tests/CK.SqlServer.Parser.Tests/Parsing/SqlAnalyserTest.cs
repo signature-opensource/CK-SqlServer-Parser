@@ -504,7 +504,7 @@ namespace CK.SqlServer.Parser.Tests
                     Assert.That( sp.Parameters.Count, Is.EqualTo( 0 ) );
                     Assert.That( sp.HasOptions );
                     Assert.That( sp.Options.Items.Count(), Is.EqualTo( 4 ), "[with] [recompile] [,] [execute as owner]" );
-                    Assert.That( sp.Options.Tokens.ToStringWithoutTrivias( "|" ), Is.EqualTo( "with|recompile|,|execute|as|owner" ) );
+                    Assert.That( sp.Options.AllTokens.ToStringWithoutTrivias( "|" ), Is.EqualTo( "with|recompile|,|execute|as|owner" ) );
                     Assert.That( sp.BodyStatements.Count, Is.EqualTo( 2 ).Or.EqualTo( 3 ), "Two statements (select and return) but..." );
                     Assert.That( sp.BodyStatements.Count == 2 || sp.BodyStatements[2] is SqlExprStEmpty, "...when ';' is added, it is a third empty statement." );
                 } );

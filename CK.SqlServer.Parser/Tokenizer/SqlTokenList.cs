@@ -65,7 +65,7 @@ namespace CK.SqlServer.Parser
 
         public IReadOnlyList<T> Tokens => _tokens;
 
-        IEnumerable<SqlToken> ISqlItem.Tokens => _tokens;
+        IEnumerable<SqlToken> ISqlItem.AllTokens => _tokens;
 
         protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> content, ImmutableList<SqlTrivia> trailing )
         {
@@ -76,11 +76,11 @@ namespace CK.SqlServer.Parser
 
         public SqlToken FirstOrEmptyT { get { return _tokens.Count == 0 ? SqlToken.Empty : _tokens[0]; ; } }
 
-        protected override void DoWrite( StringBuilder b )
+        protected override void DoWrite( StringBuilder b, SqlTriviaWriteOption option )
         {
             foreach( var t in _tokens )
             {
-                t.Write( b );
+                t.Write( b, option );
             }
         }
     }

@@ -60,7 +60,7 @@ namespace CK.SqlServer.Parser
         public string ToStringClean()
         {
             string s = Variable.ToStringClean();
-            if( HasInitialValue ) s += " = " + InitialValue.Tokens.ToStringWithoutTrivias( " " );
+            if( HasInitialValue ) s += " = " + InitialValue.AllTokens.ToStringWithoutTrivias( " " );
             return s;
         }
 

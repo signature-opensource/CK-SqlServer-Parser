@@ -238,47 +238,54 @@ namespace CK.SqlServer.Parser
         /// Writes the node with its <see cref="LeadingTrivia"/> and <see cref="TrailingTrivia"/>.
         /// </summary>
         /// <param name="b">The <see cref="StringBuilder"/> to write to.</param>
-        public void Write( StringBuilder b )
+        /// <param name="option">The option for the trivias.</param>
+        public void Write( StringBuilder b, SqlTriviaWriteOption option = SqlTriviaWriteOption.None )
         {
-            foreach( var t in LeadingTrivias ) t.Write( b );
-            DoWrite( b );
-            foreach( var t in TrailingTrivias ) t.Write( b );
+            LeadingTrivias.Write( b, option );
+            DoWrite( b, option );
+            TrailingTrivias.Write( b, option );
         }
 
         /// <summary>
-        /// Writes the token without its leading nor traling trivias.
+        /// Writes the token without this leading nor traling trivias.
         /// </summary>
         /// <param name="b">The <see cref="StringBuilder"/> to write to.</param>
-        public void WriteWithoutTrivias( StringBuilder b )
+        /// <param name="option">The option for the trivias.</param>
+        public void WriteWithoutTrivias( StringBuilder b, SqlTriviaWriteOption option = SqlTriviaWriteOption.None )
         {
-            DoWrite( b );
+            DoWrite( b, option );
         }
 
         /// <summary>
-        /// When implemented by concrete specialization, this must write the node itself.
+        /// When implemented by concrete specialization, this must write the node itself 
+        /// without this <see cref="LeadingTrivias"/> and <see cref="TrailingTrivias"/>.
         /// </summary>
         /// <param name="b">The <see cref="StringBuilder"/> to write to.</param>
-        abstract protected void DoWrite( StringBuilder b );
+        /// <param name="option">The option for the trivias.</param>
+        abstract protected void DoWrite( StringBuilder b, SqlTriviaWriteOption option );
 
         /// <summary>
-        /// Overriden to return the result of <see cref="WriteWithoutTrivias"/>.
+        /// Overriden to return the result of <see cref="WriteWithoutTrivias"/> with an 
+        /// option set to <see cref="SqlTriviaWriteOption.OneSpace"/>.
         /// </summary>
         /// <returns>The mere node.</returns>
         public override string ToString()
         {
             StringBuilder b = new StringBuilder();
-            DoWrite( b );
+            DoWrite( b, SqlTriviaWriteOption.OneSpace );
             return b.ToString();
         }
 
         /// <summary>
-        /// Returns the result of <see cref="Write"/> or <see cref="WriteWithoutTrivias"/>.
+        /// Returns the result of <see cref="Write"/> or <see cref="WriteWithoutTrivias"/> with an 
+        /// option set to <see cref="SqlTriviaWriteOption.None"/>: all internal trivias appear.
         /// </summary>
         /// <returns>This node text representation.</returns>
-        public string ToString( bool withTrivia )
+        public string ToString( bool withThisTrivia )
         {
             StringBuilder b = new StringBuilder();
-            Write( b );
+            if( withThisTrivia ) Write( b );
+            else DoWrite( b, SqlTriviaWriteOption.None );
             return b.ToString();
         }
     }

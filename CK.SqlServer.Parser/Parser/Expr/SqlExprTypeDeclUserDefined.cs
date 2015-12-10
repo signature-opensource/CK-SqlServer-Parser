@@ -86,7 +86,7 @@ namespace CK.SqlServer.Parser
 
         public string ToStringClean()
         {
-            return Tokens.ToStringWithoutTrivias( String.Empty );
+            return AllTokens.ToStringWithoutTrivias( String.Empty );
         }
 
         [DebuggerStepThrough]

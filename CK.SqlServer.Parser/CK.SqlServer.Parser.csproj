@@ -173,6 +173,8 @@
     <Compile Include="Tokenizer\SqlTokenTypeError.cs" />
     <Compile Include="Tokenizer\SqlTokenTypeExtension.cs" />
     <Compile Include="Tokenizer\SqlTrivia.cs" />
+    <Compile Include="Tokenizer\SqlTriviaExtension.cs" />
+    <Compile Include="Tokenizer\SqlTriviaWriteOptions.cs" />
     <Compile Include="Tokenizer\Token\SqlTokenBaseLiteral.cs" />
     <Compile Include="Tokenizer\Token\SqlTokenClosePar.cs" />
     <Compile Include="Tokenizer\Token\SqlTokenError.cs" />

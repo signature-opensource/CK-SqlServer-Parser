@@ -133,7 +133,7 @@ namespace CK.SqlServer.Parser
             get 
             {
                 if( OutputT == null ) return false;
-                return Tokens.SelectMany( t => t.LeadingTrivias.Concat( t.TrailingTrivias ).Where( trivia => trivia.TokenType != SqlTokenType.None ) ).Any( trivia => trivia.Text.Contains( "input" ) );
+                return AllTokens.SelectMany( t => t.LeadingTrivias.Concat( t.TrailingTrivias ).Where( trivia => trivia.TokenType != SqlTokenType.None ) ).Any( trivia => trivia.Text.Contains( "input" ) );
             } 
         }
 
@@ -166,7 +166,7 @@ namespace CK.SqlServer.Parser
         public string ToStringClean()
         {
             string s = Variable.ToStringClean();
-            if( DefaultValue != null ) s += " " + DefaultValue.Tokens.ToStringWithoutTrivias( " " );
+            if( DefaultValue != null ) s += " " + DefaultValue.AllTokens.ToStringWithoutTrivias( " " );
             if( IsOutput )
             {
                 if( IsInputOutput ) s += " /*input*/output";

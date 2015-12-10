@@ -21,7 +21,7 @@ namespace CK.SqlServer.Parser
         /// Gets the tokens that compose this item.
         /// Never null but can be empty for empty opener or closer <see cref="SqlToken.EmptyOpenPar"/> or <see cref="SqlToken.EmptyClosePar"/>.
         /// </summary>
-        IEnumerable<SqlToken> Tokens { get; }
+        IEnumerable<SqlToken> AllTokens { get; }
 
         /// <summary>
         /// Gets the last token of the expression or, in worst case when this is either <see cref="SqlToken.EmptyOpenPar"/> or <see cref="SqlToken.EmptyClosePar"/>, gets <see cref="SqlToken.Empty"/>.

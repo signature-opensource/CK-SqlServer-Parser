@@ -32,7 +32,7 @@ namespace CK.SqlServer.Parser
 
         public override IEnumerable<ISqlItem> Items { get { return _type; } }
 
-        public override IEnumerable<SqlToken> Tokens { get { return _type[0].Tokens; } }
+        public override IEnumerable<SqlToken> AllTokens { get { return _type[0].AllTokens; } }
 
         public override SqlToken FirstOrEmptyT { get { return _type[0].FirstOrEmptyT; } }
 
@@ -40,7 +40,7 @@ namespace CK.SqlServer.Parser
 
         public string ToStringClean()
         {
-            return Tokens.ToStringWithoutTrivias( String.Empty );
+            return AllTokens.ToStringWithoutTrivias( String.Empty );
         }
 
         /// <summary>

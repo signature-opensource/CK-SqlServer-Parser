@@ -77,7 +77,7 @@ namespace CK.SqlServer.Parser
 
         public override IEnumerable<ISqlItem> Items { get { return _tokens; } }
 
-        public override IEnumerable<SqlToken> Tokens { get { return _tokens; } }
+        public override IEnumerable<SqlToken> AllTokens { get { return _tokens; } }
 
         public override SqlToken FirstOrEmptyT { get { return _tokens[0]; } }
 
@@ -91,7 +91,7 @@ namespace CK.SqlServer.Parser
 
         public string ToStringClean()
         {
-            return Tokens.ToStringWithoutTrivias( String.Empty );
+            return AllTokens.ToStringWithoutTrivias( String.Empty );
         }
 
         [DebuggerStepThrough]
