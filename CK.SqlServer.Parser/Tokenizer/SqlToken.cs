@@ -14,7 +14,7 @@ namespace CK.SqlServer.Parser
     /// <summary>
     /// Base class for (non comment) tokens. 
     /// </summary>
-    public abstract class SqlToken : SqlNode, ISqlItem, IEnumerable<SqlToken>
+    public abstract class SqlToken : SqlNode, IEnumerable<SqlToken>
     {
         class EmptyToken : SqlToken
         {
@@ -24,7 +24,7 @@ namespace CK.SqlServer.Parser
             }
             public override IEnumerable<SqlToken> AllTokens => Util.EmptyArray<SqlToken>.Empty;
 
-            protected override void DoWrite( StringBuilder b ) { }
+            public override void WriteWithoutTrivias( SqlTextWriter w ) { }
             public override string ToString() { return String.Empty; }
             protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> content, ImmutableList<SqlTrivia> trailing )
             {
@@ -70,25 +70,7 @@ namespace CK.SqlServer.Parser
         /// </summary>
         public override IReadOnlyList<SqlNode> ChildrenNodes => Util.EmptyArray<SqlNode>.Empty;
 
-        SqlToken ISqlItem.LastOrEmptyT { get { return this; } }
-
-        SqlToken ISqlItem.FirstOrEmptyT { get { return this; } }
-
-        /// <summary>
-        /// Implements to rely without trivia option that is useless for tokens.
-        /// </summary>
-        /// <param name="b">The string builder to use.</param>
-        /// <param name="option">Unused option.</param>
-        protected sealed override void DoWrite( StringBuilder b, SqlTriviaWriteOption option )
-        {
-            DoWrite( b );
-        }
-
-        /// <summary>
-        /// Must write the token (without trivias).
-        /// </summary>
-        /// <param name="b">The string builder to use.</param>
-        protected abstract void DoWrite( StringBuilder b );
+        public override bool IsToken( SqlTokenType t ) => TokenType == t;
 
         #region IEnumerable<SqlToken> AllTokens auto implementation
         public override IEnumerable<SqlToken> AllTokens => this;

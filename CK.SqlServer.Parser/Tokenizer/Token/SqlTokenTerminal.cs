@@ -32,9 +32,9 @@ namespace CK.SqlServer.Parser
             return new SqlTokenTerminal( TokenType, leading, trailing );
         }
 
-        protected override void DoWrite( StringBuilder b )
+        public override void WriteWithoutTrivias( SqlTextWriter w )
         {
-            b.Append( SqlTokenizer.Explain( TokenType ) );
+            w.GetLineBuilder().Append( SqlTokenizer.Explain( TokenType ) );
         }
     }
 

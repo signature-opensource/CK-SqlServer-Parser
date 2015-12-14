@@ -11,26 +11,32 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using CK.Core;
+using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
     public class SqlExprUnaryOperator : SqlExpr
     {
         public SqlExprUnaryOperator( SqlToken op, SqlExpr rightExpr )
-            : this( Build( op, rightExpr ) )
+            : this( null, Build( op, rightExpr ), null )
         {
         }
 
-        static ISqlItem[] Build( SqlToken op, SqlExpr rightExpr )
+        static SqlNode[] Build( SqlToken op, SqlExpr rightExpr )
         {
             if( op == null ) throw new ArgumentNullException( "op" );
             if( rightExpr == null ) throw new ArgumentNullException( "rightExpr" );
-            return CreateArray( SqlToken.EmptyOpenPar, op, rightExpr, SqlToken.EmptyClosePar );
+            return CreateArray<SqlNode>( SqlToken.EmptyOpenPar, op, rightExpr, SqlToken.EmptyClosePar );
         }
 
-        internal SqlExprUnaryOperator( ISqlItem[] newComponents )
-            : base( newComponents )
+        SqlExprUnaryOperator( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+            : base( leading, items, trailing )
         {
+        }
+
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        {
+            return new SqlExprUnaryOperator( leading, EnsureArray( children ), trailing );
         }
 
         public SqlToken OperatorT { get { return (SqlToken)Slots[1]; } }

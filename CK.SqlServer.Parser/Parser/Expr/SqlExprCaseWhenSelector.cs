@@ -12,6 +12,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using CK.Core;
+using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
@@ -19,14 +20,14 @@ namespace CK.SqlServer.Parser
     /// <summary>
     /// Defines "when Expression then ExpressionValue" items of <see cref="SqlExprCase"/> expression.
     /// </summary>
-    public class SqlExprCaseWhenSelector : SqlNoExpr
+    public class SqlExprCaseWhenSelector : SqlItem
     {
-        public SqlExprCaseWhenSelector( IList<ISqlItem> items )
-            : this( Build( items ) )
+        public SqlExprCaseWhenSelector( IList<SqlNode> items )
+            : this( null, Build( items ), null )
         {
         }
 
-        static ISqlItem[] Build( IList<ISqlItem> items )
+        static SqlNode[] Build( IList<SqlNode> items )
         {
             if( items == null )
             {
@@ -35,7 +36,7 @@ namespace CK.SqlServer.Parser
             if( items.Count == 0 || items.Count % 4 != 0 ) throw new ArgumentException( "items must be not empty and its length must be a multiple of 4." );
             for( int i = 0; i < items.Count; ++i )
             {
-                ISqlItem item = items[i];
+                SqlNode item = items[i];
                 if( item == null ) throw new ArgumentException( String.Format( "Null item at {0}.", i ) );
                 if( i % 4 == 0 )
                 {
@@ -57,10 +58,14 @@ namespace CK.SqlServer.Parser
             return items.ToArray();
         }
 
-        internal SqlExprCaseWhenSelector( ISqlItem[] newComponents )
-            : base( newComponents )
+        protected SqlExprCaseWhenSelector( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+            : base( leading, items, trailing )
         {
-            Debug.Assert( Build( newComponents ) != null );
+        }
+
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        {
+            return new SqlExprCaseWhenSelector( leading, EnsureArray( children ), trailing );
         }
 
         /// <summary>

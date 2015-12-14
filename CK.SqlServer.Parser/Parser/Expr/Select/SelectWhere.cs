@@ -1,10 +1,3 @@
-#region Proprietary License
-/*----------------------------------------------------------------------------
-* This file (CK.SqlServer.Parser\Parser\Expr\Select\SelectWhere.cs) is part of CK-Database. 
-* Copyright © 2007-2014, Invenietis <http://www.invenietis.com>. All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -12,22 +5,28 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using CK.Core;
+using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
     /// <summary>
     /// Captures the optional "Where ..." select part.
     /// </summary>
-    public class SelectWhere : SqlNoExpr
+    public class SelectWhere : SqlItem
     {
         public SelectWhere( SqlTokenIdentifier whereT, SqlExpr expression )
-            : this( CreateArray( whereT, expression ) )
+            : this( null, CreateArray<SqlNode>( whereT, expression ), null )
         {
         }
 
-        internal SelectWhere( ISqlItem[] items )
-            : base( items )
+        internal SelectWhere( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+            : base( leading, items, trailing )
         {
+        }
+
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        {
+            return new SelectWhere( leading, EnsureArray( children ), trailing );
         }
 
         public SqlTokenIdentifier WhereT { get { return (SqlTokenIdentifier)Slots[0]; } }

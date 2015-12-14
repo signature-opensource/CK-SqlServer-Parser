@@ -12,6 +12,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using CK.Core;
+using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
@@ -24,20 +25,27 @@ namespace CK.SqlServer.Parser
             : base( Build( ifToken, condition, thenStatement, elseToken, elseStatement ),  terminator )
         {
         }
-        
-        internal SqlExprStIf( ISqlItem[] components )
-            : base( components )
+
+        SqlExprStIf( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+            : base( leading, items, trailing )
         {
         }
 
-        static ISqlItem[] Build( SqlTokenIdentifier ifToken, SqlExpr condition, SqlExprBaseSt thenStatement, SqlTokenIdentifier elseToken, SqlExprBaseSt elseStatement )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        {
+            return new SqlExprStIf( leading, EnsureArray( children ), trailing );
+        }
+
+        static SqlNode[] Build( SqlTokenIdentifier ifToken, SqlExpr condition, SqlExprBaseSt thenStatement, SqlTokenIdentifier elseToken, SqlExprBaseSt elseStatement )
         {
             if( ifToken == null || !ifToken.NameEquals( "if" ) ) throw new ArgumentException( "ifToken" );
             if( condition == null ) throw new ArgumentNullException( "condition" );
             if( thenStatement == null ) throw new ArgumentNullException( "thenStatement" );
             if( (elseToken == null) != (elseStatement == null) ) throw new ArgumentException( "An else token requires and is required by an else statement." );
 
-            return elseToken != null ? CreateArray( ifToken, condition, thenStatement, elseToken, elseStatement ) : CreateArray( ifToken, condition, thenStatement );
+            return elseToken != null 
+                    ? CreateArray<SqlNode>( ifToken, condition, thenStatement, elseToken, elseStatement ) 
+                    : CreateArray<SqlNode>( ifToken, condition, thenStatement );
         }
 
         public SqlTokenIdentifier IfT { get { return (SqlTokenIdentifier)Slots[0]; } }

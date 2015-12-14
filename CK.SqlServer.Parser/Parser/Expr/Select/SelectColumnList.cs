@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
@@ -20,14 +21,19 @@ namespace CK.SqlServer.Parser
     /// </summary>
     public class SelectColumnList : SqlNoExprList<SelectColumn>
     {
-        public SelectColumnList( IList<ISqlItem> components )
-            : base( components )
+        public SelectColumnList( IList<SqlNode> components )
+            : base( null, EnsureArray( components ), null )
         {
         }
 
-        internal SelectColumnList( ISqlItem[] items )
-            : base( items )
+        internal SelectColumnList( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+            : base( leading, items, trailing )
         {
+        }
+
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        {
+            return new SelectColumnList( leading, EnsureArray( children ), trailing );
         }
 
         [DebuggerStepThrough]

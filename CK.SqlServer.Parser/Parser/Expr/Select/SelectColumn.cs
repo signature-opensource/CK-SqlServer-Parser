@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
@@ -17,7 +18,7 @@ namespace CK.SqlServer.Parser
     /// <summary>
     /// Captures a select column definition. 
     /// </summary>
-    public class SelectColumn : SqlNoExpr
+    public class SelectColumn : SqlItem
     {
         readonly ISqlIdentifier _colName;
         readonly SqlToken _asOrEqual;
@@ -29,62 +30,62 @@ namespace CK.SqlServer.Parser
         static readonly SqlTokenIdentifier _autoAsTNoSpace = new SqlTokenIdentifier( SqlTokenType.As, "as", null, null );
 
         public SelectColumn( ISqlIdentifier colName, SqlTokenTerminal assignT, SqlExpr definition )
-            : this( Build( colName, assignT, definition ) )
+            : this( null, Build( colName, assignT, definition ), null )
         {
         }
 
         public SelectColumn( SqlExpr definition, SqlTokenIdentifier asT, ISqlIdentifier colName )
-            : this( Build( definition, asT, colName ) )
+            : this( null, Build( definition, asT, colName ), null )
         {
         }
 
         public SelectColumn( SqlExpr definition, ISqlIdentifier colName = null )
-            : this( Build( definition, colName ) )
+            : this( null, Build( definition, colName ), null )
         {
         }
 
-        static ISqlItem[] Build( ISqlIdentifier colName, SqlTokenTerminal assignT, SqlExpr definition )
+        static SqlNode[] Build( ISqlIdentifier colName, SqlTokenTerminal assignT, SqlExpr definition )
         {
             if( colName == null ) throw new ArgumentNullException( "colName" );
             if( assignT == null ) throw new ArgumentNullException( "assignT" );
             if( assignT.TokenType != SqlTokenType.Assign ) throw new ArgumentException( "Assign token expected.", "assignT" );
             if( definition == null ) throw new ArgumentNullException( "definition" );
-            return CreateArray( colName, assignT, definition );
+            return CreateArray( (SqlNode)colName, assignT, definition );
         }
 
-        static ISqlItem[] Build( SqlExpr definition, SqlTokenIdentifier asT, ISqlIdentifier colName )
+        static SqlNode[] Build( SqlExpr definition, SqlTokenIdentifier asT, ISqlIdentifier colName )
         {
             if( definition == null ) throw new ArgumentNullException( "definition" );
             if( colName == null ) throw new ArgumentNullException( "colName" );
             if( asT == null )
             {
-                var leftTrivia = definition.LastOrEmptyT.TrailingTrivias;
-                var rightTrivia = colName.FirstOrEmptyT.LeadingTrivias;
-                if( leftTrivia.Count == 0 )
+                var leftTrivia = definition.FullTrailingTrivias.Any();
+                var rightTrivia = colName.FullLeadingTrivias.Any();
+                if( !leftTrivia )
                 {
-                    if( rightTrivia.Count == 0 ) asT = _autoAsT;
+                    if( !rightTrivia ) asT = _autoAsT;
                     else asT = _autoAsTNoRight;
                 }
                 else
                 {
-                    if( rightTrivia.Count == 0 )
+                    if( !rightTrivia )
                         asT = _autoAsTNoLeft;
                     else asT = _autoAsTNoSpace;
                 }
             }
             else if( asT.TokenType != SqlTokenType.As ) throw new ArgumentException( "As token expected.", "asT" );
-            return CreateArray( definition, asT, colName );
+            return CreateArray<SqlNode>( definition, asT, (SqlNode)colName );
         }
 
-        static ISqlItem[] Build( SqlExpr definition, ISqlIdentifier colName )
+        static SqlNode[] Build( SqlExpr definition, ISqlIdentifier colName )
         {
             if( definition == null ) throw new ArgumentNullException( "definition" );
             if( colName == null ) return CreateArray( definition );
             return Build( definition, null, colName );
         }
 
-        internal SelectColumn( ISqlItem[] items )
-            : base( items )
+        internal SelectColumn( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+            : base( leading, items, trailing )
         {
             if( Slots.Length == 1 ) _definition = (SqlExpr)Slots[0];
             else
@@ -101,6 +102,11 @@ namespace CK.SqlServer.Parser
                     _definition = (SqlExpr)Slots[0];
                 }
             }
+        }
+
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        {
+            return new SelectColumn( leading, EnsureArray( children ), trailing );
         }
 
         public ISqlIdentifier ColumnName { get { return _colName; } }

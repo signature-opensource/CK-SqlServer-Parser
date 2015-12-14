@@ -14,34 +14,23 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using CK.Core;
+using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
     public class SqlExprTypeDeclWithSize : SqlItem, ISqlExprUnifiedTypeDecl
     {
-        readonly SqlToken[] _tokens;
-
         public SqlExprTypeDeclWithSize( SqlTokenIdentifier id )
+            : base( null, CreateArray( id ), null )
         {
             if( id == null ) throw new ArgumentNullException( "id" );
-            SqlDbType? dbType = SqlKeyword.FromSqlTokenTypeToSqlDbType( id.TokenType );
-            if( !dbType.HasValue || (dbType != SqlDbType.Char && dbType != SqlDbType.VarChar && dbType != SqlDbType.NChar && dbType != SqlDbType.NVarChar && dbType != SqlDbType.Binary && dbType != SqlDbType.VarBinary) )
-            {
-                throw new ArgumentException( "Expected char, varchar, nchar, nvarchar, binary, varbinary.", "id" );
-            }
-            _tokens = CreateArray( id );
-            DbType = dbType.Value;
-            SyntaxSize = 0;
+            InitFromSingleIdentifier();
         }
 
         public SqlExprTypeDeclWithSize( SqlTokenIdentifier id, SqlTokenTerminal openPar, SqlToken size, SqlTokenTerminal closePar )
+            : base( null, CreateArray( id, openPar, size, closePar ), null )
         {
             if( id == null ) throw new ArgumentNullException( "id" );
-            SqlDbType? dbType = SqlKeyword.FromSqlTokenTypeToSqlDbType( id.TokenType );
-            if( !dbType.HasValue || (dbType != SqlDbType.Char && dbType != SqlDbType.VarChar && dbType != SqlDbType.NChar && dbType != SqlDbType.NVarChar && dbType != SqlDbType.Binary && dbType != SqlDbType.VarBinary) )
-            {
-                throw new ArgumentException( "Expected char, varchar, nchar, nvarchar, binary, varbinary.", "id" );
-            }
             if( openPar == null ) throw new ArgumentNullException( "openPar" );
             if( openPar.TokenType != SqlTokenType.OpenPar ) throw new ArgumentException( "Must be '('.", "openPar" );
             if( size == null ) throw new ArgumentNullException( "size" );
@@ -49,46 +38,66 @@ namespace CK.SqlServer.Parser
                 && !(size is SqlTokenIdentifier && ((SqlTokenIdentifier)size).TokenType == SqlTokenType.Max) ) throw new ArgumentException( "Size must be an integer greater than 0 or max.", "size" );
             if( closePar == null ) throw new ArgumentNullException( "closePar" );
             if( closePar.TokenType != SqlTokenType.ClosePar ) throw new ArgumentException( "Must be ')'.", "closePar" );
-            _tokens = CreateArray( id, openPar, size, closePar );
-            DbType = dbType.Value;
-            SyntaxSize = size is SqlTokenLiteralInteger ? ((SqlTokenLiteralInteger)size).Value : -1;
+            InitFromSingleIdentifier();
+            InitSyntaxSize();
         }
 
         internal SqlExprTypeDeclWithSize( SqlTokenIdentifier id, SqlDbType dbType )
+            : base( null, CreateArray( id ), null )
         {
             Debug.Assert( id != null );
             Debug.Assert( dbType == SqlKeyword.FromSqlTokenTypeToSqlDbType( id.TokenType ).Value );
             Debug.Assert( dbType == SqlDbType.Char || dbType != SqlDbType.VarChar || dbType != SqlDbType.NChar || dbType != SqlDbType.NVarChar || dbType != SqlDbType.Binary || dbType != SqlDbType.VarBinary );
-            _tokens = CreateArray( id );
             DbType = dbType;
             SyntaxSize = 0;
         }
 
         internal SqlExprTypeDeclWithSize( SqlTokenIdentifier id, SqlTokenTerminal openPar, SqlToken size, SqlTokenTerminal closePar, SqlDbType dbType )
+             : base( null, CreateArray( id, openPar, size, closePar ), null )
         {
             Debug.Assert( id != null && openPar != null && size != null && closePar != null );
             Debug.Assert( openPar.TokenType == SqlTokenType.OpenPar && closePar.TokenType == SqlTokenType.ClosePar );
             Debug.Assert( dbType == SqlKeyword.FromSqlTokenTypeToSqlDbType( id.TokenType ).Value );
             Debug.Assert( dbType == SqlDbType.Char || dbType != SqlDbType.VarChar || dbType != SqlDbType.NChar || dbType != SqlDbType.NVarChar || dbType != SqlDbType.Binary || dbType != SqlDbType.VarBinary );
             Debug.Assert( (size is SqlTokenLiteralInteger && ((SqlTokenLiteralInteger)size).Value > 0) || (size is SqlTokenIdentifier && ((SqlTokenIdentifier)size).TokenType == SqlTokenType.Max) );
-            _tokens = CreateArray( id, openPar, size, closePar );
             DbType = dbType;
-            SyntaxSize = size is SqlTokenLiteralInteger ? ((SqlTokenLiteralInteger)size).Value : -1;
+            InitSyntaxSize();
         }
 
-        public override IEnumerable<ISqlItem> Items { get { return _tokens; } }
+        void InitFromSingleIdentifier()
+        {
+            SqlDbType? dbType = SqlKeyword.FromSqlTokenTypeToSqlDbType( TypeIdentifierT.TokenType );
+            if( !dbType.HasValue || (dbType != SqlDbType.Char && dbType != SqlDbType.VarChar && dbType != SqlDbType.NChar && dbType != SqlDbType.NVarChar && dbType != SqlDbType.Binary && dbType != SqlDbType.VarBinary) )
+            {
+                throw new ArgumentException( "Expected char, varchar, nchar, nvarchar, binary, varbinary.", "id" );
+            }
+            DbType = dbType.Value;
+        }
 
-        public override IEnumerable<SqlToken> AllTokens { get { return _tokens; } }
+        void InitSyntaxSize()
+        {
+            var sz = Slots[2];
+            SyntaxSize = sz is SqlTokenLiteralInteger ? ((SqlTokenLiteralInteger)sz).Value : -1;
+        }
 
-        public SqlTokenIdentifier TypeIdentifierT { get { return (SqlTokenIdentifier)_tokens[0]; } }
+        SqlExprTypeDeclWithSize( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+            : base( leading, items, trailing )
+        {
+            InitFromSingleIdentifier();
+            if( Slots.Length == 4 ) InitSyntaxSize();
+            else if( Slots.Length != 1 ) throw new ArgumentException( "invalid sized type." );
+        }
+
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        {
+            return new SqlExprTypeDeclWithSize( leading, EnsureArray( children ), trailing );
+        }
+
+        public SqlTokenIdentifier TypeIdentifierT { get { return (SqlTokenIdentifier)Slots[0]; } }
 
         public SqlDbType DbType { get; private set; }
 
         public int SyntaxSize { get; private set; }
-
-        public override SqlToken FirstOrEmptyT { get { return _tokens[0]; } }
-
-        public override SqlToken LastOrEmptyT { get { return _tokens[_tokens.Length - 1]; } }
 
         public string ToStringClean()
         {

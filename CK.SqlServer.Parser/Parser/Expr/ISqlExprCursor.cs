@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace CK.SqlServer.Parser
 {
-    public interface ISqlExprCursor : ISqlItem
+    public interface ISqlExprCursor
     {
         bool IsSql92Syntax { get; }
 

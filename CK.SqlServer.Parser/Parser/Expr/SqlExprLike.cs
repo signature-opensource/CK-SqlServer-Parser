@@ -1,10 +1,3 @@
-#region Proprietary License
-/*----------------------------------------------------------------------------
-* This file (CK.SqlServer.Parser\Parser\Expr\SqlExprLike.cs) is part of CK-Database. 
-* Copyright © 2007-2014, Invenietis <http://www.invenietis.com>. All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -12,6 +5,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using CK.Core;
+using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
@@ -22,42 +16,48 @@ namespace CK.SqlServer.Parser
     public class SqlExprLike : SqlExpr
     {
         public SqlExprLike( SqlExpr left, SqlTokenIdentifier notToken, SqlTokenIdentifier likeToken, SqlExpr pattern, SqlTokenIdentifier escapeToken = null, SqlTokenLiteralString escapeChar = null )
-            : this( Build( left, notToken, likeToken, pattern, escapeToken, escapeChar ) )
+            : this( null, Build( left, notToken, likeToken, pattern, escapeToken, escapeChar ), null )
         {
         }
 
-        static ISqlItem[] Build( SqlExpr left, SqlTokenIdentifier notToken, SqlTokenIdentifier likeToken, SqlExpr pattern, SqlTokenIdentifier escapeToken = null, SqlTokenLiteralString escapeChar = null )
+        static SqlNode[] Build( SqlExpr left, SqlTokenIdentifier notToken, SqlTokenIdentifier likeToken, SqlExpr pattern, SqlTokenIdentifier escapeToken = null, SqlTokenLiteralString escapeChar = null )
         {
             if( notToken == null )
             {
                 if( escapeToken == null )
                 {
-                    return CreateArray( SqlToken.EmptyOpenPar, left, likeToken, pattern, SqlToken.EmptyClosePar );
+                    return CreateArray<SqlNode>( SqlToken.EmptyOpenPar, left, likeToken, pattern, SqlToken.EmptyClosePar );
                 }
                 else
                 {
                     if( escapeChar == null ) throw new ArgumentNullException( "escape" );
-                    return CreateArray( SqlToken.EmptyOpenPar, left, likeToken, pattern, escapeToken, escapeChar, SqlToken.EmptyClosePar );
+                    return CreateArray<SqlNode>( SqlToken.EmptyOpenPar, left, likeToken, pattern, escapeToken, escapeChar, SqlToken.EmptyClosePar );
                 }
             }
             else
             {
                 if( escapeToken == null )
                 {
-                    return CreateArray( SqlToken.EmptyOpenPar, left, notToken, likeToken, pattern, SqlToken.EmptyClosePar );
+                    return CreateArray<SqlNode>( SqlToken.EmptyOpenPar, left, notToken, likeToken, pattern, SqlToken.EmptyClosePar );
                 }
                 else
                 {
                     if( escapeChar == null ) throw new ArgumentNullException( "escape" );
-                    return CreateArray( SqlToken.EmptyOpenPar, left, notToken, likeToken, pattern, escapeToken, escapeChar, SqlToken.EmptyClosePar );
+                    return CreateArray<SqlNode>( SqlToken.EmptyOpenPar, left, notToken, likeToken, pattern, escapeToken, escapeChar, SqlToken.EmptyClosePar );
                 }
             }
         }
 
-        internal SqlExprLike( ISqlItem[] newComponents )
-            : base( newComponents )
+        SqlExprLike( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+            : base( leading, items, trailing )
         {
         }
+
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        {
+            return new SqlExprLike( leading, EnsureArray( children ), trailing );
+        }
+
 
         public SqlExpr Left { get { return (SqlExpr)Slots[1]; } }
 

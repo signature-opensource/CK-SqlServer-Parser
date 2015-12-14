@@ -136,7 +136,7 @@ namespace CK.SqlServer.Parser
                             || !R.IsToken( out asToken, SqlTokenType.As, true ) 
                             || !IsTypeDecl( out type, true )
                             || !R.IsToken( out closePar, true ) ) return false;
-                        left = new SqlExprCast( (SqlTokenIdentifier)left.FirstOrEmptyT, openPar, e, asToken, type, closePar );
+                        left = new SqlExprCast( (SqlTokenIdentifier)left.ChildrenNodes[0], openPar, e, asToken, type, closePar );
                         return true;
                     }
                     SqlExprCommaList parenthesis;
@@ -157,7 +157,7 @@ namespace CK.SqlServer.Parser
                 if( R.Current.TokenType == SqlTokenType.Comma )
                 {
                     Debug.Assert( !(left is SqlExprCommaList) );
-                    var items = new List<ISqlItem>();
+                    var items = new List<SqlNode>();
                     items.Add( left );
                     items.Add( R.Read<SqlTokenTerminal>() );
                     for( ; ; )
@@ -320,7 +320,7 @@ namespace CK.SqlServer.Parser
                     if( !R.IsToken( out whenToken, SqlTokenType.When, true ) ) return false;
                 }
                 Debug.Assert( whenToken != null );
-                List<ISqlItem> whenItems = new List<ISqlItem>();
+                List<SqlNode> whenItems = new List<SqlNode>();
                 do
                 {
                     SqlExpr expr;
@@ -377,7 +377,7 @@ namespace CK.SqlServer.Parser
                 e = null;
                 SqlTokenOpenPar openPar;
                 SqlTokenClosePar closePar;
-                List<ISqlItem> items;
+                List<SqlNode> items;
                 if( !IsCommaList<SqlExpr>( out openPar, out items, out closePar, expectParenthesis, MatchInList ) ) return false;
                 if( items.Count == 1 && items[0] is SqlExprCommaList )
                 {
@@ -426,7 +426,7 @@ namespace CK.SqlServer.Parser
             {
                 Debug.Assert( openPar == null || closer( SqlTokenClosePar.ClosePar ), "If we have an open parenthesis, the closer function must detect a closing parenthesis." );
                 e = null;
-                List<ISqlItem> exprs = new List<ISqlItem>();
+                List<SqlNode> exprs = new List<SqlNode>();
                 SqlExpr lastExpr = null;
                 while( blindlyAcceptCurrentToken || !(R.IsErrorOrEndOfInput || closer( R.Current )) )
                 {

@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
@@ -24,15 +25,15 @@ namespace CK.SqlServer.Parser
         readonly SelectGroupBy _groupBy;
 
         public SelectSpecification( SelectHeader header, SelectColumnList columns, SelectInto into = null, SelectFrom from = null, SelectWhere where = null, SelectGroupBy groupBy = null )
-            : this( Build( SqlToken.EmptyOpenPar, header, columns, into, from, where, groupBy, SqlToken.EmptyClosePar ) )
+            : this( null, Build( SqlToken.EmptyOpenPar, header, columns, into, from, where, groupBy, SqlToken.EmptyClosePar ), null )
         {
         }
 
-        static ISqlItem[] Build( SqlTokenList<SqlTokenOpenPar> opener, SelectHeader header, SelectColumnList columns, SelectInto into, SelectFrom from, SelectWhere where, SelectGroupBy groupBy, SqlTokenList<SqlTokenClosePar> closer )
+        static SqlNode[] Build( SqlTokenList<SqlTokenOpenPar> opener, SelectHeader header, SelectColumnList columns, SelectInto into, SelectFrom from, SelectWhere where, SelectGroupBy groupBy, SqlTokenList<SqlTokenClosePar> closer )
         {
             if( header == null ) throw new ArgumentNullException( "header" );
             if( columns == null ) throw new ArgumentNullException( "columns" );
-            var c = new List<ISqlItem>();
+            var c = new List<SqlNode>();
             c.Add( opener );
             c.Add( header );
             c.Add( columns );
@@ -44,13 +45,18 @@ namespace CK.SqlServer.Parser
             return c.ToArray();
         }
 
-        internal SelectSpecification( ISqlItem[] slots )
-            : base( slots )
+        internal SelectSpecification( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+            : base( leading, items, trailing )
         {
             _into = Slots.OfType<SelectInto>().FirstOrDefault();
             _from = Slots.OfType<SelectFrom>().FirstOrDefault();
             _where = Slots.OfType<SelectWhere>().FirstOrDefault();
             _groupBy = Slots.OfType<SelectGroupBy>().FirstOrDefault();
+        }
+
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        {
+            return new SelectSpecification( leading, EnsureArray( children ), trailing );
         }
 
         /// <summary>

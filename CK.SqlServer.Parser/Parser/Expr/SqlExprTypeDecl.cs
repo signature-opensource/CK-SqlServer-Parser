@@ -14,6 +14,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using CK.Core;
+using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
@@ -22,21 +23,21 @@ namespace CK.SqlServer.Parser
     /// </summary>
     public class SqlExprTypeDecl : SqlItem
     {
-        readonly ISqlExprUnifiedTypeDecl[] _type;
-
         public SqlExprTypeDecl( ISqlExprUnifiedTypeDecl actualType )
+            : this( null, CreateArray( (SqlNode)actualType ), null )
         {
             if( actualType == null ) throw new ArgumentNullException( "actualType" );
-            _type = new []{ actualType };
         }
 
-        public override IEnumerable<ISqlItem> Items { get { return _type; } }
+        SqlExprTypeDecl( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+            : base( leading, items, trailing )
+        {
+        }
 
-        public override IEnumerable<SqlToken> AllTokens { get { return _type[0].AllTokens; } }
-
-        public override SqlToken FirstOrEmptyT { get { return _type[0].FirstOrEmptyT; } }
-
-        public override SqlToken LastOrEmptyT { get { return _type[0].LastOrEmptyT; } }
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        {
+            return new SqlExprTypeDecl( leading, EnsureArray( children ), trailing );
+        }
 
         public string ToStringClean()
         {
@@ -46,7 +47,7 @@ namespace CK.SqlServer.Parser
         /// <summary>
         /// Gets a unified type for different kind of type declaration.
         /// </summary>
-        public ISqlExprUnifiedTypeDecl ActualType { get { return _type[0]; } }
+        public ISqlExprUnifiedTypeDecl ActualType { get { return (ISqlExprUnifiedTypeDecl)Slots[0]; } }
 
         [DebuggerStepThrough]
         internal protected override T Accept<T>( ISqlItemVisitor<T> visitor )

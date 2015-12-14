@@ -12,10 +12,11 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using CK.Core;
+using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
-    public abstract class SqlExprBaseListWithSeparatorList<T> : SqlExprBaseListWithSeparator<T>, IReadOnlyList<T> where T : class, ISqlItem
+    public abstract class SqlExprBaseListWithSeparatorList<T> : SqlExprBaseListWithSeparator<T>, IReadOnlyList<T> where T : SqlItem
     {
         /// <summary>
         /// Initializes a new <see cref="SqlExprBaseListWithSeparatorList{T}"/> of <typeparamref name="T"/> enclosed in a <see cref="SqlTokenOpenPar"/> and a <see cref="SqlTokenClosePar"/> 
@@ -26,7 +27,7 @@ namespace CK.SqlServer.Parser
         /// <param name="closePar">Closing parenthesis.</param>
         /// <param name="allowEmpty">False to throw an argument exception if the <paramref name="exprOrCommaTokens"/> is empty.</param>
         /// <param name="validSeparator">Defaults to a predicate that checks that separators are commas (see <see cref="IsCommaSeparator"/>).</param>
-        public SqlExprBaseListWithSeparatorList( SqlTokenOpenPar openPar, IList<ISqlItem> exprOrTokens, SqlTokenClosePar closePar, bool allowEmpty, Predicate<ISqlItem> validSeparator = null )
+        public SqlExprBaseListWithSeparatorList( SqlTokenOpenPar openPar, IList<SqlNode> exprOrTokens, SqlTokenClosePar closePar, bool allowEmpty, Predicate<SqlNode> validSeparator = null )
             : base( openPar, exprOrTokens, closePar, allowEmpty, validSeparator )
         {
         }
@@ -37,16 +38,15 @@ namespace CK.SqlServer.Parser
         /// </summary>
         /// <param name="exprOrTokens">List of tokens or expressions.</param>
         /// <param name="validSeparator">Defaults to a predicate that checks that separators are commas (see <see cref="IsCommaSeparator"/>).</param>
-        public SqlExprBaseListWithSeparatorList( IList<ISqlItem> exprOrTokens, bool allowEmpty, Predicate<ISqlItem> validSeparator = null )
+        public SqlExprBaseListWithSeparatorList( IList<SqlNode> exprOrTokens, bool allowEmpty, Predicate<SqlNode> validSeparator = null )
             : base( exprOrTokens, allowEmpty, validSeparator )
         {
         }
 
-        internal SqlExprBaseListWithSeparatorList( ISqlItem[] components )
-            : base( components )
+        protected SqlExprBaseListWithSeparatorList( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+            : base( leading, items, trailing )
         {
         }
-
 
         public int IndexOf( object item )
         {

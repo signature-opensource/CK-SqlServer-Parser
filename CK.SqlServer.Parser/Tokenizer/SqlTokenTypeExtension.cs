@@ -10,7 +10,7 @@ namespace CK.SqlServer.Parser
     public static class SqlTokenTypeExtension
     {
         /// <summary>
-        /// True if the <see cref="ISqlItem"/> is a select operator: <see cref="SqlTokenType.Union"/>, <see cref="SqlTokenType.Except"/>, 
+        /// True if the <see cref="SqlNode"/> is a select operator: <see cref="SqlTokenType.Union"/>, <see cref="SqlTokenType.Except"/>, 
         /// <see cref="SqlTokenType.Intersect"/>, <see cref="SqlTokenType.Order"/> and <see cref="SqlTokenType.For"/>.
         /// </summary>
         /// <param name="this">Token type.</param>

@@ -11,17 +11,18 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using CK.Core;
+using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
     public class SqlExprCast : SqlExpr
     {
         public SqlExprCast( SqlTokenIdentifier castT, SqlTokenOpenPar openPar, SqlExpr e, SqlTokenIdentifier asT, SqlExprTypeDecl type, SqlTokenClosePar closePar )
-            : this( Build( castT, openPar, e, asT, type, closePar ) )
+            : this( null, Build( castT, openPar, e, asT, type, closePar ), null )
         {
         }
 
-        static ISqlItem[] Build( SqlTokenIdentifier castT, SqlTokenOpenPar openPar, SqlExpr e, SqlTokenIdentifier asT, SqlExprTypeDecl type, SqlTokenClosePar closePar )
+        static SqlNode[] Build( SqlTokenIdentifier castT, SqlTokenOpenPar openPar, SqlExpr e, SqlTokenIdentifier asT, SqlExprTypeDecl type, SqlTokenClosePar closePar )
         {
             if( castT == null ) throw new ArgumentNullException( "castTok" );
             if( openPar == null ) throw new ArgumentNullException( "openPar" );
@@ -29,12 +30,17 @@ namespace CK.SqlServer.Parser
             if( asT == null ) throw new ArgumentNullException( "asTok" );
             if( type == null ) throw new ArgumentNullException( "type" );
             if( closePar == null ) throw new ArgumentNullException( "closePar" );
-            return CreateArray( SqlToken.EmptyOpenPar, castT, openPar, e, asT, type, closePar, SqlToken.EmptyClosePar );
+            return CreateArray<SqlNode>( SqlToken.EmptyOpenPar, castT, openPar, e, asT, type, closePar, SqlToken.EmptyClosePar );
         }
 
-        internal SqlExprCast( ISqlItem[] newComponents )
-            : base( newComponents )
+        protected SqlExprCast( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+            : base( leading, items, trailing )
         {
+        }
+
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        {
+            return new SqlExprCast( leading, EnsureArray( children ), trailing );
         }
 
         public SqlTokenIdentifier CastT { get { return (SqlTokenIdentifier)Slots[1]; } }

@@ -78,16 +78,16 @@ namespace CK.SqlServer.Parser
         {
             switch( TokenType )
             {
-                case SqlTokenType.LineComment: return option == SqlTriviaWriteOption.None 
+                case SqlTokenType.LineComment: return option == SqlTriviaWriteOption.Default 
                                                         ? "--" + Text + Environment.NewLine
                                                         : " ";
-                case SqlTokenType.StarComment: return option == SqlTriviaWriteOption.None
+                case SqlTokenType.StarComment: return option == SqlTriviaWriteOption.Default
                                                         ? "/*" + Text + "*/"
                                                         : " ";
             }
             if( _text != null && _text.Length > 0 )
             {
-                return option == SqlTriviaWriteOption.None ? _text : " ";
+                return option == SqlTriviaWriteOption.Default ? _text : " ";
             }
             return String.Empty;
         }

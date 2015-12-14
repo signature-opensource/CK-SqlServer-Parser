@@ -12,7 +12,7 @@ namespace CK.SqlServer.Parser
     /// Used with <see cref="SqlTokenOpenPar"/> and <see cref="SqlTokenClosePar"/>.
     /// </summary>
     /// <typeparam name="T">Token type (must be a <see cref="SqlToken"/>).</typeparam>
-    public sealed class SqlTokenList<T> : SqlNode, ISqlItem where T : SqlToken
+    public sealed class SqlTokenList<T> : SqlNode where T : SqlToken
     {
         readonly IReadOnlyList<T> _tokens;
 
@@ -78,15 +78,11 @@ namespace CK.SqlServer.Parser
             return new SqlTokenList<T>( _tokens == content ? _tokens : content.Cast<T>().ToReadOnlyList(), leading, trailing );
         }
 
-        public SqlToken LastOrEmptyT { get { return _tokens.Count == 0 ? SqlToken.Empty : _tokens[_tokens.Count-1]; } }
-
-        public SqlToken FirstOrEmptyT { get { return _tokens.Count == 0 ? SqlToken.Empty : _tokens[0]; ; } }
-
-        protected override void DoWrite( StringBuilder b, SqlTriviaWriteOption option )
+        public override void WriteWithoutTrivias( SqlTextWriter w )
         {
             foreach( var t in _tokens )
             {
-                t.Write( b, option );
+                t.Write( w );
             }
         }
     }

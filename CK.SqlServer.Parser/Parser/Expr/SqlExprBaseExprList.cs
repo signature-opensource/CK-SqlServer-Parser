@@ -12,6 +12,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using CK.Core;
+using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
@@ -22,7 +23,6 @@ namespace CK.SqlServer.Parser
     /// <typeparam name="T"></typeparam>
     public abstract class SqlExprBaseExprList<T> : SqlExprBaseListWithSeparatorList<T>, ISqlExprList<T> where T : SqlItem 
     {
-
         /// <summary>
         /// Initializes a new <see cref="SqlExprBaseExprList{T}"/> of <typeparamref name="T"/> enclosed in a <see cref="SqlTokenOpenPar"/> and a <see cref="SqlTokenClosePar"/>.
         /// </summary>
@@ -30,8 +30,8 @@ namespace CK.SqlServer.Parser
         /// <param name="exprOrCommaTokens">List of tokens or expressions.</param>
         /// <param name="closePar">Closing parenthesis.</param>
         /// <param name="allowEmpty">False to throw an argument exception if the <paramref name="exprOrCommaTokens"/> is empty.</param>
-        public SqlExprBaseExprList( SqlTokenOpenPar openPar, IList<ISqlItem> exprOrCommaTokens, SqlTokenClosePar closePar, bool allowEmpty )
-            : base( openPar, exprOrCommaTokens, closePar, allowEmpty, ISqlItemExtension.IsCommaSeparator )
+        protected SqlExprBaseExprList( SqlTokenOpenPar openPar, IList<SqlNode> exprOrCommaTokens, SqlTokenClosePar closePar, bool allowEmpty )
+            : base( openPar, exprOrCommaTokens, closePar, allowEmpty, IsCommaSeparator )
         {
         }
 
@@ -40,16 +40,15 @@ namespace CK.SqlServer.Parser
         /// </summary>
         /// <param name="exprOrCommaTokens">List of tokens or expressions.</param>
         /// <param name="allowEmpty">Allows empty list.</param>
-        public SqlExprBaseExprList( IList<ISqlItem> exprOrCommaTokens, bool allowEmpty )
-            : base( exprOrCommaTokens, allowEmpty, ISqlItemExtension.IsCommaSeparator )
+        protected SqlExprBaseExprList( IList<SqlNode> exprOrCommaTokens, bool allowEmpty )
+            : base( exprOrCommaTokens, allowEmpty, IsCommaSeparator )
         {
         }
 
-        internal SqlExprBaseExprList( ISqlItem[] components )
-            : base( components )
+        protected SqlExprBaseExprList( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+            : base( leading, items, trailing )
         {
         }
-
         
     }
 

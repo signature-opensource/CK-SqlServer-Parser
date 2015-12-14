@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using CK.Core;
+using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
@@ -44,23 +45,28 @@ namespace CK.SqlServer.Parser
         {
         }
 
-        internal SqlExprStStoredProc( ISqlItem[] items )
-            : base( items )
+        SqlExprStStoredProc( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+            : base( leading, items, trailing )
         {
         }
 
-        static ISqlItem[] Build( SqlTokenIdentifier alterOrCreate, SqlTokenIdentifier type, SqlExprMultiIdentifier name, SqlExprParameterList parameters, SqlExprUnmodeledItems options, SqlTokenIdentifier asToken, SqlTokenIdentifier begin, SqlExprStatementList bodyStatements, SqlTokenIdentifier end )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        {
+            return new SqlExprStStoredProc( leading, EnsureArray( children ), trailing );
+        }
+
+        static SqlNode[] Build( SqlTokenIdentifier alterOrCreate, SqlTokenIdentifier type, SqlExprMultiIdentifier name, SqlExprParameterList parameters, SqlExprUnmodeledItems options, SqlTokenIdentifier asToken, SqlTokenIdentifier begin, SqlExprStatementList bodyStatements, SqlTokenIdentifier end )
         {
             if( options != null )
             {
                 if( begin != null )
                 {
                     if( end == null ) throw new ArgumentNullException( "end can not be null if begin exists." );
-                    return CreateArray( alterOrCreate, type, name, parameters, options, asToken, begin, bodyStatements, end );
+                    return CreateArray<SqlNode>( alterOrCreate, type, name, parameters, options, asToken, begin, bodyStatements, end );
                 }
                 else
                 {
-                    return CreateArray( alterOrCreate, type, name, parameters, options, asToken, bodyStatements );
+                    return CreateArray<SqlNode>( alterOrCreate, type, name, parameters, options, asToken, bodyStatements );
                 }
             }
             else
@@ -68,11 +74,11 @@ namespace CK.SqlServer.Parser
                 if( begin != null )
                 {
                     if( end == null ) throw new ArgumentNullException( "end can not be null if begin exists." );
-                    return CreateArray( alterOrCreate, type, name, parameters, asToken, begin, bodyStatements, end );
+                    return CreateArray<SqlNode>( alterOrCreate, type, name, parameters, asToken, begin, bodyStatements, end );
                 }
                 else
                 {
-                    return CreateArray( alterOrCreate, type, name, parameters, asToken, bodyStatements );
+                    return CreateArray<SqlNode>( alterOrCreate, type, name, parameters, asToken, bodyStatements );
                 }
             }
         }

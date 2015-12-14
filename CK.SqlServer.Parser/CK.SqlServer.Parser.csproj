@@ -61,7 +61,7 @@
     <Compile Include="..\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="ISqlItem.cs" />
+    <Compile Include="Parser\Expr\Base\SqlPar.cs" />
     <Compile Include="SqlTreeMutator.cs" />
     <Compile Include="Parser\Expr\ISqlExprCursor.cs" />
     <Compile Include="Parser\Expr\SqlExprCursorSql92.cs" />
@@ -89,7 +89,6 @@
     <Compile Include="Parser\Expr\Base\SqlExpr.cs" />
     <Compile Include="Parser\Expr\Base\SqlExprBaseSt.cs" />
     <Compile Include="Parser\Expr\Base\SqlItem.cs" />
-    <Compile Include="Parser\Expr\Base\SqlNoExpr.cs" />
     <Compile Include="Parser\Expr\ISelectSpecification.cs" />
     <Compile Include="Parser\Expr\ISqlExprList.cs" />
     <Compile Include="Parser\Expr\ISqlExprUnifiedTypeDecl.cs" />
@@ -153,12 +152,12 @@
     <Compile Include="Parser\Expr\SqlExprUnaryOperator.cs" />
     <Compile Include="Parser\Expr\SqlExprUnmodeledItems.cs" />
     <Compile Include="Parser\Expr\SqlNoExprExecuteAs.cs" />
-    <Compile Include="Parser\ISqlItemVisitor.cs" />
+    <Compile Include="Visitor\ISqlItemVisitor.cs" />
     <Compile Include="Parser\SqlAnalyser.cs" />
     <Compile Include="Parser\SqlAnalyser.Expression.cs" />
     <Compile Include="Parser\SqlAnalyser.Expression.Select.cs" />
     <Compile Include="Parser\SqlAnalyser.LowLevel.cs" />
-    <Compile Include="Parser\SqlItemVisitor.cs" />
+    <Compile Include="Visitor\SqlItemVisitor.cs" />
     <Compile Include="Parser\SqlTokenReader.cs" />
     <Compile Include="SqlNode.cs" />
     <Compile Include="SqlServerParser.cs" />
@@ -187,6 +186,7 @@
     <Compile Include="Tokenizer\Token\SqlTokenLiteralString.cs" />
     <Compile Include="Tokenizer\Token\SqlTokenOpenPar.cs" />
     <Compile Include="Tokenizer\Token\SqlTokenTerminal.cs" />
+    <Compile Include="Visitor\SqlTextWriter.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

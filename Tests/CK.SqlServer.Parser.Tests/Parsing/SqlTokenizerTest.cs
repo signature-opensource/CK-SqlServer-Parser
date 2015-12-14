@@ -206,7 +206,7 @@ begin
   declare @x1 decimal = .34;
   declare @x2 float = .45e12;
 end".NormalizeEOL();
-            StringBuilder b  = new StringBuilder();
+            SqlTextWriter b  = new SqlTextWriter();
             foreach( var t in p.ParseWithoutError( s ) ) t.Write( b );
             string s2 = b.ToString().NormalizeEOL();
 
@@ -328,7 +328,7 @@ end".NormalizeEOL();
 
         static void AssertRewrite( SqlTokenizer p, string toParse, string rewritten )
         {
-            StringBuilder b  = new StringBuilder();
+            SqlTextWriter b  = new SqlTextWriter();
             foreach( var t in p.ParseWithoutError( toParse ) ) t.Write( b );
             string r = b.ToString();
             Assert.That( r, Is.EqualTo( rewritten ) );

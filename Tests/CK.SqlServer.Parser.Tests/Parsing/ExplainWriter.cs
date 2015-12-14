@@ -304,9 +304,7 @@ namespace CK.SqlServer.Parser.Tests
             if( e.ColumnName != null )
             {
                 WriteIdentifier( e.ColumnName );
-                Out.Append( '-' );
-                e.AsOrEqualT.WriteWithoutTrivias( Out );
-                Out.Append( '-' );
+                Out.Append( '-' ).Append( e.AsOrEqualT.ToString() ).Append( '-' );
             }
             VisitItem( e.Definition );
             return e;

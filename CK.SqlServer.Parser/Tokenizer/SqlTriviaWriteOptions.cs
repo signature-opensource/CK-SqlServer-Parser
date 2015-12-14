@@ -14,7 +14,7 @@ namespace CK.SqlServer.Parser
         /// <summary>
         /// Trivia is fully written.
         /// </summary>
-        None,
+        Default,
 
         /// <summary>
         /// Trivia is replaced by one white space (when <see cref="SqlTrivia.IsEmpty"/> is false).

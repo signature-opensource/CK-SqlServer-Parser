@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Data;
 using System.Data.SqlClient;
 using System.Diagnostics;
@@ -20,29 +21,34 @@ namespace CK.SqlServer.Parser
     /// <summary>
     /// A user defined type is denoted by a dotted identifier [dbo].DefinedType or single identifier like geometry.
     /// </summary>
-    public class SqlExprTypeDeclUserDefined : SqlNoExpr, IReadOnlyList<SqlTokenIdentifier>, ISqlExprUnifiedTypeDecl
+    public class SqlExprTypeDeclUserDefined : SqlItem, IReadOnlyList<SqlTokenIdentifier>, ISqlExprUnifiedTypeDecl
     {
         public SqlExprTypeDeclUserDefined( SqlTokenIdentifier monoIdentifier )
-            : this( CreateArray( monoIdentifier ) )
+            : this( null, CreateArray( monoIdentifier ), null )
         {
         }
 
-        public SqlExprTypeDeclUserDefined( IList<ISqlItem> tokens )
-            : this( CreateArray( tokens.ToArray() ) )
+        public SqlExprTypeDeclUserDefined( IList<SqlNode> tokens )
+            : this( null, CreateArray( tokens.ToArray() ), null )
         {
             SqlExprBaseListWithSeparator<SqlTokenIdentifier>.CheckArray( Slots, false, false, false, ISqlItemExtension.IsDotSeparator );
         }
 
-        internal SqlExprTypeDeclUserDefined( ISqlItem[] items )
-            : base( items )
+        SqlExprTypeDeclUserDefined( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+            : base( leading, items, trailing )
         {
+        }
+
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        {
+            return new SqlExprTypeDeclUserDefined( leading, EnsureArray( children ), trailing );
         }
 
         public SqlDbType DbType { get { return SqlDbType.Udt; } }
 
         public SqlExprTypeDeclUserDefined RemoveQuoteIfPossible( bool keepIfReservedKeyword )
         {
-            ISqlItem[] c = SqlExprBaseListWithSeparator<SqlTokenIdentifier>.ReplaceNonSeparator( Slots, false, t => t.RemoveQuoteIfPossible( keepIfReservedKeyword ) );
+            SqlNode[] c = SqlExprBaseListWithSeparator<SqlTokenIdentifier>.ReplaceNonSeparator( Slots, false, t => t.RemoveQuoteIfPossible( keepIfReservedKeyword ) );
             return c != null ? new SqlExprTypeDeclUserDefined( c ) : this;
         }
 

@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
@@ -24,6 +25,16 @@ namespace CK.SqlServer.Parser
             {
                 throw new ArgumentException( "Invalid null token.", "nullT" );
             }
+        }
+
+        internal SqlExprNull( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+            : base( leading, items, trailing )
+        {
+        }
+
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        {
+            return new SqlExprNull( leading, EnsureArray( children ), trailing );
         }
 
         [DebuggerStepThrough]

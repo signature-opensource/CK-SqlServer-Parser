@@ -71,7 +71,7 @@ namespace CK.SqlServer.Parser.Tests
             Assert.That( !r.IsError, r.ToString() );
             Assert.That( statement, Is.InstanceOf<T>() );
             T s = (T)statement;
-            Assert.That( statement.ToString().NormalizeEOL(), Is.EqualTo( text ) );
+            Assert.That( statement.ToString( true ).NormalizeEOL(), Is.EqualTo( text ) );
             return s;
         }
 

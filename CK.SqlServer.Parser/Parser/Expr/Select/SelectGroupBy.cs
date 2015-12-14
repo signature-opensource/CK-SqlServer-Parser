@@ -12,6 +12,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using CK.Core;
+using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
@@ -19,26 +20,31 @@ namespace CK.SqlServer.Parser
     /// Captures the optional "Group by ... having ..." select part.
     /// Even if it seems that "having" can exist without "group by" clause, I have not found any use of it: I decided to subordinate the "having" to the "group by".
     /// </summary>
-    public class SelectGroupBy : SqlNoExpr
+    public class SelectGroupBy : SqlItem
     {
         public SelectGroupBy( SqlTokenIdentifier groupToken, SqlTokenIdentifier byT, SqlExpr groupContent, SqlTokenIdentifier havingT = null, SqlExpr havingExpression = null )
-            : this( Build( groupToken, byT, groupContent, havingT, havingExpression ) )
+            : this( null, Build( groupToken, byT, groupContent, havingT, havingExpression ), null )
         {
         }
 
-        static ISqlItem[] Build( SqlTokenIdentifier groupToken, SqlTokenIdentifier byT, SqlExpr groupContent, SqlTokenIdentifier havingT = null, SqlExpr havingExpression = null )
+        static SqlNode[] Build( SqlTokenIdentifier groupToken, SqlTokenIdentifier byT, SqlExpr groupContent, SqlTokenIdentifier havingT = null, SqlExpr havingExpression = null )
         {
             if( havingT != null )
             {
                 if( havingExpression == null ) throw new ArgumentNullException( "havingExpression" );
-                return CreateArray( groupToken, byT, groupContent, havingT, havingExpression );
+                return CreateArray<SqlNode>( groupToken, byT, groupContent, havingT, havingExpression );
             }
-            return CreateArray( groupToken, byT, groupContent );
+            return CreateArray<SqlNode>( groupToken, byT, groupContent );
         }
 
-        internal SelectGroupBy( ISqlItem[] items )
-            : base( items )
+        internal SelectGroupBy( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+            : base( leading, items, trailing )
         {
+        }
+
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        {
+            return new SelectGroupBy( leading, EnsureArray( children ), trailing );
         }
 
         public SqlExpr GroupExpression { get { return (SqlExpr)Slots[2]; } }

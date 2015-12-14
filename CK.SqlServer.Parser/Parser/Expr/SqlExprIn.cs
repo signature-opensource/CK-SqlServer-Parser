@@ -12,6 +12,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using CK.Core;
+using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
@@ -22,20 +23,25 @@ namespace CK.SqlServer.Parser
     public class SqlExprIn : SqlExpr
     {
         public SqlExprIn( SqlExpr left, SqlTokenIdentifier notT, SqlTokenIdentifier inT, SqlExprCommaList values )
-            : this( Build( left, notT, inT, values ) )
+            : this( null, Build( left, notT, inT, values ), null )
         {
         }
 
-        static ISqlItem[] Build( SqlExpr left, SqlTokenIdentifier notT, SqlTokenIdentifier inT, SqlExprCommaList values )
+        static SqlNode[] Build( SqlExpr left, SqlTokenIdentifier notT, SqlTokenIdentifier inT, SqlExprCommaList values )
         {
             return notT != null
-                            ? CreateArray( SqlToken.EmptyOpenPar, left, notT, inT, values, SqlToken.EmptyClosePar )
-                            : CreateArray( SqlToken.EmptyOpenPar, left, inT, values, SqlToken.EmptyClosePar );
+                            ? CreateArray<SqlNode>( SqlToken.EmptyOpenPar, left, notT, inT, values, SqlToken.EmptyClosePar )
+                            : CreateArray<SqlNode>( SqlToken.EmptyOpenPar, left, inT, values, SqlToken.EmptyClosePar );
         }
 
-        internal SqlExprIn( ISqlItem[] newComponents )
-            : base( newComponents )
+        internal SqlExprIn( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+            : base( leading, items, trailing )
         {
+        }
+
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        {
+            return new SqlExprIn( leading, EnsureArray( children ), trailing );
         }
 
         public SqlExpr Left { get { return (SqlExpr)Slots[1]; } }

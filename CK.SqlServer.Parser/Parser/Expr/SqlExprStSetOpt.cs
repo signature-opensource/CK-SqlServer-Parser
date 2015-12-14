@@ -1,10 +1,3 @@
-#region Proprietary License
-/*----------------------------------------------------------------------------
-* This file (CK.SqlServer.Parser\Parser\Expr\SqlExprStReturn.cs) is part of CK-Database. 
-* Copyright © 2007-2014, Invenietis <http://www.invenietis.com>. All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -12,6 +5,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using CK.Core;
+using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
@@ -25,16 +19,21 @@ namespace CK.SqlServer.Parser
         {
         }
 
-        internal SqlExprStSetOpt( ISqlItem[] components )
-            : base( components )
+        SqlExprStSetOpt( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+            : base( leading, items, trailing )
         {
         }
 
-        static ISqlItem[] Build( SqlTokenIdentifier setToken, SqlExpr list )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        {
+            return new SqlExprStSetOpt( leading, EnsureArray( children ), trailing );
+        }
+
+        static SqlNode[] Build( SqlTokenIdentifier setToken, SqlExpr list )
         {
             if( setToken == null || setToken.TokenType != SqlTokenType.Set ) throw new ArgumentException( "setToken" );
             if( list == null ) throw new ArgumentException( "list" );
-            return CreateArray( setToken, list );
+            return CreateArray<SqlNode>( setToken, list );
         }
 
         public SqlTokenIdentifier SetT { get { return (SqlTokenIdentifier)Slots[0]; } }

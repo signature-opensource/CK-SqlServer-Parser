@@ -12,6 +12,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using CK.Core;
+using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
@@ -25,12 +26,17 @@ namespace CK.SqlServer.Parser
         {
         }
 
-        internal SqlExprStGoto( ISqlItem[] components )
-            : base( components )
+        SqlExprStGoto( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+            : base( leading, items, trailing )
         {
         }
 
-        static ISqlItem[] Build( SqlTokenIdentifier gotoToken, SqlTokenIdentifier target )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        {
+            return new SqlExprStGoto( leading, EnsureArray( children ), trailing );
+        }
+
+        static SqlNode[] Build( SqlTokenIdentifier gotoToken, SqlTokenIdentifier target )
         {
             if( gotoToken == null || gotoToken.TokenType != SqlTokenType.Goto ) throw new ArgumentException( "gotoToken" );
             if( target == null ) throw new ArgumentException( "goto expects a target.", "target" );

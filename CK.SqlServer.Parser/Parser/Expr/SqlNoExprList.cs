@@ -12,22 +12,23 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using CK.Core;
+using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
     /// <summary>
     /// Non-enclosable list of comma separated <see cref="SqlItem"/>.
     /// </summary>
-    public abstract class SqlNoExprList<T> : SqlNoExpr, IReadOnlyList<T> where T : class, ISqlItem
+    public abstract class SqlNoExprList<T> : SqlItem, IReadOnlyList<T> where T : SqlNode
     {
-        public SqlNoExprList( IList<ISqlItem> components )
-            : this( components.ToArray() )
+        public SqlNoExprList( IList<SqlNode> components )
+            : this( null, EnsureArray( components ), null )
         {
-            SqlExprBaseListWithSeparator<T>.CheckArray( Slots, true, false, false, ISqlItemExtension.IsCommaSeparator );
+            SqlExprBaseListWithSeparator<T>.CheckArray( Slots, true, false, false, null );
         }
 
-        internal SqlNoExprList( ISqlItem[] items )
-            : base( items )
+        internal SqlNoExprList( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+            : base( leading, items, trailing )
         {
         }
 
@@ -68,6 +69,4 @@ namespace CK.SqlServer.Parser
         }
 
     }
-
-
 }

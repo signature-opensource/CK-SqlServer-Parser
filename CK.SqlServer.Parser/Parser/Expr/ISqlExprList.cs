@@ -21,7 +21,7 @@ namespace CK.SqlServer.Parser
         /// <summary>
         /// Gets the separators.
         /// </summary>
-        IEnumerable<ISqlItem> SeparatorTokens { get; }
+        IEnumerable<SqlNode> SeparatorTokens { get; }
         
     }
 }

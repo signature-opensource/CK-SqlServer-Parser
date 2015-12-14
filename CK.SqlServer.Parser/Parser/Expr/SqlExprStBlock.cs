@@ -12,6 +12,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using CK.Core;
+using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
@@ -21,8 +22,18 @@ namespace CK.SqlServer.Parser
     public class SqlExprStBlock : SqlExprBaseSt
     {
         public SqlExprStBlock( SqlTokenIdentifier begin, SqlExprStatementList body, SqlTokenIdentifier end, SqlTokenTerminal statementTerminator = null )
-            : base( CreateArray( begin, body, end ), statementTerminator )
+            : base( CreateArray<SqlNode>( begin, body, end ), statementTerminator )
         {
+        }
+
+        SqlExprStBlock( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+            : base( leading, items, trailing )
+        {
+        }
+
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        {
+            return new SqlExprStBlock( leading, EnsureArray( children ), trailing );
         }
 
         public SqlTokenIdentifier BeginT { get { return (SqlTokenIdentifier)Slots[0]; } }

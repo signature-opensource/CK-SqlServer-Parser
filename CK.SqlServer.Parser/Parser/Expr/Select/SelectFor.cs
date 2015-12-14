@@ -1,10 +1,3 @@
-#region Proprietary License
-/*----------------------------------------------------------------------------
-* This file (CK.SqlServer.Parser\Parser\Expr\Select\SelectFor.cs) is part of CK-Database. 
-* Copyright © 2007-2014, Invenietis <http://www.invenietis.com>. All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -12,6 +5,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using CK.Core;
+using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
@@ -21,13 +15,18 @@ namespace CK.SqlServer.Parser
     public class SelectFor : SqlExpr, ISelectSpecification
     {
         public SelectFor( ISelectSpecification select, SqlTokenIdentifier forToken, SqlExpr content )
-            : this( CreateArray( SqlToken.EmptyOpenPar, select, forToken, content, SqlToken.EmptyClosePar ) )
+            : this( null, CreateArray<SqlNode>( SqlToken.EmptyOpenPar, (SqlNode)select, forToken, content, SqlToken.EmptyClosePar ), null )
         {
         }
 
-        internal SelectFor( ISqlItem[] items )
-            : base( items )
+        internal SelectFor( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+            : base( leading, items, trailing )
         {
+        }
+
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        {
+            return new SelectFor( leading, EnsureArray( children ), trailing );
         }
 
         public ISelectSpecification Select { get { return (ISelectSpecification)Slots[1]; } }

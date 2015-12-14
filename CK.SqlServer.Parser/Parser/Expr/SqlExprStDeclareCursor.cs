@@ -12,6 +12,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using CK.Core;
+using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
@@ -25,17 +26,22 @@ namespace CK.SqlServer.Parser
         {
         }
 
-        internal SqlExprStDeclareCursor( ISqlItem[] components )
-            : base( components )
+        SqlExprStDeclareCursor( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+            : base( leading, items, trailing )
         {
         }
 
-        static ISqlItem[] Build( SqlTokenIdentifier declareToken, SqlTokenIdentifier variable, ISqlExprCursor cursor )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        {
+            return new SqlExprStDeclareCursor( leading, EnsureArray( children ), trailing );
+        }
+
+        static SqlNode[] Build( SqlTokenIdentifier declareToken, SqlTokenIdentifier variable, ISqlExprCursor cursor )
         {
             if( declareToken == null || declareToken.TokenType != SqlTokenType.Declare ) throw new ArgumentException( "declareToken" );
             if( variable == null ) throw new ArgumentException( "variable" );
             if( cursor == null ) throw new ArgumentException( "cursor" );
-            return CreateArray( declareToken, variable, cursor );
+            return CreateArray<SqlNode>( declareToken, variable, (SqlNode)cursor );
         }
 
         public SqlTokenIdentifier DeclareT { get { return (SqlTokenIdentifier)Slots[0]; } }

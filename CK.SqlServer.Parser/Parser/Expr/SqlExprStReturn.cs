@@ -5,6 +5,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using CK.Core;
+using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
@@ -18,15 +19,20 @@ namespace CK.SqlServer.Parser
         {
         }
 
-        internal SqlExprStReturn( ISqlItem[] components )
-            : base( components )
+        SqlExprStReturn( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+            : base( leading, items, trailing )
         {
         }
 
-        static ISqlItem[] Build( SqlTokenIdentifier returnToken, SqlExpr value )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        {
+            return new SqlExprStReturn( leading, EnsureArray( children ), trailing );
+        }
+
+        static SqlNode[] Build( SqlTokenIdentifier returnToken, SqlExpr value )
         {
             if( returnToken == null || returnToken.TokenType != SqlTokenType.Return ) throw new ArgumentException( "returnToken" );
-            return value != null ? CreateArray( returnToken, value ) : CreateArray( returnToken );
+            return value != null ? CreateArray<SqlNode>( returnToken, value ) : CreateArray( returnToken );
         }
 
         public SqlTokenIdentifier ReturnT { get { return (SqlTokenIdentifier)Slots[0]; } }

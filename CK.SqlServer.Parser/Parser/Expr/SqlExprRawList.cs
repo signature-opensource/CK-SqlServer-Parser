@@ -12,20 +12,21 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using CK.Core;
+using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
     /// <summary>
-    /// Raw list of contiguous <see cref="ISqlItem"/> that can be enclosed in parenthesis.
+    /// Raw list of contiguous <see cref="SqlNode"/> that can be enclosed in parenthesis.
     /// </summary>
     public sealed class SqlExprRawItemList : SqlExpr
     {
         /// <summary>
         /// Initializes a new raw list without any opener/closer parenthesis.
         /// </summary>
-        /// <param name="items">List of any kind of <see cref="ISqlItem"/> that compose this block.</param>
-        public SqlExprRawItemList( IList<ISqlItem> items )
-            : this( CreateEnclosedArray( items.AsReadOnlyList() ) )
+        /// <param name="items">List of any kind of <see cref="SqlNode"/> that compose this block.</param>
+        public SqlExprRawItemList( IList<SqlNode> items )
+            : this( null, CreateEnclosedArray( items.AsReadOnlyList() ), null )
         {
         }
 
@@ -34,17 +35,22 @@ namespace CK.SqlServer.Parser
         /// </summary>
         /// <param name="openPar">Opening parenthesis.</param>
         /// <param name="items">
-        /// List of <see cref="ISqlItem"/> that compose this block. 
+        /// List of <see cref="SqlNode"/> that compose this block. 
         /// This MUST not contain the <see cref="Opener"/> and/or the <see cref="Closer"/>.</param>
         /// <param name="closePar">Closing parenthesis.</param>
-        public SqlExprRawItemList( SqlTokenOpenPar openPar, IList<ISqlItem> items, SqlTokenClosePar closePar )
-            : this( CreateArray( openPar, items.AsReadOnlyList(), items.Count, closePar ) )
+        public SqlExprRawItemList( SqlTokenOpenPar openPar, IList<SqlNode> items, SqlTokenClosePar closePar )
+            : this( null, CreateArray( openPar, items.AsReadOnlyList(), items.Count, closePar ), null )
         {
         }
 
-        internal SqlExprRawItemList( ISqlItem[] items )
-            : base( items )
+        SqlExprRawItemList( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+            : base( leading, items, trailing )
         {
+        }
+
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        {
+            return new SqlExprRawItemList( leading, EnsureArray( children ), trailing );
         }
 
         [DebuggerStepThrough]

@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
@@ -17,13 +18,18 @@ namespace CK.SqlServer.Parser
     public class SqlExprCollate : SqlExpr
     {
         public SqlExprCollate( SqlExpr left, SqlTokenIdentifier collateT, SqlTokenIdentifier nameT )
-            : this( CreateArray( SqlToken.EmptyOpenPar, left, collateT, nameT, SqlToken.EmptyClosePar ) )
+            : this( null, CreateArray<SqlNode>( SqlToken.EmptyOpenPar, left, collateT, nameT, SqlToken.EmptyClosePar ), null )
         {
         }
 
-        internal SqlExprCollate( ISqlItem[] items )
-            : base( items )
+        protected SqlExprCollate( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+            : base( leading, items, trailing )
         {
+        }
+
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        {
+            return new SqlExprCollate( leading, EnsureArray( children ), trailing );
         }
 
         [DebuggerStepThrough]

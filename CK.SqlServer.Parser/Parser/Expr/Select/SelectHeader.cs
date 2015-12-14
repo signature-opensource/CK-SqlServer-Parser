@@ -12,13 +12,14 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using CK.Core;
+using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
     /// <summary>
     /// Captures SELECT [ ALL | DISTINCT ] [TOP ( expression ) [PERCENT] [ WITH TIES ] ] 
     /// </summary>
-    public class SelectHeader : SqlNoExpr
+    public class SelectHeader : SqlItem
     {
         readonly SqlTokenIdentifier _allOrDistinct;
         readonly SqlTokenIdentifier _top;
@@ -27,12 +28,12 @@ namespace CK.SqlServer.Parser
         readonly bool _withTies;
 
         public SelectHeader( SqlTokenIdentifier select, SqlTokenIdentifier allOrDistinct = null, SqlTokenIdentifier top = null, SqlExpr topExpression = null, SqlTokenIdentifier percent = null, SqlTokenIdentifier with = null, SqlTokenIdentifier ties = null )
-            : this( Build( select, allOrDistinct, top, topExpression, percent, with, ties ) )
+            : this( null, Build( select, allOrDistinct, top, topExpression, percent, with, ties ), null )
         {
         }
 
-        internal SelectHeader( ISqlItem[] items )
-            : base( items )
+        internal SelectHeader( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+            : base( leading, items, trailing )
         {
             _allOrDistinct = (SqlTokenIdentifier)Slots.FirstOrDefault( t => t.IsToken( SqlTokenType.All ) || t.IsToken( SqlTokenType.Distinct ) );
             _top = (SqlTokenIdentifier)Slots.FirstOrDefault( t => t.IsToken( SqlTokenType.Top ) );
@@ -41,9 +42,14 @@ namespace CK.SqlServer.Parser
             _withTies = Slots.Any( t => t.IsToken( SqlTokenType.With ) );
         }
 
-        static ISqlItem[] Build( SqlTokenIdentifier select, SqlTokenIdentifier allOrDistinct, SqlTokenIdentifier top, SqlExpr topExpression, SqlTokenIdentifier percent, SqlTokenIdentifier with, SqlTokenIdentifier ties )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
-            List<ISqlItem> exprs = new List<ISqlItem>( 9 );
+            return new SelectHeader( leading, EnsureArray( children ), trailing );
+        }
+
+        static SqlNode[] Build( SqlTokenIdentifier select, SqlTokenIdentifier allOrDistinct, SqlTokenIdentifier top, SqlExpr topExpression, SqlTokenIdentifier percent, SqlTokenIdentifier with, SqlTokenIdentifier ties )
+        {
+            var exprs = new List<SqlNode>( 9 );
             if( select == null ) throw new ArgumentNullException( "select" );
             exprs.Add( select );
             if( allOrDistinct != null ) exprs.Add( allOrDistinct );

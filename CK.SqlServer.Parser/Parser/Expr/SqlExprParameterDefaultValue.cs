@@ -12,37 +12,50 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using CK.Core;
+using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
     public class SqlExprParameterDefaultValue : SqlItem, ISqlServerParameterDefaultValue
     {
-        readonly SqlToken[] _tokens;
-
         public SqlExprParameterDefaultValue( SqlTokenTerminal assignToken, SqlTokenTerminal minusSign, SqlTokenBaseLiteral value )
+            : this( null, Build( assignToken, minusSign, value ), null )
+        {
+        }
+
+        public SqlExprParameterDefaultValue( SqlTokenTerminal assignToken, SqlTokenIdentifier variable )
+            : this( null, CreateArray<SqlNode>( assignToken, variable ), null )
+        {
+            if( assignToken == null ) throw new ArgumentNullException( "assignToken" );
+            if( variable == null ) throw new ArgumentNullException( "variable" );
+        }
+
+        static SqlNode[] Build( SqlTokenTerminal assignToken, SqlTokenTerminal minusSign, SqlTokenBaseLiteral value )
         {
             if( assignToken == null ) throw new ArgumentNullException( "assignToken" );
             if( minusSign != null && minusSign.TokenType != SqlTokenType.Minus ) throw new ArgumentException( "Must be null or minus." );
             if( value == null ) throw new ArgumentNullException( "value" );
 
-            _tokens = minusSign == null ? CreateArray( assignToken, value ) : CreateArray( assignToken, minusSign, value );
+            return minusSign == null ? CreateArray<SqlNode>( assignToken, value ) : CreateArray<SqlNode>( assignToken, minusSign, value );
         }
 
-        public SqlExprParameterDefaultValue( SqlTokenTerminal assignToken, SqlTokenIdentifier variable )
+        internal SqlExprParameterDefaultValue( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+            : base( leading, items, trailing )
         {
-            if( assignToken == null ) throw new ArgumentNullException( "assignToken" );
-            if( variable == null ) throw new ArgumentNullException( "variable" );
-
-            _tokens = CreateArray( assignToken, variable );
         }
 
-        public bool IsVariable { get { return _tokens.Length == 2 && _tokens[1].TokenType == SqlTokenType.IdentifierVariable; } }
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        {
+            return new SqlExprParameterDefaultValue( leading, EnsureArray( children ), trailing );
+        }
 
-        public bool IsNull { get { return _tokens.Length == 2 && _tokens[1].TokenType == SqlTokenType.Null; } }
+        public bool IsVariable { get { return Slots.Length == 2 && Slots[1].IsToken( SqlTokenType.IdentifierVariable ); } }
+
+        public bool IsNull { get { return Slots.Length == 2 && Slots[1].IsToken( SqlTokenType.Null ); } }
         
-        public bool IsLiteral { get { return _tokens.Length == 3 || (_tokens[1].TokenType & SqlTokenType.LitteralMask) != 0; } }
+        public bool IsLiteral { get { return Slots.Length == 3 || Slots[1].IsLiteralToken(); } }
 
-        public bool HasMinusSign { get { return _tokens.Length == 3; } }
+        public bool HasMinusSign { get { return Slots.Length == 3; } }
 
         /// <summary>
         /// Gets the default value (<see cref="IsVariable"/> must be false).
@@ -58,7 +71,7 @@ namespace CK.SqlServer.Parser
                 if( IsVariable ) throw new InvalidOperationException();
                 if( IsNull ) return DBNull.Value;
                 Debug.Assert( IsLiteral );
-                SqlTokenBaseLiteral t = (SqlTokenBaseLiteral)_tokens[_tokens.Length == 3 ? 2 : 1];
+                SqlTokenBaseLiteral t = (SqlTokenBaseLiteral)Slots[Slots.Length == 3 ? 2 : 1];
                 if( (t.TokenType & SqlTokenType.IsString) != 0 )
                 {
                     return ((SqlTokenLiteralString)t).Value;
@@ -93,12 +106,6 @@ namespace CK.SqlServer.Parser
                 throw new NotSupportedException();
             }
         }
-
-        public sealed override IEnumerable<ISqlItem> Items { get { return _tokens; } }
-
-        public override SqlToken FirstOrEmptyT { get { return _tokens[0]; } }
-
-        public override SqlToken LastOrEmptyT { get { return _tokens[_tokens.Length - 1]; } }
 
         [DebuggerStepThrough]
         internal protected override T Accept<T>( ISqlItemVisitor<T> visitor )

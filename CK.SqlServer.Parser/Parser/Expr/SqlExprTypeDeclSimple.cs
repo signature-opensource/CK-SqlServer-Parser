@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Data;
 using System.Data.SqlClient;
 using System.Diagnostics;
@@ -18,37 +19,42 @@ namespace CK.SqlServer.Parser
 {
     public class SqlExprTypeDeclSimple : SqlItem, ISqlExprUnifiedTypeDecl
     {
-        readonly SqlTokenIdentifier[] _tokens;
-
         public SqlExprTypeDeclSimple( SqlTokenIdentifier id )
+            : this( null, CreateArray( id ), null )
         {
-            SqlDbType? dbType = SqlKeyword.FromSqlTokenTypeToSqlDbType( id.TokenType );
+        }
+
+        void InitFromIdentifier()
+        {
+            SqlDbType? dbType = SqlKeyword.FromSqlTokenTypeToSqlDbType( TypeIdentifierT.TokenType );
             if( !dbType.HasValue )
             {
                 throw new ArgumentException( "Invalid type.", "id" );
             }
             DbType = dbType.Value;
-            _tokens = CreateArray( id );
         }
 
         internal SqlExprTypeDeclSimple( SqlTokenIdentifier id, SqlDbType dbType )
+            : base( null, CreateArray( id ), null )
         {
             Debug.Assert( dbType == SqlKeyword.FromSqlTokenTypeToSqlDbType( id.TokenType ) );
             DbType = dbType;
-            _tokens = CreateArray( id );
+        }
+
+        SqlExprTypeDeclSimple( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+            : base( leading, items, trailing )
+        {
+            InitFromIdentifier();
+        }
+
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        {
+            return new SqlExprTypeDeclSimple( leading, EnsureArray( children ), trailing );
         }
 
         public SqlDbType DbType { get; private set; }
 
-        public override IEnumerable<ISqlItem> Items { get { return _tokens; } }
-
-        public override IEnumerable<SqlToken> AllTokens { get { return _tokens; } }
-
-        public SqlTokenIdentifier TypeIdentifierT { get { return (SqlTokenIdentifier)_tokens[0]; } }
-
-        public override SqlToken FirstOrEmptyT { get { return _tokens[0]; } }
-
-        public override SqlToken LastOrEmptyT { get { return _tokens[_tokens.Length - 1]; } }
+        public SqlTokenIdentifier TypeIdentifierT { get { return (SqlTokenIdentifier)Slots[0]; } }
 
         public string ToStringClean()
         {

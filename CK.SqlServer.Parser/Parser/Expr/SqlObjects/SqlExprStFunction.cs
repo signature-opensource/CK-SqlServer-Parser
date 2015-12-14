@@ -11,18 +11,19 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using CK.Core;
+using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
     public abstract class SqlExprStFunction : SqlExprBaseSt
     {
-        protected SqlExprStFunction( ISqlItem[] items, SqlTokenTerminal term )
+        protected SqlExprStFunction( SqlNode[] items, SqlTokenTerminal term )
             : base( items, term )
         {
         }
 
-        internal SqlExprStFunction( ISqlItem[] items )
-            : base( items )
+        protected SqlExprStFunction( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+            : base( leading, items, trailing )
         {
         }
 

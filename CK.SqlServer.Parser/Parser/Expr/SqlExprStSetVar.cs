@@ -12,6 +12,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using CK.Core;
+using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
@@ -25,18 +26,23 @@ namespace CK.SqlServer.Parser
         {
         }
 
-        internal SqlExprStSetVar( ISqlItem[] components )
-            : base( components )
+        SqlExprStSetVar( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+            : base( leading, items, trailing )
         {
         }
 
-        static ISqlItem[] Build( SqlTokenIdentifier setToken, SqlTokenIdentifier variable, SqlTokenTerminal assignT, SqlExpr right )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        {
+            return new SqlExprStSetVar( leading, EnsureArray( children ), trailing );
+        }
+
+        static SqlNode[] Build( SqlTokenIdentifier setToken, SqlTokenIdentifier variable, SqlTokenTerminal assignT, SqlExpr right )
         {
             if( setToken == null || setToken.TokenType != SqlTokenType.Set ) throw new ArgumentException( "setToken" );
             if( variable == null ) throw new ArgumentException( "variable" );
             if( assignT == null || (assignT.TokenType & SqlTokenType.IsAssignOperator) == 0 ) throw new ArgumentException( "variable" );
             if( right == null ) throw new ArgumentException( "right" );
-            return CreateArray( setToken, variable, assignT, right );
+            return CreateArray<SqlNode>( setToken, variable, assignT, right );
         }
 
         public SqlTokenIdentifier SetT { get { return (SqlTokenIdentifier)Slots[0]; } }

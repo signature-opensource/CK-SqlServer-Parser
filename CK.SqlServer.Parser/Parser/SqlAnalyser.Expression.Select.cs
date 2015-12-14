@@ -84,7 +84,7 @@ namespace CK.SqlServer.Parser
         bool IsSelectColumnList( out SelectColumnList e, bool expectAtLeastOne )
         {
             e = null;
-            List<ISqlItem> items;
+            List<SqlNode> items;
             if( !IsCommaListNonEnclosed<SelectColumn>( out items, MatchColumn, expectAtLeastOne ) ) return false;
             e = new SelectColumnList( items );
             return true;
@@ -217,7 +217,7 @@ namespace CK.SqlServer.Parser
         bool IsSelectOrderByColumnList( out SelectOrderByColumnList e )
         {
             e = null;
-            List<ISqlItem> items;
+            List<SqlNode> items;
             if( !IsCommaListNonEnclosed<SelectOrderByColumn>( out items, MatchOrderByColumn, true ) ) return false;
             e = new SelectOrderByColumnList( items );
             return true;

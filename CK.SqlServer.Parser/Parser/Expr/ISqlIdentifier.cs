@@ -10,15 +10,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using CK.Core;
+using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
-
     /// <summary>
     /// Unifies <see cref="SqlExprIdentifier"/> and <see cref="SqlExprMultiIdentifier"/>.
     /// </summary>
-    public interface ISqlIdentifier : ISqlItem
+    public interface ISqlIdentifier
     {
+
+        IEnumerable<SqlTrivia> FullLeadingTrivias { get; }
+
         /// <summary>
         /// Gets the number of <see cref="Identifiers"/>.
         /// </summary>

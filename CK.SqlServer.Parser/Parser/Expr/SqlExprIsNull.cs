@@ -12,6 +12,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using CK.Core;
+using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
@@ -22,21 +23,27 @@ namespace CK.SqlServer.Parser
     public class SqlExprIsNull : SqlExpr
     {
         public SqlExprIsNull( SqlItem left, SqlTokenIdentifier isT, SqlTokenIdentifier notT, SqlTokenIdentifier nullT )
-            : this( Build( left, isT, notT, nullT ) )
+            : this( null, Build( left, isT, notT, nullT ), null )
         {
         }
 
-        static ISqlItem[] Build( SqlItem left, SqlTokenIdentifier isT, SqlTokenIdentifier notT, SqlTokenIdentifier nullT )
+        static SqlNode[] Build( SqlItem left, SqlTokenIdentifier isT, SqlTokenIdentifier notT, SqlTokenIdentifier nullT )
         {
             return notT != null 
-                        ? CreateArray( SqlTokenList<SqlTokenOpenPar>.Empty, left, isT, notT, nullT, SqlTokenList<SqlTokenClosePar>.Empty )
-                        : CreateArray( SqlTokenList<SqlTokenOpenPar>.Empty, left, isT, nullT, SqlTokenList<SqlTokenClosePar>.Empty );
+                        ? CreateArray<SqlNode>( SqlTokenList<SqlTokenOpenPar>.Empty, left, isT, notT, nullT, SqlTokenList<SqlTokenClosePar>.Empty )
+                        : CreateArray<SqlNode>( SqlTokenList<SqlTokenOpenPar>.Empty, left, isT, nullT, SqlTokenList<SqlTokenClosePar>.Empty );
         }
 
-        internal SqlExprIsNull( ISqlItem[] newComponents )
-            : base( newComponents )
+        internal SqlExprIsNull( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+            : base( leading, items, trailing )
         {
         }
+
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        {
+            return new SqlExprIsNull( leading, EnsureArray( children ), trailing );
+        }
+
 
         public SqlItem Left { get { return (SqlItem)Slots[1]; } }
 

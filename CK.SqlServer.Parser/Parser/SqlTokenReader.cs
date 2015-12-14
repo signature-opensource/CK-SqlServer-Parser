@@ -319,14 +319,14 @@ namespace CK.SqlServer.Parser
         /// When a matcher returns null, the current token is ignored.
         /// </param>
         /// <returns>True if no error occurred.</returns>
-        internal bool IsItemList<T>( out List<ISqlItem> items, out T stopper, Predicate<T> stopperDefinition, bool atLeastOne, params Func<ISqlItem>[] matchers ) where T : SqlToken
+        internal bool IsItemList<T>( out List<SqlNode> items, out T stopper, Predicate<T> stopperDefinition, bool atLeastOne, params Func<SqlNode>[] matchers ) where T : SqlToken
         {
             Debug.Assert( stopperDefinition != null );
             items = null;
             stopper = null;
             while( !IsErrorOrEndOfInput && !IsToken( out stopper, stopperDefinition, false ) )
             {
-                if( items == null ) items = new List<ISqlItem>();
+                if( items == null ) items = new List<SqlNode>();
                 if( matchers == null || matchers.Length == 0 )
                 {
                     items.Add( Current );
@@ -334,7 +334,7 @@ namespace CK.SqlServer.Parser
                 }
                 else
                 {
-                    ISqlItem item = Current;
+                    SqlNode item = Current;
                     foreach( var m in matchers )
                     {
                         item = m();

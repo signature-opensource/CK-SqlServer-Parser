@@ -12,17 +12,18 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using CK.Core;
+using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
-    public class SqlExprParameter : SqlNoExpr, ISqlServerParameter
+    public class SqlExprParameter : SqlItem, ISqlServerParameter
     {
         public SqlExprParameter( SqlExprTypedIdentifier declVar, SqlExprParameterDefaultValue defaultValue = null, SqlTokenIdentifier outputClause = null, SqlTokenIdentifier readonlyClause = null )
-            : this( Build( declVar, defaultValue, outputClause, readonlyClause ) )
+            : this( null, Build( declVar, defaultValue, outputClause, readonlyClause ), null )
         {
         }
 
-        static ISqlItem[] Build( SqlExprTypedIdentifier declVar, SqlExprParameterDefaultValue defaultValue, SqlTokenIdentifier outputClause, SqlTokenIdentifier readonlyClause )
+        static SqlNode[] Build( SqlExprTypedIdentifier declVar, SqlExprParameterDefaultValue defaultValue, SqlTokenIdentifier outputClause, SqlTokenIdentifier readonlyClause )
         {
             if( declVar == null ) throw new ArgumentNullException( "declVar" );
             if( !declVar.Identifier.IsVariable ) throw new ArgumentException( "Must be a @VariableName", "variable" );
@@ -41,22 +42,22 @@ namespace CK.SqlServer.Parser
                 {
                     if( readonlyClause == null )
                     {
-                        return CreateArray( declVar );
+                        return CreateArray<SqlNode>( declVar );
                     }
                     else
                     {
-                        return CreateArray( declVar, readonlyClause );
+                        return CreateArray<SqlNode>( declVar, readonlyClause );
                     }
                 }
                 else
                 {
                     if( readonlyClause == null )
                     {
-                        return CreateArray( declVar, outputClause );
+                        return CreateArray<SqlNode>( declVar, outputClause );
                     }
                     else
                     {
-                        return CreateArray( declVar, outputClause, readonlyClause );
+                        return CreateArray<SqlNode>( declVar, outputClause, readonlyClause );
                     }
                 }
             }
@@ -66,30 +67,35 @@ namespace CK.SqlServer.Parser
                 {
                     if( readonlyClause == null )
                     {
-                        return CreateArray( declVar, defaultValue );
+                        return CreateArray<SqlNode>( declVar, defaultValue );
                     }
                     else
                     {
-                        return CreateArray( declVar, defaultValue, readonlyClause );
+                        return CreateArray<SqlNode>( declVar, defaultValue, readonlyClause );
                     }
                 }
                 else
                 {
                     if( readonlyClause == null )
                     {
-                        return CreateArray( declVar, defaultValue, outputClause );
+                        return CreateArray<SqlNode>( declVar, defaultValue, outputClause );
                     }
                     else
                     {
-                        return CreateArray( declVar, defaultValue, outputClause, readonlyClause );
+                        return CreateArray<SqlNode>( declVar, defaultValue, outputClause, readonlyClause );
                     }
                 }
             }
         }
 
-        internal SqlExprParameter( ISqlItem[] items )
-            : base( items )
+        internal SqlExprParameter( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+            : base( leading, items, trailing )
         {
+        }
+
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        {
+            return new SqlExprParameter( leading, EnsureArray( children ), trailing );
         }
 
         public SqlExprTypedIdentifier Variable { get { return (SqlExprTypedIdentifier)Slots[0]; } }

@@ -49,9 +49,9 @@ namespace CK.SqlServer.Parser
 
         public bool IsEndOfInput { get { return base.TokenType == SqlTokenType.EndOfInput; } }
 
-        protected override void DoWrite( StringBuilder b )
+        public override void WriteWithoutTrivias( SqlTextWriter w )
         {
-            b.AppendFormat( "[Error: {0}]", ErrorMessage ); 
+            w.GetLineBuilder().AppendFormat( "[Error: {0}]", ErrorMessage ); 
         }
 
 

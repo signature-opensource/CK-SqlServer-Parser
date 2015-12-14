@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
@@ -22,10 +23,15 @@ namespace CK.SqlServer.Parser
             if( !IsValidOperator( op.TokenType ) ) throw new ArgumentException();
         }
 
-        internal SqlExprBinaryOperator( ISqlItem[] newComponents )
-            : base( newComponents )
+        protected SqlExprBinaryOperator( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+            : base( leading, items, trailing )
         {
             Debug.Assert( IsValidOperator( Middle.TokenType ) );
+        }
+
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        {
+            return new SqlExprBinaryOperator( leading, EnsureArray( children ), trailing );
         }
 
         static public bool IsValidOperator( SqlTokenType op )

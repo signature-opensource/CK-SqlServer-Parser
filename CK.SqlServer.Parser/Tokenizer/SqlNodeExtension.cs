@@ -31,14 +31,16 @@ namespace CK.SqlServer.Parser
         /// <param name="this">An IEnumerable of SqlNode.</param>
         /// <param name="separator">Separator between tokens.</param>
         /// <param name="b">StringBuilder to write into.</param>
-        public static StringBuilder WriteWithoutTrivias( this IEnumerable<SqlNode> @this, string separator, StringBuilder b )
+        public static StringBuilder WriteWithoutTrivias( 
+            this IEnumerable<SqlNode> @this, 
+            string separator, StringBuilder b )
         {
             bool one = false;
             foreach( SqlNode t in @this )
             {
                 if( one ) b.Append( separator );
                 one = true;
-                t.WriteWithoutTrivias( b );
+                b.Append( t.ToString() );
             }
             return b;
         }

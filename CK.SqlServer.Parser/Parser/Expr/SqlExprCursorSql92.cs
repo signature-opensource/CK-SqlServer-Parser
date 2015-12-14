@@ -12,6 +12,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using CK.Core;
+using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
@@ -33,11 +34,11 @@ namespace CK.SqlServer.Parser
             SqlTokenIdentifier updateToken,
             SqlTokenIdentifier ofToken,
             SqlNoExprIdentifierList updateColumns )
-            : this( Build( insensitiveOrScrollToken, scrollOrInsensitiveToken, cursorToken, forToken, select, forOptionsToken, readToken, onlyToken, updateToken, ofToken, updateColumns ) )
+            : this( null, Build( insensitiveOrScrollToken, scrollOrInsensitiveToken, cursorToken, forToken, select, forOptionsToken, readToken, onlyToken, updateToken, ofToken, updateColumns ), null )
         {
         }
 
-        static ISqlItem[] Build(
+        static SqlNode[] Build(
             SqlTokenIdentifier insensitiveOrScrollToken,
             SqlTokenIdentifier scrollOrInsensitiveToken,
             SqlTokenIdentifier cursorToken, 
@@ -64,30 +65,35 @@ namespace CK.SqlServer.Parser
                 if( readToken != null )
                 {
                     Debug.Assert( updateToken == null );
-                    return CreateArray( SqlToken.EmptyOpenPar, cursorToken, select, forOptionsToken, readToken, onlyToken, SqlToken.EmptyOpenPar );
+                    return CreateArray<SqlNode>( SqlToken.EmptyOpenPar, cursorToken, (SqlNode)select, forOptionsToken, readToken, onlyToken, SqlToken.EmptyOpenPar );
                 }
                 else
                 {
                     Debug.Assert( updateToken != null );
                     if( ofToken != null )
                     {
-                        return CreateArray( SqlToken.EmptyOpenPar, cursorToken, select, forOptionsToken, updateToken, ofToken, updateColumns, SqlToken.EmptyClosePar );
+                        return CreateArray<SqlNode>( SqlToken.EmptyOpenPar, cursorToken, (SqlNode)select, forOptionsToken, updateToken, ofToken, updateColumns, SqlToken.EmptyClosePar );
                     }
                     else
                     {
-                        return CreateArray( SqlToken.EmptyOpenPar, cursorToken, select, forOptionsToken, updateToken, SqlToken.EmptyClosePar );
+                        return CreateArray<SqlNode>( SqlToken.EmptyOpenPar, cursorToken, (SqlNode)select, forOptionsToken, updateToken, SqlToken.EmptyClosePar );
                     }
                 }
             }
             else
             {
-                return CreateArray( SqlToken.EmptyOpenPar, cursorToken, select, SqlToken.EmptyClosePar );
+                return CreateArray<SqlNode>( SqlToken.EmptyOpenPar, cursorToken, (SqlNode)select, SqlToken.EmptyClosePar );
             }
         }
 
-        internal SqlExprCursorSql92( ISqlItem[] newComponents )
-            : base( newComponents )
+        protected SqlExprCursorSql92( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+            : base( leading, items, trailing )
         {
+        }
+
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        {
+            return new SqlExprCursorSql92( leading, EnsureArray( children ), trailing );
         }
 
         public bool IsSql92Syntax { get { return true; } }

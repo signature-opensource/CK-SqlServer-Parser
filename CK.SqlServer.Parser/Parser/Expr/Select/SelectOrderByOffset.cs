@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
@@ -14,23 +15,29 @@ using System.Threading.Tasks;
 
 namespace CK.SqlServer.Parser
 {
-    public class SelectOrderByOffset : SqlNoExpr
+    public class SelectOrderByOffset : SqlItem
     {
         public SelectOrderByOffset( SqlTokenIdentifier offsetToken, SqlExpr offsetExpr, SqlTokenIdentifier rowsToken )
-            : base( CreateArray( offsetToken, offsetExpr, rowsToken ) )
+            : base( null, CreateArray<SqlNode>( offsetToken, offsetExpr, rowsToken ), null )
         {
         }
 
         public SelectOrderByOffset( SqlTokenIdentifier offsetToken, SqlExpr offsetExpr, SqlTokenIdentifier rowsToken,
                                     SqlTokenIdentifier fetchToken, SqlTokenIdentifier firstOrNextToken, SqlExpr fetchExpr, SqlTokenIdentifier fetchRowsToken, SqlTokenIdentifier onlyToken )
-            : base( CreateArray( offsetToken, offsetExpr, rowsToken, fetchToken, firstOrNextToken, fetchExpr, fetchRowsToken, onlyToken ) )
+            : base( null, CreateArray<SqlNode>( offsetToken, offsetExpr, rowsToken, fetchToken, firstOrNextToken, fetchExpr, fetchRowsToken, onlyToken ), null )
         {
         }
 
-        internal SelectOrderByOffset( ISqlItem[] items )
-            : base( items )
+        internal SelectOrderByOffset( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+            : base( leading, items, trailing )
         {
         }
+
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        {
+            return new SelectOrderByOffset( leading, EnsureArray( children ), trailing );
+        }
+
 
         public SqlTokenIdentifier OffsetT { get { return (SqlTokenIdentifier)Slots[0]; } }
 

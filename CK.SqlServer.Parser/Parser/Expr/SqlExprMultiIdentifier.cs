@@ -12,6 +12,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using CK.Core;
+using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
@@ -24,27 +25,33 @@ namespace CK.SqlServer.Parser
         /// </summary>
         /// <param name="isEnclosed">Whether given tokens are enclosed or not.</param>
         /// <param name="tokens">Identifiers and separator tokens. It may be enclosed or not.</param>
-        public SqlExprMultiIdentifier( bool isEnclosed, IList<ISqlItem> tokens )
-            : this( Build( isEnclosed, tokens ) )
+        public SqlExprMultiIdentifier( bool isEnclosed, IList<SqlNode> tokens )
+            : this( null, Build( isEnclosed, tokens ), null )
         {
         }
 
-        static ISqlItem[] Build( bool isEnclosed, IList<ISqlItem> tokens )
+        static SqlNode[] Build( bool isEnclosed, IList<SqlNode> tokens )
         {
             if( tokens.Count == 0 ) throw new ArgumentException();
-            ISqlItem[] r;
+            SqlNode[] r;
             if( isEnclosed ) r = tokens.ToArray();
             else r = CreateEnclosedArray( tokens.AsReadOnlyList() );
             SqlExprBaseListWithSeparator<SqlTokenIdentifier>.CheckArray( r, false, true, false, ISqlItemExtension.IsDotOrDoubleColonSeparator );
             return r;
         }
 
-        internal SqlExprMultiIdentifier( ISqlItem[] slots )
-            : base( slots )
+        internal SqlExprMultiIdentifier( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+            : base( leading, items, trailing )
         {
         }
 
-        static internal string BuildArray( IEnumerator<ISqlItem> tokens, out ISqlItem[] result, SqlTokenIdentifier firstForLookup = null )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        {
+            return new SqlExprMultiIdentifier( leading, EnsureArray( children ), trailing );
+        }
+
+
+        static internal string BuildArray( IEnumerator<SqlNode> tokens, out SqlNode[] result, SqlTokenIdentifier firstForLookup = null )
         {
             return SqlExprBaseListWithSeparator<SqlTokenIdentifier>.BuildArray( tokens, false, ISqlItemExtension.IsDotOrDoubleColonSeparator, "identifier", out result, firstForLookup );
         }
@@ -76,8 +83,8 @@ namespace CK.SqlServer.Parser
 
         public SqlExprMultiIdentifier RemoveQuoteIfPossible( bool keepIfReservedKeyword )
         {
-            ISqlItem[] c = SqlExprBaseListWithSeparator<SqlTokenIdentifier>.ReplaceNonSeparator( Slots, true, t => t.RemoveQuoteIfPossible( keepIfReservedKeyword ) );
-            return c != null ? new SqlExprMultiIdentifier( c ) : this;
+            SqlNode[] c = SqlExprBaseListWithSeparator<SqlTokenIdentifier>.ReplaceNonSeparator( Slots, true, t => t.RemoveQuoteIfPossible( keepIfReservedKeyword ) );
+            return c != null ? new SqlExprMultiIdentifier( LeadingTrivias, c, TrailingTrivias ) : this;
         }
 
         [DebuggerStepThrough]

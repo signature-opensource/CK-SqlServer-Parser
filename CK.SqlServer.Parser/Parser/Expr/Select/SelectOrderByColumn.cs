@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
@@ -14,16 +15,21 @@ using System.Threading.Tasks;
 
 namespace CK.SqlServer.Parser
 {
-    public class SelectOrderByColumn : SqlNoExpr
+    public class SelectOrderByColumn : SqlItem
     {
         public SelectOrderByColumn( SqlExpr definition, SqlTokenIdentifier ascOrDesc = null )
-            : base( ascOrDesc != null ? CreateArray( definition, ascOrDesc ) : CreateArray( definition ) )
+            : this( null, ascOrDesc != null ? CreateArray<SqlNode>( definition, ascOrDesc ) : CreateArray<SqlNode>( definition ), null )
         {
         }
 
-        internal SelectOrderByColumn( ISqlItem[] items )
-            : base( items )
+        internal SelectOrderByColumn( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+            : base( leading, items, trailing )
         {
+        }
+
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        {
+            return new SelectOrderByColumn( leading, EnsureArray( children ), trailing );
         }
 
         public SqlExpr Definition { get { return (SqlExpr)Slots[0]; } }

@@ -14,26 +14,26 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using CK.Core;
+using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
     public class SqlExprTypeDeclDecimal : SqlItem, ISqlExprUnifiedTypeDecl
     {
-        readonly SqlToken[] _tokens;
-
         public SqlExprTypeDeclDecimal( SqlTokenIdentifier id )
+            : base( null, CreateArray( id ), null )
         {
             if( id == null ) throw new ArgumentNullException( "id" );
             if( id.TokenType != SqlTokenType.IdentifierTypeDecimal )
             {
                 throw new ArgumentException( "Invalid decimal token.", "id" );
             }
-            _tokens = CreateArray( id );
             SyntaxPrecision = 0;
             SyntaxScale = 0;
         }
 
         public SqlExprTypeDeclDecimal( SqlTokenIdentifier id, SqlTokenTerminal openPar, SqlTokenLiteralInteger precision, SqlTokenTerminal closePar )
+            : base( null, CreateArray<SqlNode>( id, openPar, precision, closePar ), null )
         {
             if( id == null ) throw new ArgumentNullException( "id" );
             if( openPar == null ) throw new ArgumentNullException( "openPar" );
@@ -49,13 +49,12 @@ namespace CK.SqlServer.Parser
             {
                 throw new ArgumentException( "Invalid precision.", "precision" );
             }
-
-            _tokens = CreateArray( id, openPar, precision, closePar );
             SyntaxPrecision = (byte)precision.Value;
             SyntaxScale = 0;
         }
 
         public SqlExprTypeDeclDecimal( SqlTokenIdentifier id, SqlTokenTerminal openPar, SqlTokenLiteralInteger precision, SqlTokenTerminal comma, SqlTokenLiteralInteger scale, SqlTokenTerminal closePar )
+             : base( null, CreateArray<SqlNode>( id, openPar, precision, comma, scale, closePar ), null )
         {
             if( id == null ) throw new ArgumentNullException( "id" );
             if( openPar == null ) throw new ArgumentNullException( "openPar" );
@@ -76,23 +75,34 @@ namespace CK.SqlServer.Parser
             }
             if( scale.Value < 0 || scale.Value > precision.Value )
             {
-                throw new ArgumentException( "Invalid scale (must be less or equalt to precision).", "scale" );
+                throw new ArgumentException( "Invalid scale (must be less or equal to precision).", "scale" );
             }
-
-            _tokens = CreateArray( id, openPar, precision, comma, scale, closePar );
             SyntaxPrecision = (byte)precision.Value;
             SyntaxScale = (byte)scale.Value;
         }
 
-        public override IEnumerable<ISqlItem> Items { get { return _tokens; } }
 
-        public override IEnumerable<SqlToken> AllTokens { get { return _tokens; } }
+        SqlExprTypeDeclDecimal( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+            : base( leading, items, trailing )
+        {
+            if( Slots.Length >= 4 )
+            {
+                SyntaxPrecision = (byte)((SqlTokenLiteralInteger)Slots[2]).Value;
+                if( Slots.Length == 6 )
+                {
+                    SyntaxScale = (byte)((SqlTokenLiteralInteger)Slots[5]).Value;
+                }
+                else throw new ArgumentException( "invalid Decimal." );
+            }
+            else if( Slots.Length != 1 ) throw new ArgumentException( "invalid Decimal." );
+        }
 
-        public SqlTokenIdentifier TypeIdentifierT  { get { return (SqlTokenIdentifier)_tokens[0]; } }
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        {
+            return new SqlExprTypeDeclDecimal( leading, EnsureArray( children ), trailing );
+        }
 
-        public override SqlToken FirstOrEmptyT { get { return _tokens[0]; } }
-
-        public override SqlToken LastOrEmptyT { get { return _tokens[_tokens.Length - 1]; } }
+        public SqlTokenIdentifier TypeIdentifierT  { get { return (SqlTokenIdentifier)Slots[0]; } }
 
         public SqlDbType DbType { get { return SqlDbType.Decimal; } }
 

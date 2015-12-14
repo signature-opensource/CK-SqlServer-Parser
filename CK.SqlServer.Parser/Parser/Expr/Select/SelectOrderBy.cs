@@ -12,6 +12,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using CK.Core;
+using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
@@ -21,18 +22,23 @@ namespace CK.SqlServer.Parser
     public class SelectOrderBy : SqlExpr, ISelectSpecification
     {
         public SelectOrderBy( ISelectSpecification select, SqlTokenIdentifier orderT, SqlTokenIdentifier byT, SelectOrderByColumnList columns )
-            : this( CreateArray( SqlToken.EmptyOpenPar, select, orderT, byT, columns, SqlToken.EmptyClosePar ) )
+            : this( null, CreateArray<SqlNode>( SqlToken.EmptyOpenPar, (SqlNode)select, orderT, byT, columns, SqlToken.EmptyClosePar ), null )
         {
         }
 
         public SelectOrderBy( ISelectSpecification select, SqlTokenIdentifier orderT, SqlTokenIdentifier byT, SelectOrderByColumnList columns, SelectOrderByOffset offset )
-            : this( CreateArray( SqlToken.EmptyOpenPar, select, orderT, byT, columns, offset, SqlToken.EmptyClosePar ) )
+            : this( null, CreateArray<SqlNode>( SqlToken.EmptyOpenPar, (SqlNode)select, orderT, byT, columns, offset, SqlToken.EmptyClosePar ), null )
         {
         }
 
-        internal SelectOrderBy( ISqlItem[] items )
-            : base( items )
+        internal SelectOrderBy( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+            : base( leading, items, trailing )
         {
+        }
+
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        {
+            return new SelectOrderBy( leading, EnsureArray( children ), trailing );
         }
 
         public ISelectSpecification Select { get { return (ISelectSpecification)Slots[1]; } }

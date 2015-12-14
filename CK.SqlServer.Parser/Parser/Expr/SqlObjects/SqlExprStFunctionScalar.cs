@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using CK.Core;
+using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
@@ -33,13 +34,17 @@ namespace CK.SqlServer.Parser
         {
         }
 
-        internal SqlExprStFunctionScalar( ISqlItem[] items )
-            : base( items )
+        SqlExprStFunctionScalar( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+            : base( leading, items, trailing )
         {
         }
 
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        {
+            return new SqlExprStFunctionScalar( leading, EnsureArray( children ), trailing );
+        }
 
-        static ISqlItem[] Build(
+        static SqlNode[] Build(
             SqlTokenIdentifier alterOrCreate,
             SqlTokenIdentifier type,
             SqlExprMultiIdentifier name,
@@ -56,22 +61,22 @@ namespace CK.SqlServer.Parser
             {
                 if( asToken != null )
                 {
-                    return CreateArray( alterOrCreate, type, name, parameters, returns, returrnScalarType, options, asToken, begin, bodyStatements, end );
+                    return CreateArray<SqlNode>( alterOrCreate, type, name, parameters, returns, returrnScalarType, options, asToken, begin, bodyStatements, end );
                 }
                 else
                 {
-                    return CreateArray( alterOrCreate, type, name, parameters, returns, returrnScalarType, options, begin, bodyStatements, end );
+                    return CreateArray<SqlNode>( alterOrCreate, type, name, parameters, returns, returrnScalarType, options, begin, bodyStatements, end );
                 }
             }
             else
             {
                 if( asToken != null )
                 {
-                    return CreateArray( alterOrCreate, type, name, parameters, returns, returrnScalarType, asToken, begin, bodyStatements, end );
+                    return CreateArray<SqlNode>( alterOrCreate, type, name, parameters, returns, returrnScalarType, asToken, begin, bodyStatements, end );
                 }
                 else
                 {
-                    return CreateArray( alterOrCreate, type, name, parameters, returns, returrnScalarType, begin, bodyStatements, end );
+                    return CreateArray<SqlNode>( alterOrCreate, type, name, parameters, returns, returrnScalarType, begin, bodyStatements, end );
                 }
             }
         }

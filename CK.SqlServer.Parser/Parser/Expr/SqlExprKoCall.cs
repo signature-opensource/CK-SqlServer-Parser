@@ -11,28 +11,34 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using CK.Core;
+using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
     public class SqlExprKoCall : SqlExpr
     {
         public SqlExprKoCall( SqlItem funName, SqlExprCommaList parameters, SqlNoExprOverClause over )
-            : this( Build( funName, parameters, over ) )
+            : this( null, Build( funName, parameters, over ), null )
         {
         }
 
-        static ISqlItem[] Build( SqlItem funName, SqlExprCommaList parameters, SqlNoExprOverClause over )
+        static SqlNode[] Build( SqlItem funName, SqlExprCommaList parameters, SqlNoExprOverClause over )
         {
             if( funName == null ) throw new ArgumentNullException( "funName" );
             if( parameters == null ) throw new ArgumentNullException( "parameters" );
             return  over != null 
-                    ? CreateArray( SqlToken.EmptyOpenPar, funName, parameters, over, SqlToken.EmptyClosePar )
-                    : CreateArray( SqlToken.EmptyOpenPar, funName, parameters, SqlToken.EmptyClosePar );
+                    ? CreateArray<SqlNode>( SqlToken.EmptyOpenPar, funName, parameters, over, SqlToken.EmptyClosePar )
+                    : CreateArray<SqlNode>( SqlToken.EmptyOpenPar, funName, parameters, SqlToken.EmptyClosePar );
         }
 
-        internal SqlExprKoCall( ISqlItem[] newComponents )
-            : base( newComponents )
+        internal SqlExprKoCall( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+            : base( leading, items, trailing )
         {
+        }
+
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        {
+            return new SqlExprKoCall( leading, EnsureArray( children ), trailing );
         }
 
         public SqlItem FunName { get { return (SqlItem)Slots[1]; } }

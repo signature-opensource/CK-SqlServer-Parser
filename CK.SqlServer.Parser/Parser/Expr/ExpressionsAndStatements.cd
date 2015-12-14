@@ -3,9 +3,9 @@
   <Class Name="CK.SqlServer.Parser.SqlToken">
     <Position X="5" Y="0.75" Width="3.75" />
     <Members>
-      <Property Name="ISqlItem.FirstOrEmptyT" Hidden="true" />
-      <Property Name="ISqlItem.LastOrEmptyT" Hidden="true" />
-      <Property Name="ISqlItem.Tokens" Hidden="true" />
+      <Property Name="SqlNode.FirstOrEmptyT" Hidden="true" />
+      <Property Name="SqlNode.LastOrEmptyT" Hidden="true" />
+      <Property Name="SqlNode.Tokens" Hidden="true" />
     </Members>
     <NestedTypes>
       <Class Name="CK.SqlServer.Parser.SqlToken.EmptyToken" Collapsed="true">
@@ -56,11 +56,11 @@
       <FileName>Tokenizer\SqlTrivia.cs</FileName>
     </TypeIdentifier>
   </Struct>
-  <Interface Name="CK.SqlServer.Parser.ISqlItem">
+  <Interface Name="CK.SqlServer.Parser.SqlNode">
     <Position X="1.25" Y="0.75" Width="2.25" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAIAAABAAA=</HashCode>
-      <FileName>ISqlItem.cs</FileName>
+      <FileName>SqlNode.cs</FileName>
     </TypeIdentifier>
   </Interface>
   <Font Name="Segoe UI" Size="9" />

@@ -12,22 +12,28 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using CK.Core;
+using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
     /// <summary>
     /// Captures the optional "Option ( ... )" select part.
     /// </summary>
-    public class SelectOption : SqlNoExpr
+    public class SelectOption : SqlItem
     {
         public SelectOption( SqlTokenIdentifier optionToken, SqlExpr content )
-            : this( CreateArray( optionToken, content ) )
+            : this( null, CreateArray<SqlNode>( optionToken, content ), null )
         {
         }
 
-        internal SelectOption( ISqlItem[] items )
-            : base( items )
+        internal SelectOption( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+            : base( leading, items, trailing )
         {
+        }
+
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        {
+            return new SelectOption( leading, EnsureArray( children ), trailing );
         }
 
         public SqlExpr Content { get { return (SqlExpr)Slots[1]; } }

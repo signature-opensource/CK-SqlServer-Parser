@@ -12,6 +12,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using CK.Core;
+using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
@@ -19,12 +20,12 @@ namespace CK.SqlServer.Parser
         where T : SqlToken 
     {
         protected SqlExprBaseMonoToken( T t )
-            : this( CreateArray( SqlToken.EmptyOpenPar, t, SqlToken.EmptyClosePar ) )
+            : this( null, CreateArray<SqlNode>( SqlToken.EmptyOpenPar, t, SqlToken.EmptyClosePar ), null )
         {
         }
 
-        internal SqlExprBaseMonoToken( ISqlItem[] components )
-            : base( components )
+        protected SqlExprBaseMonoToken( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+            : base( leading, items, trailing )
         {
         }
 

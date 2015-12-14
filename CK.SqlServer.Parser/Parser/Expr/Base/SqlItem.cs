@@ -27,31 +27,38 @@ namespace CK.SqlServer.Parser
         }
 
         public sealed override IReadOnlyList<SqlNode> ChildrenNodes => Slots;
-        
-        /// <summary>
-        /// Gets the last token of the expression.
-        /// </summary>
-        public abstract SqlToken LastOrEmptyT { get; }
-
-        /// <summary>
-        /// Gets the first token of the expression.
-        /// </summary>
-        public abstract SqlToken FirstOrEmptyT { get; }
 
         /// <summary>
         /// Gets the tokens that compose this item.
         /// </summary>
         public override IEnumerable<SqlToken> AllTokens => Slots.ToTokens();
 
-        protected override void DoWrite( StringBuilder b, SqlTriviaWriteOption option )
+        public override void WriteWithoutTrivias( SqlTextWriter w )
         {
             foreach( var t in Slots )
             {
-                t.Write( b, option );
+                t.Write( w );
             }
         }
 
         internal protected abstract T Accept<T>( ISqlItemVisitor<T> visitor );
+
+        static internal T[] EnsureArray<T>( IEnumerable<T> content )
+        {
+            T[] r = content as T[];
+            if( r == null )
+            {
+                IReadOnlyCollection<T> c = content as IReadOnlyCollection<T>;
+                if( c == null ) r = content.ToArray();
+                else
+                {
+                    int i = 0;
+                    r = new T[c.Count];
+                    foreach( var e in content ) r[i++] = e;
+                }
+            }
+            return r;
+        }
 
         static internal T[] CreateArray<T>( params T[] e )
         {

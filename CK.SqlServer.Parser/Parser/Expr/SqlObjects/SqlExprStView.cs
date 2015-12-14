@@ -1,16 +1,10 @@
-#region Proprietary License
-/*----------------------------------------------------------------------------
-* This file (CK.SqlServer.Parser\Parser\Expr\SqlExprStView.cs) is part of CK-Database. 
-* Copyright © 2007-2014, Invenietis <http://www.invenietis.com>. All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using CK.Core;
+using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
@@ -21,33 +15,38 @@ namespace CK.SqlServer.Parser
         {
         }
 
-        internal SqlExprStView( ISqlItem[] newComponents )
-            : base( newComponents )
+        SqlExprStView( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+            : base( leading, items, trailing )
         {
         }
 
-        static ISqlItem[] Build( SqlTokenIdentifier alterOrCreate, SqlTokenIdentifier type, SqlExprMultiIdentifier name, SqlExprColumnList columns, SqlExprUnmodeledItems options, SqlTokenIdentifier asToken, SqlItem select )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        {
+            return new SqlExprStView( leading, EnsureArray( children ), trailing );
+        }
+
+        static SqlNode[] Build( SqlTokenIdentifier alterOrCreate, SqlTokenIdentifier type, SqlExprMultiIdentifier name, SqlExprColumnList columns, SqlExprUnmodeledItems options, SqlTokenIdentifier asToken, SqlItem select )
         {
             if( columns == null ) 
             {
                 if( options == null ) 
                 {
-                    return CreateArray( alterOrCreate, type, name, asToken, select );
+                    return CreateArray<SqlNode>( alterOrCreate, type, name, asToken, select );
                 }
                 else
                 {
-                    return CreateArray( alterOrCreate, type, name, options, asToken, select );
+                    return CreateArray<SqlNode>( alterOrCreate, type, name, options, asToken, select );
                 }
             }
             else 
             {
                 if( options == null ) 
                 {
-                    return CreateArray( alterOrCreate, type, name, columns, asToken, select );
+                    return CreateArray<SqlNode>( alterOrCreate, type, name, columns, asToken, select );
                 }
                 else
                 {
-                    return CreateArray( alterOrCreate, type, name, columns, options, asToken, select );
+                    return CreateArray<SqlNode>( alterOrCreate, type, name, columns, options, asToken, select );
                 }
             }
         }

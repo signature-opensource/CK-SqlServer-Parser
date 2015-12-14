@@ -42,13 +42,14 @@ namespace CK.SqlServer.Parser
             return LiteralValue;
         }
 
+
         /// <summary>
         /// Simply appends the <see cref="LiteralValue"/>.
         /// </summary>
-        /// <param name="b">The builder to use.</param>
-        protected override void DoWrite( StringBuilder b )
+        /// <param name="w">The builder to use.</param>
+        public override void WriteWithoutTrivias( SqlTextWriter w )
         {
-            b.Append( LiteralValue );
+            w.GetLineBuilder().Append( LiteralValue );
         }
     }
 

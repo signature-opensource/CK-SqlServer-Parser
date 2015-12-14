@@ -1,10 +1,3 @@
-#region Proprietary License
-/*----------------------------------------------------------------------------
-* This file (CK.SqlServer.Parser\Parser\Expr\Base\SqlExpr.cs) is part of CK-Database. 
-* Copyright © 2007-2014, Invenietis <http://www.invenietis.com>. All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -39,24 +32,14 @@ namespace CK.SqlServer.Parser
         public SqlTokenList<SqlTokenClosePar> Closer { get { return (SqlTokenList<SqlTokenClosePar>)Slots[Slots.Length-1]; } }
 
         /// <summary>
-        /// Gets the last token of the expression.
-        /// </summary>
-        public sealed override SqlToken LastOrEmptyT { get { return Closer.Tokens.Count > 0 ? Closer.LastOrEmptyT : Slots[Slots.Length - 2].LastOrEmptyT; } }
-
-        /// <summary>
-        /// Gets the first token of the expression.
-        /// </summary>
-        public sealed override SqlToken FirstOrEmptyT { get { return Opener.Tokens.Count > 0 ? Opener.FirstOrEmptyT : Slots[1].FirstOrEmptyT; } }
-
-        /// <summary>
         /// Gets the sql items without the enclosing parenthesis if they exist.
         /// </summary>
-        public IEnumerable<ISqlItem> ItemsWithoutParenthesis { get { return Slots.Skip( 1 ).Take( Slots.Length - 2 ); } }
+        public IEnumerable<SqlNode> ItemsWithoutParenthesis { get { return Slots.Skip( 1 ).Take( Slots.Length - 2 ); } }
 
         /// <summary>
         /// Gets the tokens without the enclosing parenthesis if they exist.
         /// </summary>
-        public IEnumerable<SqlToken> TokensWithoutParenthesis { get { return Flatten( ItemsWithoutParenthesis ); } }
+        public IEnumerable<SqlToken> TokensWithoutParenthesis { get { return ItemsWithoutParenthesis.ToTokens(); } }
 
         /// <summary>
         /// Gets whether this expression is an only token of the given type (by default without any enclosing parenthesis).
@@ -81,8 +64,8 @@ namespace CK.SqlServer.Parser
         /// </summary>
         /// <param name="openPar">Opening parenthesis token.</param>
         /// <param name="closePar">Closing parenthesis token.</param>
-        /// <returns>An array of <see cref="ISqlItem"/>.</returns>
-        protected ISqlItem[] EncloseComponents( SqlTokenOpenPar openPar, SqlTokenClosePar closePar )
+        /// <returns>An array of <see cref="SqlNode"/>.</returns>
+        protected SqlNode[] EncloseComponents( SqlTokenOpenPar openPar, SqlTokenClosePar closePar )
         {
             return CreateEnclosedArray( openPar, Slots, closePar );
         }

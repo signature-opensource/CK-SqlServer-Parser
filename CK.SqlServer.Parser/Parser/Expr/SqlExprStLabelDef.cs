@@ -12,6 +12,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using CK.Core;
+using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
@@ -25,7 +26,7 @@ namespace CK.SqlServer.Parser
         {
         }
 
-        static ISqlItem[] Build( SqlTokenIdentifier id, SqlTokenTerminal colon )
+        static SqlNode[] Build( SqlTokenIdentifier id, SqlTokenTerminal colon )
         {
             if( id == null
                 || id.IsQuoted
@@ -34,7 +35,17 @@ namespace CK.SqlServer.Parser
                 || colon == null
                 || colon.TokenType != SqlTokenType.Colon
                 || colon.LeadingTrivias.Count > 0 ) throw new ArgumentException( "Invalid 'label:' definition." );
-            return CreateArray( id, colon );
+            return CreateArray<SqlNode>( id, colon );
+        }
+
+        SqlExprStLabelDef( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+            : base( leading, items, trailing )
+        {
+        }
+
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        {
+            return new SqlExprStLabelDef( leading, EnsureArray( children ), trailing );
         }
 
         public SqlTokenIdentifier IdentifierT { get { return (SqlTokenIdentifier)Slots[0]; } }

@@ -12,6 +12,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using CK.Core;
+using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
@@ -23,15 +24,20 @@ namespace CK.SqlServer.Parser
         /// <param name="openPar">Opening parenthesis. Can not be null.</param>
         /// <param name="tokens">Comma separated list of <see cref="SqlExprIdentifier"/> (can not be empty).</param>
         /// <param name="closePar">Closing parenthesis. Can not be null.</param>
-        public SqlExprColumnList( SqlTokenOpenPar openPar, IList<ISqlItem> tokens, SqlTokenClosePar closePar )
+        public SqlExprColumnList( SqlTokenOpenPar openPar, IList<SqlNode> tokens, SqlTokenClosePar closePar )
             : base( openPar, tokens, closePar, false )
         {
         }
 
-        internal SqlExprColumnList( ISqlItem[] newComponents )
-            : base( newComponents )
+        protected SqlExprColumnList( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+            : base( leading, items, trailing )
         {
             Debug.Assert( NonSeparatorCount > 0, "Column list must not be empty." );
+        }
+
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        {
+            return new SqlExprColumnList( leading, EnsureArray( children ), trailing );
         }
 
         [DebuggerStepThrough]

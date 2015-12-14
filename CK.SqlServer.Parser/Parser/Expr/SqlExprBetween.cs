@@ -12,6 +12,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using CK.Core;
+using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
@@ -22,20 +23,25 @@ namespace CK.SqlServer.Parser
     public class SqlExprBetween : SqlExpr
     {
         public SqlExprBetween( SqlExpr left, SqlTokenIdentifier notT, SqlTokenIdentifier betweenT, SqlExpr start, SqlTokenIdentifier andT, SqlItem stop )
-            : this( Build( left, notT, betweenT, start, andT, stop ) )
+            : this( null, Build( left, notT, betweenT, start, andT, stop ), null )
         {
         }
 
-        internal SqlExprBetween( ISqlItem[] newComponents )
-            : base( newComponents )
+        protected SqlExprBetween( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+            : base( leading, items, trailing )
         {
         }
 
-        static ISqlItem[] Build( SqlExpr left, SqlTokenIdentifier notT, SqlTokenIdentifier betweenT, SqlExpr start, SqlTokenIdentifier andT, SqlItem stop )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        {
+            return new SqlExprBetween( leading, EnsureArray( children ), trailing );
+        }
+
+        static SqlNode[] Build( SqlExpr left, SqlTokenIdentifier notT, SqlTokenIdentifier betweenT, SqlExpr start, SqlTokenIdentifier andT, SqlItem stop )
         {
             return notT != null
-                            ? CreateArray( SqlToken.EmptyOpenPar, left, notT, betweenT, start, andT, stop, SqlToken.EmptyClosePar )
-                            : CreateArray( SqlToken.EmptyOpenPar, left, betweenT, start, andT, stop, SqlToken.EmptyClosePar );
+                            ? CreateArray<SqlNode>( SqlToken.EmptyOpenPar, left, notT, betweenT, start, andT, stop, SqlToken.EmptyClosePar )
+                            : CreateArray<SqlNode>( SqlToken.EmptyOpenPar, left, betweenT, start, andT, stop, SqlToken.EmptyClosePar );
         }
 
         public SqlExpr Left { get { return (SqlExpr)Slots[1]; } }

@@ -15,7 +15,7 @@ namespace CK.SqlServer.Parser
     /// has a Precision of 23 and a Scale of 3 in terms of digits, but here, we consider Precision and Scale to be 0 (non applicable) since 'datetime(p,s)' is not valid.
     /// To make this more explicit, the Size/Precision/Scale properties have been prefixed with 'Syntax'.
     /// </remarks>
-    public interface ISqlExprUnifiedTypeDecl : ISqlItem, ISqlServerUnifiedTypeDecl
+    public interface ISqlExprUnifiedTypeDecl : ISqlServerUnifiedTypeDecl
     {
     }
 }

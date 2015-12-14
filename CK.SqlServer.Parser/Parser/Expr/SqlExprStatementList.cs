@@ -12,6 +12,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using CK.Core;
+using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
@@ -21,26 +22,22 @@ namespace CK.SqlServer.Parser
     /// </summary>
     public class SqlExprStatementList : SqlItem, IReadOnlyList<SqlExprBaseSt>
     {
-        readonly SqlExprBaseSt[] _statements;
-
         public SqlExprStatementList( IEnumerable<SqlExprBaseSt> statements )
+            : this( null, statements.ToArray(), null )
         {
-            _statements = statements.ToArray();
         }
 
-        internal SqlExprStatementList( SqlExprBaseSt[] newStatements )
+        SqlExprStatementList( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+            : base( leading, items, trailing )
         {
-            _statements = newStatements;
         }
 
-        public override sealed IEnumerable<ISqlItem> Items
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
-            get { return _statements; }
+            return new SqlExprStatementList( leading, EnsureArray( children ), trailing );
         }
 
-        public override SqlToken FirstOrEmptyT { get { return _statements[0].FirstOrEmptyT; } }
 
-        public override SqlToken LastOrEmptyT { get { return _statements[_statements.Length-1].LastOrEmptyT; } }
 
         [DebuggerStepThrough]
         internal protected override T Accept<T>( ISqlItemVisitor<T> visitor )
@@ -50,23 +47,22 @@ namespace CK.SqlServer.Parser
 
         public SqlExprBaseSt this[int index]
         {
-            get { return _statements[index]; }
+            get { return (SqlExprBaseSt)Slots[index]; }
         }
-
 
         public int Count
         {
-            get { return _statements.Length; }
+            get { return Slots.Length; }
         }
 
         public IEnumerator<SqlExprBaseSt> GetEnumerator()
         {
-            return (IEnumerator<SqlExprBaseSt>)_statements.GetEnumerator();
+            return Slots.Cast<SqlExprBaseSt>().GetEnumerator();
         }
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
         {
-            return _statements.GetEnumerator();
+            return Slots.GetEnumerator();
         }
 
     }

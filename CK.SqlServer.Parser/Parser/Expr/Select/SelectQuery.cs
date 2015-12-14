@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using CK.Core;
+using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
@@ -25,16 +26,16 @@ namespace CK.SqlServer.Parser
         readonly SelectOption _option;
 
         public SelectQuery( ISelectSpecification spec, SelectOrderBy orderBy = null, SelectFor forPart = null, SelectOption option = null )
-            : this( Build( spec, orderBy, forPart, option ) )
+            : this( null, Build( spec, orderBy, forPart, option ), null )
         {
         }
 
-        static ISqlItem[] Build( ISelectSpecification spec, SelectOrderBy orderBy, SelectFor forPart, SelectOption option )
+        static SqlNode[] Build( ISelectSpecification spec, SelectOrderBy orderBy, SelectFor forPart, SelectOption option )
         {
             if( spec == null ) throw new ArgumentNullException( "spec" );
-            var c = new List<ISqlItem>();
+            var c = new List<SqlNode>();
             c.Add( SqlToken.EmptyOpenPar );
-            c.Add( spec );
+            c.Add( (SqlNode)spec );
             if( orderBy != null ) c.Add( orderBy );
             if( forPart != null ) c.Add( forPart );
             if( option != null ) c.Add( option );
@@ -42,12 +43,17 @@ namespace CK.SqlServer.Parser
             return c.ToArray();
         }
 
-        internal SelectQuery( ISqlItem[] slots )
-            : base( slots )
+        internal SelectQuery( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+            : base( leading, items, trailing )
         {
             _orderBy = Slots.OfType<SelectOrderBy>().FirstOrDefault();
             _forPart = Slots.OfType<SelectFor>().FirstOrDefault();
             _option = Slots.OfType<SelectOption>().FirstOrDefault();
+        }
+
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        {
+            return new SelectQuery( leading, EnsureArray( children ), trailing );
         }
 
         public ISelectSpecification Specification { get { return (ISelectSpecification)Slots[1]; } }

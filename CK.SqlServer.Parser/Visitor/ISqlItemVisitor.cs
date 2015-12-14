@@ -1,10 +1,3 @@
-#region Proprietary License
-/*----------------------------------------------------------------------------
-* This file (CK.SqlServer.Parser\Parser\ISqlItemVisitor.cs) is part of CK-Database. 
-* Copyright © 2007-2014, Invenietis <http://www.invenietis.com>. All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
 using System;
 using CK.Core;
 
@@ -13,6 +6,8 @@ namespace CK.SqlServer.Parser
     public interface ISqlItemVisitor<T>
     {
         T VisitItem( SqlItem e );
+
+        T Visit( SqlPar e );
 
         T Visit( SqlExprUnmodeledItems e );
         T Visit( SqlExprRawItemList e );
@@ -96,7 +91,6 @@ namespace CK.SqlServer.Parser
         T Visit( SelectOption e );
 
         T Visit( SqlExprStFunctionInlineTable e );
-        
 
     }
 }

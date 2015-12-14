@@ -12,6 +12,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using CK.Core;
+using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
@@ -24,6 +25,16 @@ namespace CK.SqlServer.Parser
         public SqlExprIdentifier( SqlTokenIdentifier t )
             : base( t )
         {
+        }
+
+        internal SqlExprIdentifier( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+            : base( leading, items, trailing )
+        {
+        }
+
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        {
+            return new SqlExprIdentifier( leading, EnsureArray( children ), trailing );
         }
 
         public string Name { get { return Token.Name; } }

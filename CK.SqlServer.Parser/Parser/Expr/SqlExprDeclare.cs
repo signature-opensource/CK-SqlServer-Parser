@@ -12,17 +12,18 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using CK.Core;
+using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
-    public class SqlExprDeclare : SqlNoExpr
+    public class SqlExprDeclare : SqlItem
     {
         public SqlExprDeclare( SqlExprTypedIdentifier declVar, SqlTokenTerminal assignToken = null, SqlExpr initialValue = null )
-            : this( Build( declVar, assignToken, initialValue ) )
+            : this( null, Build( declVar, assignToken, initialValue ), null )
         {
         }
 
-        static ISqlItem[] Build( SqlExprTypedIdentifier declVar, SqlTokenTerminal assignToken = null, SqlExpr initialValue = null )
+        static SqlNode[] Build( SqlExprTypedIdentifier declVar, SqlTokenTerminal assignToken = null, SqlExpr initialValue = null )
         {
             if( declVar == null ) throw new ArgumentNullException( "declVar" );
             if( !declVar.Identifier.IsVariable ) throw new ArgumentException( "Must be a @VariableName", "variable" );
@@ -35,17 +36,22 @@ namespace CK.SqlServer.Parser
             
             if( assignToken == null )
             {
-                return CreateArray( declVar );
+                return CreateArray<SqlNode>( declVar );
             }
             else
             {
-                return CreateArray( declVar, assignToken, initialValue );
+                return CreateArray<SqlNode>( declVar, assignToken, initialValue );
             }
         }
 
-        internal SqlExprDeclare( ISqlItem[] items )
-            : base( items )
+        internal SqlExprDeclare( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+            : base( leading, items, trailing )
         {
+        }
+
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        {
+            return new SqlExprDeclare( leading, EnsureArray( children ), trailing );
         }
 
         public SqlExprTypedIdentifier Variable { get { return (SqlExprTypedIdentifier)Slots[0]; } }

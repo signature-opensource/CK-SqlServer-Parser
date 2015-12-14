@@ -12,6 +12,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using CK.Core;
+using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
@@ -25,12 +26,19 @@ namespace CK.SqlServer.Parser
         {
         }
 
-        internal SqlExprStBeginTran( ISqlItem[] components )
-            : base( components )
+        SqlExprStBeginTran( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+            : base( leading, items, trailing )
         {
         }
 
-        static ISqlItem[] Build( SqlTokenIdentifier begin, SqlTokenIdentifier tranToken, SqlTokenIdentifier tranNameOrVariable, SqlTokenIdentifier withToken, SqlTokenIdentifier markToken, SqlTokenLiteralString description )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        {
+            return new SqlExprStBeginTran( leading, EnsureArray( children ), trailing );
+        }
+
+
+
+        static SqlNode[] Build( SqlTokenIdentifier begin, SqlTokenIdentifier tranToken, SqlTokenIdentifier tranNameOrVariable, SqlTokenIdentifier withToken, SqlTokenIdentifier markToken, SqlTokenLiteralString description )
         {
             if( begin == null || begin.TokenType != SqlTokenType.Begin ) throw new ArgumentException( "begin" );
             if( tranToken == null || tranToken.TokenType != SqlTokenType.Transaction ) throw new ArgumentException( "tranToken" );
@@ -43,7 +51,7 @@ namespace CK.SqlServer.Parser
                 {
                     if( description != null )
                     {
-                        return CreateArray( begin, tranToken, tranNameOrVariable, withToken, markToken, description );
+                        return CreateArray<SqlNode>( begin, tranToken, tranNameOrVariable, withToken, markToken, description );
                     }
                     else
                     {

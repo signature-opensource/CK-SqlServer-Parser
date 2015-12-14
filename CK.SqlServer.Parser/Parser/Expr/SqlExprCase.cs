@@ -12,6 +12,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using CK.Core;
+using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
@@ -22,11 +23,11 @@ namespace CK.SqlServer.Parser
     public class SqlExprCase : SqlExpr
     {
         public SqlExprCase( SqlTokenIdentifier caseToken, SqlExpr expr, SqlExprCaseWhenSelector whenSelector, SqlTokenIdentifier elseToken, SqlExpr elseExpr, SqlTokenIdentifier endToken )
-            : this( Build( caseToken, expr, whenSelector, elseToken, elseExpr, endToken ) )
+            : this( null, Build( caseToken, expr, whenSelector, elseToken, elseExpr, endToken ), null )
         {
         }
 
-        static ISqlItem[] Build( SqlTokenIdentifier caseToken, SqlExpr expr, SqlExprCaseWhenSelector whenSelector, SqlTokenIdentifier elseToken, SqlExpr elseExpr, SqlTokenIdentifier endToken )
+        static SqlNode[] Build( SqlTokenIdentifier caseToken, SqlExpr expr, SqlExprCaseWhenSelector whenSelector, SqlTokenIdentifier elseToken, SqlExpr elseExpr, SqlTokenIdentifier endToken )
         {
             if( (elseToken == null) != (elseExpr == null) )
             {
@@ -38,20 +39,25 @@ namespace CK.SqlServer.Parser
             if( expr != null )
             {
                 return elseToken != null
-                                ? CreateArray( SqlToken.EmptyOpenPar, caseToken, expr, whenSelector, elseToken, elseExpr, endToken, SqlToken.EmptyClosePar )
-                                : CreateArray( SqlToken.EmptyOpenPar, caseToken, expr, whenSelector, endToken, SqlToken.EmptyClosePar );
+                                ? CreateArray<SqlNode>( SqlToken.EmptyOpenPar, caseToken, expr, whenSelector, elseToken, elseExpr, endToken, SqlToken.EmptyClosePar )
+                                : CreateArray<SqlNode>( SqlToken.EmptyOpenPar, caseToken, expr, whenSelector, endToken, SqlToken.EmptyClosePar );
             }
             else
             {
                 return elseToken != null
-                                ? CreateArray( SqlToken.EmptyOpenPar, caseToken, whenSelector, elseToken, elseExpr, endToken, SqlToken.EmptyClosePar )
-                                : CreateArray( SqlToken.EmptyOpenPar, caseToken, whenSelector, endToken, SqlToken.EmptyClosePar );
+                                ? CreateArray<SqlNode>( SqlToken.EmptyOpenPar, caseToken, whenSelector, elseToken, elseExpr, endToken, SqlToken.EmptyClosePar )
+                                : CreateArray<SqlNode>( SqlToken.EmptyOpenPar, caseToken, whenSelector, endToken, SqlToken.EmptyClosePar );
             }
         }
 
-        internal SqlExprCase( ISqlItem[] newComponents )
-            : base( newComponents )
+        protected SqlExprCase( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+            : base( leading, items, trailing )
         {
+        }
+
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        {
+            return new SqlExprCase( leading, EnsureArray( children ), trailing );
         }
 
         /// <summary>
