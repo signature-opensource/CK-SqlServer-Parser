@@ -9,160 +9,100 @@ namespace CK.SqlServer.Parser
 {
     public class SqlTextWriter
     {
-        readonly StringBuilder _b;
-        readonly StringBuilder _currentLine;
-        string _newLine;
-        string _pendingLine;
-        bool _pendingSpace;
-        bool _currentLineIsEmpty;
-
-        public SqlTextWriter()
-            : this( new StringBuilder() )
+        /// <summary>
+        /// Creates a default writer that writes everything.
+        /// </summary>
+        /// <param name="b">An optional existing String builder.</param>
+        /// <returns>The text writer.</returns>
+        public static ISqlTextWriter CreateDefault( StringBuilder b = null )
         {
+            return new Full( b ?? new StringBuilder() );
         }
 
-        public SqlTextWriter( StringBuilder b )
+        /// <summary>
+        /// Creates a writer on one line without any comments.
+        /// </summary>
+        /// <param name="b">An optional existing String builder.</param>
+        /// <returns>The text writer.</returns>
+        public static ISqlTextWriter CreateOneLineCompact( StringBuilder b = null )
         {
-            _newLine = Environment.NewLine;
-            _b = b;
-            _currentLine = new StringBuilder();
+            return new OneLineCompact( b ?? new StringBuilder() );
         }
 
-        public enum WhiteSpaceOption
+        class Full : ISqlTextWriter
         {
-            Default,
-            Compact
-        }
+            readonly StringBuilder _b;
 
-        public bool SkipStarComment { get; set; }
+            public Full( StringBuilder b ) { _b = b; }
 
-        public bool SkipLineComment { get; set; }
+            public bool SkipLineComment => false;
 
-        public WhiteSpaceOption WhiteSpace { get; set; }
+            public bool SkipStarComment => false;
 
-        public void Write( SqlTrivia t )
-        {
-            switch( t.TokenType )
+            public void Write( SqlTrivia t )
             {
-                case SqlTokenType.LineComment:
-                    {
-                        if( !SkipLineComment )
-                        {
-                            GetLineBuilder().Append( "--" ).Append( t.Text );
-                        }
-                        EmitCurrentLine();
-                        break;
-                    }
-                case SqlTokenType.StarComment:
-                    {
-                        if( !SkipStarComment )
-                        {
-                            var text = t.Text;
-                            GetLineBuilder().Append( "/*" );
-                            WriteText( text );
-                            GetLineBuilder().Append( "*/" );
-                        }
-                        break;
-                    }
-                default:
-                    {
-                        Debug.Assert( t.TokenType == SqlTokenType.None );
-                        var text = t.Text;
-                        if( WhiteSpace == WhiteSpaceOption.Default )
-                        {
-                            WriteText( text );
-                        }
-                        else if( WhiteSpace == WhiteSpaceOption.Compact )
-                        {
-                            int idx = text.LastIndexOf( Environment.NewLine );
-                            if( idx >= 0 )
-                            {
-                                EmitCurrentLine();
-                                GetLineBuilder().Append( text.Substring( idx + Environment.NewLine.Length ) );
-                                _currentLineIsEmpty = true;
-                            }
-                            else EnsureWhiteSpace();
-                        }
-                        break;
-                    }
-            }
-        }
-
-        void WriteText( string text )
-        {
-            int lastIdx = 0;
-            int idx, len;
-            while( (idx = text.IndexOf( Environment.NewLine, lastIdx )) >= 0 )
-            {
-                len = idx - lastIdx;
-                if( len > 0 )
+                switch( t.TokenType )
                 {
-                    GetLineBuilder().Append( text, lastIdx, len );
+                    case SqlTokenType.LineComment: _b.Append( "--" ).Append( t.Text ).AppendLine(); break;
+                    case SqlTokenType.StarComment: _b.Append( "/*" ).Append( t.Text ).Append( "*/" ); break;
+                    default: _b.Append( t.Text ); break;
                 }
-                EmitCurrentLine();
-                lastIdx = idx + 2;
             }
-            len = text.Length - lastIdx;
-            if( len > 0 )
+
+            public void Write( string text, bool? whiteSpaceBefore = null, bool? whiteSpaceAfter = null )
             {
-                GetLineBuilder().Append( text, lastIdx, len );
+                _b.Append( text );
+            }
+
+            public override string ToString()
+            {
+                return _b.ToString();
             }
         }
 
-        int _currentLineMustBeEmitted;
-        bool _hasEmittedData;
-
-        public StringBuilder GetLineBuilder( bool canOmitWhiteSpace = false )
+        class OneLineCompact : ISqlTextWriter
         {
-            if( _currentLineMustBeEmitted > 0 )
+            readonly StringBuilder _b;
+            bool _ensureWhiteSpace;
+            bool _allowWhiteSpaceAfter;
+
+            public OneLineCompact( StringBuilder b ) { _b = b; }
+
+            public bool SkipLineComment => true;
+
+            public bool SkipStarComment => true;
+
+            public void Write( SqlTrivia t )
             {
-                if( !(_currentLineIsEmpty && WhiteSpace == WhiteSpaceOption.Compact) )
+                _ensureWhiteSpace = _allowWhiteSpaceAfter;
+            }
+
+            public void Write( string text, bool? whiteSpaceBefore = null, bool? whiteSpaceAfter = null )
+            {
+                if( text.Length > 0 )
                 {
-                    if( !_hasEmittedData ) --_currentLineMustBeEmitted;
-                    while( --_currentLineMustBeEmitted >= 0 ) _b.Append( _newLine );
-                    _b.Append( _currentLine.ToString() );
-                    _hasEmittedData = true;
+                    if( (!whiteSpaceBefore.HasValue && _ensureWhiteSpace)
+                        || (whiteSpaceBefore.HasValue && whiteSpaceBefore.Value) )
+                    {
+                        _b.Append( ' ' );
+                    }
+                    _b.Append( text );
+                    if( whiteSpaceAfter.HasValue )
+                    {
+                        _allowWhiteSpaceAfter = _ensureWhiteSpace = whiteSpaceAfter.Value;
+                    }
+                    else
+                    {
+                        _allowWhiteSpaceAfter = true;
+                        _ensureWhiteSpace = false;
+                    }
                 }
-                _currentLine.Clear();
-                _currentLineIsEmpty = true;
-                _pendingSpace = false;
-                _currentLineMustBeEmitted = 0;
             }
-            if( _pendingSpace && _currentLine.Length > 0 && !canOmitWhiteSpace )
-            {
-                _currentLine.Append( ' ' );
-            }
-            _currentLineIsEmpty = _pendingSpace = false;
-            return _currentLine;
-        }
 
-        public void EmitCurrentLine()
-        {
-            _currentLineMustBeEmitted++;
-        }
-
-        void EnsureWhiteSpace()
-        {
-            _pendingSpace = true;
-        }
-
-        public override string ToString()
-        {
-            string s = _b.ToString();
-            bool hasEmittedData = _hasEmittedData;
-            if( !(_currentLineIsEmpty && WhiteSpace == WhiteSpaceOption.Compact) )
+            public override string ToString()
             {
-                if( hasEmittedData ) s += _newLine;
-                hasEmittedData = true;
-                s += _currentLine.ToString();
+                return _b.ToString();
             }
-            int nbNewLines = _currentLineMustBeEmitted;
-            if( nbNewLines > 0 )
-            {
-                if( !hasEmittedData ) --nbNewLines;
-                while( --nbNewLines >= 0 ) s += _newLine;
-            }
-            return s;
         }
     }
 }

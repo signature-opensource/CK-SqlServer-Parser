@@ -1,10 +1,3 @@
-#region Proprietary License
-/*----------------------------------------------------------------------------
-* This file (CK.SqlServer.Parser\Parser\Expr\SqlExprParameter.cs) is part of CK-Database. 
-* Copyright © 2007-2014, Invenietis <http://www.invenietis.com>. All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -61,14 +54,6 @@ namespace CK.SqlServer.Parser
         public SqlExpr InitialValue { get { return Slots.Length > 1 ? Slots[2] as SqlExpr : null; } }
         
         public bool HasInitialValue { get { return Slots.Length > 1; } }
-
-
-        public string ToStringClean()
-        {
-            string s = Variable.ToStringClean();
-            if( HasInitialValue ) s += " = " + InitialValue.AllTokens.ToStringWithoutTrivias( " " );
-            return s;
-        }
 
         [DebuggerStepThrough]
         internal protected override T Accept<T>( ISqlItemVisitor<T> visitor )

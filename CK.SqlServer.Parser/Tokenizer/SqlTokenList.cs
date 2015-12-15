@@ -78,7 +78,7 @@ namespace CK.SqlServer.Parser
             return new SqlTokenList<T>( _tokens == content ? _tokens : content.Cast<T>().ToReadOnlyList(), leading, trailing );
         }
 
-        public override void WriteWithoutTrivias( SqlTextWriter w )
+        public override void WriteWithoutTrivias( ISqlTextWriter w )
         {
             foreach( var t in _tokens )
             {

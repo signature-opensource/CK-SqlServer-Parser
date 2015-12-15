@@ -19,6 +19,11 @@ namespace CK.SqlServer.Parser
             : base( SqlTokenType.OpenPar, leadingTrivia, trailingTrivia )
         {
         }
+
+        public override void WriteWithoutTrivias( ISqlTextWriter w )
+        {
+            w.Write( SqlTokenizer.Explain( TokenType ), false, false );
+        }
     }
 
 }

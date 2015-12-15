@@ -33,7 +33,7 @@ namespace CK.SqlServer.Parser
         /// </summary>
         public override IEnumerable<SqlToken> AllTokens => Slots.ToTokens();
 
-        public override void WriteWithoutTrivias( SqlTextWriter w )
+        public override void WriteWithoutTrivias( ISqlTextWriter w )
         {
             foreach( var t in Slots )
             {

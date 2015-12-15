@@ -40,9 +40,9 @@ namespace CK.SqlServer.Parser.Tests
                 return new TestNode( Name, leading, children.Cast<TestNode>().ToReadOnlyList(), trailing );
             }
 
-            public override void WriteWithoutTrivias( SqlTextWriter w )
+            public override void WriteWithoutTrivias( ISqlTextWriter w )
             {
-                w.GetLineBuilder().Append( Name );
+                w.Write( Name );
                 foreach( var c in _nodes ) c.Write( w );
             }
         }
@@ -96,5 +96,28 @@ namespace CK.SqlServer.Parser.Tests
             Assert.That( nLift.ToString( false ), Is.EqualTo( "NN1]a1]]b1][b2[[a2[N2" ) );
         }
 
+
+
+        [Test]
+        public void SqlNode_write_with_trivias()
+        {
+            SqlNode n = new TestNode( "X" )
+                            .AddLeadingTrivia( new SqlTrivia( SqlTokenType.None, Environment.NewLine + " 1 " + Environment.NewLine ) )
+                            .AddTrailingTrivia( new SqlTrivia( SqlTokenType.None, Environment.NewLine + " 2 " + Environment.NewLine ) );
+            SqlNode n2 = new TestNode( "Y" )
+                            .AddLeadingTrivia( new SqlTrivia( SqlTokenType.None, Environment.NewLine + " 3 " + Environment.NewLine ) )
+                            .AddTrailingTrivia( new SqlTrivia( SqlTokenType.None, Environment.NewLine + " 4 " + Environment.NewLine ) );
+            n = n2.InsertChildNode( 0, n );
+
+            Assert.That( n.ToString( true ), Is.EqualTo(
+                Environment.NewLine + " 3 " + Environment.NewLine
+                    + "Y"
+                        + Environment.NewLine + " 1 " + Environment.NewLine 
+                        + "X" 
+                        + Environment.NewLine + " 2 " + Environment.NewLine
+                + Environment.NewLine + " 4 " + Environment.NewLine ) );
+
+            Assert.That( n.ToString(), Is.EqualTo( "Y X" ) );
+        }
     }
 }

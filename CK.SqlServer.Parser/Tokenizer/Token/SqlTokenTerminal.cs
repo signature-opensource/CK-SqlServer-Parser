@@ -32,9 +32,25 @@ namespace CK.SqlServer.Parser
             return new SqlTokenTerminal( TokenType, leading, trailing );
         }
 
-        public override void WriteWithoutTrivias( SqlTextWriter w )
+        public override void WriteWithoutTrivias( ISqlTextWriter w )
         {
-            w.GetLineBuilder().Append( SqlTokenizer.Explain( TokenType ) );
+            bool? whiteSpaceBefore = null;
+            bool? whiteSpaceAfter = null;
+            if( TokenType == SqlTokenType.Dot
+                                || TokenType == SqlTokenType.Comma
+                                || TokenType == SqlTokenType.SemiColon
+                                || TokenType == SqlTokenType.Colon
+                                || TokenType == SqlTokenType.DoubleColons )
+            {
+                whiteSpaceBefore = false;
+            }
+            if( TokenType == SqlTokenType.Dot
+                                || TokenType == SqlTokenType.Colon
+                                || TokenType == SqlTokenType.DoubleColons )
+            {
+                whiteSpaceAfter = false;
+            }
+            w.Write( SqlTokenizer.Explain( TokenType ), whiteSpaceBefore, whiteSpaceAfter );
         }
     }
 

@@ -1,10 +1,3 @@
-#region Proprietary License
-/*----------------------------------------------------------------------------
-* This file (CK.SqlServer.Parser\Parser\Expr\SqlExprParameterList.cs) is part of CK-Database. 
-* Copyright © 2007-2014, Invenietis <http://www.invenietis.com>. All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -48,6 +41,8 @@ namespace CK.SqlServer.Parser
             return new SqlExprParameterList( leading, EnsureArray( children ), trailing );
         }
 
+        string ISqlServerParameterList.ToStringClean() => this.ToStringCompact();
+
         ISqlServerParameter IReadOnlyList<ISqlServerParameter>.this[int i]
         {
             get { return this[i]; }
@@ -56,15 +51,6 @@ namespace CK.SqlServer.Parser
         IEnumerator<ISqlServerParameter> IEnumerable<ISqlServerParameter>.GetEnumerator()
         {
             return GetEnumerator();
-        }
-
-        /// <summary>
-        /// Gets the comma separated parameter list without the trivias.
-        /// </summary>
-        /// <returns>A well formatted, clean, string.</returns>
-        public string ToStringClean()
-        {
-            return String.Join( ", ", ((IEnumerable<SqlExprParameter>)this).Select( p => p.ToStringClean() ) );
         }
 
         [DebuggerStepThrough]

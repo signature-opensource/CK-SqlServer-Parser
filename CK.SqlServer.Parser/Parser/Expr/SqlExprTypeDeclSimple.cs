@@ -56,10 +56,7 @@ namespace CK.SqlServer.Parser
 
         public SqlTokenIdentifier TypeIdentifierT { get { return (SqlTokenIdentifier)Slots[0]; } }
 
-        public string ToStringClean()
-        {
-            return AllTokens.ToStringWithoutTrivias( String.Empty );
-        }
+        string ISqlServerUnifiedTypeDecl.ToStringClean() => ChildrenNodes.ToStringCompact();
 
         [DebuggerStepThrough]
         internal protected override T Accept<T>( ISqlItemVisitor<T> visitor )

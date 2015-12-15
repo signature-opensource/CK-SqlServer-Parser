@@ -39,11 +39,6 @@ namespace CK.SqlServer.Parser
             return new SqlExprTypeDecl( leading, EnsureArray( children ), trailing );
         }
 
-        public string ToStringClean()
-        {
-            return AllTokens.ToStringWithoutTrivias( String.Empty );
-        }
-
         /// <summary>
         /// Gets a unified type for different kind of type declaration.
         /// </summary>

@@ -6,7 +6,7 @@ using System.Data;
 using System.Diagnostics;
 using System.IO;
 
-namespace CK.SqlServer.Parser.Tests.Parsing
+namespace CK.SqlServer.Parser.Tests
 {
 
     /// <summary>
@@ -168,7 +168,7 @@ namespace CK.SqlServer.Parser.Tests.Parsing
             else
             {
                 _w.Write( "/* Unsuported: " );
-                _w.Write( e.Variable.ToStringClean() );
+                _w.Write( e.Variable.ToString() );
                 _w.WriteLine( "*/" );
             }
             _w.Write( " " );
@@ -276,4 +276,7 @@ namespace CK.SqlServer.Parser.Tests.Parsing
         }
 
     }
+
+
+
 }

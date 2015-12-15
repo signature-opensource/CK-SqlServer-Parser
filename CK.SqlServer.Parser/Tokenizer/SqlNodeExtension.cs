@@ -59,5 +59,16 @@ namespace CK.SqlServer.Parser
             return b.ToString();
         }
 
+        public static string ToStringCompact( this IEnumerable<SqlNode> @this )
+        {
+            return Write( @this, SqlTextWriter.CreateOneLineCompact() ).ToString();
+        }
+
+        public static ISqlTextWriter Write( this IEnumerable<SqlNode> @this, ISqlTextWriter w )
+        {
+            foreach( var n in @this ) n.Write( w );
+            return w;
+        }
+
     }
 }

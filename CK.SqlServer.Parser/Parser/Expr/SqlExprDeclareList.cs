@@ -1,10 +1,3 @@
-#region Proprietary License
-/*----------------------------------------------------------------------------
-* This file (CK.SqlServer.Parser\Parser\Expr\SqlExprParameterList.cs) is part of CK-Database. 
-* Copyright © 2007-2014, Invenietis <http://www.invenietis.com>. All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -35,15 +28,6 @@ namespace CK.SqlServer.Parser
         protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
             return new SqlExprDeclareList( leading, EnsureArray( children ), trailing );
-        }
-
-        /// <summary>
-        /// Gets the comma separated declaration list without the trivias.
-        /// </summary>
-        /// <returns>A well formatted, clean, string.</returns>
-        public string ToStringClean()
-        {
-            return String.Join( ", ", this.Select( p => p.ToStringClean() ) );
         }
 
         [DebuggerStepThrough]

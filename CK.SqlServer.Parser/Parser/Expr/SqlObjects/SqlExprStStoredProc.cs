@@ -1,10 +1,3 @@
-#region Proprietary License
-/*----------------------------------------------------------------------------
-* This file (CK.SqlServer.Parser\Parser\Expr\SqlExprStStoredProc.cs) is part of CK-Database. 
-* Copyright © 2007-2014, Invenietis <http://www.invenietis.com>. All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -106,9 +99,16 @@ namespace CK.SqlServer.Parser
 
         SqlServerObjectType ISqlServerObject.ObjectType { get { return SqlServerObjectType.Procedure; } }
 
+        string ISqlServerObject.ToStringSignature( bool withOptions )
+        {
+            return withOptions ? Header.ToStringCompact() : Slots.Skip( 1 ).Take( 3 ).ToStringCompact();
+        }
+
         public bool HasOptions { get { return SlotsLengthWithoutTerminator == 9 || SlotsLengthWithoutTerminator == 7; } }
 
         public SqlExprUnmodeledItems Options { get { return HasOptions ? (SqlExprUnmodeledItems)Slots[4] : null; } }
+
+        public IEnumerable<SqlNode> Header => Slots.Skip( 1 ).Take( HasOptions ? 4 : 3 );
 
         public SqlTokenIdentifier AsT { get { return (SqlTokenIdentifier)Slots[HasOptions ? 5 : 4]; } }
 
@@ -119,18 +119,6 @@ namespace CK.SqlServer.Parser
         public SqlExprStatementList BodyStatements { get { return (SqlExprStatementList)Slots[HasBeginEnd ? SlotsLengthWithoutTerminator - 2 : SlotsLengthWithoutTerminator - 1]; } }
 
         public SqlTokenIdentifier EndT { get { return HasBeginEnd ? (SqlTokenIdentifier)Slots[ SlotsLengthWithoutTerminator - 1 ] : null; } }
-
-        public string ToStringSignature( bool withOptions )
-        {
-            string s = Name.AllTokens.ToStringWithoutTrivias( String.Empty );
-            s += ' ' + Parameters.ToStringClean();
-            if( withOptions && HasOptions )
-            {
-                s += ' ';
-                s += Options.AllTokens.ToStringWithoutTrivias( " " );
-            }
-            return s;
-        }
 
         [DebuggerStepThrough]
         internal protected override T Accept<T>( ISqlItemVisitor<T> visitor )

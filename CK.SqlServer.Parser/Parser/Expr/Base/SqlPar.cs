@@ -17,6 +17,8 @@ namespace CK.SqlServer.Parser
             if( closer == null ) throw new ArgumentException();
         }
 
+        public override SqlNode UnPar => Slots[1].UnPar;
+
         internal SqlPar( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
             : base( leading, items, trailing )
         {

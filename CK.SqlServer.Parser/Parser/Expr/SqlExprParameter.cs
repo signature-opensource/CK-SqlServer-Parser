@@ -1,10 +1,3 @@
-#region Proprietary License
-/*----------------------------------------------------------------------------
-* This file (CK.SqlServer.Parser\Parser\Expr\SqlExprParameter.cs) is part of CK-Database. 
-* Copyright © 2007-2014, Invenietis <http://www.invenietis.com>. All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -18,6 +11,8 @@ namespace CK.SqlServer.Parser
 {
     public class SqlExprParameter : SqlItem, ISqlServerParameter
     {
+        readonly SqlTokenType _inputTrivia;
+
         public SqlExprParameter( SqlExprTypedIdentifier declVar, SqlExprParameterDefaultValue defaultValue = null, SqlTokenIdentifier outputClause = null, SqlTokenIdentifier readonlyClause = null )
             : this( null, Build( declVar, defaultValue, outputClause, readonlyClause ), null )
         {
@@ -88,9 +83,20 @@ namespace CK.SqlServer.Parser
             }
         }
 
-        internal SqlExprParameter( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+        SqlExprParameter( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
             : base( leading, items, trailing )
         {
+            if( OutputT != null )
+            {
+                _inputTrivia = GetAllTrivias( this )
+                                .Where( t => t.TokenType != SqlTokenType.None )
+                                .FirstOrDefault( t => t.Text.Contains( "input" ) ).TokenType;
+            }
+        }
+
+        static IEnumerable<SqlTrivia> GetAllTrivias( SqlNode n )
+        {
+            return n.LeadingTrivias.Concat( n.TrailingTrivias ).Concat( n.ChildrenNodes.SelectMany( c => GetAllTrivias( c ) ) );
         }
 
         protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
@@ -110,6 +116,8 @@ namespace CK.SqlServer.Parser
         ISqlServerParameterDefaultValue ISqlServerParameter.DefaultValue { get { return DefaultValue; } }
 
         ISqlServerUnifiedTypeDecl ISqlServerParameter.SqlType { get { return Variable.TypeDecl.ActualType; } }
+
+        string ISqlServerParameter.ToStringClean() => ChildrenNodes.ToStringCompact();
 
         /// <summary>
         /// Gets whether the parameter is a input only parameter.
@@ -132,16 +140,10 @@ namespace CK.SqlServer.Parser
         public bool IsPureOutput { get { return IsOutput && !IsInputOutput; } }
 
         /// <summary>
-        /// Gets whether the parameter is input and output (by ref). <see cref="IsOutput"/> is true: the parameter uses the '/*input*/output' syntax.
+        /// Gets whether the parameter is input and output (by ref).
+        /// <see cref="IsOutput"/> is true: the parameter uses the '/*input*/output' syntax.
         /// </summary>
-        public bool IsInputOutput 
-        { 
-            get 
-            {
-                if( OutputT == null ) return false;
-                return AllTokens.SelectMany( t => t.LeadingTrivias.Concat( t.TrailingTrivias ).Where( trivia => trivia.TokenType != SqlTokenType.None ) ).Any( trivia => trivia.Text.Contains( "input" ) );
-            } 
-        }
+        public bool IsInputOutput => _inputTrivia != SqlTokenType.None;
 
         /// <summary>
         /// Gets whether the parameter is read only.
@@ -169,17 +171,21 @@ namespace CK.SqlServer.Parser
 
         SqlTokenIdentifier AnteLastTokenClause { get { return Slots.Length > 2 ? Slots[Slots.Length - 2] as SqlTokenIdentifier : null; } }
 
-        public string ToStringClean()
+        public override void WriteWithoutTrivias( ISqlTextWriter w )
         {
-            string s = Variable.ToStringClean();
-            if( DefaultValue != null ) s += " " + DefaultValue.AllTokens.ToStringWithoutTrivias( " " );
-            if( IsOutput )
+            if( (_inputTrivia == SqlTokenType.StarComment && w.SkipStarComment)
+                || (_inputTrivia == SqlTokenType.LineComment && w.SkipLineComment) )
             {
-                if( IsInputOutput ) s += " /*input*/output";
-                else s += " output";
+                foreach( var t in Slots )
+                {
+                    if( t.IsToken( SqlTokenType.Output ) )
+                    {
+                        w.Write( "/*input*/", null, false );
+                    }
+                    t.Write( w );
+                }
             }
-            if( IsReadOnly ) s += " readonly";
-            return s;
+            else base.WriteWithoutTrivias( w );
         }
 
         [DebuggerStepThrough]

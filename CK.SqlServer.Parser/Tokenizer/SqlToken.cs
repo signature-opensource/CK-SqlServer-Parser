@@ -24,7 +24,7 @@ namespace CK.SqlServer.Parser
             }
             public override IEnumerable<SqlToken> AllTokens => Util.EmptyArray<SqlToken>.Empty;
 
-            public override void WriteWithoutTrivias( SqlTextWriter w ) { }
+            public override void WriteWithoutTrivias( ISqlTextWriter w ) { }
             public override string ToString() { return String.Empty; }
             protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> content, ImmutableList<SqlTrivia> trailing )
             {

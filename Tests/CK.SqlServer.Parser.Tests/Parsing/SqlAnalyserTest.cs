@@ -17,13 +17,13 @@ namespace CK.SqlServer.Parser.Tests
         public void SimpleSelect()
         {
             // We allow empty columns definition.
-            //Check( "select", "[select-()]" );
-            //Check( "select from a", "[select-()-from[a]]" );
-            
-            //Check( "select 1", "[select-(1)]" );
-            //Check( "select 1, 2*5, *, (@i*7)", "[select-(1,[2*5],*,[@i*7])]" );
-            //Check( "select name, upper(N'u'+t.name) from sys.tables t", "[select-(name,call:upper([N'u'+t.name]))-from[¤{sys.tables-t}¤]]" );
-            //Check( "select name from sys.tables t inner join dbo.tC k on k.id = t.id or k.id=-t.id", "[select-(name)-from[¤{sys.tables-t-inner-join-dbo.tC-k-on-[[k.id=t.id]or[k.id=-[t.id]]]}¤]]" );
+            Check( "select", "[select-()]" );
+            Check( "select from a", "[select-()-from[a]]" );
+
+            Check( "select 1", "[select-(1)]" );
+            Check( "select 1, 2*5, *, (@i*7)", "[select-(1,[2*5],*,[@i*7])]" );
+            Check( "select name, upper(N'u'+t.name) from sys.tables t", "[select-(name,call:upper([N'u'+t.name]))-from[¤{sys.tables-t}¤]]" );
+            Check( "select name from sys.tables t inner join dbo.tC k on k.id = t.id or k.id=-t.id", "[select-(name)-from[¤{sys.tables-t-inner-join-dbo.tC-k-on-[[k.id=t.id]or[k.id=-[t.id]]]}¤]]" );
 
             Check( "select name n from a", "[select-(n-as-name)-from[a]]", textAutoCorrected: "select name as n from a" );
             Check( "select n=name from a", "[select-(n-=-name)-from[a]]" );
@@ -431,7 +431,7 @@ namespace CK.SqlServer.Parser.Tests
         {
             var sp = ReadStatement<SqlExprStStoredProc>( "sProcWithoutTerminator.sql" );
 
-            Assert.That( sp.Name.ToString(), Is.EqualTo( "sProcWithoutTerminator" + Environment.NewLine ) );
+            Assert.That( sp.Name.ToString( true ), Is.EqualTo( "sProcWithoutTerminator" + Environment.NewLine ) );
             Assert.That( sp.Parameters[0].IsOutput, Is.False );
             Assert.That( sp.Parameters[0].IsReadOnly, Is.False );
             Assert.That( sp.Parameters[0].DefaultValue, Is.Null );
@@ -507,6 +507,8 @@ namespace CK.SqlServer.Parser.Tests
                     Assert.That( sp.Options.AllTokens.ToStringWithoutTrivias( "|" ), Is.EqualTo( "with|recompile|,|execute|as|owner" ) );
                     Assert.That( sp.BodyStatements.Count, Is.EqualTo( 2 ).Or.EqualTo( 3 ), "Two statements (select and return) but..." );
                     Assert.That( sp.BodyStatements.Count == 2 || sp.BodyStatements[2] is SqlExprStEmpty, "...when ';' is added, it is a third empty statement." );
+
+                    Assert.That( sp.Header.ToStringCompact(), Is.EqualTo( "procedure sWithOptions with recompile, execute as owner" ) );
                 } );
         }
 
@@ -518,6 +520,7 @@ namespace CK.SqlServer.Parser.Tests
                     Assert.That( sp.Name.ToString( true ), Is.EqualTo( "sStrange -- funny one" + Environment.NewLine ) );
                     Assert.That( sp.Parameters, Is.Empty );
                     Assert.That( sp.BodyStatements.Count, Is.EqualTo( 5 ) );
+                    Assert.That( sp.Header.ToStringCompact(), Is.EqualTo( "procedure sStrange" ) );
                 } );
         }
 
@@ -536,6 +539,7 @@ namespace CK.SqlServer.Parser.Tests
                     Assert.That( sp.HasBeginEnd );
                     Assert.That( sp.HasOptions, Is.False );
                     Assert.That( sp.BodyStatements.Count, Is.EqualTo( 2 ) );
+                    Assert.That( sp.Header.ToStringCompact(), Is.EqualTo( "procedure CKCore.sErrorRethrow(@ProcId int)" ) );
                 } );
         }
 
@@ -549,6 +553,7 @@ namespace CK.SqlServer.Parser.Tests
                     Assert.That( sp.HasBeginEnd );
                     Assert.That( sp.HasOptions, Is.False );
                     Assert.That( sp.BodyStatements.Count, Is.EqualTo( 1 ), "Unmodeled." );
+                    Assert.That( sp.Header.ToStringCompact(), Is.EqualTo( "procedure CK.sResDataStringSet(@ResId int, @Val nvarchar(400))" ) );
                 } );
         }
 
@@ -561,6 +566,7 @@ namespace CK.SqlServer.Parser.Tests
                     Assert.That( sp.HasBeginEnd );
                     Assert.That( sp.HasOptions, Is.False );
                     Assert.That( sp.Parameters.Count, Is.EqualTo( 7 ) );
+                    Assert.That( sp.Header.ToStringCompact(), Is.EqualTo( "proc InvBack.sOfferCreate(@ActorId int, @Title nvarchar(256), @ProjectName nvarchar(256), @ClientId int, @ContactId int, @CompanyLocationId int, @OfferIdResult int output)" ) );
                 } );
         }
 
@@ -596,7 +602,7 @@ namespace CK.SqlServer.Parser.Tests
 
                     Assert.That( sp.Parameters[3].IsOutput, Is.False );
                     Assert.That( sp.Parameters[3].IsReadOnly, Is.False );
-                    Assert.That( sp.Parameters[3].DefaultValue.ToString(), Is.EqualTo( "= N'Murfn...'" ) );
+                    Assert.That( sp.Parameters[3].DefaultValue.ToString(), Is.EqualTo( "=N'Murfn...'" ) );
                     Assert.That( sp.Parameters[3].Variable.Identifier.IsVariable, Is.True );
                     Assert.That( sp.Parameters[3].Variable.Identifier.Name, Is.EqualTo( "@p4" ) );
                     Assert.That( sp.Parameters[3].Variable.TypeDecl.ActualType.DbType, Is.EqualTo( SqlDbType.NVarChar ) );
@@ -644,6 +650,8 @@ namespace CK.SqlServer.Parser.Tests
                     Assert.That( sp.Parameters[8].DefaultValue.IsVariable, Is.False );
                     Assert.That( sp.Parameters[8].DefaultValue.IsNull, Is.True );
                     Assert.That( sp.Parameters[8].DefaultValue.IsLiteral, Is.False );
+
+                    Assert.That( sp.Header.ToStringCompact(), Is.EqualTo( "procedure CK.sStoredProcedureInputOutput @p1 int, @p2 tinyint = 0, @p3 smallint output, @p4 nvarchar(50)=N'Murfn...', @p5 varchar(max) /*input*/output, @p6 char /*input*/output, @p7 Xml output, @p8 smalldatetime /*input*/output, @p9 smalldatetime = null" ) );
                 } );
         }
 

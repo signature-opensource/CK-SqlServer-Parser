@@ -228,6 +228,7 @@ namespace CK.SqlServer.Parser
 
         public virtual bool IsToken( SqlTokenType t ) => false;
 
+        public virtual SqlNode UnPar => this;
 
         /// <summary>
         /// Fundamental method that rebuilds this node with new trivias and content.
@@ -246,8 +247,8 @@ namespace CK.SqlServer.Parser
         /// <summary>
         /// Writes the node with its <see cref="LeadingTrivia"/> and <see cref="TrailingTrivia"/>.
         /// </summary>
-        /// <param name="w">The <see cref="SqlTextWriter"/> to write to.</param>
-        public void Write( SqlTextWriter w )
+        /// <param name="w">The <see cref="ISqlTextWriter"/> to write to.</param>
+        public void Write( ISqlTextWriter w )
         {
             foreach( var t in LeadingTrivias ) w.Write( t );
             WriteWithoutTrivias( w );
@@ -257,29 +258,29 @@ namespace CK.SqlServer.Parser
         /// <summary>
         /// Writes the token without this leading nor traling trivias.
         /// </summary>
-        /// <param name="w">The <see cref="SqlTextWriter"/> to write to.</param>
-        public abstract void WriteWithoutTrivias( SqlTextWriter w );
+        /// <param name="w">The <see cref="ISqlTextWriter"/> to write to.</param>
+        public abstract void WriteWithoutTrivias( ISqlTextWriter w );
 
         /// <summary>
         /// Overriden to return the result of <see cref="WriteWithoutTrivias"/> with an 
-        /// option set to <see cref="SqlTextWriter.WhiteSpaceOption.Compact"/>.
+        /// a one line, compact, writer (<see cref="SqlTextWriter.CreateOneLineCompact"/>).
         /// </summary>
         /// <returns>The mere node.</returns>
         public override string ToString()
         {
-            SqlTextWriter w = new SqlTextWriter() { WhiteSpace = SqlTextWriter.WhiteSpaceOption.Compact };
+            ISqlTextWriter w = SqlTextWriter.CreateOneLineCompact();
             WriteWithoutTrivias( w );
             return w.ToString();
         }
 
         /// <summary>
-        /// Returns the result of <see cref="Write"/> or <see cref="WriteWithoutTrivias"/> with an 
-        /// option set to <see cref="SqlTextWriter.WhiteSpaceOption.Default"/>: all internal trivias appear.
+        /// Returns the result of <see cref="Write"/> or <see cref="WriteWithoutTrivias"/> with 
+        /// a default writer (<see cref="SqlTextWriter.CreateDefault"/>): all internal trivias appear.
         /// </summary>
         /// <returns>This node text representation.</returns>
         public string ToString( bool withThisTrivia )
         {
-            SqlTextWriter w = new SqlTextWriter();
+            ISqlTextWriter w = SqlTextWriter.CreateDefault();
             if( withThisTrivia ) Write( w );
             else WriteWithoutTrivias( w );
             return w.ToString();

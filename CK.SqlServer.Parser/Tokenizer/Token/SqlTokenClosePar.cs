@@ -20,6 +20,11 @@ namespace CK.SqlServer.Parser
         {
         }
 
+        public override void WriteWithoutTrivias( ISqlTextWriter w )
+        {
+            w.Write( SqlTokenizer.Explain( TokenType ), false );
+        }
+
     }
 
 }

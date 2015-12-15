@@ -157,6 +157,7 @@
     <Compile Include="Parser\SqlAnalyser.Expression.cs" />
     <Compile Include="Parser\SqlAnalyser.Expression.Select.cs" />
     <Compile Include="Parser\SqlAnalyser.LowLevel.cs" />
+    <Compile Include="Visitor\ISqlTextWriter.cs" />
     <Compile Include="Visitor\SqlItemVisitor.cs" />
     <Compile Include="Parser\SqlTokenReader.cs" />
     <Compile Include="SqlNode.cs" />

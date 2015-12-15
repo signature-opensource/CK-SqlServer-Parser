@@ -47,9 +47,9 @@ namespace CK.SqlServer.Parser
         /// Simply appends the <see cref="LiteralValue"/>.
         /// </summary>
         /// <param name="w">The builder to use.</param>
-        public override void WriteWithoutTrivias( SqlTextWriter w )
+        public override void WriteWithoutTrivias( ISqlTextWriter w )
         {
-            w.GetLineBuilder().Append( LiteralValue );
+            w.Write( LiteralValue );
         }
     }
 

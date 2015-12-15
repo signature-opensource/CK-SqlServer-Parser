@@ -108,10 +108,7 @@ namespace CK.SqlServer.Parser
 
         public int SyntaxSecondScale { get; private set; }
 
-        public string ToStringClean()
-        {
-            return AllTokens.ToStringWithoutTrivias( String.Empty );
-        }
+        string ISqlServerUnifiedTypeDecl.ToStringClean() => ChildrenNodes.ToStringCompact();
 
         [DebuggerStepThrough]
         internal protected override T Accept<T>( ISqlItemVisitor<T> visitor )

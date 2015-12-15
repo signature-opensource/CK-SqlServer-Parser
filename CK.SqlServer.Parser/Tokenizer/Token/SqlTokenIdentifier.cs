@@ -85,18 +85,21 @@ namespace CK.SqlServer.Parser
             return new SqlTokenIdentifier( TokenType, _name, leading, trailing );
         }
 
-        public override void WriteWithoutTrivias( SqlTextWriter w )
+        public override string ToString()
         {
             switch( TokenType )
             {
                 case SqlTokenType.IdentifierQuoted:
-                    w.GetLineBuilder( true ).Append( "\"" ).Append( Name.Replace( "\"", "\"\"" ) ).Append( "\"" );
-                    break;
+                    return "\"" + Name.Replace( "\"", "\"\"" ) + "\"";
                 case SqlTokenType.IdentifierQuotedBracket:
-                    w.GetLineBuilder( true ).Append( "[" ).Append( Name.Replace( "]", "]]" ) ).Append( "]" );
-                    break;
-                default: w.GetLineBuilder().Append( Name ); break;
+                    return "[" + Name.Replace( "]", "]]" ) + "]";
+                default: return Name;
             }
+        }
+
+        public override void WriteWithoutTrivias( ISqlTextWriter w )
+        {
+            w.Write( ToString() );
         }
 
     }

@@ -136,7 +136,7 @@ namespace CK.SqlServer.Parser
                             || !R.IsToken( out asToken, SqlTokenType.As, true ) 
                             || !IsTypeDecl( out type, true )
                             || !R.IsToken( out closePar, true ) ) return false;
-                        left = new SqlExprCast( (SqlTokenIdentifier)left.ChildrenNodes[0], openPar, e, asToken, type, closePar );
+                        left = new SqlExprCast( (SqlTokenIdentifier)left.ChildrenNodes[1], openPar, e, asToken, type, closePar );
                         return true;
                     }
                     SqlExprCommaList parenthesis;

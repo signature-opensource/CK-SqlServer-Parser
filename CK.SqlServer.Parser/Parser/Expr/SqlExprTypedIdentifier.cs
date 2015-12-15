@@ -56,12 +56,6 @@ namespace CK.SqlServer.Parser
 
         public SqlExprTypeDecl TypeDecl { get { return (SqlExprTypeDecl)Slots[Slots.Length-1]; } }
 
-        public string ToStringClean()
-        {
-            string s = Identifier.Name;
-            s += " " + TypeDecl.AllTokens.ToStringWithoutTrivias( String.Empty );
-            return s;
-        }
 
         [DebuggerStepThrough]
         internal protected override T Accept<T>( ISqlItemVisitor<T> visitor )
