@@ -96,7 +96,7 @@ namespace CK.SqlServer.Parser.Tests
             _w = new IndentedTextWriter( _sw, "  " );
         }
 
-        public override SqlItem Visit( SqlExprStIf e )
+        public override SqlNode Visit( SqlExprStIf e )
         {
             _w.Write( "if( " );
             VisitItem( e.Condition );
@@ -118,14 +118,14 @@ namespace CK.SqlServer.Parser.Tests
             return e;
         }
 
-        public override SqlItem Visit( SqlExprUnaryOperator e )
+        public override SqlNode Visit( SqlExprUnaryOperator e )
         {
             _w.Write( e.OperatorT.ToString() );
             VisitItem( e.Expression );
             return e;
         }
 
-        public override SqlItem Visit( SqlExprKoCall e )
+        public override SqlNode Visit( SqlExprKoCall e )
         {
             _w.Write( e.FunName );
             _w.Write( "(" );
@@ -140,7 +140,7 @@ namespace CK.SqlServer.Parser.Tests
             return e;
         }
 
-        public override SqlItem Visit( SqlExprBinaryOperator e )
+        public override SqlNode Visit( SqlExprBinaryOperator e )
         {
             for( int i = 0; i < e.Opener.Tokens.Count; ++i ) _w.Write( "(" );
             VisitItem( e.Left );
@@ -161,7 +161,7 @@ namespace CK.SqlServer.Parser.Tests
             return e;
         }
 
-        public override SqlItem Visit( SqlExprDeclare e )
+        public override SqlNode Visit( SqlExprDeclare e )
         {
             Type t = e.Variable.TypeDecl.ActualType.BestNetType();
             if( t != null ) _w.Write( t.Name );
@@ -177,7 +177,7 @@ namespace CK.SqlServer.Parser.Tests
             return e;
         }
 
-        public override SqlItem Visit( SqlExprBetween e )
+        public override SqlNode Visit( SqlExprBetween e )
         {
             _w.Write( "(" );
             VisitItem( e.Left );
@@ -191,13 +191,13 @@ namespace CK.SqlServer.Parser.Tests
             return e;
         }
 
-        public override SqlItem Visit( SqlExprStLabelDef e )
+        public override SqlNode Visit( SqlExprStLabelDef e )
         {
             _w.WriteLine( MapLabelName( e.IdentifierT.Name ) + ':' );
             return e;
         }
 
-        public override SqlItem Visit( SqlExprStGoto e )
+        public override SqlNode Visit( SqlExprStGoto e )
         {
             _w.Write( "goto " );
             _w.Write( MapLabelName( e.Target.Name ) );
@@ -205,7 +205,7 @@ namespace CK.SqlServer.Parser.Tests
             return e;
         }
 
-        public override SqlItem Visit( SqlExprStSetVar e )
+        public override SqlNode Visit( SqlExprStSetVar e )
         {
             _w.Write( MapVariableName( e.Variable.Name ) );
             _w.Write( " = " );
@@ -214,7 +214,7 @@ namespace CK.SqlServer.Parser.Tests
             return e;
         }
 
-        public override SqlItem Visit( SqlExprIdentifier e )
+        public override SqlNode Visit( SqlExprIdentifier e )
         {
             if( e.IsVariable ) _w.Write( MapVariableName( e.Name ) );
             return e;
@@ -237,13 +237,13 @@ namespace CK.SqlServer.Parser.Tests
             return v;
         }
 
-        public override SqlItem Visit( SqlExprLiteral e )
+        public override SqlNode Visit( SqlExprLiteral e )
         {
             _w.Write( e.Token.LiteralValue );
             return e;
         }
 
-        public override SqlItem Visit( SelectSpecification e )
+        public override SqlNode Visit( SelectSpecification e )
         {
             _w.Indent += 2;
             _w.WriteLine( "/* Select:" );

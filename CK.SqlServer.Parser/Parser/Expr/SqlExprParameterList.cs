@@ -41,7 +41,7 @@ namespace CK.SqlServer.Parser
             return new SqlExprParameterList( leading, EnsureArray( children ), trailing );
         }
 
-        string ISqlServerParameterList.ToStringClean() => this.ToStringCompact();
+        string ISqlServerParameterList.ToStringClean() => ChildrenNodes.ToStringCompact();
 
         ISqlServerParameter IReadOnlyList<ISqlServerParameter>.this[int i]
         {

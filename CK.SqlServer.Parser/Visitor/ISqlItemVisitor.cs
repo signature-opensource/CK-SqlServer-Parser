@@ -5,7 +5,21 @@ namespace CK.SqlServer.Parser
 {
     public interface ISqlItemVisitor<T>
     {
-        T VisitItem( SqlItem e );
+        T VisitItem( SqlNode e );
+
+        T Visit( SqlTokenTerminal e );
+
+        T Visit( SqlTokenLiteralString e );
+
+        T Visit( SqlTokenLiteralMoney e );
+
+        T Visit( SqlTokenLiteralInteger e );
+
+        T Visit( SqlTokenLiteralFloat e );
+
+        T Visit( SqlTokenLiteralDecimal e );
+
+        T Visit( SqlTokenLiteralBinary e );
 
         T Visit( SqlPar e );
 

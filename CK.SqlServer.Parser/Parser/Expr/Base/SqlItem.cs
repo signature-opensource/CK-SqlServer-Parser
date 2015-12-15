@@ -33,14 +33,6 @@ namespace CK.SqlServer.Parser
         /// </summary>
         public override IEnumerable<SqlToken> AllTokens => Slots.ToTokens();
 
-        public override void WriteWithoutTrivias( ISqlTextWriter w )
-        {
-            foreach( var t in Slots )
-            {
-                t.Write( w );
-            }
-        }
-
         internal protected abstract T Accept<T>( ISqlItemVisitor<T> visitor );
 
         static internal T[] EnsureArray<T>( IEnumerable<T> content )

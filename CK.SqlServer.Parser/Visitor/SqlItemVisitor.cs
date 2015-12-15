@@ -1,10 +1,3 @@
-#region Proprietary License
-/*----------------------------------------------------------------------------
-* This file (CK.SqlServer.Parser\Parser\SqlItemVisitor.cs) is part of CK-Database. 
-* Copyright © 2007-2014, Invenietis <http://www.invenietis.com>. All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,9 +5,9 @@ using CK.Core;
 
 namespace CK.SqlServer.Parser
 {
-    public class SqlItemVisitor : ISqlItemVisitor<SqlItem>
+    public class SqlItemVisitor : ISqlItemVisitor<SqlNode>
     {
-        public virtual SqlItem VisitItem( SqlItem e )
+        public virtual SqlNode VisitItem( SqlNode e )
         {
             return e.Accept( this );
         }
@@ -25,31 +18,27 @@ namespace CK.SqlServer.Parser
             int i = 0;
             foreach( var a in nodes )
             {
-                var ce = a as SqlItem;
-                if( ce != null )
+                var ve = VisitItem( a );
+                if( !ReferenceEquals( a, ve ) )
                 {
-                    SqlItem ve = VisitItem( ce );
-                    if( !ReferenceEquals( ce, ve ) )
+                    if( modified == null )
                     {
-                        if( modified == null )
+                        modified = new List<SqlNode>( i+1 );
+                        if( prefixToKeep != null ) modified.Add( prefixToKeep );
+                        if( i > 0 )
                         {
-                            modified = new List<SqlNode>( i+1 );
-                            if( prefixToKeep != null ) modified.Add( prefixToKeep );
-                            if( i > 0 )
+                            using( var oldE = nodes.GetEnumerator() )
                             {
-                                using( var oldE = nodes.GetEnumerator() )
+                                int j = i;
+                                while( --j > 0 ) 
                                 {
-                                    int j = i;
-                                    while( --j > 0 ) 
-                                    {
-                                        oldE.MoveNext();
-                                        modified.Add( oldE.Current );
-                                    }
+                                    oldE.MoveNext();
+                                    modified.Add( oldE.Current );
                                 }
                             }
                         }
-                        modified[i] = ve;
                     }
+                    modified[i] = ve;
                 }
                 ++i;
             }
@@ -64,289 +53,289 @@ namespace CK.SqlServer.Parser
             return (SqlExpr)e.InternalClone( e.LeadingTrivias, modified, e.TrailingTrivias );
         }
 
-        protected SqlItem VisitStandard( SqlItem e )
+        protected SqlNode VisitStandard( SqlNode e )
         {
             List<SqlNode> modified = VisitItems( e.ChildrenNodes );
             if( modified == null ) return e;
             return (SqlItem)e.InternalClone( e.LeadingTrivias, modified, e.TrailingTrivias );
         }
 
-        public virtual SqlItem Visit( SqlPar e )
+        public virtual SqlNode Visit( SqlPar e )
         {
             return VisitStandard( e );
         }
 
-        public virtual SqlItem Visit( SqlExprUnmodeledItems e )
+        public virtual SqlNode Visit( SqlExprUnmodeledItems e )
         {
             return VisitStandard( e );
         }
 
-        public virtual SqlItem Visit( SqlExprRawItemList e )
+        public virtual SqlNode Visit( SqlExprRawItemList e )
         {
             return VisitStandard( e );
         }
 
-        public virtual SqlItem Visit( SqlExprKoCall e )
+        public virtual SqlNode Visit( SqlExprKoCall e )
         {
             return VisitStandard( e );
         }
 
-        public virtual SqlItem Visit( SqlNoExprOverClause e )
+        public virtual SqlNode Visit( SqlNoExprOverClause e )
         {
             return VisitStandard( e );
         }
 
-        public virtual SqlItem Visit( SqlExprCollate e )
+        public virtual SqlNode Visit( SqlExprCollate e )
         {
             return VisitStandard( e );
         }
 
-        public virtual SqlItem Visit( SqlExprStIf e )
+        public virtual SqlNode Visit( SqlExprStIf e )
         {
             return VisitStandard( e );
         }
 
-        public SqlItem Visit( SqlExprCursor e )
+        public SqlNode Visit( SqlExprCursor e )
         {
             return VisitStandard( e );
         }
 
-        public SqlItem Visit( SqlNoExprIdentifierList e )
+        public SqlNode Visit( SqlNoExprIdentifierList e )
         {
             return VisitStandard( e );
         }
 
-        public SqlItem Visit( SqlExprCursorSql92 e )
+        public SqlNode Visit( SqlExprCursorSql92 e )
         {
             return VisitStandard( e );
         }
 
-        public virtual SqlItem Visit( SqlExprStDeclareCursor e )
+        public virtual SqlNode Visit( SqlExprStDeclareCursor e )
         {
             return VisitStandard( e );
         }
 
-        public virtual SqlItem Visit( SqlExprStBeginTran e )
+        public virtual SqlNode Visit( SqlExprStBeginTran e )
         {
             return VisitStandard( e );
         }
 
-        public virtual SqlItem Visit( SqlExprStatementList e )
+        public virtual SqlNode Visit( SqlExprStatementList e )
         {
             return VisitStandard( e );
         }
 
-        public virtual SqlItem Visit( SqlExprStBlock e )
+        public virtual SqlNode Visit( SqlExprStBlock e )
         {
             return VisitStandard( e );
         }
 
-        public virtual SqlItem Visit( SqlExprStTryCatch e )
+        public virtual SqlNode Visit( SqlExprStTryCatch e )
         {
             return VisitStandard( e );
         }
 
-        public virtual SqlItem Visit( SqlExprStUnmodeled e )
+        public virtual SqlNode Visit( SqlExprStUnmodeled e )
         {
             return VisitStandard( e );
         }
 
-        public virtual SqlItem Visit( SqlExprStStoredProc e )
+        public virtual SqlNode Visit( SqlExprStStoredProc e )
         {
             return VisitStandard( e );
         }
 
-        public virtual SqlItem Visit( SqlExprStFunctionScalar e )
+        public virtual SqlNode Visit( SqlExprStFunctionScalar e )
         {
             return VisitStandard( e );
         }
 
-        public virtual SqlItem Visit( SqlExprStReturn e )
+        public virtual SqlNode Visit( SqlExprStReturn e )
         {
             return VisitStandard( e );
         }
 
-        public virtual SqlItem Visit( SqlExprStSetVar e )
+        public virtual SqlNode Visit( SqlExprStSetVar e )
         {
             return VisitStandard( e );
         }
 
-        public virtual SqlItem Visit( SqlExprStSetOpt e )
+        public virtual SqlNode Visit( SqlExprStSetOpt e )
         {
             return VisitStandard( e );
         }
 
-        public virtual SqlItem Visit( SqlExprStGoto e )
+        public virtual SqlNode Visit( SqlExprStGoto e )
         {
             return VisitStandard( e );
         }
 
-        public virtual SqlItem Visit( SqlExprStMonoStatement e )
+        public virtual SqlNode Visit( SqlExprStMonoStatement e )
         {
             return e;
         }
 
-        public virtual SqlItem Visit( SqlExprStLabelDef e )
+        public virtual SqlNode Visit( SqlExprStLabelDef e )
         {
             return e;
         }
 
-        public virtual SqlItem Visit( SqlExprStEmpty e )
+        public virtual SqlNode Visit( SqlExprStEmpty e )
         {
             return e;
         }
 
-        public virtual SqlItem Visit( SqlExprStView e )
+        public virtual SqlNode Visit( SqlExprStView e )
         {
             return VisitStandard( e );
         }
 
-        public virtual SqlItem Visit( SqlExprColumnList e )
+        public virtual SqlNode Visit( SqlExprColumnList e )
         {
             return VisitStandard( e );
         }
 
-        public virtual SqlItem Visit( SqlNoExprExecuteAs e )
+        public virtual SqlNode Visit( SqlNoExprExecuteAs e )
         {
             return VisitStandard( e );
         }
 
-        public virtual SqlItem Visit( SqlExprStDeclare e )
+        public virtual SqlNode Visit( SqlExprStDeclare e )
         {
             return VisitStandard( e );
         }
 
-        public virtual SqlItem Visit( SqlExprDeclareList e )
+        public virtual SqlNode Visit( SqlExprDeclareList e )
         {
             return VisitStandard( e );
         }
 
-        public virtual SqlItem Visit( SqlExprDeclare e )
+        public virtual SqlNode Visit( SqlExprDeclare e )
         {
             return VisitStandard( e );
         }
 
-        public virtual SqlItem Visit( SqlExprCast e )
+        public virtual SqlNode Visit( SqlExprCast e )
         {
             return VisitStandard( e );
         }
 
-        public virtual SqlItem Visit( SqlExprCommaList e )
+        public virtual SqlNode Visit( SqlExprCommaList e )
         {
             return VisitStandard( e );
         }
 
-        public virtual SqlItem Visit( SqlExprIdentifier e )
+        public virtual SqlNode Visit( SqlExprIdentifier e )
         {
             return e;
         }
 
-        public virtual SqlItem Visit( SqlExprMultiIdentifier e )
+        public virtual SqlNode Visit( SqlExprMultiIdentifier e )
         {
             return e;
         }
 
-        public virtual SqlItem Visit( SqlExprLiteral e )
+        public virtual SqlNode Visit( SqlExprLiteral e )
         {
             return e;
         }
 
-        public virtual SqlItem Visit( SqlExprNull e )
+        public virtual SqlNode Visit( SqlExprNull e )
         {
             return e;
         }
 
-        public virtual SqlItem Visit( SqlExprUnaryOperator e )
+        public virtual SqlNode Visit( SqlExprUnaryOperator e )
         {
             return VisitStandard( e );
         }
 
-        public virtual SqlItem Visit( SqlExprTypeDecl e )
+        public virtual SqlNode Visit( SqlExprTypeDecl e )
         {
             return VisitStandard( e );
         }
 
-        public virtual SqlItem Visit( SqlExprTypeDeclDecimal e )
+        public virtual SqlNode Visit( SqlExprTypeDeclDecimal e )
         {
             return e;
         }
 
-        public virtual SqlItem Visit( SqlExprTypeDeclDateAndTime e )
+        public virtual SqlNode Visit( SqlExprTypeDeclDateAndTime e )
         {
             return e;
         }
 
-        public virtual SqlItem Visit( SqlExprTypeDeclSimple e )
+        public virtual SqlNode Visit( SqlExprTypeDeclSimple e )
         {
             return e;
         }
 
-        public virtual SqlItem Visit( SqlExprTypeDeclWithSize e )
+        public virtual SqlNode Visit( SqlExprTypeDeclWithSize e )
         {
             return e;
         }
 
-        public virtual SqlItem Visit( SqlExprTypeDeclUserDefined e )
+        public virtual SqlNode Visit( SqlExprTypeDeclUserDefined e )
         {
             return e;
         }
 
-        public virtual SqlItem Visit( SqlExprTypedIdentifier e )
+        public virtual SqlNode Visit( SqlExprTypedIdentifier e )
         {
             return e;
         }
 
-        public virtual SqlItem Visit( SqlExprParameter e )
+        public virtual SqlNode Visit( SqlExprParameter e )
         {
             return VisitStandard( e );
         }
 
-        public virtual SqlItem Visit( SqlExprParameterDefaultValue e )
+        public virtual SqlNode Visit( SqlExprParameterDefaultValue e )
         {
             return e;
         }
 
-        public virtual SqlItem Visit( SqlExprParameterList e )
+        public virtual SqlNode Visit( SqlExprParameterList e )
         {
             return VisitStandard( e );
         }
 
-        public virtual SqlItem Visit( SqlExprAssign e )
+        public virtual SqlNode Visit( SqlExprAssign e )
         {
             return VisitStandard( e );
         }
 
-        public virtual SqlItem Visit( SqlExprBinaryOperator e )
+        public virtual SqlNode Visit( SqlExprBinaryOperator e )
         {
             return VisitStandard( e );
         }
 
-        public virtual SqlItem Visit( SqlExprIsNull e )
+        public virtual SqlNode Visit( SqlExprIsNull e )
         {
             return VisitStandard( e );
         }
 
-        public virtual SqlItem Visit( SqlExprLike e )
+        public virtual SqlNode Visit( SqlExprLike e )
         {
             return VisitStandard( e );
         }
 
-        public virtual SqlItem Visit( SqlExprBetween e )
+        public virtual SqlNode Visit( SqlExprBetween e )
         {
             return VisitStandard( e );
         }
 
-        public virtual SqlItem Visit( SqlExprIn e )
+        public virtual SqlNode Visit( SqlExprIn e )
         {
             return VisitStandard( e );
         }
 
-        public virtual SqlItem Visit( SqlExprCase e )
+        public virtual SqlNode Visit( SqlExprCase e )
         {
             return VisitStandard( e );
         }
 
-        public virtual SqlItem Visit( SqlExprCaseWhenSelector e )
+        public virtual SqlNode Visit( SqlExprCaseWhenSelector e )
         {
             return VisitStandard( e );
         }
@@ -354,89 +343,89 @@ namespace CK.SqlServer.Parser
 
         #region Select
 
-        public virtual SqlItem Visit( SelectQuery e )
+        public virtual SqlNode Visit( SelectQuery e )
         {
             return VisitStandard( e );
         }
 
-        public virtual SqlItem Visit( SelectSpecification e )
+        public virtual SqlNode Visit( SelectSpecification e )
         {
             return VisitStandard( e );
         }
 
-        public virtual SqlItem Visit( SelectColumn e )
+        public virtual SqlNode Visit( SelectColumn e )
         {
             return VisitStandard( e );
         }
 
-        public virtual SqlItem Visit( SelectColumnList e )
+        public virtual SqlNode Visit( SelectColumnList e )
         {
             return VisitStandard( e );
         }
 
-        public virtual SqlItem Visit( SelectHeader e )
+        public virtual SqlNode Visit( SelectHeader e )
         {
             return VisitStandard( e );
         }
 
-        public virtual SqlItem Visit( SelectInto e )
+        public virtual SqlNode Visit( SelectInto e )
         {
             return VisitStandard( e );
         }
 
-        public virtual SqlItem Visit( SelectFrom e )
+        public virtual SqlNode Visit( SelectFrom e )
         {
             return VisitStandard( e );
         }
 
-        public virtual SqlItem Visit( SelectWhere e )
+        public virtual SqlNode Visit( SelectWhere e )
         {
             return VisitStandard( e );
         }
 
-        public virtual SqlItem Visit( SelectGroupBy e )
+        public virtual SqlNode Visit( SelectGroupBy e )
         {
             return VisitStandard( e );
         }
 
-        public virtual SqlItem Visit( SelectCombineOperator e )
+        public virtual SqlNode Visit( SelectCombineOperator e )
         {
             return VisitStandard( e );
         }
 
-        public virtual SqlItem Visit( SelectOrderBy e )
+        public virtual SqlNode Visit( SelectOrderBy e )
         {
             return VisitStandard( e );
         }
 
-        public virtual SqlItem Visit( SelectOrderByColumnList e )
+        public virtual SqlNode Visit( SelectOrderByColumnList e )
         {
             return VisitStandard( e );
         }
 
-        public virtual SqlItem Visit( SelectOrderByColumn e )
+        public virtual SqlNode Visit( SelectOrderByColumn e )
         {
             return VisitStandard( e );
         }
 
-        public virtual SqlItem Visit( SelectOrderByOffset e )
+        public virtual SqlNode Visit( SelectOrderByOffset e )
         {
             return VisitStandard( e );
         }
 
-        public virtual SqlItem Visit( SelectFor e )
+        public virtual SqlNode Visit( SelectFor e )
         {
             return VisitStandard( e );
         }
 
-        public virtual SqlItem Visit( SelectOption e )
+        public virtual SqlNode Visit( SelectOption e )
         {
             return VisitStandard( e );
         }
 
         #endregion
 
-        public virtual SqlItem Visit( SqlExprStFunctionInlineTable e )
+        public virtual SqlNode Visit( SqlExprStFunctionInlineTable e )
         {
             return VisitStandard( e );
         }

@@ -141,7 +141,6 @@
     <Compile Include="Parser\Expr\SqlExprStTryCatch.cs" />
     <Compile Include="Parser\Expr\SqlExprStUnmodeled.cs" />
     <Compile Include="Parser\Expr\SqlObjects\SqlExprStView.cs" />
-    <Compile Include="Parser\Expr\SqlExprTerminal.cs" />
     <Compile Include="Parser\Expr\SqlExprTypeDecl.cs" />
     <Compile Include="Parser\Expr\SqlExprTypeDeclDateAndTime.cs" />
     <Compile Include="Parser\Expr\SqlExprTypeDeclDecimal.cs" />

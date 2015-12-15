@@ -244,6 +244,8 @@ namespace CK.SqlServer.Parser
             return DoClone( leading, children, trailing );
         }
 
+        internal protected abstract T Accept<T>( ISqlItemVisitor<T> visitor );
+
         /// <summary>
         /// Writes the node with its <see cref="LeadingTrivia"/> and <see cref="TrailingTrivia"/>.
         /// </summary>
@@ -259,7 +261,10 @@ namespace CK.SqlServer.Parser
         /// Writes the token without this leading nor traling trivias.
         /// </summary>
         /// <param name="w">The <see cref="ISqlTextWriter"/> to write to.</param>
-        public abstract void WriteWithoutTrivias( ISqlTextWriter w );
+        public virtual void WriteWithoutTrivias( ISqlTextWriter w )
+        {
+            foreach( var t in ChildrenNodes ) t.Write( w );
+        }
 
         /// <summary>
         /// Overriden to return the result of <see cref="WriteWithoutTrivias"/> with an 

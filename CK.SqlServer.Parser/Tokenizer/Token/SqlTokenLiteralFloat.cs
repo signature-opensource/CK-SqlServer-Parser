@@ -27,6 +27,12 @@ namespace CK.SqlServer.Parser
         {
             return new SqlTokenLiteralFloat( TokenType, LiteralValue, Value, leading, trailing );
         }
+
+        [DebuggerStepThrough]
+        internal protected override T Accept<T>( ISqlItemVisitor<T> visitor )
+        {
+            return visitor.Visit( this );
+        }
     }
 
 

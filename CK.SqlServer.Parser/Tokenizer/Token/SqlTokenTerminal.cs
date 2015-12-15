@@ -52,6 +52,12 @@ namespace CK.SqlServer.Parser
             }
             w.Write( SqlTokenizer.Explain( TokenType ), whiteSpaceBefore, whiteSpaceAfter );
         }
+
+        [DebuggerStepThrough]
+        internal protected override T Accept<T>( ISqlItemVisitor<T> visitor )
+        {
+            return visitor.Visit( this );
+        }
     }
 
 }

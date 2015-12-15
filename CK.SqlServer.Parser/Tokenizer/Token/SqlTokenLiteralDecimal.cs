@@ -81,6 +81,12 @@ namespace CK.SqlServer.Parser
         {
             return new SqlTokenLiteralDecimal( this, leading, trailing );
         }
+
+        [DebuggerStepThrough]
+        internal protected override T Accept<T>( ISqlItemVisitor<T> visitor )
+        {
+            return visitor.Visit( this );
+        }
     }
 
 }
