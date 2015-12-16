@@ -56,24 +56,18 @@ namespace CK.SqlServer.Parser.Tests
                         .AddLeadingTrivia( new SqlTrivia( SqlTokenType.None, "[b2[" ) )
                         .AddTrailingTrivia( new SqlTrivia( SqlTokenType.None, "]a2]" ) )
                         .AddTrailingTrivia( new SqlTrivia( SqlTokenType.None, "]b2]" ) );
-            n = n.InsertChildNode( 0, n1 ).InsertChildNode( 1, n2 );
+            n = n.StuffChildren( 0, 0, new[] { n1, n2 } );
 
-            //Assert.That( n.FullLeadingTrivias.ToString( SqlTriviaWriteOption.Default ), Is.EqualTo( "/*<<*/[b1[[a1[" ) );
-            //Assert.That( n.FullTrailingTrivias.ToString( SqlTriviaWriteOption.Default ), Is.EqualTo( "]a2]]b2]/*>>*/" ) );
             Assert.That( n.ToString( false ), Is.EqualTo( "N[b1[[a1[N1]a1]]b1][b2[[a2[N2]a2]]b2]" ) );
             Assert.That( n.ToString( true ), Is.EqualTo( "/*<<*/N[b1[[a1[N1]a1]]b1][b2[[a2[N2]a2]]b2]/*>>*/" ) );
 
             SqlNode nLeftLift = n.LiftLeadingTrivias();
             Assert.That( nLeftLift.LeadingTrivias.Count, Is.EqualTo( 3 ) );
-            //Assert.That( nLeftLift.FullLeadingTrivias.ToString( SqlTriviaWriteOption.Default ), Is.EqualTo( "/*<<*/[b1[[a1[" ) );
-            //Assert.That( nLeftLift.FullTrailingTrivias.ToString( SqlTriviaWriteOption.Default ), Is.EqualTo( "]a2]]b2]/*>>*/" ) );
             Assert.That( nLeftLift.ChildrenNodes[0].LeadingTrivias, Is.Empty );
             Assert.That( nLeftLift.ToString( true ), Is.EqualTo( "/*<<*/[b1[[a1[NN1]a1]]b1][b2[[a2[N2]a2]]b2]/*>>*/" ) );
 
             SqlNode nRightLift = n.LiftTrailingTrivias();
             Assert.That( nRightLift.TrailingTrivias.Count, Is.EqualTo( 3 ) );
-            //Assert.That( nRightLift.FullLeadingTrivias.ToString( SqlTriviaWriteOption.Default ), Is.EqualTo( "/*<<*/[b1[[a1[" ) );
-            //Assert.That( nRightLift.FullTrailingTrivias.ToString( SqlTriviaWriteOption.Default ), Is.EqualTo( "]a2]]b2]/*>>*/" ) );
             Assert.That( nRightLift.ChildrenNodes[1].TrailingTrivias, Is.Empty );
             Assert.That( nRightLift.ToString( true ), Is.EqualTo( "/*<<*/N[b1[[a1[N1]a1]]b1][b2[[a2[N2]a2]]b2]/*>>*/" ) );
             Assert.That( nRightLift.ToString( false ), Is.EqualTo( "N[b1[[a1[N1]a1]]b1][b2[[a2[N2" ) );
@@ -81,8 +75,6 @@ namespace CK.SqlServer.Parser.Tests
             SqlNode nLift = n.LiftBothTrivias();
             Assert.That( nLift.LeadingTrivias.Count, Is.EqualTo( 3 ) );
             Assert.That( nLift.TrailingTrivias.Count, Is.EqualTo( 3 ) );
-            //Assert.That( nLift.FullLeadingTrivias.ToString( SqlTriviaWriteOption.Default ), Is.EqualTo( "/*<<*/[b1[[a1[" ) );
-            //Assert.That( nLift.FullTrailingTrivias.ToString( SqlTriviaWriteOption.Default ), Is.EqualTo( "]a2]]b2]/*>>*/" ) );
             Assert.That( nLift.ChildrenNodes[0].LeadingTrivias, Is.Empty );
             Assert.That( nLift.ChildrenNodes[1].TrailingTrivias, Is.Empty );
             Assert.That( nLift.ToString( true ), Is.EqualTo( "/*<<*/[b1[[a1[NN1]a1]]b1][b2[[a2[N2]a2]]b2]/*>>*/" ) );
@@ -98,7 +90,7 @@ namespace CK.SqlServer.Parser.Tests
             SqlNode n2 = new TestNode( "Y" )
                             .AddLeadingTrivia( new SqlTrivia( SqlTokenType.None, Environment.NewLine + " 3 " + Environment.NewLine ) )
                             .AddTrailingTrivia( new SqlTrivia( SqlTokenType.None, Environment.NewLine + " 4 " + Environment.NewLine ) );
-            n = n2.InsertChildNode( 0, n );
+            n = n2.StuffChildren( 0, 0, new[] { n } );
 
             Assert.That( n.ToString( true ), Is.EqualTo(
                 Environment.NewLine + " 3 " + Environment.NewLine

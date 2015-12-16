@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -10,30 +11,27 @@ namespace CK.SqlServer.Parser
 {
     public class SqlPar : SqlNode
     {
+        readonly SNode<SqlTokenOpenPar, SqlNode, SqlTokenClosePar> _items;
+
         public SqlPar( SqlTokenOpenPar opener, SqlNode content, SqlTokenClosePar closer )
             : this( null, opener, content, closer, null )
         {
-            if( opener == null ) throw new ArgumentException();
-            if( closer == null ) throw new ArgumentException();
-            if( content == null ) throw new ArgumentException();
         }
 
-        public SqlTokenOpenPar Opener { get; }
+        public SqlTokenOpenPar Opener => _items.O1;
 
-        public SqlNode Content { get; }
+        public SqlNode Content => _items.O2;
 
-        public SqlTokenClosePar Closer { get; }
+        public SqlTokenClosePar Closer => _items.O3;
 
-        public override IReadOnlyList<SqlNode> ChildrenNodes => new[] { Opener, Content, Closer };
+        public override IReadOnlyList<SqlNode> ChildrenNodes => _items;
 
         public override SqlNode UnPar => Content.UnPar;
 
         SqlPar( ImmutableList<SqlTrivia> leading, SqlTokenOpenPar opener, SqlNode content, SqlTokenClosePar closer, ImmutableList<SqlTrivia> trailing )
             : base( leading, trailing )
         {
-            Opener = opener;
-            Content = content;
-            Closer = closer;
+            _items = new SNode<SqlTokenOpenPar, SqlNode, SqlTokenClosePar>( opener, content, closer );
         }
 
         protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )

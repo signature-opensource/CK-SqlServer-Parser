@@ -28,12 +28,12 @@ namespace CK.SqlServer.Parser
         /// <summary>
         /// Leading <see cref="SqlTrivia"/>. Never null but can be empty.
         /// </summary>
-        public readonly ImmutableList<SqlTrivia> LeadingTrivias;
+        public ImmutableList<SqlTrivia> LeadingTrivias { get; }
 
         /// <summary>
         /// Trailing <see cref="SqlTrivia"/>. Never null but can be empty.
         /// </summary>
-        public readonly ImmutableList<SqlTrivia> TrailingTrivias;
+        public ImmutableList<SqlTrivia> TrailingTrivias { get; }
 
         /// <summary>
         /// Gets the leading nodes from this one to the deepest left-most children.
@@ -192,16 +192,18 @@ namespace CK.SqlServer.Parser
         }
 
         /// <summary>
-        /// Inserts a child at a given index in <see cref="ChildrenNodes"/>.
+        /// Inserts or replace one or more children at a given index in <see cref="ChildrenNodes"/>.
         /// </summary>
-        /// <param name="i">The index.</param>
-        /// <param name="child">Null to remove or the node to replace.</param>
+        /// <param name="iStart">The index.</param>
+        /// <param name="count">The number of children to replace.</param>
+        /// <param name="child">The children to insert.</param>
         /// <returns>A new immutable object or this if no change occurred.</returns>
-        public SqlNode InsertChildNode( int i, SqlNode child )
+        public SqlNode StuffChildren( int iStart, int count, IReadOnlyList<SqlNode> children )
         {
-            if( child == null ) throw new ArgumentNullException( nameof( child ) );
-            var c = ChildrenNodes.ToList();
-            c.Insert( i, child );
+            if( children == null ) throw new ArgumentNullException( nameof( children ) );
+            List<SqlNode> c = ChildrenNodes.ToList();
+            c.RemoveRange( iStart, count );
+            c.InsertRange( iStart, children );
             return DoClone( LeadingTrivias, c.ToArray(), TrailingTrivias );
         }
 
@@ -212,6 +214,7 @@ namespace CK.SqlServer.Parser
         /// <returns>A new immutable object.</returns>
         public SqlNode AddLeadingTrivia( SqlTrivia t )
         {
+            if( t.IsEmpty ) return this;
             return DoClone( LeadingTrivias.Insert( 0, t ), ChildrenNodes, TrailingTrivias );
         }
 
@@ -222,6 +225,7 @@ namespace CK.SqlServer.Parser
         /// <returns>A new immutable object.</returns>
         public SqlNode AddTrailingTrivia( SqlTrivia t )
         {
+            if( t.IsEmpty ) return this;
             return DoClone( LeadingTrivias, ChildrenNodes, TrailingTrivias.Add( t ) );
         }
 
@@ -266,7 +270,7 @@ namespace CK.SqlServer.Parser
         }
 
         /// <summary>
-        /// Overriden to return the result of <see cref="WriteWithoutTrivias"/> with an 
+        /// Overriden to return the result of <see cref="WriteWithoutTrivias"/> with 
         /// a one line, compact, writer (<see cref="SqlTextWriter.CreateOneLineCompact"/>).
         /// </summary>
         /// <returns>The mere node.</returns>

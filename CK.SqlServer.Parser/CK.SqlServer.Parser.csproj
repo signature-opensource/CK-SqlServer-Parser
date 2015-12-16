@@ -64,6 +64,7 @@
     <Compile Include="SqlNodeEnclosedList.cs" />
     <Compile Include="SqlNodeEnclosedSeparatedList.cs" />
     <Compile Include="SqlNodeSeparatedList.cs" />
+    <Compile Include="SNode.cs" />
     <Compile Include="SqlPar.cs" />
     <Compile Include="SqlNodeExternal.cs" />
     <Compile Include="SqlNodeList.cs" />
