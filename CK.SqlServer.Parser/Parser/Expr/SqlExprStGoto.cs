@@ -26,17 +26,17 @@ namespace CK.SqlServer.Parser
         {
         }
 
-        SqlExprStGoto( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+        SqlExprStGoto( ImmutableList<SqlTrivia> leading, ISqlNode[] items, ImmutableList<SqlTrivia> trailing )
             : base( leading, items, trailing )
         {
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
             return new SqlExprStGoto( leading, EnsureArray( children ), trailing );
         }
 
-        static SqlNode[] Build( SqlTokenIdentifier gotoToken, SqlTokenIdentifier target )
+        static ISqlNode[] Build( SqlTokenIdentifier gotoToken, SqlTokenIdentifier target )
         {
             if( gotoToken == null || gotoToken.TokenType != SqlTokenType.Goto ) throw new ArgumentException( "gotoToken" );
             if( target == null ) throw new ArgumentException( "goto expects a target.", "target" );
@@ -51,7 +51,7 @@ namespace CK.SqlServer.Parser
         }
 
         [DebuggerStepThrough]
-        internal protected override SqlNode Accept( SqlItemVisitor visitor )
+        internal protected override ISqlNode Accept( SqlItemVisitor visitor )
         {
             return visitor.Visit( this );
         }

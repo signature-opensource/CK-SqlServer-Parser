@@ -1,10 +1,3 @@
-#region Proprietary License
-/*----------------------------------------------------------------------------
-* This file (CK.SqlServer.Parser\Parser\Expr\SqlExprBaseListWithSeparator.cs) is part of CK-Database. 
-* Copyright © 2007-2014, Invenietis <http://www.invenietis.com>. All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -29,7 +22,7 @@ namespace CK.SqlServer.Parser
         /// <param name="closePar">Closing parenthesis.</param>
         /// <param name="allowEmpty">False to throw an argument exception if the <paramref name="exprOrCommaTokens"/> is empty.</param>
         /// <param name="validSeparator">Defaults to a predicate that checks that separators are commas (see <see cref="IsCommaSeparator"/>).</param>
-        public SqlExprBaseListWithSeparator( SqlTokenOpenPar openPar, IList<SqlNode> exprOrTokens, SqlTokenClosePar closePar, bool allowEmpty, Predicate<SqlNode> validSeparator = null )
+        public SqlExprBaseListWithSeparator( SqlTokenOpenPar openPar, IList<ISqlNode> exprOrTokens, SqlTokenClosePar closePar, bool allowEmpty, Predicate<ISqlNode> validSeparator = null )
             : this( null, Build( openPar, exprOrTokens, closePar, allowEmpty, validSeparator ), null )
         {
         }
@@ -40,12 +33,12 @@ namespace CK.SqlServer.Parser
         /// </summary>
         /// <param name="exprOrTokens">List of tokens or expressions.</param>
         /// <param name="validSeparator">Defaults to a predicate that checks that separators are commas (see <see cref="SqlToken.IsCommaSeparator"/>).</param>
-        public SqlExprBaseListWithSeparator( IList<SqlNode> exprOrTokens, bool allowEmpty, Predicate<SqlNode> validSeparator = null )
+        public SqlExprBaseListWithSeparator( IList<ISqlNode> exprOrTokens, bool allowEmpty, Predicate<ISqlNode> validSeparator = null )
             : this( null, Build( exprOrTokens, allowEmpty, validSeparator ), null )
         {
         }
 
-        static SqlNode[] Build( SqlTokenOpenPar openPar, IList<SqlNode> exprOrTokens, SqlTokenClosePar closePar, bool allowEmpty, Predicate<SqlNode> validSeparator = null )
+        static ISqlNode[] Build( SqlTokenOpenPar openPar, IList<ISqlNode> exprOrTokens, SqlTokenClosePar closePar, bool allowEmpty, Predicate<ISqlNode> validSeparator = null )
         {
             if( openPar == null ) throw new ArgumentNullException( "openPar" );
             if( exprOrTokens == null ) throw new ArgumentNullException( "exprOrTokens" );
@@ -55,7 +48,7 @@ namespace CK.SqlServer.Parser
             return c;
         }
 
-        static SqlNode[] Build( IList<SqlNode> exprOrTokens, bool allowEmpty, Predicate<SqlNode> validSeparator = null )
+        static ISqlNode[] Build( IList<ISqlNode> exprOrTokens, bool allowEmpty, Predicate<ISqlNode> validSeparator = null )
         {
             if( exprOrTokens == null ) throw new ArgumentNullException( "exprOrTokens" );
             var c = CreateArray( SqlTokenList<SqlTokenOpenPar>.Empty, exprOrTokens, 0, exprOrTokens.Count, SqlTokenList<SqlTokenClosePar>.Empty );
@@ -63,7 +56,7 @@ namespace CK.SqlServer.Parser
             return c;
         }
 
-        internal SqlExprBaseListWithSeparator( ImmutableList<SqlTrivia> leading, SqlNode[] components, ImmutableList<SqlTrivia> trailing )
+        internal SqlExprBaseListWithSeparator( ImmutableList<SqlTrivia> leading, ISqlNode[] components, ImmutableList<SqlTrivia> trailing )
             : base( leading, components, trailing )
         {
         }
@@ -76,9 +69,9 @@ namespace CK.SqlServer.Parser
         /// <summary>
         /// Gets the separators token.
         /// </summary>
-        public IEnumerable<SqlNode> SeparatorTokens { get { return ItemsWithoutParenthesis.Skip( 1 ).Where( ( x, i ) => i % 2 != 0 ); } }
+        public IEnumerable<ISqlNode> SeparatorTokens { get { return ItemsWithoutParenthesis.Skip( 1 ).Where( ( x, i ) => i % 2 != 0 ); } }
 
-        protected SqlNode SeparatorTokenAt( int i ) { return Slots[(i+1) * 2]; }
+        protected ISqlNode SeparatorTokenAt( int i ) { return Slots[(i+1) * 2]; }
 
         protected int NonSeparatorCount { get { return (Slots.Length + 1) / 2 - 1; } }
 
@@ -87,7 +80,7 @@ namespace CK.SqlServer.Parser
         protected T NonSeparatorTokenAt( int i ) { return (T)Slots[i* 2+1]; }
 
         [Conditional("DEBUG")]
-        protected static void DebugCheckArray( SqlNode[] t, bool allowEmpty, bool hasOpenerAndCloser, bool atLeastOneOpener, Predicate<SqlNode> validSeparator )
+        protected static void DebugCheckArray( SqlNode[] t, bool allowEmpty, bool hasOpenerAndCloser, bool atLeastOneOpener, Predicate<ISqlNode> validSeparator )
         {
             CheckArray( t, allowEmpty, hasOpenerAndCloser, atLeastOneOpener, validSeparator );
         }
@@ -97,12 +90,12 @@ namespace CK.SqlServer.Parser
         /// </summary>
         /// <param name="t">Potential comma token.</param>
         /// <returns>Whether the token is a comma or not.</returns>
-        static internal bool IsCommaSeparator( SqlNode t )
+        static internal bool IsCommaSeparator( ISqlNode t )
         {
             return t.IsToken( SqlTokenType.Comma );
         }
 
-        internal static void CheckArray( SqlNode[] t, bool allowEmpty, bool hasOpenerAndCloser, bool atLeastOneOpener, Predicate<SqlNode> validSeparator )
+        internal static void CheckArray( ISqlNode[] t, bool allowEmpty, bool hasOpenerAndCloser, bool atLeastOneOpener, Predicate<ISqlNode> validSeparator )
         {
             int len = t.Length;
             int offset = 0;
@@ -135,12 +128,12 @@ namespace CK.SqlServer.Parser
             }
         }
 
-        internal static string BuildArray( IEnumerator<SqlNode> tokens, bool allowEmpty, Predicate<SqlNode> validSeparator, string elementName, out SqlNode[] result, T firstForLookup = null )
+        internal static string BuildArray( IEnumerator<ISqlNode> tokens, bool allowEmpty, Predicate<ISqlNode> validSeparator, string elementName, out ISqlNode[] result, T firstForLookup = null )
         {
             Debug.Assert( tokens != null );
             result = null;
-            List<SqlNode> all = new List<SqlNode>();
-            SqlNode element = firstForLookup;
+            List<ISqlNode> all = new List<ISqlNode>();
+            ISqlNode element = firstForLookup;
             if( element != null ) all.Add( firstForLookup );
             else 
             {
@@ -157,7 +150,7 @@ namespace CK.SqlServer.Parser
             }
             if( all.Count > 0 )
             {
-                SqlNode separator;
+                ISqlNode separator;
                 while( validSeparator( separator = tokens.Current ) )
                 {
                     if( !tokens.MoveNext() || !((element = tokens.Current) is T) )
@@ -174,14 +167,14 @@ namespace CK.SqlServer.Parser
             return null;
         }
 
-        protected SqlNode[] ReplaceNonSeparator( Func<T, SqlNode> replacer )
+        protected ISqlNode[] ReplaceNonSeparator( Func<T, ISqlNode> replacer )
         {
             return ReplaceNonSeparator( Slots, true, replacer );
         }
 
-        internal static SqlNode[] ReplaceNonSeparator( SqlNode[] t, bool hasOpenerAndCloser, Func<T, SqlNode> replacer )
+        internal static ISqlNode[] ReplaceNonSeparator( ISqlNode[] t, bool hasOpenerAndCloser, Func<T, ISqlNode> replacer )
         {
-            SqlNode[] modified = null;
+            ISqlNode[] modified = null;
             int len = t.Length;
             int i = 0;
             if( hasOpenerAndCloser )
@@ -192,7 +185,7 @@ namespace CK.SqlServer.Parser
             for(; i < len; i += 2 )
             {
                 var o = (T)t[i];
-                SqlNode r = replacer( o );
+                ISqlNode r = replacer( o );
                 if( !ReferenceEquals( r, o ) )
                 {
                     if( modified == null ) modified = (SqlNode[])t.Clone();

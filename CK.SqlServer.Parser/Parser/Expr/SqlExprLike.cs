@@ -20,7 +20,7 @@ namespace CK.SqlServer.Parser
         {
         }
 
-        static SqlNode[] Build( SqlExpr left, SqlTokenIdentifier notToken, SqlTokenIdentifier likeToken, SqlExpr pattern, SqlTokenIdentifier escapeToken = null, SqlTokenLiteralString escapeChar = null )
+        static ISqlNode[] Build( SqlExpr left, SqlTokenIdentifier notToken, SqlTokenIdentifier likeToken, SqlExpr pattern, SqlTokenIdentifier escapeToken = null, SqlTokenLiteralString escapeChar = null )
         {
             if( notToken == null )
             {
@@ -48,12 +48,12 @@ namespace CK.SqlServer.Parser
             }
         }
 
-        SqlExprLike( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+        SqlExprLike( ImmutableList<SqlTrivia> leading, ISqlNode[] items, ImmutableList<SqlTrivia> trailing )
             : base( leading, items, trailing )
         {
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
             return new SqlExprLike( leading, EnsureArray( children ), trailing );
         }
@@ -76,7 +76,7 @@ namespace CK.SqlServer.Parser
         public SqlTokenLiteralString EscapeChar { get { return HasEscape ? (SqlTokenLiteralString)Slots[IsNotLike ? 6 : 5] : null; } }
 
         [DebuggerStepThrough]
-        internal protected override SqlNode Accept( SqlItemVisitor visitor )
+        internal protected override ISqlNode Accept( SqlItemVisitor visitor )
         {
             return visitor.Visit( this );
         }

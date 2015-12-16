@@ -41,13 +41,13 @@ namespace CK.SqlServer.Parser
             DbType = dbType;
         }
 
-        SqlExprTypeDeclSimple( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+        SqlExprTypeDeclSimple( ImmutableList<SqlTrivia> leading, ISqlNode[] items, ImmutableList<SqlTrivia> trailing )
             : base( leading, items, trailing )
         {
             InitFromIdentifier();
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
             return new SqlExprTypeDeclSimple( leading, EnsureArray( children ), trailing );
         }
@@ -59,7 +59,7 @@ namespace CK.SqlServer.Parser
         string ISqlServerUnifiedTypeDecl.ToStringClean() => ChildrenNodes.ToStringCompact();
 
         [DebuggerStepThrough]
-        internal protected override SqlNode Accept( SqlItemVisitor visitor )
+        internal protected override ISqlNode Accept( SqlItemVisitor visitor )
         {
             return visitor.Visit( this );
         }

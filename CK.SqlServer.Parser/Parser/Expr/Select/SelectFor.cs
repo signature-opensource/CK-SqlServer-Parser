@@ -19,12 +19,12 @@ namespace CK.SqlServer.Parser
         {
         }
 
-        internal SelectFor( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+        internal SelectFor( ImmutableList<SqlTrivia> leading, ISqlNode[] items, ImmutableList<SqlTrivia> trailing )
             : base( leading, items, trailing )
         {
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
             return new SelectFor( leading, EnsureArray( children ), trailing );
         }
@@ -36,7 +36,7 @@ namespace CK.SqlServer.Parser
         public SqlExpr ForExpression { get { return (SqlExpr)Slots[3]; } }
 
         [DebuggerStepThrough]
-        internal protected override SqlNode Accept( SqlItemVisitor visitor )
+        internal protected override ISqlNode Accept( SqlItemVisitor visitor )
         {
             return visitor.Visit( this );
         }

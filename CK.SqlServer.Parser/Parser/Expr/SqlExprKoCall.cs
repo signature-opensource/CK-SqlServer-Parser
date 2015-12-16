@@ -22,7 +22,7 @@ namespace CK.SqlServer.Parser
         {
         }
 
-        static SqlNode[] Build( SqlItem funName, SqlExprCommaList parameters, SqlNoExprOverClause over )
+        static ISqlNode[] Build( SqlItem funName, SqlExprCommaList parameters, SqlNoExprOverClause over )
         {
             if( funName == null ) throw new ArgumentNullException( "funName" );
             if( parameters == null ) throw new ArgumentNullException( "parameters" );
@@ -31,12 +31,12 @@ namespace CK.SqlServer.Parser
                     : CreateArray<SqlNode>( SqlToken.EmptyOpenPar, funName, parameters, SqlToken.EmptyClosePar );
         }
 
-        internal SqlExprKoCall( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+        internal SqlExprKoCall( ImmutableList<SqlTrivia> leading, ISqlNode[] items, ImmutableList<SqlTrivia> trailing )
             : base( leading, items, trailing )
         {
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
             return new SqlExprKoCall( leading, EnsureArray( children ), trailing );
         }
@@ -48,7 +48,7 @@ namespace CK.SqlServer.Parser
         public SqlNoExprOverClause OverClause { get { return Slots.Length == 5 ? (SqlNoExprOverClause)Slots[3] : null; } }
 
         [DebuggerStepThrough]
-        internal protected override SqlNode Accept( SqlItemVisitor visitor )
+        internal protected override ISqlNode Accept( SqlItemVisitor visitor )
         {
             return visitor.Visit( this );
         }

@@ -1,28 +1,13 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
-namespace CK.SqlServer.Parser
+namespace CK.SqlServer.Parser.Tests
 {
     public static class SqlNodeExtension
     {
-
-        /// <summary>
-        /// Gets a flattened list of <see cref="SqlToken"/>.
-        /// </summary>
-        /// <param name="@this">This enumerable of SqlNode.</param>
-        /// <returns>The flattened list of tokens.</returns>
-        static public IEnumerable<SqlToken> ToTokens( this IEnumerable<SqlNode> @this )
-        {
-            foreach( var a in @this )
-            {
-                SqlToken t = a as SqlToken;
-                if( t != null ) yield return t;
-                else foreach( var ta in ToTokens( a.AllTokens ) ) yield return ta;
-            }
-        }
 
         /// <summary>
         /// Writes an <see cref="IEnumerable"/> of <see cref="SqlNode"/> without its trivias. 
@@ -31,8 +16,8 @@ namespace CK.SqlServer.Parser
         /// <param name="this">An IEnumerable of SqlNode.</param>
         /// <param name="separator">Separator between tokens.</param>
         /// <param name="b">StringBuilder to write into.</param>
-        public static StringBuilder WriteWithoutTrivias( 
-            this IEnumerable<SqlNode> @this, 
+        public static StringBuilder WriteWithoutTrivias(
+            this IEnumerable<SqlNode> @this,
             string separator, StringBuilder b )
         {
             bool one = false;
@@ -57,17 +42,6 @@ namespace CK.SqlServer.Parser
             StringBuilder b = new StringBuilder();
             @this.WriteWithoutTrivias( separator, b );
             return b.ToString();
-        }
-
-        public static string ToStringCompact( this IEnumerable<SqlNode> @this )
-        {
-            return Write( @this, SqlTextWriter.CreateOneLineCompact() ).ToString();
-        }
-
-        public static ISqlTextWriter Write( this IEnumerable<SqlNode> @this, ISqlTextWriter w )
-        {
-            foreach( var n in @this ) n.Write( w );
-            return w;
         }
 
     }

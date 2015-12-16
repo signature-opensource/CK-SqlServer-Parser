@@ -14,18 +14,18 @@ namespace CK.SqlServer.Parser
     /// Simple abstract wrapper around an array of T.
     /// </summary>
     public abstract class SqlNodeSeparatedList<T,TSep> : SqlNode, IReadOnlyList<T>
-        where T : SqlNode
-        where TSep : SqlNode
+        where T : ISqlNode
+        where TSep : ISqlNode
     {
-        readonly SqlNode[] _items;
+        readonly ISqlNode[] _items;
 
-        protected SqlNodeSeparatedList( IEnumerable<SqlNode> items, ImmutableList<SqlTrivia> leading = null, ImmutableList<SqlTrivia> trailing = null )
+        protected SqlNodeSeparatedList( IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> leading = null, ImmutableList<SqlTrivia> trailing = null )
             : base( leading, trailing )
         {
             _items = items.ToArray();
         }
 
-        protected SqlNodeSeparatedList( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+        protected SqlNodeSeparatedList( ImmutableList<SqlTrivia> leading, ISqlNode[] items, ImmutableList<SqlTrivia> trailing )
             : base( leading, trailing )
         {
             Debug.Assert( items != null );
@@ -37,7 +37,7 @@ namespace CK.SqlServer.Parser
         /// <summary>
         /// Gets the direct children if any. Never null.
         /// </summary>
-        public override IReadOnlyList<SqlNode> ChildrenNodes => _items;
+        public override IReadOnlyList<ISqlNode> ChildrenNodes => _items;
 
         public int Count => _items.Length / 2;
 

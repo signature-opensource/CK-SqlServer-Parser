@@ -21,13 +21,13 @@ namespace CK.SqlServer.Parser
     /// </summary>
     public abstract class SqlNoExprList<T> : SqlItem, IReadOnlyList<T> where T : SqlNode
     {
-        public SqlNoExprList( IList<SqlNode> components )
+        public SqlNoExprList( IList<ISqlNode> components )
             : this( null, EnsureArray( components ), null )
         {
             SqlExprBaseListWithSeparator<T>.CheckArray( Slots, true, false, false, null );
         }
 
-        internal SqlNoExprList( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+        internal SqlNoExprList( ImmutableList<SqlTrivia> leading, ISqlNode[] items, ImmutableList<SqlTrivia> trailing )
             : base( leading, items, trailing )
         {
         }

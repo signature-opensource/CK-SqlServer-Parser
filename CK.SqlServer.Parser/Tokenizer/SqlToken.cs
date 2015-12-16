@@ -16,34 +16,6 @@ namespace CK.SqlServer.Parser
     /// </summary>
     public abstract class SqlToken : SqlNode, IEnumerable<SqlToken>
     {
-        //class EmptyToken : SqlToken
-        //{
-        //    internal EmptyToken( ImmutableList<SqlTrivia> leading, ImmutableList<SqlTrivia> trailing ) 
-        //        : base( leading, trailing )
-        //    {
-        //    }
-        //    public override IEnumerable<SqlToken> AllTokens => Util.EmptyArray<SqlToken>.Empty;
-
-        //    public override void WriteWithoutTrivias( ISqlTextWriter w ) { }
-        //    public override string ToString() { return String.Empty; }
-        //    protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> content, ImmutableList<SqlTrivia> trailing )
-        //    {
-        //        return new EmptyToken( leading, trailing );
-        //    }
-
-
-        //    [DebuggerStepThrough]
-        //    internal protected override SqlNode Accept( SqlItemVisitor visitor )
-        //    {
-        //        return visitor.Visit( this );
-        //    }
-        //}
-
-        ///// <summary>
-        ///// Empty token has a <see cref="SqlToken.TokenType"/> of <see cref="SqlTokenType.None"/> and empty leading and trailing trivias.
-        ///// </summary>
-        //public static readonly SqlToken Empty = new EmptyToken( null, null );
-
         /// <summary>
         /// Private empty ctor for the EmptyToken.
         /// </summary>
@@ -75,7 +47,7 @@ namespace CK.SqlServer.Parser
         /// <summary>
         /// Gets an empty node list.
         /// </summary>
-        public override IReadOnlyList<SqlNode> ChildrenNodes => Util.EmptyArray<SqlNode>.Empty;
+        public override IReadOnlyList<ISqlNode> ChildrenNodes => Util.EmptyArray<SqlNode>.Empty;
 
         public override bool IsToken( SqlTokenType t ) => TokenType == t;
 

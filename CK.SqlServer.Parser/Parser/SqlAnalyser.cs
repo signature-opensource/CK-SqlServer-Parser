@@ -318,7 +318,7 @@ namespace CK.SqlServer.Parser
                     }
                     SqlTokenOpenPar openPar;
                     SqlTokenClosePar closePar;
-                    List<SqlNode> items;
+                    List<ISqlNode> items;
                     if( !IsCommaList<SqlExprDeclare>( out openPar, out items, out closePar, false, IsVariableDeclare ) ) return false;
                     if( openPar != null || closePar != null ) return R.SetCurrentError( "Unexpected parenthesis in Declare statement." );
                     if( items.Count == 0 ) return R.SetCurrentError( "Declare expect at least one variable." );
@@ -396,7 +396,7 @@ namespace CK.SqlServer.Parser
                 columns = null;
                 SqlTokenOpenPar openPar;
                 SqlTokenClosePar closePar;
-                List<SqlNode> items;
+                List<ISqlNode> items;
                 if( R.Current.TokenType != SqlTokenType.OpenPar ) return false;
                 if( !IsCommaList<SqlExprIdentifier>( out openPar, out items, out closePar, true, IsMonoIdentifier ) ) return false;
                 columns = new SqlExprColumnList( openPar, items, closePar );
@@ -620,7 +620,7 @@ namespace CK.SqlServer.Parser
                 parameters = null;
                 SqlTokenOpenPar openPar;
                 SqlTokenClosePar closePar;
-                List<SqlNode> items;
+                List<ISqlNode> items;
                 if( !IsCommaList<SqlExprParameter>( out openPar, out items, out closePar, requiresParenthesis, IsParameter ) ) return false;
                 parameters = openPar != null ? new SqlExprParameterList( openPar, items, closePar ) : new SqlExprParameterList( items );
                 return true;
@@ -709,7 +709,7 @@ namespace CK.SqlServer.Parser
                         if( !R.IsToken( out updateToken, SqlTokenType.Update, true ) ) return false;
                         if( R.IsToken( out ofToken, SqlTokenType.Of, false ) )
                         {
-                            List<SqlNode> columns = null;
+                            List<ISqlNode> columns = null;
                             if( !IsCommaListNonEnclosed<SqlExprIdentifier>( out columns, IsMonoIdentifier, true ) ) return false;
                             updateColumns = new SqlNoExprIdentifierList( columns );
                         }
@@ -877,7 +877,7 @@ namespace CK.SqlServer.Parser
             bool IsTypeDeclUserDefined( out SqlExprTypeDeclUserDefined udt, bool expected = true )
             {
                 udt = null;
-                SqlNode[] multi;
+                ISqlNode[] multi;
                 if( !IsMultipleIdentifierArray( out multi, expected ) ) return false;
                 udt = new SqlExprTypeDeclUserDefined( multi );
                 return true;
@@ -909,7 +909,7 @@ namespace CK.SqlServer.Parser
             bool IsMultiIdentifier( out SqlExprMultiIdentifier id, bool expected, SqlTokenIdentifier firstForLookup = null )
             {
                 id = null;
-                SqlNode[] multi;
+                ISqlNode[] multi;
                 if( !IsMultipleIdentifierArray( out multi, expected, firstForLookup ) ) return false;
                 id = new SqlExprMultiIdentifier( false, multi );
                 return true;
@@ -925,7 +925,7 @@ namespace CK.SqlServer.Parser
             bool IsMonoOrMultiIdentifier( out SqlExpr id, bool expected, SqlTokenIdentifier firstForLookup = null )
             {
                 id = null;
-                SqlNode[] multi;
+                ISqlNode[] multi;
                 if( !IsMultipleIdentifierArray( out multi, expected, firstForLookup ) ) return false;
                 if( multi.Length == 1 ) id = new SqlExprIdentifier( (SqlTokenIdentifier)multi[0] );
                 else id = new SqlExprMultiIdentifier( false, multi );
@@ -975,7 +975,7 @@ namespace CK.SqlServer.Parser
                 }
             }
 
-            bool IsMultipleIdentifierArray( out SqlNode[] multi, bool expected, SqlTokenIdentifier firstForLookup = null )
+            bool IsMultipleIdentifierArray( out ISqlNode[] multi, bool expected, SqlTokenIdentifier firstForLookup = null )
             {
                 multi = null;
                 if( firstForLookup != null || ( R.Current.TokenType & SqlTokenType.IsIdentifier ) != 0 || R.Current.TokenType == SqlTokenType.Mult )

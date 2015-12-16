@@ -26,17 +26,17 @@ namespace CK.SqlServer.Parser
         {
         }
 
-        SqlExprStIf( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+        SqlExprStIf( ImmutableList<SqlTrivia> leading, ISqlNode[] items, ImmutableList<SqlTrivia> trailing )
             : base( leading, items, trailing )
         {
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
             return new SqlExprStIf( leading, EnsureArray( children ), trailing );
         }
 
-        static SqlNode[] Build( SqlTokenIdentifier ifToken, SqlExpr condition, SqlExprBaseSt thenStatement, SqlTokenIdentifier elseToken, SqlExprBaseSt elseStatement )
+        static ISqlNode[] Build( SqlTokenIdentifier ifToken, SqlExpr condition, SqlExprBaseSt thenStatement, SqlTokenIdentifier elseToken, SqlExprBaseSt elseStatement )
         {
             if( ifToken == null || !ifToken.NameEquals( "if" ) ) throw new ArgumentException( "ifToken" );
             if( condition == null ) throw new ArgumentNullException( "condition" );
@@ -56,7 +56,7 @@ namespace CK.SqlServer.Parser
         public SqlExprBaseSt ElseStatement { get { return HasElse ? (SqlExprBaseSt)Slots[4] : null; } }
 
         [DebuggerStepThrough]
-        internal protected override SqlNode Accept( SqlItemVisitor visitor )
+        internal protected override ISqlNode Accept( SqlItemVisitor visitor )
         {
             return visitor.Visit( this );
         }

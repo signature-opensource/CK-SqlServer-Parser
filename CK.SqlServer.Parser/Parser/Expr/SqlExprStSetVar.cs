@@ -26,17 +26,17 @@ namespace CK.SqlServer.Parser
         {
         }
 
-        SqlExprStSetVar( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+        SqlExprStSetVar( ImmutableList<SqlTrivia> leading, ISqlNode[] items, ImmutableList<SqlTrivia> trailing )
             : base( leading, items, trailing )
         {
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
             return new SqlExprStSetVar( leading, EnsureArray( children ), trailing );
         }
 
-        static SqlNode[] Build( SqlTokenIdentifier setToken, SqlTokenIdentifier variable, SqlTokenTerminal assignT, SqlExpr right )
+        static ISqlNode[] Build( SqlTokenIdentifier setToken, SqlTokenIdentifier variable, SqlTokenTerminal assignT, SqlExpr right )
         {
             if( setToken == null || setToken.TokenType != SqlTokenType.Set ) throw new ArgumentException( "setToken" );
             if( variable == null ) throw new ArgumentException( "variable" );
@@ -54,7 +54,7 @@ namespace CK.SqlServer.Parser
         public SqlExpr Value { get { return (SqlExpr)Slots[3]; } }
 
         [DebuggerStepThrough]
-        internal protected override SqlNode Accept( SqlItemVisitor visitor )
+        internal protected override ISqlNode Accept( SqlItemVisitor visitor )
         {
             return visitor.Visit( this );
         }

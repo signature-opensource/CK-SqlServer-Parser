@@ -42,7 +42,7 @@ namespace CK.SqlServer.Parser
 
         public new SqlTokenTypeError TokenType { get { return (SqlTokenTypeError)base.TokenType; } }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> content, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
         {
             return new SqlTokenError( TokenType, leading, trailing, ErrorMessage );
         }
@@ -56,7 +56,7 @@ namespace CK.SqlServer.Parser
 
 
         [DebuggerStepThrough]
-        internal protected override SqlNode Accept( SqlItemVisitor visitor )
+        internal protected override ISqlNode Accept( SqlItemVisitor visitor )
         {
             return visitor.Visit( this );
         }

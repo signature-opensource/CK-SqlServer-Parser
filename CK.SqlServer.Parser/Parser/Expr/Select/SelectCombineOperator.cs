@@ -25,23 +25,23 @@ namespace CK.SqlServer.Parser
             if( unionT.TokenType == SqlTokenType.Union && allT != null && !allT.NameEquals( "all" ) ) throw new ArgumentException();
         }
 
-        static SqlNode[] Build( ISelectSpecification left, SqlTokenIdentifier opT, SqlTokenIdentifier allT, ISelectSpecification right, SelectOrderBy orderBy, SelectFor forPart )
+        static ISqlNode[] Build( ISelectSpecification left, SqlTokenIdentifier opT, SqlTokenIdentifier allT, ISelectSpecification right, SelectOrderBy orderBy, SelectFor forPart )
         {
             Debug.Assert( left != null && opT != null && right != null );
             SqlNode o = allT != null ? (SqlNode)new SqlTokenList<SqlTokenIdentifier>( opT, allT ) : opT;
             return Build( SqlToken.EmptyOpenPar, left, o, right, orderBy, forPart, SqlToken.EmptyClosePar );
         }
 
-        static SqlNode[] Build( SqlTokenList<SqlTokenOpenPar> opener, ISelectSpecification left, SqlNode op, ISelectSpecification right, SelectOrderBy orderBy, SelectFor forPart, SqlTokenList<SqlTokenClosePar> closer )
+        static ISqlNode[] Build( SqlTokenList<SqlTokenOpenPar> opener, ISelectSpecification left, ISqlNode op, ISelectSpecification right, SelectOrderBy orderBy, SelectFor forPart, SqlTokenList<SqlTokenClosePar> closer )
         {
             Debug.Assert( opener != null && left != null && op != null && right != null && closer != null );
             if( orderBy != null )
             {
                 if( forPart != null )
                 {
-                    return CreateArray<SqlNode>( opener, (SqlNode)left, op, (SqlNode)right, orderBy, forPart, closer );
+                    return CreateArray( opener, (SqlNode)left, op, (SqlNode)right, orderBy, forPart, closer );
                 }
-                return CreateArray( opener, (SqlNode)left, op, (SqlNode)right, orderBy, closer );
+                return CreateArray( opener, (ISqlNode)left, op, (ISqlNode)right, orderBy, closer );
             }
             else if( forPart != null )
             {
@@ -50,7 +50,7 @@ namespace CK.SqlServer.Parser
             return CreateArray( opener, (SqlNode)left, op, (SqlNode)right, closer );
         }
 
-        internal SelectCombineOperator( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+        internal SelectCombineOperator( ImmutableList<SqlTrivia> leading, ISqlNode[] items, ImmutableList<SqlTrivia> trailing )
             : base( leading, items, trailing )
         {
             Debug.Assert( Slots.Length >= 5 && Slots.Length <= 7 );
@@ -65,7 +65,7 @@ namespace CK.SqlServer.Parser
                                         && ((SqlTokenIdentifier)UnionAll.Tokens[1]).NameEquals( "all" ))) );
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
             return new SelectCombineOperator( leading, EnsureArray( children ), trailing );
         }
@@ -90,7 +90,7 @@ namespace CK.SqlServer.Parser
         /// </summary>
         public SqlTokenType CombinationKind { get { return OperatorT.TokenType; } }
 
-        public SqlNode Operator { get { return Slots[2]; } }
+        public ISqlNode Operator { get { return Slots[2]; } }
 
         public bool IsUnionDistinct { get { return UnionAll == null && OperatorT.TokenType == SqlTokenType.Union; } }
 
@@ -117,7 +117,7 @@ namespace CK.SqlServer.Parser
         }
 
         [DebuggerStepThrough]
-        internal protected override SqlNode Accept( SqlItemVisitor visitor )
+        internal protected override ISqlNode Accept( SqlItemVisitor visitor )
         {
             return visitor.Visit( this );
         }

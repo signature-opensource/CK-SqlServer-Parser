@@ -61,6 +61,7 @@
     <Compile Include="..\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="ISqlNode.cs" />
     <Compile Include="SqlNodeEnclosedList.cs" />
     <Compile Include="SqlNodeEnclosedSeparatedList.cs" />
     <Compile Include="SqlNodeSeparatedList.cs" />
@@ -169,7 +170,7 @@
     <Compile Include="SqlServerParser.cs" />
     <Compile Include="Tokenizer\ISqlItemExtension.cs" />
     <Compile Include="Tokenizer\SourcePosition.cs" />
-    <Compile Include="Tokenizer\SqlNodeExtension.cs" />
+    <Compile Include="SqlNodeExtension.cs" />
     <Compile Include="Tokenizer\SqlTokenList.cs" />
     <Compile Include="Tokenizer\SqlKeyword.cs" />
     <Compile Include="Tokenizer\SqlToken.cs" />

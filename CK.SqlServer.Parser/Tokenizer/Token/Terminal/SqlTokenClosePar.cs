@@ -26,7 +26,7 @@ namespace CK.SqlServer.Parser
             w.Write( ")", whiteSpaceBefore: false, whiteSpaceAfter : null );
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> content, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
         {
             return new SqlTokenClosePar( leading, trailing );
         }

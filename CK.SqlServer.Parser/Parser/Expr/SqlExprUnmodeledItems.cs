@@ -24,26 +24,26 @@ namespace CK.SqlServer.Parser
         {
         }
 
-        SqlExprUnmodeledItems( ImmutableList<SqlTrivia> leading, IEnumerable<SqlNode> items, ImmutableList<SqlTrivia> trailing )
+        SqlExprUnmodeledItems( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
             : base( leading, Build( items ), trailing )
         {
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
             return new SqlExprUnmodeledItems( leading, EnsureArray( children ), trailing );
         }
 
-        static SqlNode[] Build( IEnumerable<SqlNode> items )
+        static ISqlNode[] Build( IEnumerable<ISqlNode> items )
         {
             if( items == null ) throw new ArgumentNullException( "items" );
-            SqlNode[] t = items.ToArray();
+            ISqlNode[] t = items.ToArray();
             if( t.Length == 0 ) throw new ArgumentException( "items" );
             return t;
         }
 
         [DebuggerStepThrough]
-        internal protected override SqlNode Accept( SqlItemVisitor visitor )
+        internal protected override ISqlNode Accept( SqlItemVisitor visitor )
         {
             return visitor.Visit( this );
         }

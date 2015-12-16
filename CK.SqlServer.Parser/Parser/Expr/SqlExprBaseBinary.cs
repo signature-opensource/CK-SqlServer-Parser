@@ -23,7 +23,7 @@ namespace CK.SqlServer.Parser
         {
         }
 
-        static SqlNode[] Build( SqlItem left, SqlNode middle, SqlItem right )
+        static ISqlNode[] Build( SqlItem left, SqlNode middle, SqlItem right )
         {
             if( left == null ) throw new ArgumentNullException( "left" );
             if( middle == null ) throw new ArgumentNullException( "middle" );
@@ -31,14 +31,14 @@ namespace CK.SqlServer.Parser
             return CreateArray( SqlToken.EmptyOpenPar, left, middle, right, SqlToken.EmptyClosePar );
         }
 
-        protected SqlExprBaseBinary( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+        protected SqlExprBaseBinary( ImmutableList<SqlTrivia> leading, ISqlNode[] items, ImmutableList<SqlTrivia> trailing )
             : base( leading, items, trailing )
         {
         }
 
         public SqlExpr Left { get { return (SqlExpr)Slots[1]; } }
 
-        protected SqlNode Middle { get { return Slots[2]; } }
+        protected ISqlNode Middle { get { return Slots[2]; } }
 
         public SqlExpr Right { get { return (SqlExpr)Slots[3]; } }
 

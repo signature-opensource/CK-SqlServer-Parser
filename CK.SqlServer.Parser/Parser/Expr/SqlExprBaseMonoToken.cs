@@ -24,7 +24,7 @@ namespace CK.SqlServer.Parser
         {
         }
 
-        protected SqlExprBaseMonoToken( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+        protected SqlExprBaseMonoToken( ImmutableList<SqlTrivia> leading, ISqlNode[] items, ImmutableList<SqlTrivia> trailing )
             : base( leading, items, trailing )
         {
         }

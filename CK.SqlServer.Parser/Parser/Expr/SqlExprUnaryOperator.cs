@@ -22,19 +22,19 @@ namespace CK.SqlServer.Parser
         {
         }
 
-        static SqlNode[] Build( SqlToken op, SqlExpr rightExpr )
+        static ISqlNode[] Build( SqlToken op, SqlExpr rightExpr )
         {
             if( op == null ) throw new ArgumentNullException( "op" );
             if( rightExpr == null ) throw new ArgumentNullException( "rightExpr" );
             return CreateArray<SqlNode>( SqlToken.EmptyOpenPar, op, rightExpr, SqlToken.EmptyClosePar );
         }
 
-        SqlExprUnaryOperator( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+        SqlExprUnaryOperator( ImmutableList<SqlTrivia> leading, ISqlNode[] items, ImmutableList<SqlTrivia> trailing )
             : base( leading, items, trailing )
         {
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
             return new SqlExprUnaryOperator( leading, EnsureArray( children ), trailing );
         }
@@ -44,7 +44,7 @@ namespace CK.SqlServer.Parser
         public SqlExpr Expression { get { return (SqlExpr)Slots[2]; } }
 
         [DebuggerStepThrough]
-        internal protected override SqlNode Accept( SqlItemVisitor visitor )
+        internal protected override ISqlNode Accept( SqlItemVisitor visitor )
         {
             return visitor.Visit( this );
         }

@@ -27,17 +27,17 @@ namespace CK.SqlServer.Parser
         {
         }
 
-        protected SqlExprBetween( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+        protected SqlExprBetween( ImmutableList<SqlTrivia> leading, ISqlNode[] items, ImmutableList<SqlTrivia> trailing )
             : base( leading, items, trailing )
         {
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
             return new SqlExprBetween( leading, EnsureArray( children ), trailing );
         }
 
-        static SqlNode[] Build( SqlExpr left, SqlTokenIdentifier notT, SqlTokenIdentifier betweenT, SqlExpr start, SqlTokenIdentifier andT, SqlItem stop )
+        static ISqlNode[] Build( SqlExpr left, SqlTokenIdentifier notT, SqlTokenIdentifier betweenT, SqlExpr start, SqlTokenIdentifier andT, SqlItem stop )
         {
             return notT != null
                             ? CreateArray<SqlNode>( SqlToken.EmptyOpenPar, left, notT, betweenT, start, andT, stop, SqlToken.EmptyClosePar )
@@ -59,7 +59,7 @@ namespace CK.SqlServer.Parser
         public SqlExpr Stop { get { return (SqlExpr)Slots[IsNotBetween ? 6 : 5]; } }
 
         [DebuggerStepThrough]
-        internal protected override SqlNode Accept( SqlItemVisitor visitor )
+        internal protected override ISqlNode Accept( SqlItemVisitor visitor )
         {
             return visitor.Visit( this );
         }

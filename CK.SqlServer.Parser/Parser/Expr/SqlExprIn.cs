@@ -27,19 +27,19 @@ namespace CK.SqlServer.Parser
         {
         }
 
-        static SqlNode[] Build( SqlExpr left, SqlTokenIdentifier notT, SqlTokenIdentifier inT, SqlExprCommaList values )
+        static ISqlNode[] Build( SqlExpr left, SqlTokenIdentifier notT, SqlTokenIdentifier inT, SqlExprCommaList values )
         {
             return notT != null
                             ? CreateArray<SqlNode>( SqlToken.EmptyOpenPar, left, notT, inT, values, SqlToken.EmptyClosePar )
                             : CreateArray<SqlNode>( SqlToken.EmptyOpenPar, left, inT, values, SqlToken.EmptyClosePar );
         }
 
-        internal SqlExprIn( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+        internal SqlExprIn( ImmutableList<SqlTrivia> leading, ISqlNode[] items, ImmutableList<SqlTrivia> trailing )
             : base( leading, items, trailing )
         {
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
             return new SqlExprIn( leading, EnsureArray( children ), trailing );
         }
@@ -55,7 +55,7 @@ namespace CK.SqlServer.Parser
         public SqlExprCommaList Values { get { return (SqlExprCommaList)Slots[IsNotIn ? 4 : 3]; } }
 
         [DebuggerStepThrough]
-        internal protected override SqlNode Accept( SqlItemVisitor visitor )
+        internal protected override ISqlNode Accept( SqlItemVisitor visitor )
         {
             return visitor.Visit( this );
         }

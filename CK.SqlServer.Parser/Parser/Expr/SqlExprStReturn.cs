@@ -19,17 +19,17 @@ namespace CK.SqlServer.Parser
         {
         }
 
-        SqlExprStReturn( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+        SqlExprStReturn( ImmutableList<SqlTrivia> leading, ISqlNode[] items, ImmutableList<SqlTrivia> trailing )
             : base( leading, items, trailing )
         {
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
             return new SqlExprStReturn( leading, EnsureArray( children ), trailing );
         }
 
-        static SqlNode[] Build( SqlTokenIdentifier returnToken, SqlExpr value )
+        static ISqlNode[] Build( SqlTokenIdentifier returnToken, SqlExpr value )
         {
             if( returnToken == null || returnToken.TokenType != SqlTokenType.Return ) throw new ArgumentException( "returnToken" );
             return value != null ? CreateArray<SqlNode>( returnToken, value ) : CreateArray( returnToken );
@@ -47,7 +47,7 @@ namespace CK.SqlServer.Parser
         }
 
         [DebuggerStepThrough]
-        internal protected override SqlNode Accept( SqlItemVisitor visitor )
+        internal protected override ISqlNode Accept( SqlItemVisitor visitor )
         {
             return visitor.Visit( this );
         }

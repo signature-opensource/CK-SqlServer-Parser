@@ -29,7 +29,7 @@ namespace CK.SqlServer.Parser
         {
         }
 
-        static SqlNode[] Build( SqlTokenList<SqlTokenOpenPar> opener, SelectHeader header, SelectColumnList columns, SelectInto into, SelectFrom from, SelectWhere where, SelectGroupBy groupBy, SqlTokenList<SqlTokenClosePar> closer )
+        static ISqlNode[] Build( SqlTokenList<SqlTokenOpenPar> opener, SelectHeader header, SelectColumnList columns, SelectInto into, SelectFrom from, SelectWhere where, SelectGroupBy groupBy, SqlTokenList<SqlTokenClosePar> closer )
         {
             if( header == null ) throw new ArgumentNullException( "header" );
             if( columns == null ) throw new ArgumentNullException( "columns" );
@@ -45,7 +45,7 @@ namespace CK.SqlServer.Parser
             return c.ToArray();
         }
 
-        internal SelectSpecification( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+        internal SelectSpecification( ImmutableList<SqlTrivia> leading, ISqlNode[] items, ImmutableList<SqlTrivia> trailing )
             : base( leading, items, trailing )
         {
             _into = Slots.OfType<SelectInto>().FirstOrDefault();
@@ -54,7 +54,7 @@ namespace CK.SqlServer.Parser
             _groupBy = Slots.OfType<SelectGroupBy>().FirstOrDefault();
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
             return new SelectSpecification( leading, EnsureArray( children ), trailing );
         }
@@ -77,7 +77,7 @@ namespace CK.SqlServer.Parser
         public SelectGroupBy GroupByClause { get { return _groupBy; } }
 
         [DebuggerStepThrough]
-        internal protected override SqlNode Accept( SqlItemVisitor visitor )
+        internal protected override ISqlNode Accept( SqlItemVisitor visitor )
         {
             return visitor.Visit( this );
         }

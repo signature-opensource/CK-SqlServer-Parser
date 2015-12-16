@@ -76,6 +76,7 @@
     <Compile Include="Parsing\SqlTokenizerTest.cs" />
     <Compile Include="Parsing\SqlTokenReaderTests.cs" />
     <Compile Include="SetStatementTests.cs" />
+    <Compile Include="SqlNodeExtension.cs" />
     <Compile Include="SqlNodeTests.cs" />
     <Compile Include="StringNormalizationExtension.cs" />
     <Compile Include="TestHelper.cs" />

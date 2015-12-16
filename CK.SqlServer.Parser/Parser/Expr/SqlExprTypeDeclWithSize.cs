@@ -80,7 +80,7 @@ namespace CK.SqlServer.Parser
             SyntaxSize = sz is SqlTokenLiteralInteger ? ((SqlTokenLiteralInteger)sz).Value : -1;
         }
 
-        SqlExprTypeDeclWithSize( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+        SqlExprTypeDeclWithSize( ImmutableList<SqlTrivia> leading, ISqlNode[] items, ImmutableList<SqlTrivia> trailing )
             : base( leading, items, trailing )
         {
             InitFromSingleIdentifier();
@@ -88,7 +88,7 @@ namespace CK.SqlServer.Parser
             else if( Slots.Length != 1 ) throw new ArgumentException( "invalid sized type." );
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
             return new SqlExprTypeDeclWithSize( leading, EnsureArray( children ), trailing );
         }
@@ -102,7 +102,7 @@ namespace CK.SqlServer.Parser
         string ISqlServerUnifiedTypeDecl.ToStringClean() => ChildrenNodes.ToStringCompact();
 
         [DebuggerStepThrough]
-        internal protected override SqlNode Accept( SqlItemVisitor visitor )
+        internal protected override ISqlNode Accept( SqlItemVisitor visitor )
         {
             return visitor.Visit( this );
         }

@@ -28,18 +28,18 @@ namespace CK.SqlServer.Parser
         {
         }
 
-        public SqlExprTypeDeclUserDefined( IList<SqlNode> tokens )
-            : this( null, CreateArray( tokens.ToArray() ), null )
+        public SqlExprTypeDeclUserDefined( IList<ISqlNode> tokens )
+            : this( null, tokens.ToArray(), null )
         {
             SqlExprBaseListWithSeparator<SqlTokenIdentifier>.CheckArray( Slots, false, false, false, ISqlItemExtension.IsDotSeparator );
         }
 
-        SqlExprTypeDeclUserDefined( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+        SqlExprTypeDeclUserDefined( ImmutableList<SqlTrivia> leading, ISqlNode[] items, ImmutableList<SqlTrivia> trailing )
             : base( leading, items, trailing )
         {
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
             return new SqlExprTypeDeclUserDefined( leading, EnsureArray( children ), trailing );
         }
@@ -48,7 +48,7 @@ namespace CK.SqlServer.Parser
 
         public SqlExprTypeDeclUserDefined RemoveQuoteIfPossible( bool keepIfReservedKeyword )
         {
-            SqlNode[] c = SqlExprBaseListWithSeparator<SqlTokenIdentifier>.ReplaceNonSeparator( Slots, false, t => t.RemoveQuoteIfPossible( keepIfReservedKeyword ) );
+            ISqlNode[] c = SqlExprBaseListWithSeparator<SqlTokenIdentifier>.ReplaceNonSeparator( Slots, false, t => t.RemoveQuoteIfPossible( keepIfReservedKeyword ) );
             return c != null ? new SqlExprTypeDeclUserDefined( c ) : this;
         }
 
@@ -93,7 +93,7 @@ namespace CK.SqlServer.Parser
         string ISqlServerUnifiedTypeDecl.ToStringClean() => ChildrenNodes.ToStringCompact();
 
         [DebuggerStepThrough]
-        internal protected override SqlNode Accept( SqlItemVisitor visitor )
+        internal protected override ISqlNode Accept( SqlItemVisitor visitor )
         {
             return visitor.Visit( this );
         }

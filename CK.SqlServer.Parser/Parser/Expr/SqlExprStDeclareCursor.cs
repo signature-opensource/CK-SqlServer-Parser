@@ -26,17 +26,17 @@ namespace CK.SqlServer.Parser
         {
         }
 
-        SqlExprStDeclareCursor( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+        SqlExprStDeclareCursor( ImmutableList<SqlTrivia> leading, ISqlNode[] items, ImmutableList<SqlTrivia> trailing )
             : base( leading, items, trailing )
         {
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
             return new SqlExprStDeclareCursor( leading, EnsureArray( children ), trailing );
         }
 
-        static SqlNode[] Build( SqlTokenIdentifier declareToken, SqlTokenIdentifier variable, ISqlExprCursor cursor )
+        static ISqlNode[] Build( SqlTokenIdentifier declareToken, SqlTokenIdentifier variable, ISqlExprCursor cursor )
         {
             if( declareToken == null || declareToken.TokenType != SqlTokenType.Declare ) throw new ArgumentException( "declareToken" );
             if( variable == null ) throw new ArgumentException( "variable" );
@@ -51,7 +51,7 @@ namespace CK.SqlServer.Parser
         public ISqlExprCursor Cursor { get { return (ISqlExprCursor)Slots[2]; } }
 
         [DebuggerStepThrough]
-        internal protected override SqlNode Accept( SqlItemVisitor visitor )
+        internal protected override ISqlNode Accept( SqlItemVisitor visitor )
         {
             return visitor.Visit( this );
         }

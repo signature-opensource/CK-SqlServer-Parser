@@ -27,7 +27,7 @@ namespace CK.SqlServer.Parser
         {
         }
 
-        static SqlNode[] Build( IList<SqlNode> items )
+        static ISqlNode[] Build( IList<SqlNode> items )
         {
             if( items == null )
             {
@@ -58,12 +58,12 @@ namespace CK.SqlServer.Parser
             return items.ToArray();
         }
 
-        protected SqlExprCaseWhenSelector( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+        protected SqlExprCaseWhenSelector( ImmutableList<SqlTrivia> leading, ISqlNode[] items, ImmutableList<SqlTrivia> trailing )
             : base( leading, items, trailing )
         {
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
             return new SqlExprCaseWhenSelector( leading, EnsureArray( children ), trailing );
         }
@@ -98,7 +98,7 @@ namespace CK.SqlServer.Parser
         }
 
         [DebuggerStepThrough]
-        internal protected override SqlNode Accept( SqlItemVisitor visitor )
+        internal protected override ISqlNode Accept( SqlItemVisitor visitor )
         {
             return visitor.Visit( this );
         }

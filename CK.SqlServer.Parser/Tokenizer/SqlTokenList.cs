@@ -62,7 +62,7 @@ namespace CK.SqlServer.Parser
         /// <summary>
         /// Gets the <see cref="Tokens"/>: the children of this list are its tokens.
         /// </summary>
-        public override IReadOnlyList<SqlNode> ChildrenNodes => _tokens;
+        public override IReadOnlyList<ISqlNode> ChildrenNodes => _tokens;
 
         /// <summary>
         /// Gets the list of tokens.
@@ -74,7 +74,7 @@ namespace CK.SqlServer.Parser
         /// </summary>
         public override IEnumerable<SqlToken> AllTokens => _tokens;
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> content, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
         {
             return new SqlTokenList<T>( _tokens == content ? _tokens : content.Cast<T>().ToReadOnlyList(), leading, trailing );
         }
@@ -89,7 +89,7 @@ namespace CK.SqlServer.Parser
 
 
         [DebuggerStepThrough]
-        internal protected override SqlNode Accept( SqlItemVisitor visitor )
+        internal protected override ISqlNode Accept( SqlItemVisitor visitor )
         {
             return visitor.Visit( this );
         }

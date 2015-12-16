@@ -13,7 +13,7 @@ using System.Text;
 namespace CK.SqlServer.Parser
 {
 
-    public interface ISelectSpecification
+    public interface ISelectSpecification : ISqlNode
     {
         /// <summary>
         /// Gets the operator token type: it can be: <see cref="SqlTokenType.Union"/>, <see cref="SqlTokenType.Except"/>, <see cref="SqlTokenType.Intersect"/>

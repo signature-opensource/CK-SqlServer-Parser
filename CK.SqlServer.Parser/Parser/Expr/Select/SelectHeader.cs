@@ -32,7 +32,7 @@ namespace CK.SqlServer.Parser
         {
         }
 
-        internal SelectHeader( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+        internal SelectHeader( ImmutableList<SqlTrivia> leading, ISqlNode[] items, ImmutableList<SqlTrivia> trailing )
             : base( leading, items, trailing )
         {
             _allOrDistinct = (SqlTokenIdentifier)Slots.FirstOrDefault( t => t.IsToken( SqlTokenType.All ) || t.IsToken( SqlTokenType.Distinct ) );
@@ -42,12 +42,12 @@ namespace CK.SqlServer.Parser
             _withTies = Slots.Any( t => t.IsToken( SqlTokenType.With ) );
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
             return new SelectHeader( leading, EnsureArray( children ), trailing );
         }
 
-        static SqlNode[] Build( SqlTokenIdentifier select, SqlTokenIdentifier allOrDistinct, SqlTokenIdentifier top, SqlExpr topExpression, SqlTokenIdentifier percent, SqlTokenIdentifier with, SqlTokenIdentifier ties )
+        static ISqlNode[] Build( SqlTokenIdentifier select, SqlTokenIdentifier allOrDistinct, SqlTokenIdentifier top, SqlExpr topExpression, SqlTokenIdentifier percent, SqlTokenIdentifier with, SqlTokenIdentifier ties )
         {
             var exprs = new List<SqlNode>( 9 );
             if( select == null ) throw new ArgumentNullException( "select" );
@@ -77,7 +77,7 @@ namespace CK.SqlServer.Parser
         public bool WithTies { get { return _withTies; } }
 
         [DebuggerStepThrough]
-        internal protected override SqlNode Accept( SqlItemVisitor visitor )
+        internal protected override ISqlNode Accept( SqlItemVisitor visitor )
         {
             return visitor.Visit( this );
         }

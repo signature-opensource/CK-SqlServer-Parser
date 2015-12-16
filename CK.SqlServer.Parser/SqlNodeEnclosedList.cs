@@ -14,19 +14,19 @@ namespace CK.SqlServer.Parser
     /// Abstract base class for an enclosed list of nodes.
     /// </summary>
     public abstract class SqlNodeEnclosedList<TOpener,T,TCloser> : SqlNode, IReadOnlyList<T>
-        where TOpener : SqlNode
-        where T : SqlNode
-        where TCloser : SqlNode
+        where TOpener : ISqlNode
+        where T : ISqlNode
+        where TCloser : ISqlNode
     {
-        readonly SqlNode[] _items;
+        readonly ISqlNode[] _items;
 
-        protected SqlNodeEnclosedList( IEnumerable<SqlNode> enclosedItems, ImmutableList<SqlTrivia> leading = null, ImmutableList<SqlTrivia> trailing = null )
+        protected SqlNodeEnclosedList( IEnumerable<ISqlNode> enclosedItems, ImmutableList<SqlTrivia> leading = null, ImmutableList<SqlTrivia> trailing = null )
             : base( leading, trailing )
         {
             _items = enclosedItems.ToArray();
         }
 
-        protected SqlNodeEnclosedList( ImmutableList<SqlTrivia> leading, T[] items, ImmutableList<SqlTrivia> trailing )
+        protected SqlNodeEnclosedList( ImmutableList<SqlTrivia> leading, ISqlNode[] items, ImmutableList<SqlTrivia> trailing )
             : base( leading, trailing )
         {
             Debug.Assert( items != null );
@@ -42,7 +42,7 @@ namespace CK.SqlServer.Parser
         /// <summary>
         /// Gets the direct children if any. Never null.
         /// </summary>
-        public override IReadOnlyList<SqlNode> ChildrenNodes => _items;
+        public override IReadOnlyList<ISqlNode> ChildrenNodes => _items;
 
         public int Count => _items.Length - 2;
 

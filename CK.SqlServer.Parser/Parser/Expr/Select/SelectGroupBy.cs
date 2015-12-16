@@ -27,7 +27,7 @@ namespace CK.SqlServer.Parser
         {
         }
 
-        static SqlNode[] Build( SqlTokenIdentifier groupToken, SqlTokenIdentifier byT, SqlExpr groupContent, SqlTokenIdentifier havingT = null, SqlExpr havingExpression = null )
+        static ISqlNode[] Build( SqlTokenIdentifier groupToken, SqlTokenIdentifier byT, SqlExpr groupContent, SqlTokenIdentifier havingT = null, SqlExpr havingExpression = null )
         {
             if( havingT != null )
             {
@@ -37,12 +37,12 @@ namespace CK.SqlServer.Parser
             return CreateArray<SqlNode>( groupToken, byT, groupContent );
         }
 
-        internal SelectGroupBy( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+        internal SelectGroupBy( ImmutableList<SqlTrivia> leading, ISqlNode[] items, ImmutableList<SqlTrivia> trailing )
             : base( leading, items, trailing )
         {
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
             return new SelectGroupBy( leading, EnsureArray( children ), trailing );
         }
@@ -52,7 +52,7 @@ namespace CK.SqlServer.Parser
         public SqlExpr HavingExpression { get { return Slots.Length > 3 ? (SqlExpr)Slots[4] : null; } }
 
         [DebuggerStepThrough]
-        internal protected override SqlNode Accept( SqlItemVisitor visitor )
+        internal protected override ISqlNode Accept( SqlItemVisitor visitor )
         {
             return visitor.Visit( this );
         }

@@ -27,7 +27,7 @@ namespace CK.SqlServer.Parser
         /// <param name="closePar">Closing parenthesis.</param>
         /// <param name="allowEmpty">False to throw an argument exception if the <paramref name="exprOrCommaTokens"/> is empty.</param>
         /// <param name="validSeparator">Defaults to a predicate that checks that separators are commas (see <see cref="IsCommaSeparator"/>).</param>
-        public SqlExprBaseListWithSeparatorList( SqlTokenOpenPar openPar, IList<SqlNode> exprOrTokens, SqlTokenClosePar closePar, bool allowEmpty, Predicate<SqlNode> validSeparator = null )
+        public SqlExprBaseListWithSeparatorList( SqlTokenOpenPar openPar, IList<ISqlNode> exprOrTokens, SqlTokenClosePar closePar, bool allowEmpty, Predicate<ISqlNode> validSeparator = null )
             : base( openPar, exprOrTokens, closePar, allowEmpty, validSeparator )
         {
         }
@@ -38,12 +38,12 @@ namespace CK.SqlServer.Parser
         /// </summary>
         /// <param name="exprOrTokens">List of tokens or expressions.</param>
         /// <param name="validSeparator">Defaults to a predicate that checks that separators are commas (see <see cref="IsCommaSeparator"/>).</param>
-        public SqlExprBaseListWithSeparatorList( IList<SqlNode> exprOrTokens, bool allowEmpty, Predicate<SqlNode> validSeparator = null )
+        public SqlExprBaseListWithSeparatorList( IList<ISqlNode> exprOrTokens, bool allowEmpty, Predicate<ISqlNode> validSeparator = null )
             : base( exprOrTokens, allowEmpty, validSeparator )
         {
         }
 
-        protected SqlExprBaseListWithSeparatorList( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+        protected SqlExprBaseListWithSeparatorList( ImmutableList<SqlTrivia> leading, ISqlNode[] items, ImmutableList<SqlTrivia> trailing )
             : base( leading, items, trailing )
         {
         }

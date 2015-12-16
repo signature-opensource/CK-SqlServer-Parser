@@ -11,36 +11,36 @@ namespace CK.SqlServer.Parser
 {
     public class SqlPar : SqlNode
     {
-        readonly SNode<SqlTokenOpenPar, SqlNode, SqlTokenClosePar> _items;
+        readonly SNode<SqlTokenOpenPar, ISqlNode, SqlTokenClosePar> _items;
 
-        public SqlPar( SqlTokenOpenPar opener, SqlNode content, SqlTokenClosePar closer )
+        public SqlPar( SqlTokenOpenPar opener, ISqlNode content, SqlTokenClosePar closer )
             : this( null, opener, content, closer, null )
         {
         }
 
         public SqlTokenOpenPar Opener => _items.O1;
 
-        public SqlNode Content => _items.O2;
+        public ISqlNode Content => _items.O2;
 
         public SqlTokenClosePar Closer => _items.O3;
 
-        public override IReadOnlyList<SqlNode> ChildrenNodes => _items;
+        public override IReadOnlyList<ISqlNode> ChildrenNodes => _items;
 
-        public override SqlNode UnPar => Content.UnPar;
+        public override ISqlNode UnPar => Content.UnPar;
 
-        SqlPar( ImmutableList<SqlTrivia> leading, SqlTokenOpenPar opener, SqlNode content, SqlTokenClosePar closer, ImmutableList<SqlTrivia> trailing )
+        SqlPar( ImmutableList<SqlTrivia> leading, SqlTokenOpenPar opener, ISqlNode content, SqlTokenClosePar closer, ImmutableList<SqlTrivia> trailing )
             : base( leading, trailing )
         {
-            _items = new SNode<SqlTokenOpenPar, SqlNode, SqlTokenClosePar>( opener, content, closer );
+            _items = new SNode<SqlTokenOpenPar, ISqlNode, SqlTokenClosePar>( opener, content, closer );
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
             return new SqlPar( leading, (SqlTokenOpenPar)children[0], children[1], (SqlTokenClosePar)children[2], trailing );
         }
 
         [DebuggerStepThrough]
-        internal protected override SqlNode Accept( SqlItemVisitor visitor )
+        internal protected override ISqlNode Accept( SqlItemVisitor visitor )
         {
             return visitor.Visit( this );
         }

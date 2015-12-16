@@ -19,15 +19,15 @@ namespace CK.SqlServer.Parser
         where TSep : SqlNode
         where TCloser : SqlNode
     {
-        readonly SqlNode[] _items;
+        readonly ISqlNode[] _items;
 
-        protected SqlNodeEnclosedSeparatedList( IEnumerable<SqlNode> enclosedItems, ImmutableList<SqlTrivia> leading = null, ImmutableList<SqlTrivia> trailing = null )
+        protected SqlNodeEnclosedSeparatedList( IEnumerable<ISqlNode> enclosedItems, ImmutableList<SqlTrivia> leading = null, ImmutableList<SqlTrivia> trailing = null )
             : base( leading, trailing )
         {
             _items = enclosedItems.ToArray();
         }
 
-        protected SqlNodeEnclosedSeparatedList( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+        protected SqlNodeEnclosedSeparatedList( ImmutableList<SqlTrivia> leading, ISqlNode[] items, ImmutableList<SqlTrivia> trailing )
             : base( leading, trailing )
         {
             Debug.Assert( items != null );
@@ -43,7 +43,7 @@ namespace CK.SqlServer.Parser
         /// <summary>
         /// Gets the direct children if any. Never null.
         /// </summary>
-        public override IReadOnlyList<SqlNode> ChildrenNodes => _items;
+        public override IReadOnlyList<ISqlNode> ChildrenNodes => _items;
 
         public int Count => _items.Length / 2 - 1;
 

@@ -18,12 +18,12 @@ namespace CK.SqlServer.Parser
         {
         }
 
-        internal SqlNoExprOverClause( ImmutableList<SqlTrivia> leading, SqlNode[] slots, ImmutableList<SqlTrivia> trailing )
+        internal SqlNoExprOverClause( ImmutableList<SqlTrivia> leading, ISqlNode[] slots, ImmutableList<SqlTrivia> trailing )
             : base( leading, slots, trailing )
         {
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
             return new SqlNoExprOverClause( leading, EnsureArray( children ), trailing );
         }
@@ -33,7 +33,7 @@ namespace CK.SqlServer.Parser
         public SqlExpr OverExpression { get { return (SqlExpr)Slots[1]; } }
 
         [DebuggerStepThrough]
-        internal protected override SqlNode Accept( SqlItemVisitor visitor )
+        internal protected override ISqlNode Accept( SqlItemVisitor visitor )
         {
             return visitor.Visit( this );
         }

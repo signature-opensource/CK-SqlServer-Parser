@@ -80,7 +80,7 @@ namespace CK.SqlServer.Parser
             return String.Compare( _name, name, StringComparison.OrdinalIgnoreCase ) == 0; 
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> content, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
         {
             return new SqlTokenIdentifier( TokenType, _name, leading, trailing );
         }
@@ -104,7 +104,7 @@ namespace CK.SqlServer.Parser
 
 
         [DebuggerStepThrough]
-        internal protected override SqlNode Accept( SqlItemVisitor visitor )
+        internal protected override ISqlNode Accept( SqlItemVisitor visitor )
         {
             return visitor.Visit( this );
         }

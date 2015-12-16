@@ -15,17 +15,17 @@ namespace CK.SqlServer.Parser
         {
         }
 
-        SqlExprStView( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+        SqlExprStView( ImmutableList<SqlTrivia> leading, ISqlNode[] items, ImmutableList<SqlTrivia> trailing )
             : base( leading, items, trailing )
         {
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
             return new SqlExprStView( leading, EnsureArray( children ), trailing );
         }
 
-        static SqlNode[] Build( SqlTokenIdentifier alterOrCreate, SqlTokenIdentifier type, SqlExprMultiIdentifier name, SqlExprColumnList columns, SqlExprUnmodeledItems options, SqlTokenIdentifier asToken, SqlItem select )
+        static ISqlNode[] Build( SqlTokenIdentifier alterOrCreate, SqlTokenIdentifier type, SqlExprMultiIdentifier name, SqlExprColumnList columns, SqlExprUnmodeledItems options, SqlTokenIdentifier asToken, SqlItem select )
         {
             if( columns == null ) 
             {
@@ -81,7 +81,7 @@ namespace CK.SqlServer.Parser
         public SqlItem Select { get { return (SqlItem)Slots[Slots.Length - 1]; } }
 
         [DebuggerStepThrough]
-        internal protected override SqlNode Accept( SqlItemVisitor visitor )
+        internal protected override ISqlNode Accept( SqlItemVisitor visitor )
         {
             return visitor.Visit( this );
         }

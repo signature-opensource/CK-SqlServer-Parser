@@ -15,7 +15,7 @@ namespace CK.SqlServer.Parser
     /// </summary>
     public abstract class SqlExpr : SqlItem
     {
-        internal SqlExpr( ImmutableList<SqlTrivia> leading, SqlNode[] slots, ImmutableList<SqlTrivia> trailing )
+        internal SqlExpr( ImmutableList<SqlTrivia> leading, ISqlNode[] slots, ImmutableList<SqlTrivia> trailing )
             : base( leading, slots, trailing )
         {
             Debug.Assert( slots != null && slots.Length >= 2 && slots[0] is SqlTokenList<SqlTokenOpenPar> && slots[slots.Length - 1] is SqlTokenList<SqlTokenClosePar> );
@@ -34,7 +34,7 @@ namespace CK.SqlServer.Parser
         /// <summary>
         /// Gets the sql items without the enclosing parenthesis if they exist.
         /// </summary>
-        public IEnumerable<SqlNode> ItemsWithoutParenthesis { get { return Slots.Skip( 1 ).Take( Slots.Length - 2 ); } }
+        public IEnumerable<ISqlNode> ItemsWithoutParenthesis { get { return Slots.Skip( 1 ).Take( Slots.Length - 2 ); } }
 
         /// <summary>
         /// Gets the tokens without the enclosing parenthesis if they exist.
@@ -65,7 +65,7 @@ namespace CK.SqlServer.Parser
         /// <param name="openPar">Opening parenthesis token.</param>
         /// <param name="closePar">Closing parenthesis token.</param>
         /// <returns>An array of <see cref="SqlNode"/>.</returns>
-        protected SqlNode[] EncloseComponents( SqlTokenOpenPar openPar, SqlTokenClosePar closePar )
+        protected ISqlNode[] EncloseComponents( SqlTokenOpenPar openPar, SqlTokenClosePar closePar )
         {
             return CreateEnclosedArray( openPar, Slots, closePar );
         }

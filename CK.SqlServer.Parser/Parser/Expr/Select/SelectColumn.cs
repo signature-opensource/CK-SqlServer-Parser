@@ -37,7 +37,7 @@ namespace CK.SqlServer.Parser
         {
         }
 
-        static SqlNode[] Build( ISqlIdentifier colName, SqlTokenTerminal assignT, SqlExpr definition )
+        static ISqlNode[] Build( ISqlIdentifier colName, SqlTokenTerminal assignT, SqlExpr definition )
         {
             if( colName == null ) throw new ArgumentNullException( "colName" );
             if( assignT == null ) throw new ArgumentNullException( "assignT" );
@@ -46,7 +46,7 @@ namespace CK.SqlServer.Parser
             return CreateArray( (SqlNode)colName, assignT, definition );
         }
 
-        static SqlNode[] Build( SqlExpr definition, SqlTokenIdentifier asT, ISqlIdentifier colName )
+        static ISqlNode[] Build( SqlExpr definition, SqlTokenIdentifier asT, ISqlIdentifier colName )
         {
             if( definition == null ) throw new ArgumentNullException( "definition" );
             if( colName == null ) throw new ArgumentNullException( "colName" );
@@ -70,14 +70,14 @@ namespace CK.SqlServer.Parser
             return CreateArray<SqlNode>( definition, asT, (SqlNode)colName );
         }
 
-        static SqlNode[] Build( SqlExpr definition, ISqlIdentifier colName )
+        static ISqlNode[] Build( SqlExpr definition, ISqlIdentifier colName )
         {
             if( definition == null ) throw new ArgumentNullException( "definition" );
             if( colName == null ) return CreateArray( definition );
             return Build( definition, null, colName );
         }
 
-        internal SelectColumn( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+        internal SelectColumn( ImmutableList<SqlTrivia> leading, ISqlNode[] items, ImmutableList<SqlTrivia> trailing )
             : base( leading, items, trailing )
         {
             if( Slots.Length == 1 ) _definition = (SqlExpr)Slots[0];
@@ -97,7 +97,7 @@ namespace CK.SqlServer.Parser
             }
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
             return new SelectColumn( leading, EnsureArray( children ), trailing );
         }
@@ -113,7 +113,7 @@ namespace CK.SqlServer.Parser
         public SqlExpr Definition { get { return _definition; } }
 
         [DebuggerStepThrough]
-        internal protected override SqlNode Accept( SqlItemVisitor visitor )
+        internal protected override ISqlNode Accept( SqlItemVisitor visitor )
         {
             return visitor.Visit( this );
         }

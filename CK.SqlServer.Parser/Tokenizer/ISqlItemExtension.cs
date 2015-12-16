@@ -16,7 +16,7 @@ namespace CK.SqlServer.Parser
         /// <param name="t">Potential unquoted identifier.</param>
         /// <param name="name">Name of the unquoted identifier.</param>
         /// <returns>Whether the token is the named one.</returns>
-        static public bool IsUnquotedIdentifier( this SqlNode t, string name )
+        static public bool IsUnquotedIdentifier( this ISqlNode t, string name )
         {
             SqlTokenIdentifier id = t as SqlTokenIdentifier;
             return id != null && !id.IsQuoted && id.NameEquals( name );
@@ -29,7 +29,7 @@ namespace CK.SqlServer.Parser
         /// <param name="name">Name of the unquoted identifier.</param>
         /// <param name="altName">Alternate name of the unquoted identifier.</param>
         /// <returns>Whether the token the is named one.</returns>
-        static public bool IsUnquotedIdentifier( this SqlNode t, string name, string altName )
+        static public bool IsUnquotedIdentifier( this ISqlNode t, string name, string altName )
         {
             SqlTokenIdentifier id = t as SqlTokenIdentifier;
             return id != null && !id.IsQuoted && (id.NameEquals( name ) || id.NameEquals( altName ));
@@ -40,7 +40,7 @@ namespace CK.SqlServer.Parser
         /// </summary>
         /// <param name="t">Potential dot token.</param>
         /// <returns>Whether the token is a dot.</returns>
-        static public bool IsDotSeparator( this SqlNode t )
+        static public bool IsDotSeparator( this ISqlNode t )
         {
             return (t is SqlToken) && ((SqlToken)t).TokenType == SqlTokenType.Dot;
         }
@@ -50,7 +50,7 @@ namespace CK.SqlServer.Parser
         /// </summary>
         /// <param name="t">Potential literal token.</param>
         /// <returns>Whether the token is a literal.</returns>
-        static public bool IsLiteralToken( this SqlNode t )
+        static public bool IsLiteralToken( this ISqlNode t )
         {
             return (t is SqlToken) && (((SqlToken)t).TokenType & SqlTokenType.LitteralMask) != 0;
         }
@@ -60,7 +60,7 @@ namespace CK.SqlServer.Parser
         /// </summary>
         /// <param name="t">Token to test.</param>
         /// <returns>Whether the token is a dot or double colon token.</returns>
-        static public bool IsDotOrDoubleColonSeparator( this SqlNode t )
+        static public bool IsDotOrDoubleColonSeparator( this ISqlNode t )
         {
             SqlToken token = t as SqlToken;
             return token != null && (token.TokenType == SqlTokenType.Dot || token.TokenType == SqlTokenType.DoubleColons);
@@ -71,7 +71,7 @@ namespace CK.SqlServer.Parser
         /// </summary>
         /// <param name="t">Potential comma, closing parenthesis or semicolon token.</param>
         /// <returns>Whether the token is a comma or a closing parenthesis or the statement terminator.</returns>
-        static public bool IsCommaOrCloseParenthesisOrTerminator( this SqlNode t )
+        static public bool IsCommaOrCloseParenthesisOrTerminator( this ISqlNode t )
         {
             SqlToken token = t as SqlToken;
             return token != null && (token.TokenType == SqlTokenType.EndOfInput || token.TokenType == SqlTokenType.Comma || token.TokenType == SqlTokenType.ClosePar || token.TokenType == SqlTokenType.SemiColon);
@@ -82,7 +82,7 @@ namespace CK.SqlServer.Parser
         /// </summary>
         /// <param name="t">Closing parenthesis or semicolon token.</param>
         /// <returns>Whether the token is closing parenthesis or the statement terminator.</returns>
-        static public bool IsCloseParenthesisOrTerminator( this SqlNode t )
+        static public bool IsCloseParenthesisOrTerminator( this ISqlNode t )
         {
             SqlToken token = t as SqlToken;
             return token != null && (token.TokenType == SqlTokenType.ClosePar || token.TokenType == SqlTokenType.SemiColon);
@@ -93,7 +93,7 @@ namespace CK.SqlServer.Parser
         /// </summary>
         /// <param name="t">Closing parenthesis or semicolon token.</param>
         /// <returns>Whether the token is closing parenthesis or the statement terminator.</returns>
-        static public bool IsCloseParenthesisOrTerminatorOrPossibleStartStatement( this SqlNode t )
+        static public bool IsCloseParenthesisOrTerminatorOrPossibleStartStatement( this ISqlNode t )
         {
             SqlToken token = t as SqlToken;
             return token != null

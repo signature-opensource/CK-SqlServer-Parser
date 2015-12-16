@@ -38,17 +38,17 @@ namespace CK.SqlServer.Parser
         {
         }
 
-        SqlExprStStoredProc( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+        SqlExprStStoredProc( ImmutableList<SqlTrivia> leading, ISqlNode[] items, ImmutableList<SqlTrivia> trailing )
             : base( leading, items, trailing )
         {
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
             return new SqlExprStStoredProc( leading, EnsureArray( children ), trailing );
         }
 
-        static SqlNode[] Build( SqlTokenIdentifier alterOrCreate, SqlTokenIdentifier type, SqlExprMultiIdentifier name, SqlExprParameterList parameters, SqlExprUnmodeledItems options, SqlTokenIdentifier asToken, SqlTokenIdentifier begin, SqlExprStatementList bodyStatements, SqlTokenIdentifier end )
+        static ISqlNode[] Build( SqlTokenIdentifier alterOrCreate, SqlTokenIdentifier type, SqlExprMultiIdentifier name, SqlExprParameterList parameters, SqlExprUnmodeledItems options, SqlTokenIdentifier asToken, SqlTokenIdentifier begin, SqlExprStatementList bodyStatements, SqlTokenIdentifier end )
         {
             if( options != null )
             {
@@ -108,7 +108,7 @@ namespace CK.SqlServer.Parser
 
         public SqlExprUnmodeledItems Options { get { return HasOptions ? (SqlExprUnmodeledItems)Slots[4] : null; } }
 
-        public IEnumerable<SqlNode> Header => Slots.Skip( 1 ).Take( HasOptions ? 4 : 3 );
+        public IEnumerable<ISqlNode> Header => Slots.Skip( 1 ).Take( HasOptions ? 4 : 3 );
 
         public SqlTokenIdentifier AsT { get { return (SqlTokenIdentifier)Slots[HasOptions ? 5 : 4]; } }
 
@@ -121,7 +121,7 @@ namespace CK.SqlServer.Parser
         public SqlTokenIdentifier EndT { get { return HasBeginEnd ? (SqlTokenIdentifier)Slots[ SlotsLengthWithoutTerminator - 1 ] : null; } }
 
         [DebuggerStepThrough]
-        internal protected override SqlNode Accept( SqlItemVisitor visitor )
+        internal protected override ISqlNode Accept( SqlItemVisitor visitor )
         {
             return visitor.Visit( this );
         }

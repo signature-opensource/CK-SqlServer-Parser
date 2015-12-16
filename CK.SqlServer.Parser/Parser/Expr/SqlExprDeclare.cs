@@ -16,7 +16,7 @@ namespace CK.SqlServer.Parser
         {
         }
 
-        static SqlNode[] Build( SqlExprTypedIdentifier declVar, SqlTokenTerminal assignToken = null, SqlExpr initialValue = null )
+        static ISqlNode[] Build( SqlExprTypedIdentifier declVar, SqlTokenTerminal assignToken = null, SqlExpr initialValue = null )
         {
             if( declVar == null ) throw new ArgumentNullException( "declVar" );
             if( !declVar.Identifier.IsVariable ) throw new ArgumentException( "Must be a @VariableName", "variable" );
@@ -37,12 +37,12 @@ namespace CK.SqlServer.Parser
             }
         }
 
-        internal SqlExprDeclare( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+        internal SqlExprDeclare( ImmutableList<SqlTrivia> leading, ISqlNode[] items, ImmutableList<SqlTrivia> trailing )
             : base( leading, items, trailing )
         {
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
             return new SqlExprDeclare( leading, EnsureArray( children ), trailing );
         }
@@ -56,7 +56,7 @@ namespace CK.SqlServer.Parser
         public bool HasInitialValue { get { return Slots.Length > 1; } }
 
         [DebuggerStepThrough]
-        internal protected override SqlNode Accept( SqlItemVisitor visitor )
+        internal protected override ISqlNode Accept( SqlItemVisitor visitor )
         {
             return visitor.Visit( this );
         }

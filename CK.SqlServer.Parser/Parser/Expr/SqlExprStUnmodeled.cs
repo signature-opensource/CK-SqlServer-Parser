@@ -27,12 +27,12 @@ namespace CK.SqlServer.Parser
             if( content == null ) throw new ArgumentNullException( "content" );
         }
 
-        SqlExprStUnmodeled( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+        SqlExprStUnmodeled( ImmutableList<SqlTrivia> leading, ISqlNode[] items, ImmutableList<SqlTrivia> trailing )
             : base( leading, items, trailing )
         {
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
             return new SqlExprStUnmodeled( leading, EnsureArray( children ), trailing );
         }
@@ -40,7 +40,7 @@ namespace CK.SqlServer.Parser
         public SqlItem Content { get { return (SqlItem)Slots[0]; } }
 
         [DebuggerStepThrough]
-        internal protected override SqlNode Accept( SqlItemVisitor visitor )
+        internal protected override ISqlNode Accept( SqlItemVisitor visitor )
         {
             return visitor.Visit( this );
         }

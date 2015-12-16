@@ -30,7 +30,7 @@ namespace CK.SqlServer.Parser
             Debug.Assert( t != SqlTokenType.ClosePar || GetType().Name == "SqlTokenClosePar" );
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> content, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
         {
             return new SqlTokenTerminal( TokenType, leading, trailing );
         }
@@ -69,7 +69,7 @@ namespace CK.SqlServer.Parser
         }
 
         [DebuggerStepThrough]
-        internal protected override SqlNode Accept( SqlItemVisitor visitor )
+        internal protected override ISqlNode Accept( SqlItemVisitor visitor )
         {
             return visitor.Visit( this );
         }

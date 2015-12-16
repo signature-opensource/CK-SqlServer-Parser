@@ -30,7 +30,7 @@ namespace CK.SqlServer.Parser
         {
         }
 
-        static SqlNode[] Build( ISelectSpecification spec, SelectOrderBy orderBy, SelectFor forPart, SelectOption option )
+        static ISqlNode[] Build( ISelectSpecification spec, SelectOrderBy orderBy, SelectFor forPart, SelectOption option )
         {
             if( spec == null ) throw new ArgumentNullException( "spec" );
             var c = new List<SqlNode>();
@@ -43,7 +43,7 @@ namespace CK.SqlServer.Parser
             return c.ToArray();
         }
 
-        internal SelectQuery( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+        internal SelectQuery( ImmutableList<SqlTrivia> leading, ISqlNode[] items, ImmutableList<SqlTrivia> trailing )
             : base( leading, items, trailing )
         {
             _orderBy = Slots.OfType<SelectOrderBy>().FirstOrDefault();
@@ -51,7 +51,7 @@ namespace CK.SqlServer.Parser
             _option = Slots.OfType<SelectOption>().FirstOrDefault();
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
             return new SelectQuery( leading, EnsureArray( children ), trailing );
         }
@@ -61,7 +61,7 @@ namespace CK.SqlServer.Parser
         public SelectOrderBy Orderby { get { return _orderBy; } }
 
         [DebuggerStepThrough]
-        internal protected override SqlNode Accept( SqlItemVisitor visitor )
+        internal protected override ISqlNode Accept( SqlItemVisitor visitor )
         {
             return visitor.Visit( this );
         }

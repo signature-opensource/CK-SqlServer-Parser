@@ -157,7 +157,7 @@ namespace CK.SqlServer.Parser
                 if( R.Current.TokenType == SqlTokenType.Comma )
                 {
                     Debug.Assert( !(left is SqlExprCommaList) );
-                    var items = new List<SqlNode>();
+                    var items = new List<ISqlNode>();
                     items.Add( left );
                     items.Add( R.Read<SqlTokenTerminal>() );
                     for( ; ; )
@@ -377,7 +377,7 @@ namespace CK.SqlServer.Parser
                 e = null;
                 SqlTokenOpenPar openPar;
                 SqlTokenClosePar closePar;
-                List<SqlNode> items;
+                List<ISqlNode> items;
                 if( !IsCommaList<SqlExpr>( out openPar, out items, out closePar, expectParenthesis, MatchInList ) ) return false;
                 if( items.Count == 1 && items[0] is SqlExprCommaList )
                 {

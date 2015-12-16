@@ -26,7 +26,7 @@ namespace CK.SqlServer.Parser
         {
         }
 
-        static SqlNode[] Build( SqlTokenIdentifier id, SqlTokenTerminal colon )
+        static ISqlNode[] Build( SqlTokenIdentifier id, SqlTokenTerminal colon )
         {
             if( id == null
                 || id.IsQuoted
@@ -38,12 +38,12 @@ namespace CK.SqlServer.Parser
             return CreateArray<SqlNode>( id, colon );
         }
 
-        SqlExprStLabelDef( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+        SqlExprStLabelDef( ImmutableList<SqlTrivia> leading, ISqlNode[] items, ImmutableList<SqlTrivia> trailing )
             : base( leading, items, trailing )
         {
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
             return new SqlExprStLabelDef( leading, EnsureArray( children ), trailing );
         }
@@ -51,7 +51,7 @@ namespace CK.SqlServer.Parser
         public SqlTokenIdentifier IdentifierT { get { return (SqlTokenIdentifier)Slots[0]; } }
 
         [DebuggerStepThrough]
-        internal protected override SqlNode Accept( SqlItemVisitor visitor )
+        internal protected override ISqlNode Accept( SqlItemVisitor visitor )
         {
             return visitor.Visit( this );
         }

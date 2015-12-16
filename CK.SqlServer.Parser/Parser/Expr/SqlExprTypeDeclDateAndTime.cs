@@ -83,7 +83,7 @@ namespace CK.SqlServer.Parser
             SyntaxSecondScale = -1;
         }
 
-        SqlExprTypeDeclDateAndTime( ImmutableList<SqlTrivia> leading, SqlNode[] children, ImmutableList<SqlTrivia> trailing )
+        SqlExprTypeDeclDateAndTime( ImmutableList<SqlTrivia> leading, ISqlNode[] children, ImmutableList<SqlTrivia> trailing )
             : base( leading, children, trailing )
         {
             if( Slots.Length == 1 )
@@ -97,7 +97,7 @@ namespace CK.SqlServer.Parser
             else throw new ArgumentException( "Invalid datetime." );
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
             return new SqlExprTypeDeclDateAndTime( leading, EnsureArray( children ), trailing );
         }
@@ -111,7 +111,7 @@ namespace CK.SqlServer.Parser
         string ISqlServerUnifiedTypeDecl.ToStringClean() => ChildrenNodes.ToStringCompact();
 
         [DebuggerStepThrough]
-        internal protected override SqlNode Accept( SqlItemVisitor visitor )
+        internal protected override ISqlNode Accept( SqlItemVisitor visitor )
         {
             return visitor.Visit( this );
         }

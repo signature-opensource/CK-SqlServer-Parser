@@ -24,12 +24,12 @@ namespace CK.SqlServer.Parser
     {
         readonly SqlTokenTerminal _stmtTerminator;
 
-        protected SqlExprBaseSt( IList<SqlNode> content, SqlTokenTerminal statementTerminator = null )
+        protected SqlExprBaseSt( IList<ISqlNode> content, SqlTokenTerminal statementTerminator = null )
             : this( null, Build( content, statementTerminator ), null )
         {
         }
 
-        private static SqlNode[] Build( IList<SqlNode> content, SqlTokenTerminal statementTerminator )
+        private static ISqlNode[] Build( IList<ISqlNode> content, SqlTokenTerminal statementTerminator )
         {
             if( statementTerminator != null )
             {
@@ -39,7 +39,7 @@ namespace CK.SqlServer.Parser
             return content.ToArray();
         }
 
-        protected SqlExprBaseSt( ImmutableList<SqlTrivia> leading, SqlNode[] slots, ImmutableList<SqlTrivia> trailing )
+        protected SqlExprBaseSt( ImmutableList<SqlTrivia> leading, ISqlNode[] slots, ImmutableList<SqlTrivia> trailing )
             : base( leading, slots, trailing )
         {
             _stmtTerminator = slots.Length > 0 ? slots[slots.Length-1] as SqlTokenTerminal : null;
@@ -53,7 +53,7 @@ namespace CK.SqlServer.Parser
 
         public SqlTokenTerminal StatementTerminator { get { return _stmtTerminator; } }
 
-        public IEnumerable<SqlNode> ComponentsWithoutTerminator
+        public IEnumerable<ISqlNode> ComponentsWithoutTerminator
         {
             get { return _stmtTerminator != null ? Slots.Take( Slots.Length - 1 ) : Slots; }
         }

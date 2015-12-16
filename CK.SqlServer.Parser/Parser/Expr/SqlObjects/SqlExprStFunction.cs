@@ -17,12 +17,12 @@ namespace CK.SqlServer.Parser
 {
     public abstract class SqlExprStFunction : SqlExprBaseSt
     {
-        protected SqlExprStFunction( SqlNode[] items, SqlTokenTerminal term )
+        protected SqlExprStFunction( ISqlNode[] items, SqlTokenTerminal term )
             : base( items, term )
         {
         }
 
-        protected SqlExprStFunction( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+        protected SqlExprStFunction( ImmutableList<SqlTrivia> leading, ISqlNode[] items, ImmutableList<SqlTrivia> trailing )
             : base( leading, items, trailing )
         {
         }

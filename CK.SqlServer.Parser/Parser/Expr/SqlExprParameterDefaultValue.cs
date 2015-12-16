@@ -30,7 +30,7 @@ namespace CK.SqlServer.Parser
             if( variable == null ) throw new ArgumentNullException( "variable" );
         }
 
-        static SqlNode[] Build( SqlTokenTerminal assignToken, SqlTokenTerminal minusSign, SqlTokenBaseLiteral value )
+        static ISqlNode[] Build( SqlTokenTerminal assignToken, SqlTokenTerminal minusSign, SqlTokenBaseLiteral value )
         {
             if( assignToken == null ) throw new ArgumentNullException( "assignToken" );
             if( minusSign != null && minusSign.TokenType != SqlTokenType.Minus ) throw new ArgumentException( "Must be null or minus." );
@@ -39,12 +39,12 @@ namespace CK.SqlServer.Parser
             return minusSign == null ? CreateArray<SqlNode>( assignToken, value ) : CreateArray<SqlNode>( assignToken, minusSign, value );
         }
 
-        internal SqlExprParameterDefaultValue( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+        internal SqlExprParameterDefaultValue( ImmutableList<SqlTrivia> leading, ISqlNode[] items, ImmutableList<SqlTrivia> trailing )
             : base( leading, items, trailing )
         {
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
             return new SqlExprParameterDefaultValue( leading, EnsureArray( children ), trailing );
         }
@@ -108,7 +108,7 @@ namespace CK.SqlServer.Parser
         }
 
         [DebuggerStepThrough]
-        internal protected override SqlNode Accept( SqlItemVisitor visitor )
+        internal protected override ISqlNode Accept( SqlItemVisitor visitor )
         {
             return visitor.Visit( this );
         }

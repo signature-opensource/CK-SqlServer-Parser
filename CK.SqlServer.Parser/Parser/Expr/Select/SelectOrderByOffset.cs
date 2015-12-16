@@ -28,12 +28,12 @@ namespace CK.SqlServer.Parser
         {
         }
 
-        internal SelectOrderByOffset( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+        internal SelectOrderByOffset( ImmutableList<SqlTrivia> leading, ISqlNode[] items, ImmutableList<SqlTrivia> trailing )
             : base( leading, items, trailing )
         {
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
             return new SelectOrderByOffset( leading, EnsureArray( children ), trailing );
         }
@@ -58,7 +58,7 @@ namespace CK.SqlServer.Parser
         public SqlTokenIdentifier FetchOnlyT { get { return HasFetchClause ? (SqlTokenIdentifier)Slots[7] : null; } }
 
         [DebuggerStepThrough]
-        internal protected override SqlNode Accept( SqlItemVisitor visitor )
+        internal protected override ISqlNode Accept( SqlItemVisitor visitor )
         {
             return visitor.Visit( this );
         }

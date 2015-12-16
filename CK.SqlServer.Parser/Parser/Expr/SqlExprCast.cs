@@ -22,7 +22,7 @@ namespace CK.SqlServer.Parser
         {
         }
 
-        static SqlNode[] Build( SqlTokenIdentifier castT, SqlTokenOpenPar openPar, SqlExpr e, SqlTokenIdentifier asT, SqlExprTypeDecl type, SqlTokenClosePar closePar )
+        static ISqlNode[] Build( SqlTokenIdentifier castT, SqlTokenOpenPar openPar, SqlExpr e, SqlTokenIdentifier asT, SqlExprTypeDecl type, SqlTokenClosePar closePar )
         {
             if( castT == null ) throw new ArgumentNullException( "castTok" );
             if( openPar == null ) throw new ArgumentNullException( "openPar" );
@@ -33,12 +33,12 @@ namespace CK.SqlServer.Parser
             return CreateArray<SqlNode>( SqlToken.EmptyOpenPar, castT, openPar, e, asT, type, closePar, SqlToken.EmptyClosePar );
         }
 
-        protected SqlExprCast( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+        protected SqlExprCast( ImmutableList<SqlTrivia> leading, ISqlNode[] items, ImmutableList<SqlTrivia> trailing )
             : base( leading, items, trailing )
         {
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
             return new SqlExprCast( leading, EnsureArray( children ), trailing );
         }
@@ -56,7 +56,7 @@ namespace CK.SqlServer.Parser
         public SqlTokenClosePar ClosePar { get { return (SqlTokenClosePar)Slots[2]; } }
 
         [DebuggerStepThrough]
-        internal protected override SqlNode Accept( SqlItemVisitor visitor )
+        internal protected override ISqlNode Accept( SqlItemVisitor visitor )
         {
             return visitor.Visit( this );
         }

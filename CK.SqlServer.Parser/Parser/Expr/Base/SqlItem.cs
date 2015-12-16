@@ -17,16 +17,16 @@ namespace CK.SqlServer.Parser
     /// </summary>
     public abstract class SqlItem : SqlNode
     {
-        protected readonly SqlNode[] Slots;
+        protected readonly ISqlNode[] Slots;
 
-        protected SqlItem( ImmutableList<SqlTrivia> leading, SqlNode[] slots, ImmutableList<SqlTrivia> trailing )
+        protected SqlItem( ImmutableList<SqlTrivia> leading, ISqlNode[] slots, ImmutableList<SqlTrivia> trailing )
             : base( leading, trailing )
         {
             Debug.Assert( slots != null );
             Slots = slots;
         }
 
-        public sealed override IReadOnlyList<SqlNode> ChildrenNodes => Slots;
+        public sealed override IReadOnlyList<ISqlNode> ChildrenNodes => Slots;
 
         static internal T[] EnsureArray<T>( IEnumerable<T> content )
         {
@@ -81,19 +81,19 @@ namespace CK.SqlServer.Parser
             return c;
         }
 
-        static internal SqlNode[] CreateArray( SqlTokenOpenPar openPar, IEnumerable<SqlNode> content, int contentLength, SqlTokenClosePar closePar )
+        static internal ISqlNode[] CreateArray( SqlTokenOpenPar openPar, IEnumerable<ISqlNode> content, int contentLength, SqlTokenClosePar closePar )
         {
             Debug.Assert( contentLength == 0 || !(content.First() is SqlTokenList<SqlTokenOpenPar>) );
             return CreateArray( SqlTokenList<SqlTokenOpenPar>.Create( openPar ), content, 0, contentLength, SqlTokenList<SqlTokenClosePar>.Create( closePar ) );
         }
 
-        static internal SqlNode[] CreateEnclosedArray( IReadOnlyList<SqlNode> content )
+        static internal ISqlNode[] CreateEnclosedArray( IReadOnlyList<ISqlNode> content )
         {
             Debug.Assert( content.Count == 0 || !(content.First() is SqlTokenList<SqlTokenOpenPar>) );
             return CreateArray( SqlToken.EmptyOpenPar, content, 0, content.Count, SqlToken.EmptyClosePar );
         }
 
-        static internal SqlNode[] CreateEnclosedArray( SqlTokenOpenPar prefix, IReadOnlyList<SqlNode> alreadyEnclosedComponents, SqlTokenClosePar suffix )
+        static internal ISqlNode[] CreateEnclosedArray( SqlTokenOpenPar prefix, IReadOnlyList<ISqlNode> alreadyEnclosedComponents, SqlTokenClosePar suffix )
         {
             Debug.Assert( prefix != null && alreadyEnclosedComponents != null && suffix != null );
             Debug.Assert( alreadyEnclosedComponents.Count >= 2 );

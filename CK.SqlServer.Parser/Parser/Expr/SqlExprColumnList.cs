@@ -24,24 +24,24 @@ namespace CK.SqlServer.Parser
         /// <param name="openPar">Opening parenthesis. Can not be null.</param>
         /// <param name="tokens">Comma separated list of <see cref="SqlExprIdentifier"/> (can not be empty).</param>
         /// <param name="closePar">Closing parenthesis. Can not be null.</param>
-        public SqlExprColumnList( SqlTokenOpenPar openPar, IList<SqlNode> tokens, SqlTokenClosePar closePar )
+        public SqlExprColumnList( SqlTokenOpenPar openPar, IList<ISqlNode> tokens, SqlTokenClosePar closePar )
             : base( openPar, tokens, closePar, false )
         {
         }
 
-        protected SqlExprColumnList( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+        protected SqlExprColumnList( ImmutableList<SqlTrivia> leading, ISqlNode[] items, ImmutableList<SqlTrivia> trailing )
             : base( leading, items, trailing )
         {
             Debug.Assert( NonSeparatorCount > 0, "Column list must not be empty." );
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
             return new SqlExprColumnList( leading, EnsureArray( children ), trailing );
         }
 
         [DebuggerStepThrough]
-        internal protected override SqlNode Accept( SqlItemVisitor visitor )
+        internal protected override ISqlNode Accept( SqlItemVisitor visitor )
         {
             return visitor.Visit( this );
         }

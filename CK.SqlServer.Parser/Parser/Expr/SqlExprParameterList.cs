@@ -17,7 +17,7 @@ namespace CK.SqlServer.Parser
         /// <param name="openPar">Opening parenthesis. Can not be null.</param>
         /// <param name="content">Comma separated list of <see cref="SqlExprParameter"/> (possibly empty).</param>
         /// <param name="closePar">Closing parenthesis. Can not be null.</param>
-        public SqlExprParameterList( SqlTokenOpenPar openPar, IList<SqlNode> content, SqlTokenClosePar closePar )
+        public SqlExprParameterList( SqlTokenOpenPar openPar, IList<ISqlNode> content, SqlTokenClosePar closePar )
             : base( openPar, content, closePar, true )
         {
         }
@@ -26,17 +26,17 @@ namespace CK.SqlServer.Parser
         /// Initializes a new list of parameters without parenthesis.
         /// </summary>
         /// <param name="content">Comma separated list of <see cref="SqlExprParameter"/> (possibly empty).</param>
-        public SqlExprParameterList( IList<SqlNode> content )
+        public SqlExprParameterList( IList<ISqlNode> content )
             : base( content, true )
         {
         }
 
-        internal SqlExprParameterList( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+        internal SqlExprParameterList( ImmutableList<SqlTrivia> leading, ISqlNode[] items, ImmutableList<SqlTrivia> trailing )
             : base( leading, items, trailing )
         {
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
             return new SqlExprParameterList( leading, EnsureArray( children ), trailing );
         }
@@ -54,7 +54,7 @@ namespace CK.SqlServer.Parser
         }
 
         [DebuggerStepThrough]
-        internal protected override SqlNode Accept( SqlItemVisitor visitor )
+        internal protected override ISqlNode Accept( SqlItemVisitor visitor )
         {
             return visitor.Visit( this );
         }

@@ -18,7 +18,7 @@ namespace CK.SqlServer.Parser
         {
         }
 
-        static SqlNode[] Build( SqlExprTypedIdentifier declVar, SqlExprParameterDefaultValue defaultValue, SqlTokenIdentifier outputClause, SqlTokenIdentifier readonlyClause )
+        static ISqlNode[] Build( SqlExprTypedIdentifier declVar, SqlExprParameterDefaultValue defaultValue, SqlTokenIdentifier outputClause, SqlTokenIdentifier readonlyClause )
         {
             if( declVar == null ) throw new ArgumentNullException( "declVar" );
             if( !declVar.Identifier.IsVariable ) throw new ArgumentException( "Must be a @VariableName", "variable" );
@@ -83,7 +83,7 @@ namespace CK.SqlServer.Parser
             }
         }
 
-        SqlExprParameter( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+        SqlExprParameter( ImmutableList<SqlTrivia> leading, ISqlNode[] items, ImmutableList<SqlTrivia> trailing )
             : base( leading, items, trailing )
         {
             if( OutputT != null )
@@ -94,12 +94,12 @@ namespace CK.SqlServer.Parser
             }
         }
 
-        static IEnumerable<SqlTrivia> GetAllTrivias( SqlNode n )
+        static IEnumerable<SqlTrivia> GetAllTrivias( ISqlNode n )
         {
             return n.LeadingTrivias.Concat( n.TrailingTrivias ).Concat( n.ChildrenNodes.SelectMany( c => GetAllTrivias( c ) ) );
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
             return new SqlExprParameter( leading, EnsureArray( children ), trailing );
         }
@@ -189,7 +189,7 @@ namespace CK.SqlServer.Parser
         }
 
         [DebuggerStepThrough]
-        internal protected override SqlNode Accept( SqlItemVisitor visitor )
+        internal protected override ISqlNode Accept( SqlItemVisitor visitor )
         {
             return visitor.Visit( this );
         }

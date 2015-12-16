@@ -38,7 +38,7 @@ namespace CK.SqlServer.Parser
         {
         }
 
-        static SqlNode[] Build(
+        static ISqlNode[] Build(
             SqlTokenIdentifier insensitiveOrScrollToken,
             SqlTokenIdentifier scrollOrInsensitiveToken,
             SqlTokenIdentifier cursorToken, 
@@ -86,12 +86,12 @@ namespace CK.SqlServer.Parser
             }
         }
 
-        protected SqlExprCursorSql92( ImmutableList<SqlTrivia> leading, SqlNode[] items, ImmutableList<SqlTrivia> trailing )
+        protected SqlExprCursorSql92( ImmutableList<SqlTrivia> leading, ISqlNode[] items, ImmutableList<SqlTrivia> trailing )
             : base( leading, items, trailing )
         {
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
             return new SqlExprCursorSql92( leading, EnsureArray( children ), trailing );
         }
@@ -112,7 +112,7 @@ namespace CK.SqlServer.Parser
         }
 
         [DebuggerStepThrough]
-        internal protected override SqlNode Accept( SqlItemVisitor visitor )
+        internal protected override ISqlNode Accept( SqlItemVisitor visitor )
         {
             return visitor.Visit( this );
         }
