@@ -33,7 +33,7 @@ namespace CK.SqlServer.Parser
         public SqlExpr OverExpression { get { return (SqlExpr)Slots[1]; } }
 
         [DebuggerStepThrough]
-        internal protected override T Accept<T>( ISqlItemVisitor<T> visitor )
+        internal protected override SqlNode Accept( SqlItemVisitor visitor )
         {
             return visitor.Visit( this );
         }

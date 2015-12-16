@@ -81,9 +81,8 @@ namespace CK.SqlServer.Parser
 
         /// <summary>
         /// Gets the tokens that compose this node.
-        /// Never null but can be empty for empty objects like <see cref="SqlToken.EmptyOpenPar"/> or <see cref="SqlToken.EmptyClosePar"/>.
         /// </summary>
-        public abstract IEnumerable<SqlToken> AllTokens { get; }
+        public virtual IEnumerable<SqlToken> AllTokens => ChildrenNodes.ToTokens();
 
         SqlNode DoLift( ImmutableList<SqlTrivia>.Builder hL, ImmutableList<SqlTrivia>.Builder tL, SqlNode n, bool root )
         {
@@ -244,7 +243,7 @@ namespace CK.SqlServer.Parser
             return DoClone( leading, children, trailing );
         }
 
-        internal protected abstract T Accept<T>( ISqlItemVisitor<T> visitor );
+        internal protected abstract SqlNode Accept( SqlItemVisitor visitor );
 
         /// <summary>
         /// Writes the node with its <see cref="LeadingTrivia"/> and <see cref="TrailingTrivia"/>.

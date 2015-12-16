@@ -321,7 +321,7 @@ namespace CK.SqlServer.Parser
                     List<SqlNode> items;
                     if( !IsCommaList<SqlExprDeclare>( out openPar, out items, out closePar, false, IsVariableDeclare ) ) return false;
                     if( openPar != null || closePar != null ) return R.SetCurrentError( "Unexpected parenthesis in Declare statement." );
-                    if( items.Count == 0 ) return R.SetCurrentError( "Declare expect at least on variable." );
+                    if( items.Count == 0 ) return R.SetCurrentError( "Declare expect at least one variable." );
                     SqlExprDeclareList declarations = new SqlExprDeclareList( items );
                     statement = new SqlExprStDeclare( id, declarations, GetOptionalTerminator() );
                     return true;

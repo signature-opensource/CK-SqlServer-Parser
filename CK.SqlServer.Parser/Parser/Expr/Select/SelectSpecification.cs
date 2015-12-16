@@ -77,7 +77,7 @@ namespace CK.SqlServer.Parser
         public SelectGroupBy GroupByClause { get { return _groupBy; } }
 
         [DebuggerStepThrough]
-        internal protected override T Accept<T>( ISqlItemVisitor<T> visitor )
+        internal protected override SqlNode Accept( SqlItemVisitor visitor )
         {
             return visitor.Visit( this );
         }

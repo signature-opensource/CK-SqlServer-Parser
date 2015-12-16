@@ -19,7 +19,7 @@ namespace CK.SqlServer.Parser
     public class SqlExprColumnList : SqlExprBaseExprList<SqlExprIdentifier>
     {
         /// <summary>
-        /// Initializes a new list of columns with optional enclosing parentheses.
+        /// Initializes a new list of columns.
         /// </summary>
         /// <param name="openPar">Opening parenthesis. Can not be null.</param>
         /// <param name="tokens">Comma separated list of <see cref="SqlExprIdentifier"/> (can not be empty).</param>
@@ -41,7 +41,7 @@ namespace CK.SqlServer.Parser
         }
 
         [DebuggerStepThrough]
-        internal protected override T Accept<T>( ISqlItemVisitor<T> visitor )
+        internal protected override SqlNode Accept( SqlItemVisitor visitor )
         {
             return visitor.Visit( this );
         }

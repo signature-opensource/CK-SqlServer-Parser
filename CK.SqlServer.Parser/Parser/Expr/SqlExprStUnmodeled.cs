@@ -40,7 +40,7 @@ namespace CK.SqlServer.Parser
         public SqlItem Content { get { return (SqlItem)Slots[0]; } }
 
         [DebuggerStepThrough]
-        internal protected override T Accept<T>( ISqlItemVisitor<T> visitor )
+        internal protected override SqlNode Accept( SqlItemVisitor visitor )
         {
             return visitor.Visit( this );
         }

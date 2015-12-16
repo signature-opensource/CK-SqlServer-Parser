@@ -1,10 +1,3 @@
-#region Proprietary License
-/*----------------------------------------------------------------------------
-* This file (CK.SqlServer.Parser\Parser\Expr\Select\SelectOption.cs) is part of CK-Database. 
-* Copyright © 2007-2014, Invenietis <http://www.invenietis.com>. All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -39,7 +32,7 @@ namespace CK.SqlServer.Parser
         public SqlExpr Content { get { return (SqlExpr)Slots[1]; } }
 
         [DebuggerStepThrough]
-        internal protected override T Accept<T>( ISqlItemVisitor<T> visitor )
+        internal protected override SqlNode Accept( SqlItemVisitor visitor )
         {
             return visitor.Visit( this );
         }

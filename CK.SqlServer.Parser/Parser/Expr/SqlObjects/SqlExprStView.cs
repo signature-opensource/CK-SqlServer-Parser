@@ -81,7 +81,7 @@ namespace CK.SqlServer.Parser
         public SqlItem Select { get { return (SqlItem)Slots[Slots.Length - 1]; } }
 
         [DebuggerStepThrough]
-        internal protected override T Accept<T>( ISqlItemVisitor<T> visitor )
+        internal protected override SqlNode Accept( SqlItemVisitor visitor )
         {
             return visitor.Visit( this );
         }

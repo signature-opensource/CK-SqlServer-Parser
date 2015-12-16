@@ -74,58 +74,6 @@ namespace CK.SqlServer.Parser
             return Text;
         }
 
-        public string ToString( SqlTriviaWriteOption option )
-        {
-            switch( TokenType )
-            {
-                case SqlTokenType.LineComment: return option == SqlTriviaWriteOption.Default 
-                                                        ? "--" + Text + Environment.NewLine
-                                                        : " ";
-                case SqlTokenType.StarComment: return option == SqlTriviaWriteOption.Default
-                                                        ? "/*" + Text + "*/"
-                                                        : " ";
-            }
-            if( _text != null && _text.Length > 0 )
-            {
-                return option == SqlTriviaWriteOption.Default ? _text : " ";
-            }
-            return String.Empty;
-        }
-
-
-        /// <summary>
-        /// Writes this trivia either its normal content or only one space.
-        /// Note that when <see cref="IsEmpty"/> is true, nothing is written and false is returned.
-        /// </summary>
-        /// <param name="b">The StringBuilder to use.</param>
-        /// <param name="option">The write option.</param>
-        /// <returns>True if something has been written.</returns>
-        public bool Write( StringBuilder b, SqlTriviaWriteOption option )
-        {
-            switch( TokenType )
-            {
-                case SqlTokenType.LineComment:
-                    {
-                        if( option == SqlTriviaWriteOption.OneSpace ) b.Append( ' ' );
-                        else b.Append( "--" ).Append( Text ).Append( Environment.NewLine );
-                        break;
-                    }
-                case SqlTokenType.StarComment:
-                    {
-                        if( option == SqlTriviaWriteOption.OneSpace ) b.Append( ' ' );
-                        else b.Append( "/*" ).Append( Text ).Append( "*/" );
-                        break;
-                    }
-                default:
-                    {
-                        if( _text == null || _text.Length == 0 ) return false;
-                        if( option == SqlTriviaWriteOption.OneSpace ) b.Append( ' ' );
-                        else b.Append( _text );
-                        break;
-                    }
-            }
-            return true;
-        }
     }
 
 }

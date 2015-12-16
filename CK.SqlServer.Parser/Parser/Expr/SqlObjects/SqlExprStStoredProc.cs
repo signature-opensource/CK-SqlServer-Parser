@@ -85,7 +85,7 @@ namespace CK.SqlServer.Parser
         /// </summary>
         public string ObjectName 
         {
-            get { return Name.AllTokens.ToStringWithoutTrivias( String.Empty ); } 
+            get { return Name.ToString(); } 
         }
 
         /// <summary>
@@ -121,7 +121,7 @@ namespace CK.SqlServer.Parser
         public SqlTokenIdentifier EndT { get { return HasBeginEnd ? (SqlTokenIdentifier)Slots[ SlotsLengthWithoutTerminator - 1 ] : null; } }
 
         [DebuggerStepThrough]
-        internal protected override T Accept<T>( ISqlItemVisitor<T> visitor )
+        internal protected override SqlNode Accept( SqlItemVisitor visitor )
         {
             return visitor.Visit( this );
         }

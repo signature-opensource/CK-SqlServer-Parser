@@ -18,10 +18,9 @@ namespace CK.SqlServer.Parser
 {
     /// <summary>
     /// Base class for comma separated list (possibly empty) of <typeparamref name="T"/> that are <see cref="SqlItem"/> optionally enclosed in parenthesis.
-    /// As a <see cref="ISqlExprList{T}"/> it exposes its items as a <see cref="IReadOnlyList{T}"/>.
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public abstract class SqlExprBaseExprList<T> : SqlExprBaseListWithSeparatorList<T>, ISqlExprList<T> where T : SqlItem 
+    public abstract class SqlExprBaseExprList<T> : SqlExprBaseListWithSeparatorList<T> where T : SqlItem 
     {
         /// <summary>
         /// Initializes a new <see cref="SqlExprBaseExprList{T}"/> of <typeparamref name="T"/> enclosed in a <see cref="SqlTokenOpenPar"/> and a <see cref="SqlTokenClosePar"/>.

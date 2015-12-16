@@ -102,6 +102,13 @@ namespace CK.SqlServer.Parser
             w.Write( ToString() );
         }
 
+
+        [DebuggerStepThrough]
+        internal protected override SqlNode Accept( SqlItemVisitor visitor )
+        {
+            return visitor.Visit( this );
+        }
+
     }
 
 

@@ -58,7 +58,7 @@ namespace CK.SqlServer.Parser
         public SqlTokenIdentifier FetchOnlyT { get { return HasFetchClause ? (SqlTokenIdentifier)Slots[7] : null; } }
 
         [DebuggerStepThrough]
-        internal protected override T Accept<T>( ISqlItemVisitor<T> visitor )
+        internal protected override SqlNode Accept( SqlItemVisitor visitor )
         {
             return visitor.Visit( this );
         }

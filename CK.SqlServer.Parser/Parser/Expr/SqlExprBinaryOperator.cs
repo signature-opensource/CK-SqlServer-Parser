@@ -53,7 +53,7 @@ namespace CK.SqlServer.Parser
         public SqlToken Operator { get { return (SqlToken)base.Middle; } }
 
         [DebuggerStepThrough]
-        internal protected override T Accept<T>( ISqlItemVisitor<T> visitor )
+        internal protected override SqlNode Accept( SqlItemVisitor visitor )
         {
             return visitor.Visit( this );
         }

@@ -445,10 +445,7 @@ namespace CK.SqlServer.Parser
                     }
                     else
                     {
-                        Debug.Assert( (_tokenType & (int)SqlTokenType.TerminalMask) != 0 );
-                        if( _tokenType == (int)SqlTokenType.OpenPar ) _token = new SqlTokenOpenPar( lead, tail );
-                        else if( _tokenType == (int)SqlTokenType.ClosePar ) _token = new SqlTokenClosePar( lead, tail );
-                        else _token = new SqlTokenTerminal( (SqlTokenType)_tokenType, lead, tail );
+                        _token = SqlTokenTerminal.Create( (SqlTokenType)_tokenType, lead, tail );
                     }
                     Debug.Assert( _token != null );
                 }

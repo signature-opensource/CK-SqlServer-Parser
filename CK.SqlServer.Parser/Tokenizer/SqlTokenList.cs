@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using CK.Core;
 using System.Collections.Immutable;
+using System.Diagnostics;
 
 namespace CK.SqlServer.Parser
 {
@@ -84,6 +85,13 @@ namespace CK.SqlServer.Parser
             {
                 t.Write( w );
             }
+        }
+
+
+        [DebuggerStepThrough]
+        internal protected override SqlNode Accept( SqlItemVisitor visitor )
+        {
+            return visitor.Visit( this );
         }
     }
 

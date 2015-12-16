@@ -61,7 +61,12 @@
     <Compile Include="..\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="Parser\Expr\Base\SqlPar.cs" />
+    <Compile Include="SqlNodeEnclosedList.cs" />
+    <Compile Include="SqlNodeEnclosedSeparatedList.cs" />
+    <Compile Include="SqlNodeSeparatedList.cs" />
+    <Compile Include="SqlPar.cs" />
+    <Compile Include="SqlNodeExternal.cs" />
+    <Compile Include="SqlNodeList.cs" />
     <Compile Include="SqlTreeMutator.cs" />
     <Compile Include="Parser\Expr\ISqlExprCursor.cs" />
     <Compile Include="Parser\Expr\SqlExprCursorSql92.cs" />
@@ -90,7 +95,6 @@
     <Compile Include="Parser\Expr\Base\SqlExprBaseSt.cs" />
     <Compile Include="Parser\Expr\Base\SqlItem.cs" />
     <Compile Include="Parser\Expr\ISelectSpecification.cs" />
-    <Compile Include="Parser\Expr\ISqlExprList.cs" />
     <Compile Include="Parser\Expr\ISqlExprUnifiedTypeDecl.cs" />
     <Compile Include="Parser\Expr\ISqlIdentifier.cs" />
     <Compile Include="Parser\Expr\Select\SelectColumn.cs" />
@@ -151,11 +155,12 @@
     <Compile Include="Parser\Expr\SqlExprUnaryOperator.cs" />
     <Compile Include="Parser\Expr\SqlExprUnmodeledItems.cs" />
     <Compile Include="Parser\Expr\SqlNoExprExecuteAs.cs" />
-    <Compile Include="Visitor\ISqlItemVisitor.cs" />
     <Compile Include="Parser\SqlAnalyser.cs" />
     <Compile Include="Parser\SqlAnalyser.Expression.cs" />
     <Compile Include="Parser\SqlAnalyser.Expression.Select.cs" />
     <Compile Include="Parser\SqlAnalyser.LowLevel.cs" />
+    <Compile Include="Tokenizer\Token\Terminal\SqlTokenDot.cs" />
+    <Compile Include="Tokenizer\Token\Terminal\SqlTokenComma.cs" />
     <Compile Include="Visitor\ISqlTextWriter.cs" />
     <Compile Include="Visitor\SqlItemVisitor.cs" />
     <Compile Include="Parser\SqlTokenReader.cs" />
@@ -175,7 +180,7 @@
     <Compile Include="Tokenizer\SqlTriviaExtension.cs" />
     <Compile Include="Tokenizer\SqlTriviaWriteOptions.cs" />
     <Compile Include="Tokenizer\Token\SqlTokenBaseLiteral.cs" />
-    <Compile Include="Tokenizer\Token\SqlTokenClosePar.cs" />
+    <Compile Include="Tokenizer\Token\Terminal\SqlTokenClosePar.cs" />
     <Compile Include="Tokenizer\Token\SqlTokenError.cs" />
     <Compile Include="Tokenizer\Token\SqlTokenIdentifier.cs" />
     <Compile Include="Tokenizer\Token\SqlTokenLiteralBinary.cs" />
@@ -184,8 +189,8 @@
     <Compile Include="Tokenizer\Token\SqlTokenLiteralInteger.cs" />
     <Compile Include="Tokenizer\Token\SqlTokenLiteralMoney.cs" />
     <Compile Include="Tokenizer\Token\SqlTokenLiteralString.cs" />
-    <Compile Include="Tokenizer\Token\SqlTokenOpenPar.cs" />
-    <Compile Include="Tokenizer\Token\SqlTokenTerminal.cs" />
+    <Compile Include="Tokenizer\Token\Terminal\SqlTokenOpenPar.cs" />
+    <Compile Include="Tokenizer\Token\Terminal\SqlTokenTerminal.cs" />
     <Compile Include="Visitor\SqlTextWriter.cs" />
   </ItemGroup>
   <ItemGroup>

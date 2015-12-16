@@ -50,7 +50,7 @@ namespace CK.SqlServer.Parser
         public bool IsDesc { get { return Slots.Length == 2 && ((SqlTokenIdentifier)Slots[1]).TokenType == SqlTokenType.Desc; } }
 
         [DebuggerStepThrough]
-        internal protected override T Accept<T>( ISqlItemVisitor<T> visitor )
+        internal protected override SqlNode Accept( SqlItemVisitor visitor )
         {
             return visitor.Visit( this );
         }

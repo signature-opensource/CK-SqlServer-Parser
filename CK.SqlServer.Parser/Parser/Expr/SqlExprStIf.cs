@@ -56,7 +56,7 @@ namespace CK.SqlServer.Parser
         public SqlExprBaseSt ElseStatement { get { return HasElse ? (SqlExprBaseSt)Slots[4] : null; } }
 
         [DebuggerStepThrough]
-        internal protected override T Accept<T>( ISqlItemVisitor<T> visitor )
+        internal protected override SqlNode Accept( SqlItemVisitor visitor )
         {
             return visitor.Visit( this );
         }

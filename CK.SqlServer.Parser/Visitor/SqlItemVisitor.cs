@@ -5,7 +5,7 @@ using CK.Core;
 
 namespace CK.SqlServer.Parser
 {
-    public class SqlItemVisitor : ISqlItemVisitor<SqlNode>
+    public class SqlItemVisitor
     {
         public virtual SqlNode VisitItem( SqlNode e )
         {
@@ -57,13 +57,69 @@ namespace CK.SqlServer.Parser
         {
             List<SqlNode> modified = VisitItems( e.ChildrenNodes );
             if( modified == null ) return e;
-            return (SqlItem)e.InternalClone( e.LeadingTrivias, modified, e.TrailingTrivias );
+            return (SqlNode)e.InternalClone( e.LeadingTrivias, modified, e.TrailingTrivias );
+        }
+
+        public virtual SqlNode Visit( SqlNodeExternal e )
+        {
+            return VisitStandard( e );
+        }
+
+        public virtual SqlNode Visit<T>( SqlTokenList<T> e ) where T : SqlToken
+        {
+            return VisitStandard( e );
         }
 
         public virtual SqlNode Visit( SqlPar e )
         {
             return VisitStandard( e );
         }
+
+        public virtual SqlNode Visit( SqlTokenLiteralInteger e )
+        {
+            return e;
+        }
+
+        public virtual SqlNode Visit( SqlTokenError e )
+        {
+            return e;
+        }
+
+        public virtual SqlNode Visit( SqlTokenLiteralBinary e )
+        {
+            return e;
+        }
+
+        public virtual SqlNode Visit( SqlTokenLiteralFloat e )
+        {
+            return e;
+        }
+
+        public virtual SqlNode Visit( SqlTokenLiteralDecimal e )
+        {
+            return e;
+        }
+
+        public virtual SqlNode Visit( SqlTokenLiteralMoney e )
+        {
+            return e;
+        }
+
+        public virtual SqlNode Visit( SqlTokenLiteralString e )
+        {
+            return e;
+        }
+
+        public virtual SqlNode Visit( SqlTokenTerminal e )
+        {
+            return e;
+        }
+
+        public virtual SqlNode Visit( SqlTokenIdentifier e )
+        {
+            return e;
+        }
+
 
         public virtual SqlNode Visit( SqlExprUnmodeledItems e )
         {

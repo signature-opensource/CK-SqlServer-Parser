@@ -38,7 +38,7 @@ namespace CK.SqlServer.Parser
             return new SqlExprStEmpty( leading, EnsureArray( children ), trailing );
         }
         [DebuggerStepThrough]
-        internal protected override T Accept<T>( ISqlItemVisitor<T> visitor )
+        internal protected override SqlNode Accept( SqlItemVisitor visitor )
         {
             return visitor.Visit( this );
         }

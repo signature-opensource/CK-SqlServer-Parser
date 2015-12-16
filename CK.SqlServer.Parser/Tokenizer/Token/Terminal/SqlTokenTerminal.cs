@@ -15,16 +15,19 @@ namespace CK.SqlServer.Parser
     /// </summary>
     public class SqlTokenTerminal : SqlToken
     {
-        public static readonly SqlTokenTerminal Dot = new SqlTokenTerminal( SqlTokenType.Dot, null, null );
-        public static readonly SqlTokenTerminal Comma = new SqlTokenTerminal( SqlTokenType.Comma, null, null );
+        public static readonly SqlTokenTerminal Dot = new SqlTokenDot( null, null );
+        public static readonly SqlTokenTerminal Comma = new SqlTokenComma( null, null );
         public static readonly SqlTokenTerminal SemiColon = new SqlTokenTerminal( SqlTokenType.SemiColon, null, null );
         public static readonly SqlTokenOpenPar OpenPar = new SqlTokenOpenPar( null, null );
         public static readonly SqlTokenClosePar ClosePar = new SqlTokenClosePar( null, null );
 
-        public SqlTokenTerminal( SqlTokenType t, ImmutableList<SqlTrivia> leadingTrivia = null, ImmutableList<SqlTrivia> trailingTrivia = null )
+        protected SqlTokenTerminal( SqlTokenType t, ImmutableList<SqlTrivia> leadingTrivia = null, ImmutableList<SqlTrivia> trailingTrivia = null )
             : base( t, leadingTrivia, trailingTrivia )
         {
-            if( (t & SqlTokenType.TerminalMask) == 0 ) throw new ArgumentException( "Invalid token type.", "t" );
+            Debug.Assert( t != SqlTokenType.Comma || GetType().Name == "SqlTokenComma" );
+            Debug.Assert( t != SqlTokenType.Dot || GetType().Name == "SqlTokenDot" );
+            Debug.Assert( t != SqlTokenType.OpenPar || GetType().Name == "SqlTokenOpenPar" );
+            Debug.Assert( t != SqlTokenType.ClosePar || GetType().Name == "SqlTokenClosePar" );
         }
 
         protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> content, ImmutableList<SqlTrivia> trailing )
@@ -32,12 +35,24 @@ namespace CK.SqlServer.Parser
             return new SqlTokenTerminal( TokenType, leading, trailing );
         }
 
+        public static SqlTokenTerminal Create( SqlTokenType t, ImmutableList<SqlTrivia> lead, ImmutableList<SqlTrivia> tail )
+        {
+            if( (t & SqlTokenType.TerminalMask) == 0 ) throw new ArgumentException( "Must be a Terminal token.", "t" );
+            switch( t )
+            {
+                case SqlTokenType.OpenPar: return new SqlTokenOpenPar( lead, tail );
+                case SqlTokenType.ClosePar: return new SqlTokenClosePar( lead, tail );
+                case SqlTokenType.Dot: return new SqlTokenDot( lead, tail );
+                case SqlTokenType.Comma: return new SqlTokenComma( lead, tail );
+            }
+            return new SqlTokenTerminal( t, lead, tail );
+        }
+
         public override void WriteWithoutTrivias( ISqlTextWriter w )
         {
             bool? whiteSpaceBefore = null;
             bool? whiteSpaceAfter = null;
             if( TokenType == SqlTokenType.Dot
-                                || TokenType == SqlTokenType.Comma
                                 || TokenType == SqlTokenType.SemiColon
                                 || TokenType == SqlTokenType.Colon
                                 || TokenType == SqlTokenType.DoubleColons )
@@ -54,7 +69,7 @@ namespace CK.SqlServer.Parser
         }
 
         [DebuggerStepThrough]
-        internal protected override T Accept<T>( ISqlItemVisitor<T> visitor )
+        internal protected override SqlNode Accept( SqlItemVisitor visitor )
         {
             return visitor.Visit( this );
         }

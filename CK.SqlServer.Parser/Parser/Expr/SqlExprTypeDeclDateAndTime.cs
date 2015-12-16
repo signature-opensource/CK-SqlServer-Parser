@@ -111,7 +111,7 @@ namespace CK.SqlServer.Parser
         string ISqlServerUnifiedTypeDecl.ToStringClean() => ChildrenNodes.ToStringCompact();
 
         [DebuggerStepThrough]
-        internal protected override T Accept<T>( ISqlItemVisitor<T> visitor )
+        internal protected override SqlNode Accept( SqlItemVisitor visitor )
         {
             return visitor.Visit( this );
         }

@@ -52,7 +52,7 @@ namespace CK.SqlServer.Parser
         public SqlExpr HavingExpression { get { return Slots.Length > 3 ? (SqlExpr)Slots[4] : null; } }
 
         [DebuggerStepThrough]
-        internal protected override T Accept<T>( ISqlItemVisitor<T> visitor )
+        internal protected override SqlNode Accept( SqlItemVisitor visitor )
         {
             return visitor.Visit( this );
         }

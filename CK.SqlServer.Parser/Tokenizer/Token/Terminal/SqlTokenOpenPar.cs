@@ -22,8 +22,15 @@ namespace CK.SqlServer.Parser
 
         public override void WriteWithoutTrivias( ISqlTextWriter w )
         {
-            w.Write( SqlTokenizer.Explain( TokenType ), false, false );
+            Debug.Assert( SqlTokenizer.Explain( SqlTokenType.OpenPar ) == "(" );
+            w.Write( "(", whiteSpaceBefore: false, whiteSpaceAfter: false );
         }
+
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<SqlNode> content, ImmutableList<SqlTrivia> trailing )
+        {
+            return new SqlTokenOpenPar( leading, trailing );
+        }
+
     }
 
 }

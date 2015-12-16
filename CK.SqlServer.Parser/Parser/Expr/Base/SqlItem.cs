@@ -28,13 +28,6 @@ namespace CK.SqlServer.Parser
 
         public sealed override IReadOnlyList<SqlNode> ChildrenNodes => Slots;
 
-        /// <summary>
-        /// Gets the tokens that compose this item.
-        /// </summary>
-        public override IEnumerable<SqlToken> AllTokens => Slots.ToTokens();
-
-        internal protected abstract T Accept<T>( ISqlItemVisitor<T> visitor );
-
         static internal T[] EnsureArray<T>( IEnumerable<T> content )
         {
             T[] r = content as T[];

@@ -52,7 +52,7 @@ namespace CK.SqlServer.Parser
         public SqlTokenList<SqlTokenIdentifier> EndCatch { get { return (SqlTokenList<SqlTokenIdentifier>)Slots[4]; } }
 
         [DebuggerStepThrough]
-        internal protected override T Accept<T>( ISqlItemVisitor<T> visitor )
+        internal protected override SqlNode Accept( SqlItemVisitor visitor )
         {
             return visitor.Visit( this );
         }
