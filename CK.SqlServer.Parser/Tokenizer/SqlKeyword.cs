@@ -87,7 +87,6 @@ namespace CK.SqlServer.Parser
             "cascade",
             "revert",
             "revoke",
-            "read",
             "backup",
             "any",
             "some",
@@ -170,55 +169,14 @@ namespace CK.SqlServer.Parser
             // "values",
             // "distinct",
             // "cursor",
+            // "scroll",
+            // "insensitive",
+            // "read",
             // "pivot",
 
 
         };
 
-        /// <summary>
-        /// Mapped to SqlTokenType.IdentifierStandardStatement.
-        /// </summary>
-        static string[] _keyWordStartStatement = new string[] 
-        {
-            // Explicitly mapped.
-            // "select",
-            // "begin",
-            // "end",
-            // "create",
-            // "drop",
-            // "alter",
-            // "declare",
-            // "break",
-            // "continue",
-            // "goto",
-            // "while",
-            // "if",
-            // "deallocate",
-            // "close",
-            // "fetch",
-            // "open",
-            // "return",
-            // "throw",
-            // "set",
-            // "update",
-            // "insert",
-
-            "raiserror",
-            "waitfor",
-            "use",
-            "truncate",
-            "print",
-            "commit",
-            "rollback",
-            "delete",
-            "updatetext",
-            "merge",
-            "kill",
-            "readtext",
-            "writetext",
-            "dbcc",
-
-        };
         #endregion
 
         static Dictionary<string,SqlTokenType> _keywords;
@@ -324,6 +282,8 @@ namespace CK.SqlServer.Parser
             _keywords.Add( "varbinary", SqlTokenType.IdentifierTypeVarBinary );
             _keywords.Add( "binary", SqlTokenType.IdentifierTypeBinary );
 
+            Debug.Assert( _keywords.Values.All( t => !t.IsReservedKeyword() ), "Sql database type names are not reserved keyworkds." );
+
             // SqlTokenType.IdentifierStandardStatement values: these are not reserved keywords but they can start a statement.
             _keywords.Add( "throw", SqlTokenType.Throw );
             _keywords.Add( "get", SqlTokenType.Get );
@@ -338,6 +298,8 @@ namespace CK.SqlServer.Parser
             _keywords.Add( "conversation", SqlTokenType.Conversation );
             _keywords.Add( "returns", SqlTokenType.Returns );
             _keywords.Add( "max", SqlTokenType.Max );
+            _keywords.Add( "insensitive", SqlTokenType.Insensitive );
+            _keywords.Add( "scroll", SqlTokenType.Scroll );
             _keywords.Add( "readonly", SqlTokenType.Readonly );
             _keywords.Add( "out", SqlTokenType.Output );
             _keywords.Add( "output", SqlTokenType.Output );
@@ -410,10 +372,11 @@ namespace CK.SqlServer.Parser
             _keywords.Add( "pivot", SqlTokenType.Pivot );
             _keywords.Add( "having", SqlTokenType.Having );
             _keywords.Add( "cursor", SqlTokenType.Cursor );
+            _keywords.Add( "read", SqlTokenType.Read );
             _keywords.Add( "collate", SqlTokenType.Collate );
-                        
 
-            // SqlTokenType.IdentifierReservedStart values.
+
+            // SqlTokenType.IdentifierReservedStatement values.
             _keywords.Add( "select", SqlTokenType.Select );
             _keywords.Add( "begin", SqlTokenType.Begin );
             _keywords.Add( "end", SqlTokenType.End );
@@ -436,6 +399,20 @@ namespace CK.SqlServer.Parser
             _keywords.Add( "set", SqlTokenType.Set );
             _keywords.Add( "update", SqlTokenType.Update );
             _keywords.Add( "insert", SqlTokenType.Insert );
+            _keywords.Add( "raiserror", SqlTokenType.Raiserror );
+            _keywords.Add( "waitfor", SqlTokenType.WaitFor );
+            _keywords.Add( "use", SqlTokenType.Use );
+            _keywords.Add( "truncate", SqlTokenType.Truncate );
+            _keywords.Add( "print", SqlTokenType.Print );
+            _keywords.Add( "commit", SqlTokenType.Commit );
+            _keywords.Add( "rollback", SqlTokenType.Rollback );
+            _keywords.Add( "delete", SqlTokenType.Delete );
+            _keywords.Add( "updatetext", SqlTokenType.Updatetext );
+            _keywords.Add( "merge", SqlTokenType.Merge );
+            _keywords.Add( "kill", SqlTokenType.Kill );
+            _keywords.Add( "readtext", SqlTokenType.Readtext );
+            _keywords.Add( "writetext", SqlTokenType.Writetext );
+            _keywords.Add( "dbcc", SqlTokenType.Dbcc );
 
             // Reserved keywords.
             foreach( string s in _sqlServerReserved )
@@ -445,15 +422,6 @@ namespace CK.SqlServer.Parser
                 #endif
                 _keywords.Add( s, SqlTokenType.IdentifierReserved );
             }
-            // Reserved keywords.
-            foreach( string s in _keyWordStartStatement )
-            {
-                #if DEBUG
-                if( _keywords.ContainsKey( s ) ) Debugger.Break();
-                #endif
-                _keywords.Add( s, SqlTokenType.IdentifierReservedStatement );
-            }
-
         }
 
         public static SqlDbType? FromSqlTokenTypeToSqlDbType( SqlTokenType t )
@@ -471,10 +439,7 @@ namespace CK.SqlServer.Parser
 
         public static bool IsReservedKeyword( string s, out SqlTokenType tokenType )
         {
-            if( !_keywords.TryGetValue( s, out tokenType ) ) return false;
-            // DbType are the only keywords we map that are not reserved.
-            if( (tokenType & SqlTokenType.IdentifierDbType) == SqlTokenType.IdentifierDbType ) return false;
-            return true;
+            return _keywords.TryGetValue( s, out tokenType ) && tokenType.IsReservedKeyword();
         }
 
         public static SqlTokenType MapKeyword( string s )

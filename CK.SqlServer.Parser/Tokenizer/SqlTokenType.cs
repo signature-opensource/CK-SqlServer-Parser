@@ -84,7 +84,7 @@ namespace CK.SqlServer.Parser
         ErrorNumberIdentifierStartsImmediately = SqlTokenTypeError.ErrorNumberIdentifierStartsImmediately,
         #endregion
 
-        #region Operator precedence bits n°28 to 24 (5 bits - levels from 0 to 15, bit n°28 currently unused).
+        #region Operator precedence bits n°28 to 24 (5 bits - 32 levels - actual levels are between 0 to 15, bit n°28 is unused).
         OpLevelShift = 24,
         OpLevelMask = 15 << OpLevelShift,
 
@@ -104,6 +104,7 @@ namespace CK.SqlServer.Parser
         OpLevel13 = 13 << OpLevelShift,
         OpLevel14 = 14 << OpLevelShift,
         OpLevel15 = 15 << OpLevelShift,
+        //OpLevel16 = 16 << OpLevelShift,
         #endregion
 
         /// <summary>
@@ -340,9 +341,10 @@ namespace CK.SqlServer.Parser
         /// </summary>
         Colon = IsPunctuation | 4,
         /// <summary>
-        /// Two colons :: are used to call static CLR methods.
+        /// Two colons :: are used to call static CLR methods ang GRANT/DENY 
+        /// statements: GRANT SELECT ON OBJECT::Person.Address TO Albert;
         /// </summary>
-        DoubleColons = IsPunctuation | 5,
+        DoubleColons = IsPunctuation | OpLevel15 | 5,
         #endregion
 
         /// <summary>
@@ -398,22 +400,25 @@ namespace CK.SqlServer.Parser
 
         /// <summary>
         /// Not reserved keywords that can start a statement like “throw”, “get”, “move”, “receive”, etc.
+        /// Identifiers that can start a statement are the lower ones. Among them there are the
+        /// non reserved keyword (these ones) and the reserved ones <see cref="IdentifierReservedStatement"/>.
         /// </summary>
         IdentifierStandardStatement = IsIdentifier | 0,
 
         /// <summary>
-        /// Reserved keywords that starts a statement: “select”, “create”, “declare “set”, etc.
+        /// Reserved keywords that starts a statement: “select”, “create”, “declare", “set”, etc.
         /// </summary>
         IdentifierReservedStatement = IsIdentifier | 1 << 11,
 
         /// <summary>
-        /// Any identifier like “max”, a table name, but not a reserved keyword like keyword like “when”, “select” or “else”
+        /// Any identifier like “max”, a table name, but not a reserved keyword like “when”, “select”, "cursor" or “else”
         /// nor an <see cref="IdentifierDbType"/>.
         /// </summary>
         IdentifierStandard = IsIdentifier | 2 << 11,
         
         /// <summary>
-        /// Identifiers that are reserved keywords (like “identity_insert”, “clustered”, “rule”, “as”, etc.) but cannot start a statement.
+        /// Identifiers that are reserved keywords (like “identity_insert”, “clustered”, “rule”, “as”, etc.) but 
+        /// cannot start a statement.
         /// </summary>
         IdentifierReserved = IsIdentifier | 3 << 11,
 
@@ -468,6 +473,8 @@ namespace CK.SqlServer.Parser
         Next            = IdentifierStandard | 12,
         Only            = IdentifierStandard | 13,
         Cast            = IdentifierStandard | 14,
+        Insensitive     = IdentifierStandard | 15,
+        Scroll          = IdentifierStandard | 16,
         #endregion
 
         #region IdentifierSpecial values
@@ -587,6 +594,7 @@ namespace CK.SqlServer.Parser
         Pivot       = IdentifierReservedFirstNonOperator + 39,
         Having      = IdentifierReservedFirstNonOperator + 40,
         Cursor      = IdentifierReservedFirstNonOperator + 41,
+        Read        = IdentifierReservedFirstNonOperator + 42,
         #endregion
 
         #region IdentifierReservedStatement values
@@ -611,6 +619,21 @@ namespace CK.SqlServer.Parser
         Set         = IdentifierReservedStatement | 19,
         Update      = IdentifierReservedStatement | 20,
         Insert      = IdentifierReservedStatement | 21,
+        Raiserror   = IdentifierReservedStatement | 22,
+        WaitFor     = IdentifierReservedStatement | 23,
+        Use         = IdentifierReservedStatement | 24,
+        Truncate    = IdentifierReservedStatement | 25,
+        Print       = IdentifierReservedStatement | 26,
+        Commit      = IdentifierReservedStatement | 27,
+        Rollback    = IdentifierReservedStatement | 28,
+        Delete      = IdentifierReservedStatement | 29,
+        Updatetext  = IdentifierReservedStatement | 30,
+        Merge       = IdentifierReservedStatement | 31,
+        Kill        = IdentifierReservedStatement | 32,
+        Readtext    = IdentifierReservedStatement | 33,
+        Writetext   = IdentifierReservedStatement | 34,
+        Dbcc        = IdentifierReservedStatement | 35,
+
         #endregion
 
         #region IdentifierDbType values

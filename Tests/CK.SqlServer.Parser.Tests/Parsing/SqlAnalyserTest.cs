@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using NUnit.Framework;
+using System.Xml.Linq;
 
 namespace CK.SqlServer.Parser.Tests
 {
@@ -21,7 +22,7 @@ namespace CK.SqlServer.Parser.Tests
             Check( "select from a", "[select-()-from[a]]" );
 
             Check( "select 1", "[select-(1)]" );
-            Check( "select 1, 2*5, *, (@i*7)", "[select-(1,[2*5],*,[@i*7])]" );
+            Check( "select 1, 2*5, *, (@i*7)", "[select-(1,[2*5],*,(%[@i*7]%))]" );
             Check( "select name, upper(N'u'+t.name) from sys.tables t", "[select-(name,call:upper([N'u'+t.name]))-from[¤{sys.tables-t}¤]]" );
             Check( "select name from sys.tables t inner join dbo.tC k on k.id = t.id or k.id=-t.id", "[select-(name)-from[¤{sys.tables-t-inner-join-dbo.tC-k-on-[[k.id=t.id]or[k.id=-[t.id]]]}¤]]" );
 
@@ -158,7 +159,7 @@ namespace CK.SqlServer.Parser.Tests
                             [Select-(
                                         ID-as-id,
                                         [GreekCol+LatinCol-COLLATE-latin1_general_ci_as],
-                                        [[[(-(-(-(-'U'-COLLATE-greek_ci_as-)-)-)-)+(-(-(-(-(-(-LatinCol-)-)-COLLATE-greek_ci_as-)-)-)-)]+GreekCol]+'P']
+                                        [[(%[(%(%(%(%'U'-COLLATE-greek_ci_as%)%)%)%)+(%(%(%(%(-(-LatinCol-)-)-COLLATE-greek_ci_as%)%)%)%)]%)+GreekCol]+'P']
                                     )
                                    -from[TestTab12]
                             ]
@@ -277,28 +278,28 @@ namespace CK.SqlServer.Parser.Tests
         {
             Check( "a", "a" );
             Check( "457", "457" );
-            Check( " ( ( 457 ) ) ", "457" );
-            Check( "(a)", "a" );
+            Check( " ( ( 457 ) ) ", "(%(%457%)%)" );
+            Check( "(a)", "(%a%)" );
             Check( "*", "*" );
-            Check( @"(""in"")", @"""in""" );
-            Check( @"([is])", @"[is]" );
+            Check( @"(""in"")", @"(%""in""%)" );
+            Check( @"([is])", @"(%[is]%)" );
 
             Check( "a-b", "[a-b]" );
-            Check( "(a-b)", "[a-b]" );
-            Check( "( ( ( (a-b)   ))  )", "[a-b]" );
+            Check( "(a-b)", "(%[a-b]%)" );
+            Check( "( ( ( (a-b)   ))  )", "(%(%(%(%[a-b]%)%)%)%)" );
 
-            Check( "(~2)", "~[2]" );
-            Check( "~ 0 * 1 = (~2) * 3", "[[~[0]*1]=[~[2]*3]]" );
+            Check( "(~2)", "(%~[2]%)" );
+            Check( "~ 0 * 1 = (~2) * 3", "[[~[0]*1]=[(%~[2]%)*3]]" );
             Check( "0 + 1  * 2 >= ~3 / 4 + 1", "[[0+[1*2]]>=[[~[3]/4]+1]]" );
             Check( "1 = 1 and 0 = 0 and 2 = 2", "[[[1=1]and[0=0]]and[2=2]]" );
             Check( "1 = 1 and 0 = 0 or 2 = 2", "[[[1=1]and[0=0]]or[2=2]]" );
             Check( "1 = 1 or 1 = 1 and 0 = 1", "[[1=1]or[[1=1]and[0=1]]]" );
-            Check( "(a+(b)+c)", "[[a+b]+c]" );
-            Check( "(a >= b)", "[a>=b]" );
-            Check( "(1 = 1 or 1 = 1) and 0 = 1", "[[[1=1]or[1=1]]and[0=1]]" );
+            Check( "(a+(b)+c)", "(%[[a+(%b%)]+c]%)" );
+            Check( "(a >= b)", "(%[a>=b]%)" );
+            Check( "(1 = 1 or 1 = 1) and 0 = 1", "[(%[[1=1]or[1=1]]%)and[0=1]]" );
             Check( "not 1 = 1 or 1 = 1", "[not[[1=1]]or[1=1]]" );
-            Check( "not (1 = 1 or 1 = 1)", "not[[[1=1]or[1=1]]]" );
-            Check( "a-b, a*8+3, (($78))", "{[a-b],[[a*8]+3],$78}" );
+            Check( "not (1 = 1 or 1 = 1)", "not[(%[[1=1]or[1=1]]%)]" );
+            Check( "a-b, a*8+3, (($78))", "{[a-b],[[a*8]+3],(%(%$78%)%)}" );
        }
 
         [Test]
@@ -337,7 +338,7 @@ namespace CK.SqlServer.Parser.Tests
             Check( "4 + 5 * 8 between 4 / 8 * 9 and 457 = 4+7", "[Between([4+[5*8]],[[4/8]*9],457)=[4+7]]" );
             Check( "4 + 5 * 8 not between 4 / 8 * 9 and 457 = 4+7", "[NotBetween([4+[5*8]],[[4/8]*9],457)=[4+7]]" );
             Check( "not 4 + 5 * 8 not between 4 / 8 * 9 and 457 or 1 = /*comment 4 Fun*/0", "[not[NotBetween([4+[5*8]],[[4/8]*9],457)]or[1=0]]" );
-            Check( "(((4 + 5 * 8 not between 4 / 8 * 9 and 457))) = 4+7", "[NotBetween([4+[5*8]],[[4/8]*9],457)=[4+7]]" );
+            Check( "(((4 + 5 * 8 not between 4 / 8 * 9 and 457))) = 4+7", "[(%(%(%NotBetween([4+[5*8]],[[4/8]*9],457)%)%)%)=[4+7]]" );
         }
 
         [Test]
@@ -376,7 +377,7 @@ namespace CK.SqlServer.Parser.Tests
         {
             Check( "case when 0=0 then 1 end", "case:[0=0]=>1" );
             Check( "case when 0>1 then 1 when 0<1 then null end", "case:[0>1]=>1:[0<1]=>null" );
-            Check( "case when 0<>5 then 4 else ((5/8)) end", "case:[0<>5]=>4:[5/8]" );
+            Check( "case when (0<>5) then 4 else ((5/8)) end", "case:(%[0<>5]%)=>4:(%(%[5/8]%)%)" );
         }
 
         [Test]
@@ -386,15 +387,34 @@ namespace CK.SqlServer.Parser.Tests
         }
 
         [Test]
-        public void ParseIf()
+        public void ParseIf01()
         {
-            var ifS = TestHelper.ParseOneStatementAndCheckString<SqlExprStIf>( @"if @i is null
-                                                     print '1';
-                                                   else print 2, 9, 'toto';" );
+            var ifS = TestHelper.ParseOneStatementAndCheckString<SqlIf>( @"
+                        if @i is null print '1';
+                        else print 2, 9, 'toto';" );
 
-            Assert.That( ExplainWriter.Write( ifS ), Is.EqualTo( "if[IsNull(@i)]then[<¤{print-'1'}¤>]else[<¤{print-2-,-9-,-'toto'}¤>]" ) );
+            var x = XElement.Parse( @"
+                <Sql Type=""SqlIf"">
+                    <T>if @i is null print '1'; else print 2, 9, 'toto';</T>
+                    <Condition Type=""SqlIsNull"">
+                        <T>@i is null</T>
+                    </Condition>
+                    <ThenStatement Type=""SqlUnmodeledStatement"">
 
-            ifS = TestHelper.ParseOneStatementAndCheckString<SqlExprStIf>( @"if exists(select t.* from sys.tables t) print N'OK';" );
+                    </ThenStatement>
+                    <ElseStatement Type=""SqlUnmodeledStatement"">
+
+                    </ElseStatement>
+                </Sql>" );
+
+            Assert.That( ifS.ToXml().ToString(), Is.EqualTo( x.ToString() ) );
+            Assert.That( XNode.DeepEquals( ifS.ToXml(), x ) );
+        }
+
+        [Test]
+        public void ParseIf02()
+        {
+            var ifS = TestHelper.ParseOneStatementAndCheckString<SqlIf>( @"if exists(select t.* from sys.tables t) print N'OK';" );
             Assert.That( ExplainWriter.Write( ifS ), Is.EqualTo( "if[call:exists([select-(t.*)-from[¤{sys.tables-t}¤]])]then[<¤{print-N'OK'}¤>]" ) );
         }
 
@@ -402,7 +422,7 @@ namespace CK.SqlServer.Parser.Tests
         {
             text = text.NormalizeEOL();
             explained = explained.NormalizeEOL();
-            SqlExpr e;
+            ISqlNode e;
             var r = SqlAnalyser.ParseExpression( out e, text );
             Assert.That( r.IsError, Is.False, r.ToString() );
             Assert.That( ExplainWriter.Write( e ), Is.EqualTo( Regex.Replace( explained, @"\s*", String.Empty ) ) );
@@ -420,7 +440,7 @@ namespace CK.SqlServer.Parser.Tests
                                 Customer varchar(200),
                                 Quantity int
                          ) AS OrdersArray";
-            SqlExpr e;
+            ISqlNode e;
             var r = SqlAnalyser.ParseExpression( out e, s );
             Assert.That( r.IsError, Is.False, r.ToString() );
             Assert.That( e is ISelectSpecification );
@@ -429,7 +449,7 @@ namespace CK.SqlServer.Parser.Tests
         [Test]
         public void ParseStoredProcedureWithoutTerminator()
         {
-            var sp = ReadStatement<SqlExprStStoredProc>( "sProcWithoutTerminator.sql" );
+            var sp = ReadStatement<SqlStoredProcedure>( "sProcWithoutTerminator.sql" );
 
             Assert.That( sp.Name.ToString( true ), Is.EqualTo( "sProcWithoutTerminator" + Environment.NewLine ) );
             Assert.That( sp.Parameters[0].IsOutput, Is.False );
@@ -437,14 +457,14 @@ namespace CK.SqlServer.Parser.Tests
             Assert.That( sp.Parameters[0].DefaultValue, Is.Null );
             Assert.That( sp.Parameters[0].Variable.Identifier.IsVariable, Is.True );
             Assert.That( sp.Parameters[0].Variable.Identifier.Name, Is.EqualTo( "@P" ) );
-            Assert.That( sp.Parameters[0].Variable.TypeDecl.ActualType.DbType, Is.EqualTo( SqlDbType.Int ) );
+            Assert.That( sp.Parameters[0].Variable.TypeDecl.DbType, Is.EqualTo( SqlDbType.Int ) );
             Assert.That( sp.BodyStatements.Count, Is.EqualTo( 1 ) );
         }
 
         [Test]
         public void ParseFunctionAclGrantLevel()
         {
-            CheckStatement<SqlExprStFunctionScalar>( "fAclGrantLevel.sql", f =>
+            CheckStatement<SqlFunctionScalar>( "fAclGrantLevel.sql", f =>
             {
                 Assert.That( f.Name.ToString(), Is.EqualTo( "CK.fAclGrantLevel" ) );
                 Assert.That( f.Parameters[0].IsOutput, Is.False );
@@ -452,26 +472,26 @@ namespace CK.SqlServer.Parser.Tests
                 Assert.That( f.Parameters[0].DefaultValue, Is.Null );
                 Assert.That( f.Parameters[0].Variable.Identifier.IsVariable, Is.True );
                 Assert.That( f.Parameters[0].Variable.Identifier.Name, Is.EqualTo( "@ActorId" ) );
-                Assert.That( f.Parameters[0].Variable.TypeDecl.ActualType.DbType, Is.EqualTo( SqlDbType.Int ) );
+                Assert.That( f.Parameters[0].Variable.TypeDecl.DbType, Is.EqualTo( SqlDbType.Int ) );
                 Assert.That( f.Parameters.Count, Is.EqualTo( 2 ) );
                 Assert.That( f.Parameters[1].Variable.Identifier.Name, Is.EqualTo( "@AclId" ) );
-                Assert.That( f.Parameters[1].Variable.TypeDecl.ActualType.DbType, Is.EqualTo( SqlDbType.Int ) );
+                Assert.That( f.Parameters[1].Variable.TypeDecl.DbType, Is.EqualTo( SqlDbType.Int ) );
                 Assert.That( f.ReturnsT, Is.Not.Null );
-                Assert.That( f.ReturnedType.ActualType.DbType, Is.EqualTo( SqlDbType.TinyInt ) );
+                Assert.That( f.ReturnedType.DbType, Is.EqualTo( SqlDbType.TinyInt ) );
                 Assert.That( f.BodyStatements.Count, Is.EqualTo( 1 ) );
-                Assert.That( f.BodyStatements[0], Is.InstanceOf<SqlExprStReturn>() );
-                SqlExprStReturn r = (SqlExprStReturn)f.BodyStatements[0];
-                SqlExprKoCall isNull = (SqlExprKoCall)r.Value;
-                SqlExprKoCall isNull2 = (SqlExprKoCall)isNull.Parameters[1];
-                SqlExprLiteral zero = (SqlExprLiteral)isNull2.Parameters[1];
-                Assert.That( zero.Token.LiteralValue, Is.EqualTo( "0" ) );
+                Assert.That( f.BodyStatements[0], Is.InstanceOf<SqlReturn>() );
+                SqlReturn r = (SqlReturn)f.BodyStatements[0];
+                SqlKoCall isNull = (SqlKoCall)r.Value;
+                SqlKoCall isNull2 = (SqlKoCall)isNull.Parameters[1];
+                SqlTokenLiteralInteger zero = (SqlTokenLiteralInteger)isNull2.Parameters[1];
+                Assert.That( zero.LiteralValue, Is.EqualTo( "0" ) );
             } );
         }
 
         [Test]
         public void ParseFunctionInlineTable()
         {
-            CheckStatement<SqlExprStFunctionInlineTable>( "fReadThings.sql", f =>
+            CheckStatement<SqlFunctionInlineTable>( "fReadThings.sql", f =>
                 {
                     Assert.That( f.Name.ToString(), Is.EqualTo( "CK.fReadThings" ) );
                     Assert.That( f.Parameters[0].IsOutput, Is.False );
@@ -479,10 +499,10 @@ namespace CK.SqlServer.Parser.Tests
                     Assert.That( f.Parameters[0].DefaultValue, Is.Null );
                     Assert.That( f.Parameters[0].Variable.Identifier.IsVariable, Is.True );
                     Assert.That( f.Parameters[0].Variable.Identifier.Name, Is.EqualTo( "@ActorId" ) );
-                    Assert.That( f.Parameters[0].Variable.TypeDecl.ActualType.DbType, Is.EqualTo( SqlDbType.Int ) );
+                    Assert.That( f.Parameters[0].Variable.TypeDecl.DbType, Is.EqualTo( SqlDbType.Int ) );
                     Assert.That( f.Parameters.Count, Is.EqualTo( 2 ) );
                     Assert.That( f.Parameters[1].Variable.Identifier.Name, Is.EqualTo( "@AclId" ) );
-                    Assert.That( f.Parameters[1].Variable.TypeDecl.ActualType.DbType, Is.EqualTo( SqlDbType.Int ) );
+                    Assert.That( f.Parameters[1].Variable.TypeDecl.DbType, Is.EqualTo( SqlDbType.Int ) );
                     Assert.That( f.ReturnsT, Is.Not.Null );
                     Assert.That( f.Select, Is.Not.Null );
                 } );
@@ -498,7 +518,7 @@ namespace CK.SqlServer.Parser.Tests
             //    select * from sys.tables;
             //    return 0;
             //
-            CheckStatement<SqlExprStStoredProc>( "sWithOptions.sql", sp =>
+            CheckStatement<SqlStoredProcedure>( "sWithOptions.sql", sp =>
                 {
                     Assert.That( sp.Name.ToString( true ), Is.EqualTo( "sWithOptions" + Environment.NewLine ) );
                     Assert.That( sp.Parameters.Count, Is.EqualTo( 0 ) );
@@ -506,7 +526,7 @@ namespace CK.SqlServer.Parser.Tests
                     Assert.That( sp.Options.ChildrenNodes.Count(), Is.EqualTo( 4 ), "[with] [recompile] [,] [execute as owner]" );
                     Assert.That( sp.Options.AllTokens.ToStringWithoutTrivias( "|" ), Is.EqualTo( "with|recompile|,|execute|as|owner" ) );
                     Assert.That( sp.BodyStatements.Count, Is.EqualTo( 2 ).Or.EqualTo( 3 ), "Two statements (select and return) but..." );
-                    Assert.That( sp.BodyStatements.Count == 2 || sp.BodyStatements[2] is SqlExprStEmpty, "...when ';' is added, it is a third empty statement." );
+                    Assert.That( sp.BodyStatements.Count == 2 || sp.BodyStatements[2] is SqlEmptyStatement, "...when ';' is added, it is a third empty statement." );
 
                     Assert.That( sp.Header.ToStringCompact(), Is.EqualTo( "procedure sWithOptions with recompile, execute as owner" ) );
                 } );
@@ -515,7 +535,7 @@ namespace CK.SqlServer.Parser.Tests
         [Test]
         public void ParseStrangeStoredProcedure()
         {
-            CheckStatement<SqlExprStStoredProc>( "sStrange.sql", sp =>
+            CheckStatement<SqlStoredProcedure>( "sStrange.sql", sp =>
                 {
                     Assert.That( sp.Name.ToString( true ), Is.EqualTo( "sStrange -- funny one" + Environment.NewLine ) );
                     Assert.That( sp.Parameters, Is.Empty );
@@ -527,7 +547,7 @@ namespace CK.SqlServer.Parser.Tests
         [Test]
         public void ParseStoredProcedure01()
         {
-            CheckStatement<SqlExprStStoredProc>( "sStoredProcedure01.sql", sp =>
+            CheckStatement<SqlStoredProcedure>( "sStoredProcedure01.sql", sp =>
                 {
                     Assert.That( sp.Name.ToString( true ), Is.EqualTo( "CKCore.sErrorRethrow" + Environment.NewLine ) );
                     Assert.That( sp.Parameters[0].IsOutput, Is.False );
@@ -535,7 +555,7 @@ namespace CK.SqlServer.Parser.Tests
                     Assert.That( sp.Parameters[0].DefaultValue, Is.Null );
                     Assert.That( sp.Parameters[0].Variable.Identifier.IsVariable, Is.True );
                     Assert.That( sp.Parameters[0].Variable.Identifier.Name, Is.EqualTo( "@ProcId" ) );
-                    Assert.That( sp.Parameters[0].Variable.TypeDecl.ActualType.DbType, Is.EqualTo( SqlDbType.Int ) );
+                    Assert.That( sp.Parameters[0].Variable.TypeDecl.DbType, Is.EqualTo( SqlDbType.Int ) );
                     Assert.That( sp.HasBeginEnd );
                     Assert.That( sp.HasOptions, Is.False );
                     Assert.That( sp.BodyStatements.Count, Is.EqualTo( 2 ) );
@@ -546,7 +566,7 @@ namespace CK.SqlServer.Parser.Tests
         [Test]
         public void ParseStoredProcedure02()
         {
-            CheckStatement<SqlExprStStoredProc>( "sStoredProcedure02.sql", sp =>
+            CheckStatement<SqlStoredProcedure>( "sStoredProcedure02.sql", sp =>
                 {
                     Assert.That( sp.Name.ToString( true ), Is.EqualTo( "CK.sResDataStringSet -- Merge inside!" + Environment.NewLine ) );
                     Assert.That( sp.Parameters.Count, Is.EqualTo( 2 ) );
@@ -560,7 +580,7 @@ namespace CK.SqlServer.Parser.Tests
         [Test]
         public void ParseStoredProcedure03()
         {
-            CheckStatement<SqlExprStStoredProc>( "sStoredProcedure03.sql", sp =>
+            CheckStatement<SqlStoredProcedure>( "sStoredProcedure03.sql", sp =>
                 {
                     Assert.That( sp.Name.ToString(), Is.EqualTo( "InvBack.sOfferCreate" ) );
                     Assert.That( sp.HasBeginEnd );
@@ -573,17 +593,19 @@ namespace CK.SqlServer.Parser.Tests
         [Test]
         public void ParseStoredProcedureInputOutput()
         {
-            CheckStatement<SqlExprStStoredProc>( "sStoredProcedureInputOutput.sql", sp =>
+            CheckStatement<SqlStoredProcedure>( "sStoredProcedureInputOutput.sql", sp =>
                 {
-                    Assert.That( sp.Name.IdentifierAt(1).Name, Is.EqualTo( "sStoredProcedureInputOutput" ) );
+                    Assert.That( sp.Name.Identifiers[0].Name, Is.EqualTo( "CK" ) );
+                    Assert.That( sp.Name.Identifiers[1].Name, Is.EqualTo( "sStoredProcedureInputOutput" ) );
+                    Assert.That( sp.Name.ToString(), Is.EqualTo( "CK.sStoredProcedureInputOutput" ) );
 
                     Assert.That( sp.Parameters[0].IsOutput, Is.False );
                     Assert.That( sp.Parameters[0].IsReadOnly, Is.False );
                     Assert.That( sp.Parameters[0].DefaultValue, Is.Null );
                     Assert.That( sp.Parameters[0].Variable.Identifier.IsVariable, Is.True );
                     Assert.That( sp.Parameters[0].Variable.Identifier.Name, Is.EqualTo( "@p1" ) );
-                    Assert.That( sp.Parameters[0].Variable.TypeDecl.ActualType.DbType, Is.EqualTo( SqlDbType.Int ) );
-                    Assert.That( sp.Parameters[0].Variable.TypeDecl.ActualType.SyntaxSize, Is.EqualTo( -2 ), "Size does not apply." );
+                    Assert.That( sp.Parameters[0].Variable.TypeDecl.DbType, Is.EqualTo( SqlDbType.Int ) );
+                    Assert.That( sp.Parameters[0].Variable.TypeDecl.SyntaxSize, Is.EqualTo( -2 ), "Size does not apply." );
 
                     Assert.That( sp.Parameters[1].IsOutput, Is.False );
                     Assert.That( sp.Parameters[1].IsReadOnly, Is.False );
@@ -591,22 +613,22 @@ namespace CK.SqlServer.Parser.Tests
                     Assert.That( sp.Parameters[1].DefaultValue.ToString(), Is.EqualTo( "= 0" ) );
                     Assert.That( sp.Parameters[1].Variable.Identifier.IsVariable, Is.True );
                     Assert.That( sp.Parameters[1].Variable.Identifier.Name, Is.EqualTo( "@p2" ) );
-                    Assert.That( sp.Parameters[1].Variable.TypeDecl.ActualType.DbType, Is.EqualTo( SqlDbType.TinyInt ) );
+                    Assert.That( sp.Parameters[1].Variable.TypeDecl.DbType, Is.EqualTo( SqlDbType.TinyInt ) );
 
                     Assert.That( sp.Parameters[2].IsOutput, Is.True );
                     Assert.That( sp.Parameters[2].IsReadOnly, Is.False );
                     Assert.That( sp.Parameters[2].DefaultValue, Is.Null );
                     Assert.That( sp.Parameters[2].Variable.Identifier.IsVariable, Is.True );
                     Assert.That( sp.Parameters[2].Variable.Identifier.Name, Is.EqualTo( "@p3" ) );
-                    Assert.That( sp.Parameters[2].Variable.TypeDecl.ActualType.DbType, Is.EqualTo( SqlDbType.SmallInt ) );
+                    Assert.That( sp.Parameters[2].Variable.TypeDecl.DbType, Is.EqualTo( SqlDbType.SmallInt ) );
 
                     Assert.That( sp.Parameters[3].IsOutput, Is.False );
                     Assert.That( sp.Parameters[3].IsReadOnly, Is.False );
                     Assert.That( sp.Parameters[3].DefaultValue.ToString(), Is.EqualTo( "=N'Murfn...'" ) );
                     Assert.That( sp.Parameters[3].Variable.Identifier.IsVariable, Is.True );
                     Assert.That( sp.Parameters[3].Variable.Identifier.Name, Is.EqualTo( "@p4" ) );
-                    Assert.That( sp.Parameters[3].Variable.TypeDecl.ActualType.DbType, Is.EqualTo( SqlDbType.NVarChar ) );
-                    Assert.That( sp.Parameters[3].Variable.TypeDecl.ActualType.SyntaxSize, Is.EqualTo( 50 ) );
+                    Assert.That( sp.Parameters[3].Variable.TypeDecl.DbType, Is.EqualTo( SqlDbType.NVarChar ) );
+                    Assert.That( sp.Parameters[3].Variable.TypeDecl.SyntaxSize, Is.EqualTo( 50 ) );
 
                     Assert.That( sp.Parameters[4].IsOutput, Is.True );
                     Assert.That( sp.Parameters[4].IsInputOutput, Is.True );
@@ -614,8 +636,8 @@ namespace CK.SqlServer.Parser.Tests
                     Assert.That( sp.Parameters[4].DefaultValue, Is.Null );
                     Assert.That( sp.Parameters[4].Variable.Identifier.IsVariable, Is.True );
                     Assert.That( sp.Parameters[4].Variable.Identifier.Name, Is.EqualTo( "@p5" ) );
-                    Assert.That( sp.Parameters[4].Variable.TypeDecl.ActualType.DbType, Is.EqualTo( SqlDbType.VarChar ) );
-                    Assert.That( sp.Parameters[4].Variable.TypeDecl.ActualType.SyntaxSize, Is.EqualTo( -1 ), "Size is max." );
+                    Assert.That( sp.Parameters[4].Variable.TypeDecl.DbType, Is.EqualTo( SqlDbType.VarChar ) );
+                    Assert.That( sp.Parameters[4].Variable.TypeDecl.SyntaxSize, Is.EqualTo( -1 ), "Size is max." );
 
                     Assert.That( sp.Parameters[5].IsOutput, Is.True );
                     Assert.That( sp.Parameters[5].IsInputOutput, Is.True );
@@ -623,8 +645,8 @@ namespace CK.SqlServer.Parser.Tests
                     Assert.That( sp.Parameters[5].DefaultValue, Is.Null );
                     Assert.That( sp.Parameters[5].Variable.Identifier.IsVariable, Is.True );
                     Assert.That( sp.Parameters[5].Variable.Identifier.Name, Is.EqualTo( "@p6" ) );
-                    Assert.That( sp.Parameters[5].Variable.TypeDecl.ActualType.DbType, Is.EqualTo( SqlDbType.Char ) );
-                    Assert.That( sp.Parameters[5].Variable.TypeDecl.ActualType.SyntaxSize, Is.EqualTo( 0 ), "Size is undefined." );
+                    Assert.That( sp.Parameters[5].Variable.TypeDecl.DbType, Is.EqualTo( SqlDbType.Char ) );
+                    Assert.That( sp.Parameters[5].Variable.TypeDecl.SyntaxSize, Is.EqualTo( 0 ), "Size is undefined." );
 
                     Assert.That( sp.Parameters[6].IsOutput, Is.True );
                     Assert.That( sp.Parameters[6].IsInputOutput, Is.False, "--input behind the comma..." );
@@ -632,8 +654,8 @@ namespace CK.SqlServer.Parser.Tests
                     Assert.That( sp.Parameters[6].DefaultValue, Is.Null );
                     Assert.That( sp.Parameters[6].Variable.Identifier.IsVariable, Is.True );
                     Assert.That( sp.Parameters[6].Variable.Identifier.Name, Is.EqualTo( "@p7" ) );
-                    Assert.That( sp.Parameters[6].Variable.TypeDecl.ActualType.DbType, Is.EqualTo( SqlDbType.Xml ) );
-                    Assert.That( sp.Parameters[6].Variable.TypeDecl.ActualType.SyntaxSize, Is.EqualTo( -2 ), "Size does not apply." );
+                    Assert.That( sp.Parameters[6].Variable.TypeDecl.DbType, Is.EqualTo( SqlDbType.Xml ) );
+                    Assert.That( sp.Parameters[6].Variable.TypeDecl.SyntaxSize, Is.EqualTo( -2 ), "Size does not apply." );
 
                     Assert.That( sp.Parameters[7].IsOutput, Is.True );
                     Assert.That( sp.Parameters[7].IsInputOutput, Is.True, "-- input on the line above." );
@@ -641,8 +663,8 @@ namespace CK.SqlServer.Parser.Tests
                     Assert.That( sp.Parameters[7].DefaultValue, Is.Null );
                     Assert.That( sp.Parameters[7].Variable.Identifier.IsVariable, Is.True );
                     Assert.That( sp.Parameters[7].Variable.Identifier.Name, Is.EqualTo( "@p8" ) );
-                    Assert.That( sp.Parameters[7].Variable.TypeDecl.ActualType.DbType, Is.EqualTo( SqlDbType.SmallDateTime ) );
-                    Assert.That( sp.Parameters[7].Variable.TypeDecl.ActualType.SyntaxSize, Is.EqualTo( -2 ), "Size does not apply." );
+                    Assert.That( sp.Parameters[7].Variable.TypeDecl.DbType, Is.EqualTo( SqlDbType.SmallDateTime ) );
+                    Assert.That( sp.Parameters[7].Variable.TypeDecl.SyntaxSize, Is.EqualTo( -2 ), "Size does not apply." );
 
                     Assert.That( sp.Parameters[8].IsOutput, Is.False );
                     Assert.That( sp.Parameters[8].IsInputOutput, Is.False );
@@ -658,7 +680,7 @@ namespace CK.SqlServer.Parser.Tests
         [Test]
         public void ParseStoredProcedure_GroupRemoveAllUsers()
         {
-            var sp = ReadStatement<SqlExprStStoredProc>( "sGroupRemoveAllUsers.sql" );
+            var sp = ReadStatement<SqlStoredProcedure>( "sGroupRemoveAllUsers.sql" );
 
             Assert.That( sp.Name.ToString(), Is.EqualTo( "CK.sGroupRemoveAllUsers" ) );
             Assert.That( sp.Parameters.Count, Is.EqualTo( 2 ) );
@@ -668,7 +690,7 @@ namespace CK.SqlServer.Parser.Tests
         [Test]
         public void ParseStoredProcedure_cursor_usage()
         {
-            var sp = ReadStatement<SqlExprStStoredProc>( "cursor_usage.sql" );
+            var sp = ReadStatement<SqlStoredProcedure>( "cursor_usage.sql" );
 
             Assert.That( sp.Name.ToString(), Is.EqualTo( "cursor_usage" ) );
             Assert.That( sp.Parameters.Count, Is.EqualTo( 0 ) );
@@ -676,7 +698,7 @@ namespace CK.SqlServer.Parser.Tests
         }
 
         [DebuggerStepThrough]
-        internal static T CheckStatement<T>( string fileName, Action<T> check ) where T : SqlExprBaseSt
+        internal static T CheckStatement<T>( string fileName, Action<T> check ) where T : ISqlStatement
         {
             string text = TestHelper.LoadTextFromParsingScripts( fileName );
             T s = TestHelper.ParseOneStatementAndCheckString<T>( text, false );
@@ -687,7 +709,7 @@ namespace CK.SqlServer.Parser.Tests
         }
 
         [DebuggerStepThrough]
-        internal static T ReadStatement<T>( string fileName, bool addSemiColon = false ) where T : SqlExprBaseSt
+        internal static T ReadStatement<T>( string fileName, bool addSemiColon = false ) where T : ISqlStatement
         {
             string text = TestHelper.LoadTextFromParsingScripts( fileName );
             return TestHelper.ParseOneStatementAndCheckString<T>( text, addSemiColon );

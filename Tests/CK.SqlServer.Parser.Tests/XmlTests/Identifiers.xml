@@ -1,0 +1,125 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Tests>
+  <Test ExpressionOnly="true">
+    <Text>word</Text>
+    <Xml>
+      <Sql>
+        <Identifier>word</Identifier>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test ExpressionOnly="true">
+    <Text>create</Text>
+    <Xml>
+      <Sql>
+        <Identifier IsReservedKeyword="true">create</Identifier>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test ExpressionOnly="true">
+    <Text>fetch</Text>
+    <Xml>
+      <Sql>
+        <Identifier IsReservedKeyword="true">fetch</Identifier>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test ExpressionOnly="true">
+    <Text>@var</Text>
+    <Xml>
+      <Sql>
+        <Identifier IsVariable="true">@var</Identifier>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test ExpressionOnly="true">
+    <Text>@@system_identifier</Text>
+    <Xml>
+      <Sql>
+        <Identifier IsVariable="true">@@system_identifier</Identifier>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test ExpressionOnly="true">
+    <Text>int</Text>
+    <Xml>
+      <Sql>
+        <Identifier IsDbType="true">int</Identifier>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test ExpressionOnly="true">
+    <Text>sql_variant</Text>
+    <Xml>
+      <Sql>
+        <Identifier IsDbType="true">sql_variant</Identifier>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test ExpressionOnly="true">
+    <Text>datetime2</Text>
+    <Xml>
+      <Sql>
+        <Identifier IsDbType="true">datetime2</Identifier>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test ExpressionOnly="true">
+    <Text>"Quoted identifier"</Text>
+    <Xml>
+      <Sql>
+        <Identifier IsQuoted="true">"Quoted identifier"</Identifier>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test ExpressionOnly="true">
+    <Text>
+      [Bracket 
+            [quoted]] 
+      identifier]</Text>
+    <Xml>
+      <Sql>
+        <Identifier IsQuoted="true">[Bracket
+            [quoted]]
+      identifier]</Identifier>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test ExpressionOnly="true">
+    <Text>x.y</Text>
+    <Xml>
+      <Sql>
+        <MultiIdentifier>x.y</MultiIdentifier>
+      </Sql>
+    </Xml>
+  </Test>
+  
+  <Test ExpressionOnly="true">
+    <Text>x . y /*comment*/ :: /*c*/AL./*c*/B :: [E R T]</Text>
+    <Xml>
+      <Sql>
+        <MultiIdentifier>x.y::AL.B::[E R T]</MultiIdentifier>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test ExpressionOnly="true">
+    <Text>@x.y."z a"</Text>
+    <Xml>
+      <Sql>
+        <MultiIdentifier IsVariable="true">@x.y."z a"</MultiIdentifier>
+      </Sql>
+    </Xml>
+  </Test>
+    
+</Tests>

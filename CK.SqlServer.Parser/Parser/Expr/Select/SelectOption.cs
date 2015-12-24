@@ -12,7 +12,7 @@ namespace CK.SqlServer.Parser
     /// <summary>
     /// Captures the optional "Option ( ... )" select part.
     /// </summary>
-    public class SelectOption : SqlItem
+    public class SelectOption : ASqlNodeArrayBased
     {
         public SelectOption( SqlTokenIdentifier optionToken, SqlExpr content )
             : this( null, CreateArray<SqlNode>( optionToken, content ), null )
@@ -29,7 +29,7 @@ namespace CK.SqlServer.Parser
             return new SelectOption( leading, EnsureArray( children ), trailing );
         }
 
-        public SqlExpr Content { get { return (SqlExpr)Slots[1]; } }
+        public SqlExpr Content { get { return (SqlExpr)Children[1]; } }
 
         [DebuggerStepThrough]
         internal protected override ISqlNode Accept( SqlItemVisitor visitor )

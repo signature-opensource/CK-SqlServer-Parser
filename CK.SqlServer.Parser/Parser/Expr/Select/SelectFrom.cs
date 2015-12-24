@@ -1,10 +1,3 @@
-#region Proprietary License
-/*----------------------------------------------------------------------------
-* This file (CK.SqlServer.Parser\Parser\Expr\Select\SelectFrom.cs) is part of CK-Database. 
-* Copyright © 2007-2014, Invenietis <http://www.invenietis.com>. All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -19,10 +12,10 @@ namespace CK.SqlServer.Parser
     /// <summary>
     /// Captures the optional "From ..." select part.
     /// </summary>
-    public class SelectFrom : SqlItem
+    public class SelectFrom : ASqlNodeArrayBased
     {
-        public SelectFrom( SqlTokenIdentifier fromT, SqlExpr content )
-            : this( null, CreateArray<SqlNode>( fromT, content ), null )
+        public SelectFrom( SqlTokenIdentifier fromT, ISqlNode content )
+            : this( null, CreateArray( fromT, content ), null )
         {
         }
 
@@ -36,15 +29,12 @@ namespace CK.SqlServer.Parser
             return new SelectFrom( leading, EnsureArray( children ), trailing );
         }
 
-        public SqlTokenIdentifier FromT { get { return (SqlTokenIdentifier)Slots[0]; } }
+        public SqlTokenIdentifier FromT => (SqlTokenIdentifier)Children[0];
         
-        public SqlExpr Content { get { return (SqlExpr)Slots[1]; } }
+        public ISqlNode Content => Children[1];
 
         [DebuggerStepThrough]
-        internal protected override ISqlNode Accept( SqlItemVisitor visitor )
-        {
-            return visitor.Visit( this );
-        }
+        internal protected override ISqlNode Accept( SqlItemVisitor visitor ) => visitor.Visit( this );
 
     }
 

@@ -14,14 +14,14 @@ namespace CK.SqlServer.Parser.Tests
             Out = new StringBuilder();
         }
 
-        public static string Write( SqlItem e )
+        public static string Write( ISqlNode e )
         {
             ExplainWriter w = new ExplainWriter();
             w.VisitItem( e );
             return w.Out.ToString().NormalizeEOL();
         }
 
-        public override ISqlNode Visit( SqlExprAssign e )
+        public override ISqlNode Visit( SqlAssign e )
         {
             Out.Append( '[' );
             WriteIdentifier( e.Identifier );
@@ -31,29 +31,29 @@ namespace CK.SqlServer.Parser.Tests
             return e;
         }
 
-        public override ISqlNode Visit( SqlExprCollate e )
+        public override ISqlNode Visit( SqlCollate e )
         {
             e.AllTokens.WriteWithoutTrivias( "-", Out );
  	         return e;
         }
 
-        public override ISqlNode Visit( SqlExprBinaryOperator e )
+        public override ISqlNode Visit( SqlBinaryOperator e )
         {
             Out.Append( '[' );
             VisitItem( e.Left );
-            Out.Append( e.Middle.ToString().ToLowerInvariant() );
+            Out.Append( e.Operator.ToString().ToLowerInvariant() );
             VisitItem( e.Right );
             Out.Append( ']' );
             return e;
         }
 
-        public override ISqlNode Visit( SqlExprIdentifier e )
+        public override ISqlNode Visit( SqlTokenIdentifier e )
         {
             WriteIdentifier( e );
             return e;
         }
 
-        public override ISqlNode Visit( SqlExprMultiIdentifier e )
+        public override ISqlNode Visit( SqlMultiIdentifier e )
         {
             WriteIdentifier( e );
             return e;
@@ -61,11 +61,11 @@ namespace CK.SqlServer.Parser.Tests
 
         void WriteIdentifier( ISqlIdentifier id )
         {
-            id.TokensWithoutParenthesis.WriteWithoutTrivias( String.Empty, Out );
+            id.AllTokens.WriteWithoutTrivias( String.Empty, Out );
             //Out.Append( String.Join( ".", id.Select( n => n.Name ) ) );
         }
 
-        public override ISqlNode Visit( SqlExprStIf e )
+        public override ISqlNode Visit( SqlIf e )
         {
             Out.Append( "if[" );
             VisitItem( e.Condition );
@@ -81,7 +81,7 @@ namespace CK.SqlServer.Parser.Tests
             return e;
         }
 
-        public override ISqlNode Visit( SqlExprStUnmodeled e )
+        public override ISqlNode Visit( SqlUnmodeledStatement e )
         {
             Out.Append( '<' );
             VisitItem( e.Content );
@@ -89,61 +89,32 @@ namespace CK.SqlServer.Parser.Tests
             return e;
         }
 
-        public override ISqlNode Visit( SqlExprStEmpty e )
+        public override ISqlNode Visit( SqlEmptyStatement e )
         {
             Out.Append( "<empty statement>" );
             return e;
         }
 
-        public override ISqlNode Visit( SqlExprLiteral e )
+        public override ISqlNode Visit( SqlUnaryOperator e )
         {
-            Out.Append( e.Token.LiteralValue );
-            return e;
-        }
-
-        public override ISqlNode Visit( SqlExprNull e )
-        {
-            Out.Append( "null" );
-            return e;
-        }
-
-        public override ISqlNode Visit( SqlExprUnaryOperator e )
-        {
-            Out.Append( e.OperatorT.ToString().ToLowerInvariant() ).Append( '[' );
-            VisitItem( e.Expression );
+            Out.Append( e.Operator.ToString().ToLowerInvariant() ).Append( '[' );
+            VisitItem( e.Right );
             Out.Append( ']' );
             return e;
         }
 
-        public override ISqlNode Visit( SqlExprRawItemList e )
+        public override ISqlNode Visit( SqlPar e )
         {
-            Out.Append( "¤{" );
-            bool one = false;
-            foreach( var item in e.ItemsWithoutParenthesis )
-            {
-                if( one ) Out.Append( '-' );
-                one = true;
-                SqlItem iE = item as SqlItem;
-                if( iE != null )
-                {
-                    VisitItem( iE );
-                }
-                else item.AllTokens.WriteWithoutTrivias( "-", Out );
-            }
-            Out.Append( "}¤" );
+            Out.Append( "(%" );
+            VisitItem( e.Content );
+            Out.Append( "%)" );
             return e;
         }
 
-        public override ISqlNode Visit( SqlExprTypeDecl e )
-        {
-            e.AllTokens.WriteWithoutTrivias( "-", Out );
-            return e;
-        }
-
-        public override ISqlNode Visit( SqlExprCast e )
+        public override ISqlNode Visit( SqlCast e )
         {
             Out.Append( '(' );
-            Visit( e.Type );
+            VisitItem( e.Type );
             Out.Append( ')' );
             Out.Append( '[' );
             VisitItem( e.Expression );
@@ -151,7 +122,7 @@ namespace CK.SqlServer.Parser.Tests
             return e;
         }
 
-        public override ISqlNode Visit( SqlExprCommaList e )
+        public override ISqlNode Visit( SqlCommaList e )
         {
             Out.Append( '{' );
             bool one = false;
@@ -164,8 +135,21 @@ namespace CK.SqlServer.Parser.Tests
             Out.Append( '}' );
             return e;
         }
+        public override ISqlNode Visit( SqlEnclosedCommaList e )
+        {
+            Out.Append( '(' );
+            bool one = false;
+            foreach( var item in e )
+            {
+                if( one ) Out.Append( ',' );
+                one = true;
+                VisitItem( item );
+            }
+            Out.Append( ')' );
+            return e;
+        }
 
-        public override ISqlNode Visit( SqlExprIsNull e )
+        public override ISqlNode Visit( SqlIsNull e )
         {
             Out.Append( e.IsNotNull ? "IsNotNull(" : "IsNull(" );
             VisitItem( e.Left );
@@ -173,7 +157,7 @@ namespace CK.SqlServer.Parser.Tests
             return e;
         }
 
-        public override ISqlNode Visit( SqlExprBetween e )
+        public override ISqlNode Visit( SqlBetween e )
         {
             Out.Append( e.IsNotBetween ? "NotBetween(" : "Between(" );
             VisitItem( e.Left );
@@ -185,7 +169,7 @@ namespace CK.SqlServer.Parser.Tests
             return e;
         }
 
-        public override ISqlNode Visit( SqlExprCase e )
+        public override ISqlNode Visit( SqlCase e )
         {
             Out.Append( "case" );
             if( e.IsSimpleCase )
@@ -194,7 +178,7 @@ namespace CK.SqlServer.Parser.Tests
                 VisitItem( e.Expression );
                 Out.Append( ')' );
             }
-            VisitItem( e.WhenSelector );
+            VisitItem( e.WhenList );
             if( e.HasElse )
             {
                 Out.Append( ':' );
@@ -203,19 +187,16 @@ namespace CK.SqlServer.Parser.Tests
             return e;
         }
 
-        public override ISqlNode Visit( SqlExprCaseWhenSelector e )
+        public override ISqlNode Visit( SqlCaseWhenSelector e )
         {
-            for( int i = 0; i < e.Count; ++i )
-            {
-                Out.Append( ':' );
-                VisitItem( e.ExpressionAt( i ) );
-                Out.Append( "=>" );
-                VisitItem( e.ExpressionValueAt( i ) );
-            }
+            Out.Append( ':' );
+            VisitItem( e.Expression );
+            Out.Append( "=>" );
+            VisitItem( e.Value );
             return e;
         }
 
-        public override ISqlNode Visit( SqlExprLike e )
+        public override ISqlNode Visit( SqlLike e )
         {
             Out.Append( e.IsNotLike ? "NotLike(" : "Like(" );
             VisitItem( e.Left );
@@ -230,7 +211,7 @@ namespace CK.SqlServer.Parser.Tests
             return e;
         }
 
-        public override ISqlNode Visit( SqlExprIn e )
+        public override ISqlNode Visit( SqlInValues e )
         {
             Out.Append( e.IsNotIn ? "NotIn(" : "In(" );
             VisitItem( e.Left );
@@ -240,13 +221,13 @@ namespace CK.SqlServer.Parser.Tests
             return e;
         }
 
-        public override ISqlNode Visit( SqlExprKoCall e )
+        public override ISqlNode Visit( SqlKoCall e )
         {
             Out.Append( "call:" );
             VisitItem( e.FunName );
             Out.Append( '(' );
             bool already = false;
-            foreach( SqlExpr b in e.Parameters )
+            foreach( var b in e.Parameters )
             {
                 if( already ) Out.Append( ',' );
                 VisitItem( b );
@@ -257,10 +238,10 @@ namespace CK.SqlServer.Parser.Tests
             return e;
         }
 
-        public override ISqlNode Visit( SqlNoExprOverClause e )
+        public override ISqlNode Visit( SqlOverClause e )
         {
             Out.Append( "OVER[" );
-            VisitItem( e.OverExpression );
+            VisitItem( e.OverContent );
             Out.Append( ']' );
             return e;
         }
@@ -351,7 +332,7 @@ namespace CK.SqlServer.Parser.Tests
         public override ISqlNode Visit( SelectOrderBy e )
         {
             Out.Append( "OrderBy(" );
-            VisitItem( e.SelectExpr );
+            VisitItem( e.Select );
             Out.Append( "," );
             VisitItem( e.OrderByColumns );
             if( e.OffsetClause != null )
@@ -404,7 +385,7 @@ namespace CK.SqlServer.Parser.Tests
         public override ISqlNode Visit( SelectFor e )
         {
             Out.Append( "For(" );
-            VisitItem( e.SelectExpr );
+            VisitItem( e.ForExpression );
             Out.Append( "," );
             VisitItem( e.ForExpression );
             Out.Append( ")" );
@@ -415,7 +396,7 @@ namespace CK.SqlServer.Parser.Tests
         {
             Out.Append( '[' );
             VisitItem( e.Left );
-            e.Operator.AllTokens.WriteWithoutTrivias( "-", Out );
+            e.OperatorT.AllTokens.WriteWithoutTrivias( "-", Out );
             VisitItem( e.Right );
             Out.Append( ']' );
             return e;

@@ -20,7 +20,7 @@ namespace CK.SqlServer.Parser
     /// Base for all statements. It is a <see cref="SqlNoExpr"/> that handles the mandatory 
     /// statement terminator ';' that is required by ANSI SQL and future Sql Server versions.
     /// </summary>
-    public abstract class SqlExprBaseSt : SqlItem
+    public abstract class SqlExprBaseSt : ASqlNodeArrayBased
     {
         readonly SqlTokenTerminal _stmtTerminator;
 
@@ -48,14 +48,14 @@ namespace CK.SqlServer.Parser
 
         protected int SlotsLengthWithoutTerminator
         {
-            get { return _stmtTerminator != null ? Slots.Length - 1 : Slots.Length; }
+            get { return _stmtTerminator != null ? Children.Length - 1 : Children.Length; }
         }
 
         public SqlTokenTerminal StatementTerminator { get { return _stmtTerminator; } }
 
         public IEnumerable<ISqlNode> ComponentsWithoutTerminator
         {
-            get { return _stmtTerminator != null ? Slots.Take( Slots.Length - 1 ) : Slots; }
+            get { return _stmtTerminator != null ? Children.Take( Children.Length - 1 ) : Children; }
         }
     }
 

@@ -186,6 +186,11 @@ namespace CK.SqlServer.Parser
             foreach( var t in ChildrenNodes ) t.Write( w );
         }
 
+        /// <summary>
+        /// Overridden to return a compact representation on one line 
+        /// without trivias (see <see cref="SqlTextWriter.CreateOneLineCompact"/>).
+        /// </summary>
+        /// <returns>One line, compact, representation.</returns>
         public override string ToString()
         {
             ISqlTextWriter w = SqlTextWriter.CreateOneLineCompact();
@@ -200,5 +205,41 @@ namespace CK.SqlServer.Parser
             else WriteWithoutTrivias( w );
             return w.ToString();
         }
+
+        static internal T[] EnsureArray<T>( IEnumerable<T> content )
+        {
+            T[] r = content as T[];
+            if( r == null && content != null )
+            {
+                IList<T> l = content as IList<T>;
+                if( l != null )
+                {
+                    r = new T[l.Count];
+                    l.CopyTo( r, 0 );
+                }
+                else
+                {
+                    IReadOnlyCollection<T> c = content as IReadOnlyCollection<T>;
+                    if( c == null ) r = content.ToArray();
+                    else
+                    {
+                        int i = 0;
+                        r = new T[c.Count];
+                        foreach( var e in content ) r[i++] = e;
+                    }
+                }
+            }
+            return r;
+        }
+
+        static internal ISqlNode[] Build( SqlTokenOpenPar openPar, IEnumerable<ISqlNode> content, SqlTokenClosePar closePar )
+        {
+            var a = new List<ISqlNode>();
+            a.Add( openPar );
+            a.AddRange( content );
+            a.Add( closePar );
+            return a.ToArray();
+        }
+
     }
 }

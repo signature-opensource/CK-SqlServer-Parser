@@ -19,9 +19,9 @@ namespace CK.SqlServer.Parser
             Value = value;
         }
 
-        public string Value { get; private set; }
+        public string Value { get; }
 
-        public override string LiteralValue { get { return Value; } }
+        public override string LiteralValue => Value; 
 
         protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
         {
@@ -29,10 +29,8 @@ namespace CK.SqlServer.Parser
         }
 
         [DebuggerStepThrough]
-        internal protected override ISqlNode Accept( SqlItemVisitor visitor )
-        {
-            return visitor.Visit( this );
-        }
+        internal protected override ISqlNode Accept( SqlItemVisitor visitor ) => visitor.Visit( this );
+
     }
 
 }

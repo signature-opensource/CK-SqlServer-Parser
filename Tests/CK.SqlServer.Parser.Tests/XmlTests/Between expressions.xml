@@ -1,0 +1,100 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Tests>
+
+  <Test ExpressionOnly="true">
+    <Text>1 between 2 and 3</Text>
+    <Description>Simple between expression.</Description>
+    <Xml CombineElementType="true">
+      <Sql Type="Between">
+        <Left Type="LiteralInteger">1</Left>
+        <Start Type="LiteralInteger">2</Start>
+        <Stop Type="LiteralInteger">3</Stop>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test ExpressionOnly="true">
+    <Text>1 not between 2 and 3</Text>
+    <Description>Not between: a Between where IsNotBetween is true.</Description>
+    <Xml CombineElementType="true">
+      <Sql Type="Between" IsNotBetween="true">
+        <Left Type="LiteralInteger">1</Left>
+        <Start Type="LiteralInteger">2</Start>
+        <Stop Type="LiteralInteger">3</Stop>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test ExpressionOnly="true">
+    <Text> 1=0 or 50 between 49 and 51 or 10&lt;&gt;10</Text>
+    <Description>Between with 'or'.</Description>
+    <Xml CombineElementType="true">
+      <Sql Type="BinaryOperator">
+        <Left Type="BinaryOperator">
+          <Left Type="BinaryOperator">
+            <Left Type="LiteralInteger">1</Left>
+            <Operator Type="Terminal">=</Operator>
+            <Right Type="LiteralInteger">0</Right>
+          </Left>
+          <Operator Type="Identifier" IsReservedKeyword="true">or</Operator>
+          <Right Type="Between">
+            <Left Type="LiteralInteger">50</Left>
+            <Start Type="LiteralInteger">49</Start>
+            <Stop Type="LiteralInteger">51</Stop>
+          </Right>
+        </Left>
+        <Operator Type="Identifier" IsReservedKeyword="true">or</Operator>
+        <Right Type="BinaryOperator">
+          <Left Type="LiteralInteger">10</Left>
+          <Operator Type="Terminal">&lt;&gt;</Operator>
+          <Right Type="LiteralInteger">10</Right>
+        </Right>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test ExpressionOnly="true">
+    <Text>1 + @i between @i / @j and 2 - 3</Text>
+    <Description>Expressions in between.</Description>
+    <Xml>
+      <Sql>
+        <Between>
+          <Left>
+            <BinaryOperator>
+              <Left>
+                <LiteralInteger>1</LiteralInteger>
+              </Left>
+              <Operator><Terminal>+</Terminal></Operator>
+              <Right>
+                <Identifier IsVariable="true">@i</Identifier>
+              </Right>
+            </BinaryOperator>
+          </Left>
+          <Start>
+            <BinaryOperator>
+              <Left>
+                <Identifier IsVariable="true">@i</Identifier>
+              </Left>
+              <Operator><Terminal>/</Terminal></Operator>
+              <Right>
+                <Identifier IsVariable="true">@j</Identifier>
+              </Right>
+            </BinaryOperator>
+          </Start>
+          <Stop>
+            <BinaryOperator>
+              <Left>
+                <LiteralInteger>2</LiteralInteger>
+              </Left>
+              <Operator><Terminal>-</Terminal></Operator>
+              <Right>
+                <LiteralInteger>3</LiteralInteger>
+              </Right>
+            </BinaryOperator>
+          </Stop>
+        </Between>
+      </Sql>
+    </Xml>
+  </Test>
+  
+</Tests>

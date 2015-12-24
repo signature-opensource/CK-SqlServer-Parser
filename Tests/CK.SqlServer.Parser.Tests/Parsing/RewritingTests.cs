@@ -96,7 +96,7 @@ namespace CK.SqlServer.Parser.Tests
             _w = new IndentedTextWriter( _sw, "  " );
         }
 
-        public override ISqlNode Visit( SqlExprStIf e )
+        public override ISqlNode Visit( SqlIf e )
         {
             _w.Write( "if( " );
             VisitItem( e.Condition );
@@ -118,14 +118,14 @@ namespace CK.SqlServer.Parser.Tests
             return e;
         }
 
-        public override ISqlNode Visit( SqlExprUnaryOperator e )
+        public override ISqlNode Visit( SqlUnaryOperator e )
         {
-            _w.Write( e.OperatorT.ToString() );
-            VisitItem( e.Expression );
+            _w.Write( e.Operator.ToString() );
+            VisitItem( e.Right );
             return e;
         }
 
-        public override ISqlNode Visit( SqlExprKoCall e )
+        public override ISqlNode Visit( SqlKoCall e )
         {
             _w.Write( e.FunName );
             _w.Write( "(" );
@@ -140,9 +140,9 @@ namespace CK.SqlServer.Parser.Tests
             return e;
         }
 
-        public override ISqlNode Visit( SqlExprBinaryOperator e )
+        public override ISqlNode Visit( SqlBinaryOperator e )
         {
-            for( int i = 0; i < e.Opener.Tokens.Count; ++i ) _w.Write( "(" );
+            //for( int i = 0; i < e.Opener.Tokens.Count; ++i ) _w.Write( "(" );
             VisitItem( e.Left );
             _w.Write( " " );
             string op;
@@ -157,13 +157,13 @@ namespace CK.SqlServer.Parser.Tests
             _w.Write( op );
             _w.Write( " " );
             VisitItem( e.Right );
-            if( e.Closer.Tokens.Count > 0 ) _w.Write( ")" );
+            //if( e.Closer.Tokens.Count > 0 ) _w.Write( ")" );
             return e;
         }
 
-        public override ISqlNode Visit( SqlExprDeclare e )
+        public override ISqlNode Visit( SqlDeclareVariable e )
         {
-            Type t = e.Variable.TypeDecl.ActualType.BestNetType();
+            Type t = e.Variable.TypeDecl.BestNetType();
             if( t != null ) _w.Write( t.Name );
             else
             {
@@ -177,7 +177,7 @@ namespace CK.SqlServer.Parser.Tests
             return e;
         }
 
-        public override ISqlNode Visit( SqlExprBetween e )
+        public override ISqlNode Visit( SqlBetween e )
         {
             _w.Write( "(" );
             VisitItem( e.Left );
@@ -191,13 +191,13 @@ namespace CK.SqlServer.Parser.Tests
             return e;
         }
 
-        public override ISqlNode Visit( SqlExprStLabelDef e )
+        public override ISqlNode Visit( SqlLabelDefinition e )
         {
             _w.WriteLine( MapLabelName( e.IdentifierT.Name ) + ':' );
             return e;
         }
 
-        public override ISqlNode Visit( SqlExprStGoto e )
+        public override ISqlNode Visit( SqlGoto e )
         {
             _w.Write( "goto " );
             _w.Write( MapLabelName( e.Target.Name ) );
@@ -205,7 +205,7 @@ namespace CK.SqlServer.Parser.Tests
             return e;
         }
 
-        public override ISqlNode Visit( SqlExprStSetVar e )
+        public override ISqlNode Visit( SqlSetVariable e )
         {
             _w.Write( MapVariableName( e.Variable.Name ) );
             _w.Write( " = " );
@@ -214,7 +214,7 @@ namespace CK.SqlServer.Parser.Tests
             return e;
         }
 
-        public override ISqlNode Visit( SqlExprIdentifier e )
+        public override ISqlNode Visit( SqlTokenIdentifier e )
         {
             if( e.IsVariable ) _w.Write( MapVariableName( e.Name ) );
             return e;
@@ -235,12 +235,6 @@ namespace CK.SqlServer.Parser.Tests
         {
             v = v.Replace( "$", "_" );
             return v;
-        }
-
-        public override ISqlNode Visit( SqlExprLiteral e )
-        {
-            _w.Write( e.Token.LiteralValue );
-            return e;
         }
 
         public override ISqlNode Visit( SelectSpecification e )
@@ -268,7 +262,7 @@ namespace CK.SqlServer.Parser.Tests
         [TestCase( "CLASSEMENT_POSTE.sql" )]
         public void parsing_big_sp( string fileName )
         {
-            SqlExprStStoredProc sp = SqlAnalyserTest.ReadStatement<SqlExprStStoredProc>( fileName );
+            SqlStoredProcedure sp = SqlAnalyserTest.ReadStatement<SqlStoredProcedure>( fileName );
             TestHelper.ConsoleMonitor.Trace().Send( sp.ToString() );
             var v = new CSharper();
             v.VisitItem( sp );

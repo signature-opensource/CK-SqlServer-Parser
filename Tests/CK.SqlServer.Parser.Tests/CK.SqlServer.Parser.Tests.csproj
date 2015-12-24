@@ -70,6 +70,7 @@
     <Compile Include="..\..\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="ConsoleTests.cs" />
     <Compile Include="Parsing\ExplainWriter.cs" />
     <Compile Include="Parsing\RewritingTests.cs" />
     <Compile Include="Parsing\SqlAnalyserTest.cs" />
@@ -78,9 +79,11 @@
     <Compile Include="SetStatementTests.cs" />
     <Compile Include="SqlNodeExtension.cs" />
     <Compile Include="SqlNodeTests.cs" />
+    <Compile Include="SqlToXmlVisitor.cs" />
     <Compile Include="StringNormalizationExtension.cs" />
     <Compile Include="TestHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="XmlTests\XmlTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\CK.SqlServer.Parser\CK.SqlServer.Parser.csproj">
@@ -103,6 +106,13 @@
     <Content Include="Parsing\Scripts\sStoredProcedureInputOutput.sql" />
     <Content Include="Parsing\Scripts\sStoredProcedure01.sql" />
     <Content Include="Parsing\Scripts\AdventureWorks2012-FullSchema.sql" />
+    <Content Include="XmlTests\Unmodeled stuff.xml" />
+    <Content Include="XmlTests\Simple expressions.xml" />
+    <Content Include="XmlTests\Logical operators.xml" />
+    <Content Include="XmlTests\Between expressions.xml" />
+    <Content Include="XmlTests\Comma lists.xml" />
+    <Content Include="XmlTests\LiteralTokens.xml" />
+    <Content Include="XmlTests\Identifiers.xml" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

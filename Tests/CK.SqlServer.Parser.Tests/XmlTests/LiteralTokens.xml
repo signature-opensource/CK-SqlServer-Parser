@@ -1,0 +1,64 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Tests>
+  <Test ExpressionOnly="true">
+    <Text>1</Text>
+    <Xml>
+      <Sql>
+        <LiteralInteger>1</LiteralInteger>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test ExpressionOnly="true">
+    <Text>24.98</Text>
+    <Xml CombineElementType="true">
+      <Sql Type="LiteralDecimal">24.98</Sql>
+    </Xml>
+  </Test>
+
+  <Test ExpressionOnly="true">
+    <Text>24.98e-56</Text>
+    <Xml>
+      <Sql>
+        <LiteralFloat>24.98e-56</LiteralFloat>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test ExpressionOnly="true">
+    <Text>£42.32</Text>
+    <Xml>
+      <Sql>
+        <LiteralMoney>£42.32</LiteralMoney>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test ExpressionOnly="true">
+    <Text>'a string'</Text>
+    <Xml>
+      <Sql>
+        <LiteralString>'a string'</LiteralString>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test ExpressionOnly="true">
+    <Text>N'a unicode string'</Text>
+    <Xml>
+      <Sql>
+        <LiteralString IsUnicode="true">N'a unicode string'</LiteralString>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test ExpressionOnly="true">
+    <Text>0x0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF</Text>
+    <Xml>
+      <Sql>
+        <LiteralBinary>0x0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF</LiteralBinary>
+      </Sql>
+    </Xml>
+  </Test>
+  
+</Tests>

@@ -19,11 +19,11 @@ namespace CK.SqlServer.Parser
             Value = value;
         }
 
-        public bool IsUnicode { get { return TokenType == SqlTokenType.UnicodeString; } }
+        public bool IsUnicode => TokenType == SqlTokenType.UnicodeString; 
 
-        public string Value { get; private set; }
+        public string Value { get; }
 
-        public override string LiteralValue { get { return String.Format( IsUnicode ? "N'{0}'" : "'{0}'", Value.Replace( "'", "''" ) ); } }
+        public override string LiteralValue => string.Format( IsUnicode ? "N'{0}'" : "'{0}'", Value.Replace( "'", "''" ) );
 
         protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
         {
@@ -31,10 +31,8 @@ namespace CK.SqlServer.Parser
         }
 
         [DebuggerStepThrough]
-        internal protected override ISqlNode Accept( SqlItemVisitor visitor )
-        {
-            return visitor.Visit( this );
-        }
+        internal protected override ISqlNode Accept( SqlItemVisitor visitor ) => visitor.Visit( this );
+
     }
 
 }

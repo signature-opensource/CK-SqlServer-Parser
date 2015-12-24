@@ -12,7 +12,7 @@ namespace CK.SqlServer.Parser
     /// <summary>
     /// Token for identifiers. An identifier can be <see cref="IsQuoted"/>, be <see cref="IsVariable"/>, be <see cref="IsKeywordName"/>.
     /// </summary>
-    public sealed class SqlTokenIdentifier : SqlToken
+    public sealed class SqlTokenIdentifier : SqlToken, ISqlIdentifier, IReadOnlyList<SqlTokenIdentifier>
     {
         readonly string _name;
 
@@ -20,7 +20,7 @@ namespace CK.SqlServer.Parser
             : base( t, leadingTrivia, trailingTrivia )
         {
             if( (t&SqlTokenType.IsIdentifier) == 0 ) throw new ArgumentException( "Invalid token type.", "t" );
-            if( String.IsNullOrWhiteSpace( name ) ) throw new ArgumentNullException( "name" );
+            if( string.IsNullOrWhiteSpace( name ) ) throw new ArgumentNullException( "name" );
             if( IsVariable && name[0] != '@' ) throw new ArgumentException( "Invalid variable name.", "name" );
             _name = name;
         }
@@ -28,30 +28,50 @@ namespace CK.SqlServer.Parser
         /// <summary>
         /// True for star (*) identifier. 
         /// </summary>
-        public bool IsStar { get { return TokenType == SqlTokenType.IdentifierStar; } }
+        public bool IsStar => TokenType == SqlTokenType.IdentifierStar;
 
         /// <summary>
         /// True for type names like int or sql_variant. 
         /// </summary>
-        public bool IsDbType { get { return (TokenType&SqlTokenType.IdentifierTypeMask) == SqlTokenType.IdentifierDbType; } }
+        public bool IsDbType => (TokenType&SqlTokenType.IdentifierTypeMask) == SqlTokenType.IdentifierDbType; 
 
         /// <summary>
         /// True if this <see cref="SqlTokenIdentifier"/> is [quoted] or "quoted".
         /// </summary>
-        public bool IsQuoted { get { return TokenType == SqlTokenType.IdentifierQuoted || TokenType == SqlTokenType.IdentifierQuotedBracket; } }
+        public bool IsQuoted => TokenType == SqlTokenType.IdentifierQuoted || TokenType == SqlTokenType.IdentifierQuotedBracket;
 
         /// <summary>
         /// True if this <see cref="SqlTokenIdentifier"/> is a @Variable or a @@SystemFunction.
         /// </summary>
-        public bool IsVariable { get { return TokenType == SqlTokenType.IdentifierVariable; } }
+        public bool IsVariable => TokenType == SqlTokenType.IdentifierVariable;
 
         /// <summary>
-        /// True if this <see cref="SqlTokenIdentifier"/> is a reserved keyword that starts a statement (select, create, declare, etc.)
-        /// or a standard identifer that also can start a statement (throw, get, move, etc.).
+        /// True if this <see cref="SqlTokenIdentifier"/> denotes a reserved keyword (select, create, declare, etc.)
+        /// or a standard identifer that starts a statement (throw, get, move, etc.).
         /// </summary>
-        public bool IsStartStatement 
+        public bool IsStartStatement => TokenType.IsStartStatement();
+
+        /// <summary>
+        /// True if this <see cref="SqlTokenIdentifier"/> is a reserved keyword.
+        /// </summary>
+        public bool IsReservedKeyword => TokenType.IsReservedKeyword();
+
+        IReadOnlyList<SqlTokenIdentifier> ISqlIdentifier.Identifiers => this;
+
+        int IReadOnlyCollection<SqlTokenIdentifier>.Count => 1;
+
+        SqlTokenIdentifier IReadOnlyList<SqlTokenIdentifier>.this[int index]
         {
-            get { return TokenType.IsStartStatement(); } 
+            get
+            {
+                if( index != 0 ) throw new IndexOutOfRangeException();
+                return this;
+            }
+        }
+
+        IEnumerator<SqlTokenIdentifier> IEnumerable<SqlTokenIdentifier>.GetEnumerator()
+        {
+            return new CKEnumeratorMono<SqlTokenIdentifier>( this );
         }
 
         public SqlTokenIdentifier RemoveQuoteIfPossible( bool keepIfReservedKeyword )
@@ -73,7 +93,7 @@ namespace CK.SqlServer.Parser
             return new SqlTokenIdentifier( typeWithoutQuote, Name, LeadingTrivias, TrailingTrivias );
         }
 
-        public string Name { get { return _name; } }
+        public string Name => _name; 
 
         public bool NameEquals( string name )
         { 
@@ -97,17 +117,10 @@ namespace CK.SqlServer.Parser
             }
         }
 
-        public override void WriteWithoutTrivias( ISqlTextWriter w )
-        {
-            w.Write( ToString() );
-        }
-
+        public override void WriteWithoutTrivias( ISqlTextWriter w ) => w.Write( ToString() );
 
         [DebuggerStepThrough]
-        internal protected override ISqlNode Accept( SqlItemVisitor visitor )
-        {
-            return visitor.Visit( this );
-        }
+        internal protected override ISqlNode Accept( SqlItemVisitor visitor ) => visitor.Visit( this );
 
     }
 

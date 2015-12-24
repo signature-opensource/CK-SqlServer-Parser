@@ -1,0 +1,168 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Tests>
+
+  <Test ExpressionOnly="true">
+    <Text>4 + 5</Text>
+    <Description>Simple addition/</Description>
+    <Xml CombineElementType="true">
+      <Sql Type="BinaryOperator">
+        <Left Type="LiteralInteger">4</Left>
+        <Operator Type="Terminal">+</Operator>
+        <Right Type="LiteralInteger">5</Right>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test ExpressionOnly="true">
+    <Text>(4 + 5)</Text>
+    <Description>Expresion inside parenthesis.</Description>
+    <Xml CombineElementType="true">
+      <Sql Type="Par">
+        <Content Type="BinaryOperator">
+          <Left Type="LiteralInteger">4</Left>
+          <Operator Type="Terminal">+</Operator>
+          <Right Type="LiteralInteger">5</Right>
+        </Content>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test ExpressionOnly="true">
+    <Text>(4 + ((5)))</Text>
+    <Description>Multiple parenthesis.</Description>
+    <Xml CombineElementType="true">
+      <Sql Type="Par">
+        <Content Type="BinaryOperator">
+          <Left Type="LiteralInteger">4</Left>
+          <Operator Type="Terminal">+</Operator>
+          <Right Type="Par">
+            <Content Type="Par">
+              <Content Type="LiteralInteger">5</Content>
+            </Content>
+          </Right>
+        </Content>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test ExpressionOnly="true">
+  <Text>-10+2</Text>
+    <Description>Unary minus operator with +: additive precedence.</Description>
+    <Xml CombineElementType="true">
+      <Sql Type="BinaryOperator">
+        <Left Type="UnaryOperator">
+          <Operator Type="Terminal">-</Operator>
+          <Right Type="LiteralInteger">10</Right>
+        </Left>
+        <Operator Type="Terminal">+</Operator>
+        <Right Type="LiteralInteger">2</Right>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test ExpressionOnly="true">
+    <Text>-10.89-2e4</Text>
+    <Description>Unary minus operator with -: additive precedence.</Description>
+    <Xml CombineElementType="true">
+      <Sql Type="BinaryOperator">
+        <Left Type="UnaryOperator">
+          <Operator Type="Terminal">-</Operator>
+          <Right Type="LiteralDecimal">10.89</Right>
+        </Left>
+        <Operator Type="Terminal">-</Operator>
+        <Right Type="LiteralFloat">2e4</Right>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test ExpressionOnly="true">
+    <Text>-1*2</Text>
+    <Description>Unary minus operator with *: additive precedence.</Description>
+    <Xml CombineElementType="true">
+      <Sql Type="UnaryOperator">
+        <Operator Type="Terminal">-</Operator>
+        <Right Type="BinaryOperator">
+          <Left Type="LiteralInteger">1</Left>
+          <Operator Type="Terminal">*</Operator>
+          <Right Type="LiteralInteger">2</Right>
+        </Right>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test ExpressionOnly="true">
+    <Text>-1*2+3</Text>
+    <Description>Unary minus operator with */+: additive precedence.</Description>
+    <Xml CombineElementType="true">
+      <Sql Type="BinaryOperator">
+        <Left Type="UnaryOperator">
+          <Operator Type="Terminal">-</Operator>
+          <Right Type="BinaryOperator">
+            <Left Type="LiteralInteger">1</Left>
+            <Operator Type="Terminal">*</Operator>
+            <Right Type="LiteralInteger">2</Right>
+          </Right>
+        </Left>
+        <Operator Type="Terminal">+</Operator>
+        <Right Type="LiteralInteger">3</Right>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test ExpressionOnly="true">
+    <Text>simple_call()</Text>
+    <Description></Description>
+    <Xml>
+      <Sql>
+        <KoCall>
+          <FunName>
+            <Identifier>simple_call</Identifier>
+          </FunName>
+          <Parameters>
+            <CommaList IsEnclosed="true" />
+          </Parameters>
+        </KoCall>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test ExpressionOnly="true">
+    <Text>a::call( 3+2, simple_call() )</Text>
+    <Description></Description>
+    <Xml>
+      <Sql>
+        <KoCall>
+          <FunName>
+            <MultiIdentifier>a::call</MultiIdentifier>
+          </FunName>
+          <Parameters>
+            <CommaList IsEnclosed="true" >
+              <Item>
+                <BinaryOperator>
+                  <Left>
+                    <LiteralInteger>3</LiteralInteger>
+                  </Left>
+                  <Operator><Terminal>+</Terminal></Operator>
+                  <Right>
+                    <LiteralInteger>2</LiteralInteger>
+                  </Right>
+                </BinaryOperator>                
+              </Item>
+              <Item>
+                <KoCall>
+                  <FunName>
+                    <Identifier>simple_call</Identifier>
+                  </FunName>
+                  <Parameters>
+                    <CommaList IsEnclosed="true" />
+                  </Parameters>
+                </KoCall>
+              </Item>
+            </CommaList>
+          </Parameters>
+        </KoCall>
+      </Sql>
+    </Xml>
+  </Test>
+
+</Tests>

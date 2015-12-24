@@ -76,16 +76,15 @@ namespace CK.SqlServer.Parser
         static public readonly SqlTokenList<SqlTokenClosePar> EmptyClosePar = SqlTokenList<SqlTokenClosePar>.Empty;
 
         /// <summary>
-        /// True if the <see cref="SqlToken"/> is the terminator ; token or a <see cref="SqlTokenType.IdentifierReservedStatement"/>.
+        /// True if the <see cref="SqlToken"/> is the terminator ; token or a an identifier
+        /// that starts a statement.
         /// </summary>
         /// <param name="t">Token to test.</param>
         /// <returns>Whether the token is the statement terminator or the possible start of a new statement.</returns>
         static public bool IsTerminatorOrPossibleStartStatement( SqlToken t )
         {
             if( t == null ) throw new ArgumentNullException( "t" );
-            return t.TokenType == SqlTokenType.SemiColon
-                    || (t.TokenType & SqlTokenType.IdentifierTypeMask) == SqlTokenType.IdentifierStandardStatement
-                    || (t.TokenType & SqlTokenType.IdentifierTypeMask) == SqlTokenType.IdentifierReservedStatement;
+            return t.TokenType == SqlTokenType.SemiColon || t.TokenType.IsStartStatement();
         }
 
         internal static bool IsIdentifierStartChar( int c )

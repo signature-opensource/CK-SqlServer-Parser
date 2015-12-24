@@ -3,11 +3,29 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace CK.SqlServer.Parser.Tests
 {
     public static class SqlNodeExtension
     {
+
+        public static XElement ToXml( this ISqlNode @this, string name = "Sql" )
+        {
+            if( @this is SqlToken ) return null;
+
+            var props = @this.GetType().GetProperties()
+                                .Where( p => p.Name != "UnPar" )
+                                .Where( p => typeof( ISqlNode ).IsAssignableFrom( p.PropertyType )
+                                                && p.GetIndexParameters().Length == 0 )
+                                .Select( p => new { Name = p.Name, Value = (ISqlNode)p.GetValue( @this ) } )
+                                .Where( o => o.Value != null );
+
+            return new XElement( name, 
+                        new XAttribute( "Type", @this.GetType().Name.Replace( '`', '_' ) ),
+                        new XElement( "T", @this.ToString() ),
+                        props.Select( o => ToXml( o.Value, o.Name ) ) );
+        }
 
         /// <summary>
         /// Writes an <see cref="IEnumerable"/> of <see cref="SqlNode"/> without its trivias. 

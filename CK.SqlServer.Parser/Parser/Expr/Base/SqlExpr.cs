@@ -13,7 +13,7 @@ namespace CK.SqlServer.Parser
     /// <summary>
     /// SqlExpr is a SqlItem with optionals <see cref="Opener"/> and <see cref="Closer"/>.
     /// </summary>
-    public abstract class SqlExpr : SqlItem
+    public abstract class SqlExpr : ASqlNodeArrayBased
     {
         internal SqlExpr( ImmutableList<SqlTrivia> leading, ISqlNode[] slots, ImmutableList<SqlTrivia> trailing )
             : base( leading, slots, trailing )
@@ -24,17 +24,17 @@ namespace CK.SqlServer.Parser
         /// <summary>
         /// Gets the opening parenthesis. Can be empty.
         /// </summary>
-        public SqlTokenList<SqlTokenOpenPar> Opener { get { return (SqlTokenList<SqlTokenOpenPar>)Slots[0]; } }
+        public SqlTokenList<SqlTokenOpenPar> Opener { get { return (SqlTokenList<SqlTokenOpenPar>)Children[0]; } }
 
         /// <summary>
         /// Gets the closing parenthesis. Can be empty.
         /// </summary>
-        public SqlTokenList<SqlTokenClosePar> Closer { get { return (SqlTokenList<SqlTokenClosePar>)Slots[Slots.Length-1]; } }
+        public SqlTokenList<SqlTokenClosePar> Closer { get { return (SqlTokenList<SqlTokenClosePar>)Children[Children.Length-1]; } }
 
         /// <summary>
         /// Gets the sql items without the enclosing parenthesis if they exist.
         /// </summary>
-        public IEnumerable<ISqlNode> ItemsWithoutParenthesis { get { return Slots.Skip( 1 ).Take( Slots.Length - 2 ); } }
+        public IEnumerable<ISqlNode> ItemsWithoutParenthesis { get { return Children.Skip( 1 ).Take( Children.Length - 2 ); } }
 
         /// <summary>
         /// Gets the tokens without the enclosing parenthesis if they exist.
@@ -49,13 +49,13 @@ namespace CK.SqlServer.Parser
         /// <returns>True if this is single token of the given type.</returns>
         public bool IsToken( SqlTokenType type, bool allowEnclosingParenthesis = false )
         {
-            return Slots.Length == 3 && Slots[1].IsToken( type ) && (allowEnclosingParenthesis || Opener.Tokens.Count == 0);
+            return Children.Length == 3 && Children[1].IsToken( type ) && (allowEnclosingParenthesis || Opener.Tokens.Count == 0);
         }
 
         internal SqlExpr MutableEnclose( SqlTokenOpenPar openPar, SqlTokenClosePar closePar )
         {
-            Slots[0] = SqlTokenList<SqlTokenOpenPar>.Create( openPar, Opener );
-            Slots[Slots.Length-1] = SqlTokenList<SqlTokenClosePar>.Create( Closer, closePar );
+            Children[0] = SqlTokenList<SqlTokenOpenPar>.Create( openPar, Opener );
+            Children[Children.Length-1] = SqlTokenList<SqlTokenClosePar>.Create( Closer, closePar );
             return this;
         }
 
@@ -67,7 +67,7 @@ namespace CK.SqlServer.Parser
         /// <returns>An array of <see cref="SqlNode"/>.</returns>
         protected ISqlNode[] EncloseComponents( SqlTokenOpenPar openPar, SqlTokenClosePar closePar )
         {
-            return CreateEnclosedArray( openPar, Slots, closePar );
+            return CreateEnclosedArray( openPar, Children, closePar );
         }
 
     }

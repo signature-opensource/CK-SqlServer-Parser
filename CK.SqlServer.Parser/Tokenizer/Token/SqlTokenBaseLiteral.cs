@@ -30,20 +30,14 @@ namespace CK.SqlServer.Parser
         /// By default, the string is the <see cref="LiteralValue"/>.
         /// </summary>
         /// <returns></returns>
-        public override string ToString()
-        {
-            return LiteralValue;
-        }
-
+        public override string ToString() => LiteralValue;
 
         /// <summary>
         /// Simply appends the <see cref="LiteralValue"/>.
         /// </summary>
         /// <param name="w">The builder to use.</param>
-        public override void WriteWithoutTrivias( ISqlTextWriter w )
-        {
-            w.Write( LiteralValue );
-        }
+        public override void WriteWithoutTrivias( ISqlTextWriter w ) => w.Write( LiteralValue );
+
     }
 
 }

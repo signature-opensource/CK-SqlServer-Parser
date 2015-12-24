@@ -1,0 +1,177 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Tests>
+
+  <Test ExpressionOnly="true">
+    <Text>1 or 2 or 3 or 4</Text>
+    <Description>Multiple binary 'or' operators.</Description>
+    <Xml CombineElementType="true">
+      <Sql Type="BinaryOperator">
+        <Left Type="BinaryOperator">
+            <Left Type="BinaryOperator">
+                <Left Type="LiteralInteger">1</Left>
+                <Operator Type="Identifier" IsReservedKeyword="true">or</Operator>
+                <Right Type="LiteralInteger">2</Right>
+            </Left>
+            <Operator Type="Identifier" IsReservedKeyword="true">or</Operator>
+            <Right Type="LiteralInteger">3</Right>
+        </Left >
+        <Operator Type="Identifier" IsReservedKeyword="true">or</Operator>
+        <Right Type="LiteralInteger">4</Right>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test ExpressionOnly="true">
+    <Text>1 and 2 or 3 and 4</Text>
+    <Description>Binary operator 'and' has a higher priority than 'or'.</Description>
+    <Xml CombineElementType="true">
+      <Sql Type="BinaryOperator">
+        <Left Type="BinaryOperator">
+          <Left Type="LiteralInteger">1</Left>
+          <Operator Type="Identifier" IsReservedKeyword="true">and</Operator>
+          <Right Type="LiteralInteger">2</Right>
+        </Left>
+        <Operator Type="Identifier" IsReservedKeyword="true">or</Operator>
+        <Right Type="BinaryOperator">
+          <Left Type="LiteralInteger">3</Left>
+          <Operator Type="Identifier" IsReservedKeyword="true">and</Operator>
+          <Right Type="LiteralInteger">4</Right>
+        </Right>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test ExpressionOnly="true">
+    <Text>not X and @i</Text>
+    <Description>Logical 'not' has a higher priority than 'and'.</Description>
+    <Xml>
+      <Sql>
+        <BinaryOperator>
+          <Left>
+            <UnaryOperator>
+              <Operator>
+                <Identifier IsReservedKeyword="true">not</Identifier>
+              </Operator>
+              <Right>
+                <Identifier>X</Identifier>
+              </Right>
+            </UnaryOperator>
+          </Left>
+          <Operator>
+            <Identifier IsReservedKeyword="true">and</Identifier>
+          </Operator>
+          <Right>
+            <Identifier IsVariable="true">@i</Identifier>
+          </Right>
+        </BinaryOperator>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test ExpressionOnly="true">
+    <Text>X not like Y</Text>
+    <Decription>'not like' is handled as a Like variant.</Decription>
+    <Xml>
+      <Sql>
+        <Like IsNotLike="true">
+          <Left>
+            <Identifier>X</Identifier>
+          </Left>
+          <Pattern>
+            <Identifier>Y</Identifier>
+          </Pattern>
+        </Like>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test ExpressionOnly="true">
+    <Text>A or X not like Y and B</Text>
+    <Decription>Same as (A or ((X not like Y) and B))</Decription>
+    <Xml>
+      <Sql>
+        <BinaryOperator>
+          <Left>
+            <Identifier>A</Identifier>
+          </Left>
+          <Operator><Identifier IsReservedKeyword="true">or</Identifier></Operator>
+          <Right>
+            <BinaryOperator>
+              <Left>
+                <Like IsNotLike="true">
+                  <Left><Identifier>X</Identifier></Left>
+                  <Pattern><Identifier>Y</Identifier></Pattern>
+                </Like>
+              </Left>
+              <Operator><Identifier IsReservedKeyword="true">and</Identifier></Operator>
+              <Right>
+                <Identifier>B</Identifier>
+              </Right>
+            </BinaryOperator>
+          </Right>
+        </BinaryOperator>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test ExpressionOnly="true">
+    <Text>A and X not like Y or B</Text>
+    <Decription>Same as ((A and (X not like Y)) or B)</Decription>
+    <Xml>
+      <Sql>
+        <BinaryOperator>
+          <Left>
+            <BinaryOperator>
+              <Left>
+                <Identifier>A</Identifier>
+              </Left>
+              <Operator><Identifier IsReservedKeyword="true">and</Identifier></Operator>
+              <Right>
+                <Like IsNotLike="true">
+                  <Left><Identifier>X</Identifier></Left>
+                  <Pattern><Identifier>Y</Identifier></Pattern>
+                </Like>
+              </Right>
+            </BinaryOperator>
+          </Left>
+          <Operator><Identifier IsReservedKeyword="true">or</Identifier></Operator>
+          <Right>
+            <Identifier>B</Identifier>
+          </Right>
+        </BinaryOperator>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test ExpressionOnly="true">
+    <Text>not @i not between 4 and £457 or 1 = /*comment 4 Fun*/0</Text>
+    <Decription>Same as (not(@i not between 4 and £457) or (1=0)).</Decription>
+    <Xml>
+      <Sql>
+            <BinaryOperator>
+                <Left>
+                    <UnaryOperator>
+                        <Operator><Identifier IsReservedKeyword="true">not</Identifier></Operator>
+                        <Right>
+                            <Between IsNotBetween="true">
+                                <Left><Identifier IsVariable="true">@i</Identifier></Left>
+                                <Start><LiteralInteger>4</LiteralInteger></Start>
+                                <Stop><LiteralMoney>£457</LiteralMoney></Stop>
+                            </Between>
+                        </Right>
+                    </UnaryOperator>
+                </Left>
+                <Operator><Identifier IsReservedKeyword="true">or</Identifier></Operator>
+                <Right>
+                    <BinaryOperator>
+                        <Left><LiteralInteger>1</LiteralInteger></Left>
+                        <Operator><Terminal>=</Terminal></Operator>
+                        <Right><LiteralInteger>0</LiteralInteger></Right>    
+                    </BinaryOperator>
+                </Right>
+            </BinaryOperator>
+        </Sql>
+    </Xml>
+  </Test>  
+
+</Tests>

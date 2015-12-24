@@ -1,0 +1,38 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Tests>
+
+  <Test>
+    <Text>A B</Text>
+    <Description>NodeList is the "catch all" structure.</Description>
+    <Xml>
+      <Sql>
+        <NodeList>
+          <Item>
+            <Identifier>A</Identifier>
+          </Item>
+          <Item>
+            <Identifier>B</Identifier>
+          </Item>
+        </NodeList>
+      </Sql>
+    </Xml>
+  </Test>
+  
+  <Test>
+    <Text>break; continue 3+5 ; A</Text>
+    <Description>Two statements.</Description>
+    <Xml>
+      <Sql>
+        <NodeList>
+          <Item>
+            <Identifier>A</Identifier>
+          </Item>
+          <Item>
+            <Identifier>B</Identifier>
+          </Item>
+        </NodeList>
+      </Sql>
+    </Xml>
+  </Test>
+
+</Tests>

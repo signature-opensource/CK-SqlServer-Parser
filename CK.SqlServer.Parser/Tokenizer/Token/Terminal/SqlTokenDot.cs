@@ -13,7 +13,7 @@ namespace CK.SqlServer.Parser
     /// <summary>
     /// Specific <see cref="SqlTokenTerminal"/> for <see cref="SqlTokenType.Dot"/>.
     /// </summary>
-    public sealed class SqlTokenDot : SqlTokenTerminal 
+    public sealed class SqlTokenDot : SqlTokenTerminal, ISqlTokenIdentifierSeparator
     {
         public SqlTokenDot( ImmutableList<SqlTrivia> leadingTrivia = null, ImmutableList<SqlTrivia> trailingTrivia = null )
             : base( SqlTokenType.Dot, leadingTrivia, trailingTrivia )

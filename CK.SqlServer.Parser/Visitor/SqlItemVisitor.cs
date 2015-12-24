@@ -46,21 +46,39 @@ namespace CK.SqlServer.Parser
             return modified;
         }
 
-        protected SqlExpr VisitStandard( SqlExpr e )
-        {
-            List<ISqlNode> modified = VisitItems( e.ItemsWithoutParenthesis, e.Opener, e.Closer );
-            if( modified == null ) return e;
-            return (SqlExpr)e.InternalClone( e.LeadingTrivias, modified, e.TrailingTrivias );
-        }
-
-        protected ISqlNode VisitStandard( ISqlNode e )
+        protected virtual ISqlNode VisitStandard( ISqlNode e )
         {
             List<ISqlNode> modified = VisitItems( e.ChildrenNodes );
             if( modified == null ) return e;
             return ((SqlNode)e).InternalClone( e.LeadingTrivias, modified, e.TrailingTrivias );
         }
 
+        protected virtual ISqlNode VisitTokenStandard( SqlToken e )
+        {
+            return e;
+        }
+
+        protected virtual ISqlNode VisitTypeDeclStandard( ISqlUnifiedTypeDecl e )
+        {
+            return e;
+        }
+
         public virtual ISqlNode Visit( SqlNodeExternal e )
+        {
+            return VisitStandard( e );
+        }
+
+        public virtual ISqlNode Visit( SqlCommaList e )
+        {
+            return VisitStandard( e );
+        }
+
+        public virtual ISqlNode Visit( SqlNodeList e )
+        {
+            return VisitStandard( e );
+        }
+
+        public virtual ISqlNode Visit( SqlEnclosedCommaList e )
         {
             return VisitStandard( e );
         }
@@ -77,7 +95,7 @@ namespace CK.SqlServer.Parser
 
         public virtual ISqlNode Visit( SqlTokenLiteralInteger e )
         {
-            return e;
+            return VisitTokenStandard( e );
         }
 
         public virtual ISqlNode Visit( SqlTokenError e )
@@ -87,311 +105,280 @@ namespace CK.SqlServer.Parser
 
         public virtual ISqlNode Visit( SqlTokenLiteralBinary e )
         {
-            return e;
+            return VisitTokenStandard( e );
         }
 
         public virtual ISqlNode Visit( SqlTokenLiteralFloat e )
         {
-            return e;
+            return VisitTokenStandard( e );
         }
 
         public virtual ISqlNode Visit( SqlTokenLiteralDecimal e )
         {
-            return e;
+            return VisitTokenStandard( e );
         }
 
         public virtual ISqlNode Visit( SqlTokenLiteralMoney e )
         {
-            return e;
+            return VisitTokenStandard( e );
         }
 
         public virtual ISqlNode Visit( SqlTokenLiteralString e )
         {
-            return e;
+            return VisitTokenStandard( e );
         }
 
         public virtual ISqlNode Visit( SqlTokenTerminal e )
         {
-            return e;
+            return VisitTokenStandard( e );
         }
 
         public virtual ISqlNode Visit( SqlTokenIdentifier e )
         {
-            return e;
+            return VisitTokenStandard( e );
         }
 
-
-        public virtual ISqlNode Visit( SqlExprUnmodeledItems e )
+        public virtual ISqlNode Visit( SqlKoCall e )
         {
             return VisitStandard( e );
         }
 
-        public virtual ISqlNode Visit( SqlExprRawItemList e )
+        public virtual ISqlNode Visit( SqlOverClause e )
         {
             return VisitStandard( e );
         }
 
-        public virtual ISqlNode Visit( SqlExprKoCall e )
+        public virtual ISqlNode Visit( SqlCollate e )
         {
             return VisitStandard( e );
         }
 
-        public virtual ISqlNode Visit( SqlNoExprOverClause e )
+        public virtual ISqlNode Visit( SqlIf e )
         {
             return VisitStandard( e );
         }
 
-        public virtual ISqlNode Visit( SqlExprCollate e )
+        public ISqlNode Visit( SqlCursorDefinition e )
         {
             return VisitStandard( e );
         }
 
-        public virtual ISqlNode Visit( SqlExprStIf e )
+        public ISqlNode Visit( SqlIdentifierCommaList e )
         {
             return VisitStandard( e );
         }
 
-        public ISqlNode Visit( SqlExprCursor e )
+        public ISqlNode Visit( SqlCursorDefinition92 e )
         {
             return VisitStandard( e );
         }
 
-        public ISqlNode Visit( SqlNoExprIdentifierList e )
+        public virtual ISqlNode Visit( SqlDeclareCursor e )
         {
             return VisitStandard( e );
         }
 
-        public ISqlNode Visit( SqlExprCursorSql92 e )
+        public virtual ISqlNode Visit( SqlBeginTransaction e )
         {
             return VisitStandard( e );
         }
 
-        public virtual ISqlNode Visit( SqlExprStDeclareCursor e )
+        public virtual ISqlNode Visit( SqlStatementList e )
         {
             return VisitStandard( e );
         }
 
-        public virtual ISqlNode Visit( SqlExprStBeginTran e )
+        public virtual ISqlNode Visit( SqlBeginEndBlock e )
         {
             return VisitStandard( e );
         }
 
-        public virtual ISqlNode Visit( SqlExprStatementList e )
+        public virtual ISqlNode Visit( SqlTryCatch e )
         {
             return VisitStandard( e );
         }
 
-        public virtual ISqlNode Visit( SqlExprStBlock e )
+        public virtual ISqlNode Visit( SqlUnmodeledStatement e )
         {
             return VisitStandard( e );
         }
 
-        public virtual ISqlNode Visit( SqlExprStTryCatch e )
+        public virtual ISqlNode Visit( SqlStoredProcedure e )
         {
             return VisitStandard( e );
         }
 
-        public virtual ISqlNode Visit( SqlExprStUnmodeled e )
+        public virtual ISqlNode Visit( SqlFunctionScalar e )
         {
             return VisitStandard( e );
         }
 
-        public virtual ISqlNode Visit( SqlExprStStoredProc e )
+        public virtual ISqlNode Visit( SqlReturn e )
         {
             return VisitStandard( e );
         }
 
-        public virtual ISqlNode Visit( SqlExprStFunctionScalar e )
+        public virtual ISqlNode Visit( SqlSetVariable e )
         {
             return VisitStandard( e );
         }
 
-        public virtual ISqlNode Visit( SqlExprStReturn e )
+        public virtual ISqlNode Visit( SqlSetOption e )
         {
             return VisitStandard( e );
         }
 
-        public virtual ISqlNode Visit( SqlExprStSetVar e )
+        public virtual ISqlNode Visit( SqlGoto e )
         {
             return VisitStandard( e );
         }
 
-        public virtual ISqlNode Visit( SqlExprStSetOpt e )
+        public virtual ISqlNode Visit( SqlMonoStatement e )
         {
             return VisitStandard( e );
         }
 
-        public virtual ISqlNode Visit( SqlExprStGoto e )
+        public virtual ISqlNode Visit( SqlLabelDefinition e )
         {
             return VisitStandard( e );
         }
 
-        public virtual ISqlNode Visit( SqlExprStMonoStatement e )
-        {
-            return e;
-        }
-
-        public virtual ISqlNode Visit( SqlExprStLabelDef e )
-        {
-            return e;
-        }
-
-        public virtual ISqlNode Visit( SqlExprStEmpty e )
-        {
-            return e;
-        }
-
-        public virtual ISqlNode Visit( SqlExprStView e )
+        public virtual ISqlNode Visit( SqlEmptyStatement e )
         {
             return VisitStandard( e );
         }
 
-        public virtual ISqlNode Visit( SqlExprColumnList e )
+        public virtual ISqlNode Visit( SqlView e )
         {
             return VisitStandard( e );
         }
 
-        public virtual ISqlNode Visit( SqlNoExprExecuteAs e )
+        public virtual ISqlNode Visit( SqlColumnNameList e )
         {
             return VisitStandard( e );
         }
 
-        public virtual ISqlNode Visit( SqlExprStDeclare e )
+        public virtual ISqlNode Visit( SqlExecuteAs e )
         {
             return VisitStandard( e );
         }
 
-        public virtual ISqlNode Visit( SqlExprDeclareList e )
+        public virtual ISqlNode Visit( SqlDeclare e )
         {
             return VisitStandard( e );
         }
 
-        public virtual ISqlNode Visit( SqlExprDeclare e )
+        public virtual ISqlNode Visit( SqlDeclareVariableList e )
         {
             return VisitStandard( e );
         }
 
-        public virtual ISqlNode Visit( SqlExprCast e )
+        public virtual ISqlNode Visit( SqlDeclareVariable e )
         {
             return VisitStandard( e );
         }
 
-        public virtual ISqlNode Visit( SqlExprCommaList e )
+        public virtual ISqlNode Visit( SqlCast e )
         {
             return VisitStandard( e );
         }
 
-        public virtual ISqlNode Visit( SqlExprIdentifier e )
-        {
-            return e;
-        }
-
-        public virtual ISqlNode Visit( SqlExprMultiIdentifier e )
-        {
-            return e;
-        }
-
-        public virtual ISqlNode Visit( SqlExprLiteral e )
-        {
-            return e;
-        }
-
-        public virtual ISqlNode Visit( SqlExprNull e )
-        {
-            return e;
-        }
-
-        public virtual ISqlNode Visit( SqlExprUnaryOperator e )
+        public virtual ISqlNode Visit( SqlCaseWhenList e )
         {
             return VisitStandard( e );
         }
 
-        public virtual ISqlNode Visit( SqlExprTypeDecl e )
+        public virtual ISqlNode Visit( SqlMultiIdentifier e )
         {
             return VisitStandard( e );
         }
 
-        public virtual ISqlNode Visit( SqlExprTypeDeclDecimal e )
-        {
-            return e;
-        }
-
-        public virtual ISqlNode Visit( SqlExprTypeDeclDateAndTime e )
-        {
-            return e;
-        }
-
-        public virtual ISqlNode Visit( SqlExprTypeDeclSimple e )
-        {
-            return e;
-        }
-
-        public virtual ISqlNode Visit( SqlExprTypeDeclWithSize e )
-        {
-            return e;
-        }
-
-        public virtual ISqlNode Visit( SqlExprTypeDeclUserDefined e )
-        {
-            return e;
-        }
-
-        public virtual ISqlNode Visit( SqlExprTypedIdentifier e )
-        {
-            return e;
-        }
-
-        public virtual ISqlNode Visit( SqlExprParameter e )
+        public virtual ISqlNode Visit( SqlUnaryOperator e )
         {
             return VisitStandard( e );
         }
 
-        public virtual ISqlNode Visit( SqlExprParameterDefaultValue e )
+        public virtual ISqlNode Visit( SqlTypeDeclDecimal e )
         {
-            return e;
+            return VisitTypeDeclStandard( e );
         }
 
-        public virtual ISqlNode Visit( SqlExprParameterList e )
+        public virtual ISqlNode Visit( SqlTypeDeclDateAndTime e )
         {
-            return VisitStandard( e );
+            return VisitTypeDeclStandard( e );
         }
 
-        public virtual ISqlNode Visit( SqlExprAssign e )
+        public virtual ISqlNode Visit( SqlTypeDeclSimple e )
         {
-            return VisitStandard( e );
+            return VisitTypeDeclStandard( e );
         }
 
-        public virtual ISqlNode Visit( SqlExprBinaryOperator e )
+        public virtual ISqlNode Visit( SqlTypeDeclWithSize e )
         {
-            return VisitStandard( e );
+            return VisitTypeDeclStandard( e );
         }
 
-        public virtual ISqlNode Visit( SqlExprIsNull e )
+        public virtual ISqlNode Visit( SqlTypeDeclUserDefined e )
         {
-            return VisitStandard( e );
+            return VisitTypeDeclStandard( e );
         }
 
-        public virtual ISqlNode Visit( SqlExprLike e )
-        {
-            return VisitStandard( e );
-        }
-
-        public virtual ISqlNode Visit( SqlExprBetween e )
+        public virtual ISqlNode Visit( SqlTypedIdentifier e )
         {
             return VisitStandard( e );
         }
 
-        public virtual ISqlNode Visit( SqlExprIn e )
+        public virtual ISqlNode Visit( SqlParameter e )
         {
             return VisitStandard( e );
         }
 
-        public virtual ISqlNode Visit( SqlExprCase e )
+        public virtual ISqlNode Visit( SqlParameterDefaultValue e )
         {
             return VisitStandard( e );
         }
 
-        public virtual ISqlNode Visit( SqlExprCaseWhenSelector e )
+        public virtual ISqlNode Visit( SqlParameterList e )
+        {
+            return VisitStandard( e );
+        }
+
+        public virtual ISqlNode Visit( SqlAssign e )
+        {
+            return VisitStandard( e );
+        }
+
+        public virtual ISqlNode Visit( SqlBinaryOperator e )
+        {
+            return VisitStandard( e );
+        }
+
+        public virtual ISqlNode Visit( SqlIsNull e )
+        {
+            return VisitStandard( e );
+        }
+
+        public virtual ISqlNode Visit( SqlLike e )
+        {
+            return VisitStandard( e );
+        }
+
+        public virtual ISqlNode Visit( SqlBetween e )
+        {
+            return VisitStandard( e );
+        }
+
+        public virtual ISqlNode Visit( SqlInValues e )
+        {
+            return VisitStandard( e );
+        }
+
+        public virtual ISqlNode Visit( SqlCase e )
+        {
+            return VisitStandard( e );
+        }
+
+        public virtual ISqlNode Visit( SqlCaseWhenSelector e )
         {
             return VisitStandard( e );
         }
@@ -481,7 +468,7 @@ namespace CK.SqlServer.Parser
 
         #endregion
 
-        public virtual ISqlNode Visit( SqlExprStFunctionInlineTable e )
+        public virtual ISqlNode Visit( SqlFunctionInlineTable e )
         {
             return VisitStandard( e );
         }

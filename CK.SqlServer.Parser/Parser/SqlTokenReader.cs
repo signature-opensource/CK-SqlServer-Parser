@@ -304,6 +304,7 @@ namespace CK.SqlServer.Parser
             return false;
         }
 
+
         /// <summary>
         /// Reads a list of tokens until a <paramref name="stopper"/> or the end of input or 
         /// an error is encountered (in such case, stopper is set to null).
@@ -313,33 +314,35 @@ namespace CK.SqlServer.Parser
         /// <param name="stopper">The stopper. Null if an error occurred or the end of the input was reached.</param>
         /// <param name="stopperDefinition">Lambda that defines what the stopper should be.</param>
         /// <param name="atLeastOne">True if at least one item should appear in the list.</param>
-        /// <param name="matchers">
+        /// <param name="eaters">
         /// Optional functions that can transform the <see cref="Current"/> token (and its followers) to any item. 
         /// Matchers are called up to the first one that returns an item different than the Current token.
         /// When a matcher returns null, the current token is ignored.
         /// </param>
         /// <returns>True if no error occurred.</returns>
-        internal bool IsItemList<T>( out List<SqlNode> items, out T stopper, Predicate<T> stopperDefinition, bool atLeastOne, params Func<SqlNode>[] matchers ) where T : SqlToken
+        internal bool IsItemList<T>( out List<ISqlNode> items, out T stopper, Predicate<T> stopperDefinition, bool atLeastOne, IEnumerable<Func<ISqlNode>> eaters ) where T : SqlToken
         {
             Debug.Assert( stopperDefinition != null );
             items = null;
             stopper = null;
+            bool noMatcher = eaters == null || !eaters.Any();
             while( !IsErrorOrEndOfInput && !IsToken( out stopper, stopperDefinition, false ) )
             {
-                if( items == null ) items = new List<SqlNode>();
-                if( matchers == null || matchers.Length == 0 )
+                if( items == null ) items = new List<ISqlNode>();
+                if( noMatcher )
                 {
                     items.Add( Current );
                     MoveNext();
                 }
                 else
                 {
-                    SqlNode item = Current;
-                    foreach( var m in matchers )
+                    ISqlNode item = Current;
+                    foreach( var m in eaters )
                     {
                         item = m();
                         if( IsError ) return false;
                         if( item != Current ) break;
+                        items.Add( Current );
                         MoveNext();
                     }
                     if( item != null ) items.Add( item );
@@ -347,6 +350,43 @@ namespace CK.SqlServer.Parser
             }
             if( IsError ) return false;
             if( (items == null || items.Count == 0) && atLeastOne ) return SetCurrentError( "Expected at least one token." );
+            return true;
+        }
+
+
+        internal bool CollectUntil<T>( List<ISqlNode> items, IsFunc<ISqlNode> matcher, Predicate<T> stopperDefinition = null ) where T : SqlToken
+        {
+            Debug.Assert( items != null );
+            while( !IsErrorOrEndOfInput && !(Current is T && (stopperDefinition == null || stopperDefinition((T)Current))) )
+            {
+                if( matcher == null )
+                {
+                    items.Add( Current );
+                    MoveNext();
+                }
+                else
+                {
+                    ISqlNode item;
+                    if( matcher( out item, false ) )
+                    {
+                        items.Add( item );
+                    }
+                    else
+                    {
+                        items.Add( Current );
+                        MoveNext();
+                    }
+                }
+            }
+            return !IsError;
+        }
+
+        internal bool CollectUntil<T>( List<ISqlNode> items, IsFunc<ISqlNode> matcher, out T stopper, Predicate<T> stopperDefinition = null ) where T : SqlToken
+        {
+            stopper = null;
+            if( !CollectUntil( items, matcher, stopperDefinition ) ) return false;
+            stopper = (T)Current;
+            MoveNext();
             return true;
         }
 

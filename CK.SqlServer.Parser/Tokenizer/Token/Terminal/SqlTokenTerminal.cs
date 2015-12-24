@@ -28,6 +28,7 @@ namespace CK.SqlServer.Parser
             Debug.Assert( t != SqlTokenType.Dot || GetType().Name == "SqlTokenDot" );
             Debug.Assert( t != SqlTokenType.OpenPar || GetType().Name == "SqlTokenOpenPar" );
             Debug.Assert( t != SqlTokenType.ClosePar || GetType().Name == "SqlTokenClosePar" );
+            Debug.Assert( t != SqlTokenType.DoubleColons || GetType().Name == "SqlTokenDoubleColon" );
         }
 
         protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
@@ -44,6 +45,7 @@ namespace CK.SqlServer.Parser
                 case SqlTokenType.ClosePar: return new SqlTokenClosePar( lead, tail );
                 case SqlTokenType.Dot: return new SqlTokenDot( lead, tail );
                 case SqlTokenType.Comma: return new SqlTokenComma( lead, tail );
+                case SqlTokenType.DoubleColons: return new SqlTokenDoubleColon( lead, tail );
             }
             return new SqlTokenTerminal( t, lead, tail );
         }
@@ -52,16 +54,12 @@ namespace CK.SqlServer.Parser
         {
             bool? whiteSpaceBefore = null;
             bool? whiteSpaceAfter = null;
-            if( TokenType == SqlTokenType.Dot
-                                || TokenType == SqlTokenType.SemiColon
-                                || TokenType == SqlTokenType.Colon
-                                || TokenType == SqlTokenType.DoubleColons )
+            if( TokenType == SqlTokenType.SemiColon
+                                || TokenType == SqlTokenType.Colon )
             {
                 whiteSpaceBefore = false;
             }
-            if( TokenType == SqlTokenType.Dot
-                                || TokenType == SqlTokenType.Colon
-                                || TokenType == SqlTokenType.DoubleColons )
+            if( TokenType == SqlTokenType.Colon )
             {
                 whiteSpaceAfter = false;
             }
