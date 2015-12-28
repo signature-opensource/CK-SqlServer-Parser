@@ -30,13 +30,13 @@ namespace CK.SqlServer.Parser.Tests
         {
             var e = TestHelper.ParseOneStatement<SqlSetOption>( text );
             Assert.That( e.SetT.Name, Is.EqualTo( "set" ) );
-            Assert.That( e.List.ToString(), Is.EqualTo( "transaction isolation level" ) );
+            Assert.That( e.Options.ToString(), Is.EqualTo( "transaction isolation level" ) );
         }
 
         [Test]
         public void setting_with_syntax_error()
         {
-            SqlExprBaseSt e;
+            SqlSetVariable e;
             SqlAnalyser.ErrorResult r = SqlAnalyser.ParseStatement( out e, "set @v = (select 1==0);" );
             Assert.That( r.IsError );
             Assert.That( r.ErrorMessage, Is.StringStarting( "Expected expression" ).And.StringContaining( "<- Unexpected '='" ) );

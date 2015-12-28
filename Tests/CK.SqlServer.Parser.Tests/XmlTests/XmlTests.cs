@@ -21,6 +21,9 @@ namespace CK.SqlServer.Parser.Tests.XmlTests
         [TestCase( "Logical operators.xml" )]
         [TestCase( "Simple expressions.xml" )]
         [TestCase( "Unmodeled stuff.xml" )]
+        [TestCase( "If.xml" )]
+        [TestCase( "Simple Procedures.xml" )]
+        [TestCase( "Simple Selects.xml" )]
         public void file_test( string fileName )
         {
             using( TestHelper.ConsoleMonitor.OpenInfo().Send( $"Running {fileName}." ) )
@@ -29,25 +32,15 @@ namespace CK.SqlServer.Parser.Tests.XmlTests
                 int i = 0;
                 foreach( var t in tests.Elements( "Test" ) )
                 {
-                    bool expressionOnly = t.GetAttributeBoolean( "ExpressionOnly", false );
+                    ParseMode mode = t.GetAttributeEnum<ParseMode>( "Mode", ParseMode.AllStatements );
                     string text = t.Element( "Text" ).Value.NormalizeEOL();
                     string desc = t.Elements( "Description" ).Select( e => e.Value ).FirstOrDefault();
                     bool combineElementType = t.Element( "Xml" ).GetAttributeBoolean( "CombineElementType", false );
                     XElement expected = t.Element( "Xml" ).Element( "Sql" );
-                    using( TestHelper.ConsoleMonitor.OpenInfo().Send( $"n°{i}-{desc}: {text}." + (expressionOnly ? "(Expression only)" : "") ) )
+                    using( TestHelper.ConsoleMonitor.OpenInfo().Send( $"n°{i}-{desc}: {text}. ({mode.ToString()})" ) )
                     {
-                        SqlAnalyser.ErrorResult r;
                         ISqlNode e;
-                        if( expressionOnly )
-                        {
-                            r = SqlAnalyser.ParseExpression( out e, text );
-                        }
-                        else
-                        {
-                            SqlNodeList list;
-                            r = SqlAnalyser.Parse( out list, text );
-                            e = list;
-                        }
+                        SqlAnalyser.ErrorResult r = SqlAnalyser.Parse( out e, mode, text );
                         Assert.That( r.IsError, Is.False, r.ToString() );
                         SqlToXmlVisitor v = new SqlToXmlVisitor( combineElementType );
                         XElement x = v.ToXml( "Sql", e );

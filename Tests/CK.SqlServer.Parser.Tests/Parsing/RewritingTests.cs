@@ -103,7 +103,7 @@ namespace CK.SqlServer.Parser.Tests
             _w.WriteLine( " )" );
             _w.WriteLine( "{" );
             _w.Indent += 1;
-            VisitItem( e.ThenStatement );
+            VisitItem( e.Then );
             _w.Indent -= 1;
             _w.WriteLine( "}" );
             if( e.HasElse )
@@ -111,7 +111,7 @@ namespace CK.SqlServer.Parser.Tests
                 _w.WriteLine( "else" );
                 _w.WriteLine( "{" );
                 _w.Indent += 1;
-                VisitItem( e.ElseStatement );
+                VisitItem( e.Else );
                 _w.Indent -= 1;
                 _w.WriteLine( "}" );
             }
@@ -161,7 +161,7 @@ namespace CK.SqlServer.Parser.Tests
             return e;
         }
 
-        public override ISqlNode Visit( SqlDeclareVariable e )
+        public override ISqlNode Visit( SqlVariableDeclaration e )
         {
             Type t = e.Variable.TypeDecl.BestNetType();
             if( t != null ) _w.Write( t.Name );

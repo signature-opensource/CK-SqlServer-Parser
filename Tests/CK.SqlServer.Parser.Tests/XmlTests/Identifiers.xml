@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <Tests>
-  <Test ExpressionOnly="true">
+  <Test Mode="OneExpression">
     <Text>word</Text>
     <Xml>
       <Sql>
@@ -9,7 +9,7 @@
     </Xml>
   </Test>
 
-  <Test ExpressionOnly="true">
+  <Test Mode="OneExpression">
     <Text>create</Text>
     <Xml>
       <Sql>
@@ -18,7 +18,7 @@
     </Xml>
   </Test>
 
-  <Test ExpressionOnly="true">
+  <Test Mode="OneExpression">
     <Text>fetch</Text>
     <Xml>
       <Sql>
@@ -27,7 +27,7 @@
     </Xml>
   </Test>
 
-  <Test ExpressionOnly="true">
+  <Test Mode="OneExpression">
     <Text>@var</Text>
     <Xml>
       <Sql>
@@ -36,7 +36,7 @@
     </Xml>
   </Test>
 
-  <Test ExpressionOnly="true">
+  <Test Mode="OneExpression">
     <Text>@@system_identifier</Text>
     <Xml>
       <Sql>
@@ -45,7 +45,7 @@
     </Xml>
   </Test>
 
-  <Test ExpressionOnly="true">
+  <Test Mode="OneExpression">
     <Text>int</Text>
     <Xml>
       <Sql>
@@ -54,7 +54,7 @@
     </Xml>
   </Test>
 
-  <Test ExpressionOnly="true">
+  <Test Mode="OneExpression">
     <Text>sql_variant</Text>
     <Xml>
       <Sql>
@@ -63,7 +63,7 @@
     </Xml>
   </Test>
 
-  <Test ExpressionOnly="true">
+  <Test Mode="OneExpression">
     <Text>datetime2</Text>
     <Xml>
       <Sql>
@@ -72,7 +72,7 @@
     </Xml>
   </Test>
 
-  <Test ExpressionOnly="true">
+  <Test Mode="OneExpression">
     <Text>"Quoted identifier"</Text>
     <Xml>
       <Sql>
@@ -81,7 +81,7 @@
     </Xml>
   </Test>
 
-  <Test ExpressionOnly="true">
+  <Test Mode="OneExpression">
     <Text>
       [Bracket 
             [quoted]] 
@@ -95,7 +95,7 @@
     </Xml>
   </Test>
 
-  <Test ExpressionOnly="true">
+  <Test Mode="OneExpression">
     <Text>x.y</Text>
     <Xml>
       <Sql>
@@ -104,7 +104,7 @@
     </Xml>
   </Test>
   
-  <Test ExpressionOnly="true">
+  <Test Mode="OneExpression">
     <Text>x . y /*comment*/ :: /*c*/AL./*c*/B :: [E R T]</Text>
     <Xml>
       <Sql>
@@ -113,7 +113,7 @@
     </Xml>
   </Test>
 
-  <Test ExpressionOnly="true">
+  <Test Mode="OneExpression">
     <Text>@x.y."z a"</Text>
     <Xml>
       <Sql>

@@ -106,6 +106,9 @@
     <Content Include="Parsing\Scripts\sStoredProcedureInputOutput.sql" />
     <Content Include="Parsing\Scripts\sStoredProcedure01.sql" />
     <Content Include="Parsing\Scripts\AdventureWorks2012-FullSchema.sql" />
+    <Content Include="XmlTests\Simple Selects.xml" />
+    <Content Include="XmlTests\Simple Procedures.xml" />
+    <Content Include="XmlTests\If.xml" />
     <Content Include="XmlTests\Unmodeled stuff.xml" />
     <Content Include="XmlTests\Simple expressions.xml" />
     <Content Include="XmlTests\Logical operators.xml" />

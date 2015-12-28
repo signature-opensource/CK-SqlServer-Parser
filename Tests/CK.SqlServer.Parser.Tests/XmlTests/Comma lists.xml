@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <Tests>
-  <Test ExpressionOnly="true">
+  <Test Mode="AnyExpression">
     <Text>1, 2, 3</Text>
     <Description>Simple list of integers.</Description>
     <Xml>
@@ -20,7 +20,7 @@
     </Xml>
   </Test>
   
-  <Test ExpressionOnly="true">
+  <Test Mode="AnyExpression">
     <Text>@a, @multi.identifier.[ variable ], end</Text>
     <Description>List of identifiers.</Description>
     <Xml>
@@ -40,7 +40,7 @@
     </Xml>
   </Test>
 
-  <Test ExpressionOnly="true">
+  <Test Mode="AnyExpression">
     <Text>@a+1, -2*1/3, start/count</Text>
     <Description>List with expressions.</Description>
     <Xml>

@@ -68,6 +68,11 @@ namespace CK.SqlServer.Parser
             return VisitStandard( e );
         }
 
+        public virtual ISqlNode Visit( SqlUnnamedStatement e )
+        {
+            return VisitStandard( e );
+        }
+
         public virtual ISqlNode Visit( SqlCommaList e )
         {
             return VisitStandard( e );
@@ -198,7 +203,7 @@ namespace CK.SqlServer.Parser
             return VisitStandard( e );
         }
 
-        public virtual ISqlNode Visit( SqlUnmodeledStatement e )
+        public virtual ISqlNode Visit( SqlStatement e )
         {
             return VisitStandard( e );
         }
@@ -233,11 +238,6 @@ namespace CK.SqlServer.Parser
             return VisitStandard( e );
         }
 
-        public virtual ISqlNode Visit( SqlMonoStatement e )
-        {
-            return VisitStandard( e );
-        }
-
         public virtual ISqlNode Visit( SqlLabelDefinition e )
         {
             return VisitStandard( e );
@@ -253,7 +253,7 @@ namespace CK.SqlServer.Parser
             return VisitStandard( e );
         }
 
-        public virtual ISqlNode Visit( SqlColumnNameList e )
+        public virtual ISqlNode Visit( SqlEnclosedIdentiferCommaList e )
         {
             return VisitStandard( e );
         }
@@ -263,17 +263,17 @@ namespace CK.SqlServer.Parser
             return VisitStandard( e );
         }
 
-        public virtual ISqlNode Visit( SqlDeclare e )
-        {
-            return VisitStandard( e );
-        }
-
-        public virtual ISqlNode Visit( SqlDeclareVariableList e )
-        {
-            return VisitStandard( e );
-        }
-
         public virtual ISqlNode Visit( SqlDeclareVariable e )
+        {
+            return VisitStandard( e );
+        }
+
+        public virtual ISqlNode Visit( SqlVariableDeclarationList e )
+        {
+            return VisitStandard( e );
+        }
+
+        public virtual ISqlNode Visit( SqlVariableDeclaration e )
         {
             return VisitStandard( e );
         }
@@ -441,12 +441,12 @@ namespace CK.SqlServer.Parser
             return VisitStandard( e );
         }
 
-        public virtual ISqlNode Visit( SelectOrderByColumnList e )
+        public virtual ISqlNode Visit( SqlOrderByList e )
         {
             return VisitStandard( e );
         }
 
-        public virtual ISqlNode Visit( SelectOrderByColumn e )
+        public virtual ISqlNode Visit( SqlOrderByItem e )
         {
             return VisitStandard( e );
         }

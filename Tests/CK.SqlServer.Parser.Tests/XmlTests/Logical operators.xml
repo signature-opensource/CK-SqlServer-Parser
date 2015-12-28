@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <Tests>
 
-  <Test ExpressionOnly="true">
+  <Test Mode="OneExpression">
     <Text>1 or 2 or 3 or 4</Text>
     <Description>Multiple binary 'or' operators.</Description>
     <Xml CombineElementType="true">
@@ -21,7 +21,7 @@
     </Xml>
   </Test>
 
-  <Test ExpressionOnly="true">
+  <Test Mode="OneExpression">
     <Text>1 and 2 or 3 and 4</Text>
     <Description>Binary operator 'and' has a higher priority than 'or'.</Description>
     <Xml CombineElementType="true">
@@ -41,7 +41,7 @@
     </Xml>
   </Test>
 
-  <Test ExpressionOnly="true">
+  <Test Mode="OneExpression">
     <Text>not X and @i</Text>
     <Description>Logical 'not' has a higher priority than 'and'.</Description>
     <Xml>
@@ -68,7 +68,7 @@
     </Xml>
   </Test>
 
-  <Test ExpressionOnly="true">
+  <Test Mode="OneExpression">
     <Text>X not like Y</Text>
     <Decription>'not like' is handled as a Like variant.</Decription>
     <Xml>
@@ -85,7 +85,7 @@
     </Xml>
   </Test>
 
-  <Test ExpressionOnly="true">
+  <Test Mode="OneExpression">
     <Text>A or X not like Y and B</Text>
     <Decription>Same as (A or ((X not like Y) and B))</Decription>
     <Xml>
@@ -114,7 +114,7 @@
     </Xml>
   </Test>
 
-  <Test ExpressionOnly="true">
+  <Test Mode="OneExpression">
     <Text>A and X not like Y or B</Text>
     <Decription>Same as ((A and (X not like Y)) or B)</Decription>
     <Xml>
@@ -143,7 +143,7 @@
     </Xml>
   </Test>
 
-  <Test ExpressionOnly="true">
+  <Test Mode="OneExpression">
     <Text>not @i not between 4 and £457 or 1 = /*comment 4 Fun*/0</Text>
     <Decription>Same as (not(@i not between 4 and £457) or (1=0)).</Decription>
     <Xml>

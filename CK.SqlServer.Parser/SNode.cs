@@ -61,7 +61,7 @@ namespace CK.SqlServer.Parser
 
         public static void CheckNullableToken( SqlToken token, string name, SqlTokenType t1, SqlTokenType t2 )
         {
-            if( token != null && (token.TokenType != t1 || token.TokenType != t2))
+            if( token != null && token.TokenType != t1 && token.TokenType != t2 )
             {
                 throw new ArgumentException( string.Format( "Optional {0} must be {1} or {2}, not {3}.",
                                                             name,

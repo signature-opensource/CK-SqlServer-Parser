@@ -1,10 +1,3 @@
-#region Proprietary License
-/*----------------------------------------------------------------------------
-* This file (CK.SqlServer.Parser\Parser\SqlAnalyser.LowLevel.cs) is part of CK-Database. 
-* Copyright © 2007-2014, Invenietis <http://www.invenietis.com>. All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -17,95 +10,51 @@ namespace CK.SqlServer.Parser
 {
     public partial class SqlAnalyser
     {
-        //public bool IsAnyToken( out SqlToken e, bool expected )
-        //{
-        //    e = null;
-        //    return !R.IsErrorOrEndOfInput && R.IsToken( out e, expected );
-        //}
-
-        //public bool IsAny( out ISqlNode e, bool expected )
-        //{
-        //    e = null;
-        //    SqlToken t;
-        //    if( !R.IsToken( out t, expected ) ) return false;
-        //    e = t;
-        //    return true;
-        //}
-
-        /// <summary>
-        /// Matches a list of comma separated expressions optionally enclosed in parenthesis.
-        /// </summary>
-        /// <typeparam name="T">Type of the expressions to match.</typeparam>
-        /// <param name="openPar">Optional opening parenthesis.</param>
-        /// <param name="items">List of items: contains expressions and comma tokens. Can be empty if no expression have been matched.</param>
-        /// <param name="closePar">Closing parenthesis. Not null if and only if an opening parenthesis exists.</param>
-        /// <param name="expectParenthesis">True to expect parenthesis. An error is set if the current token is not an opening parenthesis.</param>
-        /// <param name="match">Function that knows how to match an expression.</param>
-        /// <returns>True on success. Can be false only if <paramref name="expectParenthesis"/> is true.</returns>
-        bool IsCommaList<T>( out SqlTokenOpenPar openPar, out List<ISqlNode> items, out SqlTokenClosePar closePar, bool expectParenthesis, IsFunc<T> match ) where T : class, ISqlNode 
-        {
-            items = null;
-            closePar = null;
-
-            if( !R.IsToken( out openPar, expectParenthesis ) && expectParenthesis )
-            {
-                Debug.Assert( R.IsError, "Set by R.IsToken." );
-                return false;
-            }
-            items = new List<ISqlNode>();
-            T item;
-            if( !R.IsErrorOrEndOfInput && match( out item, false ) )
-            {
-                // Match may have returned null. this is the case for an empty list.
-                if( item != null ) items.Add( item );
-                SqlTokenComma comma;
-                while( R.IsToken( out comma, false ) )
-                {
-                    items.Add( comma );
-                    if( !match( out item, true ) )
-                    {
-                        if( !R.IsError ) R.SetCurrentError( "Match failed." );
-                        break;
-                    }
-                    if( item != null ) items.Add( item );
-                }
-            }
-            if( !R.IsError && openPar != null && !R.IsToken( out closePar, true ) )
-            {
-                Debug.Assert( R.IsError, "Set by R.IsToken." );
-                return false;
-            }
-            return !R.IsError;
-        }
-
-        /// <summary>
-        /// Matches a list of comma separated expressions not enclosed in parenthesis.
-        /// </summary>
-        /// <typeparam name="T">Type of the expressions to match.</typeparam>
-        /// <param name="items">List of items: contains expressions and comma tokens. Can be empty if no expression have been matched.</param>
-        /// <param name="match">Function that knows how to match an expression.</param>
-        /// <returns>True on success. Can be false only when <paramref name="expectAtLeastOne"/> is true or if an open parenthesis has been found.</returns>
-        bool IsCommaListNonEnclosed<T>( out List<ISqlNode> items, IsFunc<T> match, bool expectAtLeastOne ) where T : class, ISqlNode 
-        {
-            SqlTokenOpenPar openPar;
-            SqlTokenClosePar closePar;
-            if( !IsCommaList( out openPar, out items, out closePar, false, match ) ) return false;
-            if( openPar != null ) return R.SetCurrentError( "Unexpected parenthesis." );
-            if( expectAtLeastOne && items.Count == 0 ) return R.SetCurrentError( "Expected a '{0}' definition.", typeof( T ).Name.Replace( "SqlExpr", String.Empty ).Replace( "SqlNoExpr", String.Empty ) );
-            return !R.IsError;
-        }
-
-        /// <summary>
-        /// Combines multiple identifier into one <see cref="SqlMultiIdentifier"/> or returns a <see cref="SqlTokenIdentifier"/>.
-        /// </summary>
-        /// <param name="e">The resulting identifier.</param>
-        /// <param name="expected">True to set an error if no identifier is matched.</param>
-        /// <param name="first">Optional already read token.</param>
-        /// <returns>True on success, otherwise false.</returns>
-        bool IsIdentifier( out ISqlIdentifier e, bool expected, SqlTokenIdentifier first )
+        bool IsSqlNodeList<T>( out SqlNodeList e, out T stopper, Predicate<T> stopperDefinition = null, Func<bool, ISqlNode> matcher = null, int minCount = 0 ) where T : SqlToken
         {
             e = null;
-            if( first == null && !R.IsToken( out first, expected ) ) return false;
+            List<ISqlNode> items = new List<ISqlNode>();
+            if( !R.CollectUntil<T>( items, out stopper, matcher, stopperDefinition ) ) return false;
+            if( items.Count < minCount ) return R.SetCurrentError( "Expected at least {0} item(s).", minCount );
+            e = new SqlNodeList( items );
+            return true;
+        }
+
+        bool IsSqlNodeList<T>( out SqlNodeList e, Predicate<T> stopperDefinition = null, Func<bool, ISqlNode> matcher = null, int minCount = 0 ) where T : SqlToken
+        {
+            e = null;
+            List<ISqlNode> items = new List<ISqlNode>();
+            if( !R.CollectUntil<T>( items, matcher, stopperDefinition ) ) return false;
+            if( items.Count < minCount ) return R.SetCurrentError( "Expected at least {0} item(s).", minCount );
+            e = new SqlNodeList( items );
+            return true;
+        }
+
+        /// <summary>
+        /// Reads a comma separated list of extended expressions that may be enclosed or not in parenthesis.
+        /// </summary>
+        /// <param name="expected">True to set an error if no enclosed list exists.</param>
+        /// <returns>A <see cref="SqlEnclosedCommaList"/> or null.</returns>
+        SqlEnclosedCommaList IsEnclosedCommaList( bool expected, Parenthesis parenthesis = Parenthesis.Optional )
+        {
+            if( !expected && R.Current.TokenType != SqlTokenType.OpenPar ) return null;
+            SqlTokenOpenPar openPar;
+            SqlTokenClosePar closePar;
+            List<ISqlNode> items = new List<ISqlNode>();
+            if( !R.CollectCommaList( items, out openPar, out closePar, IsExtendedExpression, 0, parenthesis ) ) return null;
+            return new SqlEnclosedCommaList( openPar, items, closePar );
+        }
+
+        /// <summary>
+        /// Combines multiple identifier into one <see cref="SqlMultiIdentifier"/> or 
+        /// returns a <see cref="SqlTokenIdentifier"/>.
+        /// </summary>
+        /// <param name="expected">True to set an error if no identifier is matched.</param>
+        /// <param name="first">Optional already read token.</param>
+        /// <returns>The resulting identifier.</returns>
+        ISqlIdentifier IsIdentifier( bool expected, SqlTokenIdentifier first )
+        {
+            if( first == null && !R.IsToken( out first, expected ) ) return null;
             if( R.Current is ISqlTokenIdentifierSeparator )
             {
                 List<ISqlNode> parts = new List<ISqlNode>();
@@ -120,25 +69,24 @@ namespace CK.SqlServer.Parser
                         first = new SqlTokenIdentifier( SqlTokenType.IdentifierStar, "*", R.Current.LeadingTrivias, R.Current.TrailingTrivias );
                         R.MoveNext();
                     }
-                    else if( !R.IsToken( out first, true ) ) return false;
+                    else if( !R.IsToken( out first, true ) ) return null;
                     parts.Add( first );
                 }
                 while( R.Current is ISqlTokenIdentifierSeparator );
-                e = new SqlMultiIdentifier( parts );
+                return new SqlMultiIdentifier( parts );
             }
-            else e = first;
-            return true;
+            return first;
         }
 
         /// <summary>
-        /// Combines multiple identifier into one <see cref="SqlMultiIdentifier"/> or returns a <see cref="SqlTokenIdentifier"/>.
+        /// Combines multiple identifier into one <see cref="SqlMultiIdentifier"/> or 
+        /// returns a <see cref="SqlTokenIdentifier"/>.
         /// </summary>
-        /// <param name="e">The resulting identifier.</param>
         /// <param name="expected">True to set an error if no identifier is matched.</param>
-        /// <returns>True on success, otherwise false.</returns>
-        bool IsIdentifier( out ISqlIdentifier e, bool expected )
+        /// <returns>The resulting identifier.</returns>
+        ISqlIdentifier IsIdentifier( bool expected )
         {
-            return IsIdentifier( out e, expected, null );
+            return IsIdentifier( expected, null );
         }
 
         SqlTokenTerminal GetOptionalTerminator()

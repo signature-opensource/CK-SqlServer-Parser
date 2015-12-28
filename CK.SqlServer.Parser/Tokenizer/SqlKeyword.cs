@@ -29,7 +29,6 @@ namespace CK.SqlServer.Parser
             "references",
             "full",
             "replication",
-            "browse",
             "restore",
             "bulk",
             "check",
@@ -300,6 +299,8 @@ namespace CK.SqlServer.Parser
             _keywords.Add( "max", SqlTokenType.Max );
             _keywords.Add( "insensitive", SqlTokenType.Insensitive );
             _keywords.Add( "scroll", SqlTokenType.Scroll );
+            _keywords.Add( "mark", SqlTokenType.Mark );
+            _keywords.Add( "json", SqlTokenType.Json );
             _keywords.Add( "readonly", SqlTokenType.Readonly );
             _keywords.Add( "out", SqlTokenType.Output );
             _keywords.Add( "output", SqlTokenType.Output );
@@ -373,6 +374,7 @@ namespace CK.SqlServer.Parser
             _keywords.Add( "having", SqlTokenType.Having );
             _keywords.Add( "cursor", SqlTokenType.Cursor );
             _keywords.Add( "read", SqlTokenType.Read );
+            _keywords.Add( "browse", SqlTokenType.Browse );
             _keywords.Add( "collate", SqlTokenType.Collate );
 
 
@@ -413,6 +415,7 @@ namespace CK.SqlServer.Parser
             _keywords.Add( "readtext", SqlTokenType.Readtext );
             _keywords.Add( "writetext", SqlTokenType.Writetext );
             _keywords.Add( "dbcc", SqlTokenType.Dbcc );
+            _keywords.Add( "go", SqlTokenType.Go );
 
             // Reserved keywords.
             foreach( string s in _sqlServerReserved )

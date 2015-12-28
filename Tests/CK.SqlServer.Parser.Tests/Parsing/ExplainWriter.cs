@@ -70,18 +70,18 @@ namespace CK.SqlServer.Parser.Tests
             Out.Append( "if[" );
             VisitItem( e.Condition );
             Out.Append( "]then[" );
-            VisitItem( e.ThenStatement );
+            VisitItem( e.Then );
             Out.Append( ']' );
             if( e.HasElse )
             {
                 Out.Append( "else[" );
-                VisitItem( e.ElseStatement );
+                VisitItem( e.Else );
                 Out.Append( ']' );
             }
             return e;
         }
 
-        public override ISqlNode Visit( SqlUnmodeledStatement e )
+        public override ISqlNode Visit( SqlStatement e )
         {
             Out.Append( '<' );
             VisitItem( e.Content );
@@ -344,11 +344,11 @@ namespace CK.SqlServer.Parser.Tests
             return e;
         }
 
-        public override ISqlNode Visit( SelectOrderByColumnList e )
+        public override ISqlNode Visit( SqlOrderByList e )
         {
             Out.Append( "(" );
             bool atLeastOne = false;
-            foreach( SelectOrderByColumn c in e )
+            foreach( SqlOrderByItem c in e )
             {
                 if( atLeastOne ) Out.Append( "," );
                 else atLeastOne = true;
@@ -358,7 +358,7 @@ namespace CK.SqlServer.Parser.Tests
             return e;
         }
 
-        public override ISqlNode Visit( SelectOrderByColumn e )
+        public override ISqlNode Visit( SqlOrderByItem e )
         {
             VisitItem( e.Definition );
             if( e.AscOrDescT != null )

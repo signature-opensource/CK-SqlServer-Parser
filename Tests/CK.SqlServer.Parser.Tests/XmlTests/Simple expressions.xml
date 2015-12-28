@@ -1,9 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <Tests>
 
-  <Test ExpressionOnly="true">
+  <Test Mode="OneExpression">
     <Text>4 + 5</Text>
-    <Description>Simple addition/</Description>
+    <Description>Simple addition.</Description>
     <Xml CombineElementType="true">
       <Sql Type="BinaryOperator">
         <Left Type="LiteralInteger">4</Left>
@@ -13,7 +13,7 @@
     </Xml>
   </Test>
 
-  <Test ExpressionOnly="true">
+  <Test Mode="OneExpression">
     <Text>(4 + 5)</Text>
     <Description>Expresion inside parenthesis.</Description>
     <Xml CombineElementType="true">
@@ -27,7 +27,7 @@
     </Xml>
   </Test>
 
-  <Test ExpressionOnly="true">
+  <Test Mode="OneExpression">
     <Text>(4 + ((5)))</Text>
     <Description>Multiple parenthesis.</Description>
     <Xml CombineElementType="true">
@@ -45,7 +45,7 @@
     </Xml>
   </Test>
 
-  <Test ExpressionOnly="true">
+  <Test Mode="OneExpression">
   <Text>-10+2</Text>
     <Description>Unary minus operator with +: additive precedence.</Description>
     <Xml CombineElementType="true">
@@ -60,7 +60,7 @@
     </Xml>
   </Test>
 
-  <Test ExpressionOnly="true">
+  <Test Mode="OneExpression">
     <Text>-10.89-2e4</Text>
     <Description>Unary minus operator with -: additive precedence.</Description>
     <Xml CombineElementType="true">
@@ -75,7 +75,7 @@
     </Xml>
   </Test>
 
-  <Test ExpressionOnly="true">
+  <Test Mode="OneExpression">
     <Text>-1*2</Text>
     <Description>Unary minus operator with *: additive precedence.</Description>
     <Xml CombineElementType="true">
@@ -90,7 +90,7 @@
     </Xml>
   </Test>
 
-  <Test ExpressionOnly="true">
+  <Test Mode="OneExpression">
     <Text>-1*2+3</Text>
     <Description>Unary minus operator with */+: additive precedence.</Description>
     <Xml CombineElementType="true">
@@ -109,7 +109,7 @@
     </Xml>
   </Test>
 
-  <Test ExpressionOnly="true">
+  <Test Mode="OneExpression">
     <Text>simple_call()</Text>
     <Description></Description>
     <Xml>
@@ -126,7 +126,7 @@
     </Xml>
   </Test>
 
-  <Test ExpressionOnly="true">
+  <Test Mode="OneExpression">
     <Text>a::call( 3+2, simple_call() )</Text>
     <Description></Description>
     <Xml>

@@ -1,10 +1,3 @@
-#region Proprietary License
-/*----------------------------------------------------------------------------
-* This file (CK.SqlServer.Parser\Tokenizer\SqlTokenType.cs) is part of CK-Database. 
-* Copyright © 2007-2014, Invenietis <http://www.invenietis.com>. All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
 using System;
 
 namespace CK.SqlServer.Parser
@@ -46,7 +39,7 @@ namespace CK.SqlServer.Parser
     /// 4       Except                                                      They act as binary operators between "Select Specification".                  
     /// 3       Union                                                                        
     /// 2       Order, For                                                  Consider them as operators (where left side is ISelectSpecification).
-    /// 1        ,                                                          List separator (comma)
+    /// 0!      ,                                                           List separator (comma) is not considered as an operator.
     /// 
     /// (1) For '=' token, disambiguation between Comparison and Assignment requires a context hint: we need to know if we are in a "assignment context" or not.
     ///     This must be done at a higher level than in <see cref="SqlTokenizer"/>.
@@ -329,9 +322,9 @@ namespace CK.SqlServer.Parser
         /// </summary>
         Dot = IsPunctuation | OpLevel15 | 1,
         /// <summary>
-        /// The comma.
+        /// The comma is not considered as an operator.
         /// </summary>
-        Comma = IsPunctuation | OpLevel01 | 2,
+        Comma = IsPunctuation | 2,
         /// <summary>
         /// Statement terminator;
         /// </summary>
@@ -475,6 +468,8 @@ namespace CK.SqlServer.Parser
         Cast            = IdentifierStandard | 14,
         Insensitive     = IdentifierStandard | 15,
         Scroll          = IdentifierStandard | 16,
+        Mark            = IdentifierStandard | 17,
+        Json            = IdentifierStandard | 18,
         #endregion
 
         #region IdentifierSpecial values
@@ -595,10 +590,11 @@ namespace CK.SqlServer.Parser
         Having      = IdentifierReservedFirstNonOperator + 40,
         Cursor      = IdentifierReservedFirstNonOperator + 41,
         Read        = IdentifierReservedFirstNonOperator + 42,
+        Browse      = IdentifierReservedFirstNonOperator + 43,
         #endregion
 
         #region IdentifierReservedStatement values
-        Select      = IdentifierReservedStatement | 1,
+        Select = IdentifierReservedStatement | 1,
         Begin       = IdentifierReservedStatement | 2,
         End         = IdentifierReservedStatement | 3,
         Create      = IdentifierReservedStatement | 4,
@@ -633,6 +629,7 @@ namespace CK.SqlServer.Parser
         Readtext    = IdentifierReservedStatement | 33,
         Writetext   = IdentifierReservedStatement | 34,
         Dbcc        = IdentifierReservedStatement | 35,
+        Go          = IdentifierReservedStatement | 36,
 
         #endregion
 

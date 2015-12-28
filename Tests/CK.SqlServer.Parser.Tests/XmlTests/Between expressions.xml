@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <Tests>
 
-  <Test ExpressionOnly="true">
+  <Test Mode="OneExpression">
     <Text>1 between 2 and 3</Text>
     <Description>Simple between expression.</Description>
     <Xml CombineElementType="true">
@@ -13,7 +13,7 @@
     </Xml>
   </Test>
 
-  <Test ExpressionOnly="true">
+  <Test Mode="OneExpression">
     <Text>1 not between 2 and 3</Text>
     <Description>Not between: a Between where IsNotBetween is true.</Description>
     <Xml CombineElementType="true">
@@ -25,7 +25,7 @@
     </Xml>
   </Test>
 
-  <Test ExpressionOnly="true">
+  <Test Mode="OneExpression">
     <Text> 1=0 or 50 between 49 and 51 or 10&lt;&gt;10</Text>
     <Description>Between with 'or'.</Description>
     <Xml CombineElementType="true">
@@ -53,7 +53,7 @@
     </Xml>
   </Test>
 
-  <Test ExpressionOnly="true">
+  <Test Mode="OneExpression">
     <Text>1 + @i between @i / @j and 2 - 3</Text>
     <Description>Expressions in between.</Description>
     <Xml>

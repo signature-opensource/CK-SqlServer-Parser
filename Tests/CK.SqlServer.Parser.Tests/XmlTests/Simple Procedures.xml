@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Tests>
+  <Test>
+    <Text>
+      -- Version = 1.0.0, Package = TestMe
+      create procedure sProcWithoutTerminator
+      (
+      @P int
+      )
+      as
+      begin
+      --[beginsp]
+      select P = @P
+      --[endsp]
+      end</Text>
+    <Description>Simple procedure.</Description>
+    <Xml>
+      <Sql>
+      </Sql>
+    </Xml>
+  </Test>
+    
+</Tests>

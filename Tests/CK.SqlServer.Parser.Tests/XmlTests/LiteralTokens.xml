@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <Tests>
-  <Test ExpressionOnly="true">
+  <Test Mode="OneExpression">
     <Text>1</Text>
     <Xml>
       <Sql>
@@ -9,14 +9,14 @@
     </Xml>
   </Test>
 
-  <Test ExpressionOnly="true">
+  <Test Mode="OneExpression">
     <Text>24.98</Text>
     <Xml CombineElementType="true">
       <Sql Type="LiteralDecimal">24.98</Sql>
     </Xml>
   </Test>
 
-  <Test ExpressionOnly="true">
+  <Test Mode="OneExpression">
     <Text>24.98e-56</Text>
     <Xml>
       <Sql>
@@ -25,7 +25,7 @@
     </Xml>
   </Test>
 
-  <Test ExpressionOnly="true">
+  <Test Mode="OneExpression">
     <Text>£42.32</Text>
     <Xml>
       <Sql>
@@ -34,7 +34,7 @@
     </Xml>
   </Test>
 
-  <Test ExpressionOnly="true">
+  <Test Mode="OneExpression">
     <Text>'a string'</Text>
     <Xml>
       <Sql>
@@ -43,7 +43,7 @@
     </Xml>
   </Test>
 
-  <Test ExpressionOnly="true">
+  <Test Mode="OneExpression">
     <Text>N'a unicode string'</Text>
     <Xml>
       <Sql>
@@ -52,7 +52,7 @@
     </Xml>
   </Test>
 
-  <Test ExpressionOnly="true">
+  <Test Mode="OneExpression">
     <Text>0x0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF</Text>
     <Xml>
       <Sql>

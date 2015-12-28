@@ -74,8 +74,33 @@ namespace CK.SqlServer.Parser
                 .Add( props.Select( o => ToXml( o.Name, o.Value ) ) );
             if( e is ISqlStatement && ((ISqlStatement)e).StatementTerminator != null )
             {
-                _current.Add( new XAttribute( "HasStatementTerminator", "true" ) );
+                _current.Add( new XAttribute( "HasTerminator", "true" ) );
             }
+            return e;
+        }
+
+        public override ISqlNode Visit( SqlStatement e )
+        {
+            StartNode( "Statement" )
+                .Add( e.StatementTerminator != null ? new XAttribute( "HasTerminator", "true" ) : null,
+                      new XElement( "Name", e.Name.ToString() ),
+                      ToXml( "Content", e.Content ) );
+            return e;
+        }
+
+        public override ISqlNode Visit( SqlIf e )
+        {
+            StartNode( "If" )
+                .Add( e.StatementTerminator != null ? new XAttribute( "HasTerminator", "true" ) : null,
+                      ToXml( "Condition", e.Condition ),
+                      ToXml( "Then", e.Then ),
+                      ToXml( "Else", e.Else ) );
+            return e;
+        }
+
+        public override ISqlNode Visit( SqlIsNull e )
+        {
+            StartNode( "IsNull" ).Add( ToXml( "Left", e.Left ) );
             return e;
         }
 

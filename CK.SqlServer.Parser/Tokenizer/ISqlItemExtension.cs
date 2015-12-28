@@ -67,17 +67,6 @@ namespace CK.SqlServer.Parser
         }
 
         /// <summary>
-        /// True if the <see cref="SqlNode"/> is a comma or a closing parenthesis or a ; token (this ends an element in a list).
-        /// </summary>
-        /// <param name="t">Potential comma, closing parenthesis or semicolon token.</param>
-        /// <returns>Whether the token is a comma or a closing parenthesis or the statement terminator.</returns>
-        static public bool IsCommaOrCloseParenthesisOrTerminator( this ISqlNode t )
-        {
-            SqlToken token = t as SqlToken;
-            return token != null && (token.TokenType == SqlTokenType.EndOfInput || token.TokenType == SqlTokenType.Comma || token.TokenType == SqlTokenType.ClosePar || token.TokenType == SqlTokenType.SemiColon);
-        }
-
-        /// <summary>
         /// True if the <see cref="SqlNode"/> is a closing parenthesis or a ; token (this ends an element in a list).
         /// </summary>
         /// <param name="t">Closing parenthesis or semicolon token.</param>
@@ -86,21 +75,6 @@ namespace CK.SqlServer.Parser
         {
             SqlToken token = t as SqlToken;
             return token != null && (token.TokenType == SqlTokenType.ClosePar || token.TokenType == SqlTokenType.SemiColon);
-        }
-
-        /// <summary>
-        /// True if the <see cref="SqlNode"/> is a closing parenthesis, a terminator ; token or a <see cref="SqlTokenType.IdentifierReservedStatement"/>.
-        /// </summary>
-        /// <param name="t">Closing parenthesis or semicolon token.</param>
-        /// <returns>Whether the token is closing parenthesis or the statement terminator.</returns>
-        static public bool IsCloseParenthesisOrTerminatorOrPossibleStartStatement( this ISqlNode t )
-        {
-            SqlToken token = t as SqlToken;
-            return token != null
-                && (token.TokenType == SqlTokenType.ClosePar
-                    || token.TokenType == SqlTokenType.SemiColon
-                    || (token.TokenType & SqlTokenType.IdentifierTypeMask) == SqlTokenType.IdentifierStandardStatement
-                    || (token.TokenType & SqlTokenType.IdentifierTypeMask) == SqlTokenType.IdentifierReservedStatement);
         }
 
 
