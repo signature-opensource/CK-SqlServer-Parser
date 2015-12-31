@@ -10,18 +10,18 @@ namespace CK.SqlServer.Parser
 {
     public partial class SqlAnalyser
     {
-        bool MatchSelectSpecification( out SelectSpecification e, SqlTokenIdentifier select )
+        bool MatchSelectSpecification( out SelectSpec e, SqlTokenIdentifier select )
         {
             e = null;
             SelectHeader header;
             if( !MatchSelectHeader( out header, select ) ) return false;
-            SelectColumnList columns = IsSelectColumnList( 0 );
+            SelectColumnList columns = IsCommaList( 0, IsSelectColumn, i => new SelectColumnList( i ) );
             if( columns == null ) return false;
 
-            SpecificationPart c = IsSpecificationPart( R.Current );
+            SpecificationPart c = ToSpecificationPart( R.Current );
             if( c == SpecificationPart.None )
             {
-                e = new SelectSpecification( header, columns );
+                e = new SelectSpec( header, columns );
             }
             else
             {
@@ -35,7 +35,7 @@ namespace CK.SqlServer.Parser
                     ISqlIdentifier table = IsIdentifier( true );
                     if( table == null ) return false;
                     into = new SelectInto( partName, table );
-                    c = IsSpecificationPart( R.Current );
+                    c = ToSpecificationPart( R.Current );
                 }
                 if( c == SpecificationPart.From )
                 {
@@ -43,7 +43,7 @@ namespace CK.SqlServer.Parser
                     ISqlNode content = InternalIsExtendedExpression( true, SelectPartStopper );
                     if( content == null ) return false;
                     from = new SelectFrom( partName, content );
-                    c = IsSpecificationPart( R.Current );
+                    c = ToSpecificationPart( R.Current );
                 }
                 if( c == SpecificationPart.Where )
                 {
@@ -51,7 +51,7 @@ namespace CK.SqlServer.Parser
                     ISqlNode whereCond = IsOneExpression( true );
                     if( whereCond == null ) return false;
                     where = new SelectWhere( partName, whereCond );
-                    c = IsSpecificationPart( R.Current );
+                    c = ToSpecificationPart( R.Current );
                 }
                 if( c == SpecificationPart.Group )
                 {
@@ -67,18 +67,11 @@ namespace CK.SqlServer.Parser
                         if( (havingClause = IsOneExpression( true )) == null ) return false;
                     }
                     groupBy = new SelectGroupBy( partName, by, content, having, havingClause );
-                    c = IsSpecificationPart( R.Current );
+                    c = ToSpecificationPart( R.Current );
                 }
-                e = new SelectSpecification( header, columns, into, from, where, groupBy );
+                e = new SelectSpec( header, columns, into, from, where, groupBy );
             }
             return true;
-        }
-
-        SelectColumnList IsSelectColumnList( int minCount )
-        {
-            List<ISqlNode> items = new List<ISqlNode>();
-            if( !R.CollectCommaList( items, IsSelectColumn, minCount ) ) return null;
-            return new SelectColumnList( items );
         }
 
         SelectColumn IsSelectColumn( bool expected )
@@ -95,37 +88,48 @@ namespace CK.SqlServer.Parser
                 SqlAssign eA = e as SqlAssign;
                 if( eA != null )
                 {
-                    return new SelectColumn( eA.Identifier, eA.AssignT, eA.Right );
+                    SqlToken alias = eA.Left as SqlToken;
+                    if( alias == null || !alias.TokenType.IsValidColumnAliasNameOrVariable() )
+                    {
+                        R.SetCurrentError( "Invalid Column alias. Expected string, a unicode string or an identifier that is not reserved nor special." );
+                        return null;
+                    }
+                    return new SelectColumn( alias, eA.AssignT, eA.Right );
                 }
                 SqlTokenIdentifier asToken;
-                SqlTokenIdentifier colName = null;
+                SqlToken colName = null;
                 if( R.IsToken( out asToken, SqlTokenType.As, false ) )
                 {
                     if( !R.IsToken( out colName, true ) ) return null;
-                    return new SelectColumn( e, asToken, colName );
                 }
-                if( IsPossibleColumnDefinition( R.Current ) && R.IsToken( out colName, false ) )
+                else if( !SelectPartStopper( R.Current ) && R.Current.TokenType.IsValidColumnAliasName() )
                 {
-                    return new SelectColumn( e, colName );
+                    colName = R.Read<SqlToken>();
+                }
+                if( colName != null )
+                {
+                    if( !colName.TokenType.IsValidColumnAliasName() )
+                    {
+                        R.SetCurrentError( "Invalid Column alias. Exepected string, a unicode string or an identifier that is not reserved nor special nor is a variable name." );
+                        return null;
+                    }
+                    return asToken != null ? new SelectColumn( e, asToken, colName ) : new SelectColumn( e, colName );
                 }
                 return new SelectColumn( e );
             }
         }
 
-        private bool IsOverClause( out SqlOverClause over )
+        SqlOverClause IsOverClause( bool expected )
         {
-            over = null;
             SqlTokenIdentifier overToken;
-            if( !R.IsToken( out overToken, SqlTokenType.Over, false ) ) return false;
+            if( !R.IsToken( out overToken, SqlTokenType.Over, expected ) ) return null;
             using( R.SetAssignmentContext( false ) )
             {
                 SqlTokenOpenPar openPar;
-                if( !R.IsToken( out openPar, true ) ) return false;
-                SqlNodeList overContent;
+                if( !R.IsToken( out openPar, true ) ) return null;
                 SqlTokenClosePar closePar;
-                if( !IsSqlNodeList( out overContent, out closePar, null, minCount: 1 ) ) return false;
-                over = new SqlOverClause( overToken, openPar, overContent, closePar );
-                return true;
+                SqlNodeList overContent = IsSqlNodeList( out closePar, null, minCount: 1 );
+                return overContent != null ? new SqlOverClause( overToken, openPar, overContent, closePar ) : null;
             }
         }
 
@@ -134,9 +138,8 @@ namespace CK.SqlServer.Parser
             return t.TokenType == SqlTokenType.EndOfInput
                     || SqlToken.IsCloseParenthesisOrTerminatorOrPossibleStartStatement( t )
                     || t.TokenType.IsSelectOperator()
-                    || IsSpecificationPart( t ) != SpecificationPart.None
-                    || t.TokenType == SqlTokenType.Having
-                    || t.TokenType == SqlTokenType.Option;
+                    || ToSpecificationPart( t ) != SpecificationPart.None
+                    || t.TokenType == SqlTokenType.Having;
         }
 
         bool IsPossibleColumnDefinition( SqlToken t )
@@ -153,7 +156,7 @@ namespace CK.SqlServer.Parser
             Group = 4
         }
 
-        SpecificationPart IsSpecificationPart( SqlToken t )
+        SpecificationPart ToSpecificationPart( SqlToken t )
         {
             SpecificationPart c = SpecificationPart.None;
             SqlTokenIdentifier id = t as SqlTokenIdentifier;
@@ -183,18 +186,11 @@ namespace CK.SqlServer.Parser
                 if( (topExpression = IsOneExpression( true )) == null ) return false;
                 if( R.IsToken( out percent, SqlTokenType.Percent, false ) )
                 {
-                    if( R.IsToken( out with, SqlTokenType.With, false ) ) R.IsUnquotedIdentifier( out ties, "ties", true );
+                    if( R.IsToken( out with, SqlTokenType.With, false ) ) R.IsToken( out ties, SqlTokenType.Ties, true );
                 }
             }
             e = new SelectHeader( select, allOrDistinct, top, topExpression, percent, with, ties );
             return true;
-        }
-
-        SqlOrderByList IsOrderByList()
-        {
-            List<ISqlNode> items = new List<ISqlNode>();
-            if( !R.CollectCommaList<SqlOrderByItem>( items, IsOrderByItem, 1 ) ) return null;
-            return new SqlOrderByList( items );
         }
 
         SqlOrderByItem IsOrderByItem( bool expected )
@@ -206,30 +202,29 @@ namespace CK.SqlServer.Parser
             return new SqlOrderByItem( definition, ascOrDesc );
         }
 
-        bool IsSelectOrderByOffset( out SelectOrderByOffset e )
+        SelectOrderByOffset IsSelectOrderByOffset( bool expected )
         {
-            e = null;
             SqlTokenIdentifier offsetToken;
-            ISqlNode offsetExpr;
+            if( !R.IsToken( out offsetToken, SqlTokenType.Offset, expected ) ) return null;
+            ISqlNode offsetExpr = IsOneExpression( true );
+            if( offsetExpr == null ) return null;
             SqlTokenIdentifier rowsToken;
-            if( !R.IsToken( out offsetToken, SqlTokenType.Offset, false ) ) return false;
-            if( !IsExpression( out offsetExpr, 0, true ) ) return false;
-            if( !R.IsToken( out rowsToken, SqlTokenType.Rows, true ) ) return false;
+            if( !R.IsToken( out rowsToken, SqlTokenType.Rows, true ) ) return null;
             SqlTokenIdentifier fetchToken;
             if( R.IsToken( out fetchToken, SqlTokenType.Fetch, false ) )
             {
                 SqlTokenIdentifier firstOrNextToken;
-                if( !R.IsToken( out firstOrNextToken, SqlTokenType.First, false ) && !R.IsToken( out firstOrNextToken, SqlTokenType.Next, true ) ) return false;
-                ISqlNode fetchExpr;
-                if( !IsExpression( out fetchExpr, 0, true ) ) return false;
+                if( !R.IsToken( out firstOrNextToken, SqlTokenType.First, false ) 
+                    && !R.IsToken( out firstOrNextToken, SqlTokenType.Next, true ) ) return null;
+                ISqlNode fetchExpr = IsOneExpression( true );
+                if( fetchExpr == null ) return null;
                 SqlTokenIdentifier fetchRowsToken;
-                if( !R.IsToken( out fetchRowsToken, SqlTokenType.Rows, true ) ) return false;
+                if( !R.IsToken( out fetchRowsToken, SqlTokenType.Rows, true ) ) return null;
                 SqlTokenIdentifier onlyToken;
-                if( !R.IsToken( out onlyToken, SqlTokenType.Only, true ) ) return false;
-                e = new SelectOrderByOffset( offsetToken, offsetExpr, rowsToken, fetchToken, firstOrNextToken, fetchExpr, fetchRowsToken, onlyToken );
+                if( !R.IsToken( out onlyToken, SqlTokenType.Only, true ) ) return null;
+                return new SelectOrderByOffset( offsetToken, offsetExpr, rowsToken, fetchToken, firstOrNextToken, fetchExpr, fetchRowsToken, onlyToken );
             }
-            else e = new SelectOrderByOffset( offsetToken, offsetExpr, rowsToken );
-            return true;
+            return new SelectOrderByOffset( offsetToken, offsetExpr, rowsToken );
         }
     }
 }

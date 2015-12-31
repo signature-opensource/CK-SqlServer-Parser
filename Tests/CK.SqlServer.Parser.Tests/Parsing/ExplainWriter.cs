@@ -24,7 +24,7 @@ namespace CK.SqlServer.Parser.Tests
         public override ISqlNode Visit( SqlAssign e )
         {
             Out.Append( '[' );
-            WriteIdentifier( e.Identifier );
+            VisitItem( e.Left );
             Out.Append( e.AssignT.ToString() );
             VisitItem( e.Right );           
             Out.Append( ']' );
@@ -122,20 +122,7 @@ namespace CK.SqlServer.Parser.Tests
             return e;
         }
 
-        public override ISqlNode Visit( SqlCommaList e )
-        {
-            Out.Append( '{' );
-            bool one = false;
-            foreach( var item in e )
-            {
-                if( one ) Out.Append( ',' );
-                one = true;
-                VisitItem( item );
-            }
-            Out.Append( '}' );
-            return e;
-        }
-        public override ISqlNode Visit( SqlEnclosedCommaList e )
+        public override ISqlNode Visit( SqlEnclosableCommaList e )
         {
             Out.Append( '(' );
             bool one = false;
@@ -246,7 +233,7 @@ namespace CK.SqlServer.Parser.Tests
             return e;
         }
         
-        public override ISqlNode Visit( SelectSpecification e )
+        public override ISqlNode Visit( SelectSpec e )
         {
             Out.Append( '[' );
             VisitItem( e.Header );
@@ -284,7 +271,7 @@ namespace CK.SqlServer.Parser.Tests
         {
             if( e.ColumnName != null )
             {
-                WriteIdentifier( e.ColumnName );
+                VisitItem( e.ColumnName );
                 Out.Append( '-' ).Append( e.AsOrEqualT.ToString() ).Append( '-' );
             }
             VisitItem( e.Definition );
@@ -332,7 +319,7 @@ namespace CK.SqlServer.Parser.Tests
         public override ISqlNode Visit( SelectOrderBy e )
         {
             Out.Append( "OrderBy(" );
-            VisitItem( e.Select );
+            VisitItem( e.SelectNode );
             Out.Append( "," );
             VisitItem( e.OrderByColumns );
             if( e.OffsetClause != null )
@@ -392,21 +379,13 @@ namespace CK.SqlServer.Parser.Tests
             return e;
         }
 
-        public override ISqlNode Visit( SelectCombineOperator e )
+        public override ISqlNode Visit( SelectCombine e )
         {
             Out.Append( '[' );
-            VisitItem( e.Left );
+            VisitItem( e.LeftNode );
             e.OperatorT.AllTokens.WriteWithoutTrivias( "-", Out );
-            VisitItem( e.Right );
+            VisitItem( e.RightNode );
             Out.Append( ']' );
-            return e;
-        }
-
-        public override ISqlNode Visit( SelectOption e )
-        {
-            Out.Append( "-option[" );
-            VisitItem( e.Content );
-            Out.Append( "]" );
             return e;
         }
 

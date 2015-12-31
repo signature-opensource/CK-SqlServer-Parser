@@ -50,9 +50,9 @@ namespace CK.SqlServer.Parser
             }
         }
 
-        public IEnumerable<SqlTrivia> FullLeadingTrivias => LeadingNodes.SelectMany( n => n.LeadingTrivias );
+        public virtual IEnumerable<SqlTrivia> FullLeadingTrivias => LeadingNodes.SelectMany( n => n.LeadingTrivias );
 
-        public IEnumerable<SqlTrivia> FullTrailingTrivias => TrailingNodes.Reverse().SelectMany( n => n.TrailingTrivias );
+        public virtual IEnumerable<SqlTrivia> FullTrailingTrivias => TrailingNodes.Reverse().SelectMany( n => n.TrailingTrivias );
 
         public virtual IEnumerable<SqlToken> AllTokens => ChildrenNodes.ToTokens();
 
@@ -77,22 +77,22 @@ namespace CK.SqlServer.Parser
                     : n.SetTrivias( hL != null ? null : n.LeadingTrivias, tL != null ? null : n.TrailingTrivias );
         }
 
-        public ISqlNode LiftLeadingTrivias()
+        internal ISqlNode DoLiftLeadingTrivias()
         {
             return DoLift( ImmutableList.CreateBuilder<SqlTrivia>(), null, this, true );
         }
 
-        public ISqlNode LiftTrailingTrivias()
+        internal ISqlNode DoLiftTrailingTrivias()
         {
             return DoLift( null, ImmutableList.CreateBuilder<SqlTrivia>(), this, true );
         }
 
-        public ISqlNode LiftBothTrivias()
+        internal ISqlNode DoLiftBothTrivias()
         {
             return DoLift( ImmutableList.CreateBuilder<SqlTrivia>(), ImmutableList.CreateBuilder<SqlTrivia>(), this, true );
         }
 
-        public ISqlNode SetTrivias( ImmutableList<SqlTrivia> leading, ImmutableList<SqlTrivia> trailing )
+        internal ISqlNode DoSetTrivias( ImmutableList<SqlTrivia> leading, ImmutableList<SqlTrivia> trailing )
         {
             if( leading == null ) leading = ImmutableList<SqlTrivia>.Empty;
             if( trailing == null ) trailing = ImmutableList<SqlTrivia>.Empty;
@@ -109,10 +109,15 @@ namespace CK.SqlServer.Parser
                 trailing = TrailingTrivias;
             }
             return leading != LeadingTrivias || trailing != TrailingTrivias
-                    ? DoClone( leading, ChildrenNodes, trailing )
+                    ? DoClone( leading, null, trailing )
                     : this;
         }
 
+        /// <summary>
+        /// Sets new children nodes.
+        /// </summary>
+        /// <param name="childrenNodes">Children nodes.</param>
+        /// <returns>A new immutable object or this if no change occurred.</returns>
         public ISqlNode SetChildrenNodes( IReadOnlyList<ISqlNode> childrenNodes )
         {
             if( childrenNodes == null ) childrenNodes = Util.EmptyArray<ISqlNode>.Empty;
@@ -121,6 +126,12 @@ namespace CK.SqlServer.Parser
                     : DoClone( LeadingTrivias, childrenNodes, TrailingTrivias );
         }
 
+        /// <summary>
+        /// Sets or removes a child at a given index in <see cref="ChildrenNodes"/>.
+        /// </summary>
+        /// <param name="i">The index.</param>
+        /// <param name="child">Null to remove or the node to replace.</param>
+        /// <returns>A new immutable object or this if no change occurred.</returns>
         public ISqlNode ReplaceChildNode( int i, ISqlNode child )
         {
             var c = ChildrenNodes.ToList();
@@ -130,28 +141,35 @@ namespace CK.SqlServer.Parser
                 c[i] = child;
             }
             else c.RemoveAt( i );
-            return DoClone( LeadingTrivias, c.ToArray(), TrailingTrivias );
+            return DoClone( LeadingTrivias, c, TrailingTrivias );
         }
 
+        /// <summary>
+        /// Inserts or replace one or more children at a given index in <see cref="ChildrenNodes"/>.
+        /// </summary>
+        /// <param name="iStart">The index.</param>
+        /// <param name="count">The number of children to replace.</param>
+        /// <param name="child">The children to insert.</param>
+        /// <returns>A new immutable object or this if no change occurred.</returns>
         public ISqlNode StuffChildren( int iStart, int count, IReadOnlyList<ISqlNode> children )
         {
             if( children == null ) throw new ArgumentNullException( nameof( children ) );
             List<ISqlNode> c = ChildrenNodes.ToList();
             c.RemoveRange( iStart, count );
             c.InsertRange( iStart, children );
-            return DoClone( LeadingTrivias, c.ToArray(), TrailingTrivias );
+            return DoClone( LeadingTrivias, c, TrailingTrivias );
         }
 
-        public ISqlNode AddLeadingTrivia( SqlTrivia t )
+        internal ISqlNode DoAddLeadingTrivia( SqlTrivia t )
         {
             if( t.IsEmpty ) return this;
-            return DoClone( LeadingTrivias.Insert( 0, t ), ChildrenNodes, TrailingTrivias );
+            return DoClone( LeadingTrivias.Insert( 0, t ), null, TrailingTrivias );
         }
 
-        public ISqlNode AddTrailingTrivia( SqlTrivia t )
+        internal ISqlNode DoAddTrailingTrivia( SqlTrivia t )
         {
             if( t.IsEmpty ) return this;
-            return DoClone( LeadingTrivias, ChildrenNodes, TrailingTrivias.Add( t ) );
+            return DoClone( LeadingTrivias, null, TrailingTrivias.Add( t ) );
         }
 
         public virtual bool IsToken( SqlTokenType t ) => false;
@@ -165,9 +183,12 @@ namespace CK.SqlServer.Parser
         /// <param name="children">New content.</param>
         /// <param name="trailing">Trailing trivias.</param>
         /// <returns>A new immutable object.</returns>
-        protected abstract SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> children, ImmutableList<SqlTrivia> trailing );
+        protected abstract SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing );
 
-        internal SqlNode InternalClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
+        /// <summary>
+        /// Required because of SqlExternalNode: DoClone can not be internal protected.
+        /// </summary>
+        internal SqlNode InternalDoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
             return DoClone( leading, children, trailing );
         }
@@ -204,41 +225,6 @@ namespace CK.SqlServer.Parser
             if( withThisTrivia ) Write( w );
             else WriteWithoutTrivias( w );
             return w.ToString();
-        }
-
-        static internal T[] EnsureArray<T>( IEnumerable<T> content )
-        {
-            T[] r = content as T[];
-            if( r == null && content != null )
-            {
-                IList<T> l = content as IList<T>;
-                if( l != null )
-                {
-                    r = new T[l.Count];
-                    l.CopyTo( r, 0 );
-                }
-                else
-                {
-                    IReadOnlyCollection<T> c = content as IReadOnlyCollection<T>;
-                    if( c == null ) r = content.ToArray();
-                    else
-                    {
-                        int i = 0;
-                        r = new T[c.Count];
-                        foreach( var e in content ) r[i++] = e;
-                    }
-                }
-            }
-            return r;
-        }
-
-        static internal ISqlNode[] Build( SqlTokenOpenPar openPar, IEnumerable<ISqlNode> content, SqlTokenClosePar closePar )
-        {
-            var a = new List<ISqlNode>();
-            a.Add( openPar );
-            a.AddRange( content );
-            a.Add( closePar );
-            return a.ToArray();
         }
 
     }

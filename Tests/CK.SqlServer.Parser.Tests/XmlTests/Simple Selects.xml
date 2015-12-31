@@ -1,43 +1,178 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <Tests>
-  <!--<Test Mode="OneExpression">
+  
+  <Test Mode="OneExpression">
     <Text>select 1</Text>
     <Description>Simplest select.</Description>
     <Xml>
       <Sql>
-        <Select>
+        <SelectSpec>
           <Columns>
-            <CommaList>
+            <SelectColumnList>
               <Item>
-                <IdentifierInteger>1</IdentifierInteger>
+                <SelectColumn>
+                  <Definition>
+                    <LiteralInteger>1</LiteralInteger>
+                  </Definition>
+                </SelectColumn>
               </Item>
-            </CommaList>
+            </SelectColumnList>
           </Columns>
-        </Select>
+        </SelectSpec>
       </Sql>
     </Xml>
-  </Test>-->
+  </Test>
   
   <Test Mode="OneExpression">
     <Text>
-      select top (3) DepartmentID, Name, GroupName
+      select top (15) percent with ties DepartmentID Id, Name as Nom, Groupe = GroupName
         from HumanResources.Department
-        order by DepartmentID ASC, Shmurtz
+        order by DepartmentID DESC, Shmurtz
         offset @StartingRowNumber - 1 rows
           fetch next @EndingRowNumber - @StartingRowNumber + 1 rows only</Text>
-    <Description>Simplest select.</Description>
+    <Description>SelectOrderBy is an operator, just like SelectOrderFor (browse, xml, json, system_time).</Description>
     <Xml>
       <Sql>
-        <Select>
-          <Columns>
-            <CommaList>
+        <SelectOrderBy>
+          <Select>
+            <SelectSpec>
+              <Top Percent="true" WithTies="true">
+                <TopExpression>
+                  <Par>
+                    <Content>
+                      <LiteralInteger>15</LiteralInteger>
+                    </Content>
+                  </Par>
+                </TopExpression>
+              </Top>
+              <Columns>
+                <SelectColumnList>
+                  <Item>
+                    <SelectColumn Name="Id">
+                      <Definition>
+                        <Identifier>DepartmentID</Identifier>
+                      </Definition>
+                    </SelectColumn>
+                  </Item>
+                  <Item>
+                    <SelectColumn Name="Nom">
+                      <Definition>
+                        <Identifier>Name</Identifier>
+                      </Definition>
+                    </SelectColumn>
+                  </Item>
+                  <Item>
+                    <SelectColumn Name="Groupe">
+                      <Definition>
+                        <Identifier>GroupName</Identifier>
+                      </Definition>
+                    </SelectColumn>
+                  </Item>
+                </SelectColumnList>
+              </Columns>
+              <From>from HumanResources.Department</From>
+            </SelectSpec>
+          </Select>
+          <OrderByColumns>
+            <OrderByList>
               <Item>
-                <IdentifierInteger>1</IdentifierInteger>
+                <OrderByItem Desc="true">
+                  <Definition>
+                    <Identifier>DepartmentID</Identifier>
+                  </Definition>
+                </OrderByItem>
               </Item>
-            </CommaList>
-          </Columns>
-        </Select>
+              <Item>
+                <OrderByItem>
+                  <Definition>
+                    <Identifier>Shmurtz</Identifier>
+                  </Definition>
+                </OrderByItem>
+              </Item>
+            </OrderByList>
+          </OrderByColumns>
+          <OffsetClause>
+            <SelectOrderByOffset>
+              <OffsetExpression>
+                <BinaryOperator>
+                  <Left>
+                    <Identifier IsVariable="true">@StartingRowNumber</Identifier>
+                  </Left>
+                  <Operator>
+                    <Terminal>-</Terminal>
+                  </Operator>
+                  <Right>
+                    <LiteralInteger>1</LiteralInteger>
+                  </Right>
+                </BinaryOperator>
+              </OffsetExpression>
+              <FetchExpression>
+                <BinaryOperator>
+                  <Left>
+                    <BinaryOperator>
+                      <Left>
+                        <Identifier IsVariable="true">@EndingRowNumber</Identifier>
+                      </Left>
+                      <Operator>
+                        <Terminal>-</Terminal>
+                      </Operator>
+                      <Right>
+                        <Identifier IsVariable="true">@StartingRowNumber</Identifier>
+                      </Right>
+                    </BinaryOperator>
+                  </Left>
+                  <Operator>
+                    <Terminal>+</Terminal>
+                  </Operator>
+                  <Right>
+                    <LiteralInteger>1</LiteralInteger>
+                  </Right>
+                </BinaryOperator>
+              </FetchExpression>
+            </SelectOrderByOffset>
+          </OffsetClause>
+        </SelectOrderBy>
       </Sql>
     </Xml>
-  </Test>    
+  </Test>
+
+  <Test Mode="OneExpression">
+    <Text>
+      (((select D = GETUTCDATE())))
+    </Text>
+    <Description>Select in parenthesis.</Description>
+    <Xml>
+      <Sql>
+        <Par>
+          <Content>
+            <Par>
+              <Content>
+                <Par>
+                  <Content>
+                    <SelectSpec>
+                      <Columns>
+                        <SelectColumnList>
+                          <Item>
+                            <SelectColumn Name="D">
+                              <Definition>
+                                <KoCall FunName="GETUTCDATE">
+                                  <Parameters>
+                                    <EnclosedCommaList />
+                                  </Parameters>
+                                </KoCall>
+                              </Definition>
+                            </SelectColumn>
+                          </Item>
+                        </SelectColumnList>
+                      </Columns>
+                    </SelectSpec>
+                  </Content>
+                </Par>
+              </Content>
+            </Par>
+          </Content>
+        </Par>
+      </Sql>
+    </Xml>
+  </Test>
 </Tests>

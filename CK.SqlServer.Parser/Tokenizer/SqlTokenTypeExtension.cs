@@ -10,8 +10,9 @@ namespace CK.SqlServer.Parser
     public static class SqlTokenTypeExtension
     {
         /// <summary>
-        /// True if the <see cref="SqlNode"/> is a select operator: <see cref="SqlTokenType.Union"/>, <see cref="SqlTokenType.Except"/>, 
-        /// <see cref="SqlTokenType.Intersect"/>, <see cref="SqlTokenType.Order"/> and <see cref="SqlTokenType.For"/>.
+        /// True if this is a select operator: <see cref="SqlTokenType.Union"/>, <see cref="SqlTokenType.Except"/>, 
+        /// <see cref="SqlTokenType.Intersect"/>, <see cref="SqlTokenType.Order"/>, <see cref="SqlTokenType.For"/>
+        /// and <see cref="SqlTokenType.Option"/>.
         /// </summary>
         /// <param name="type">Token type.</param>
         /// <returns>Whether the token is a select operator.</returns>
@@ -21,14 +22,56 @@ namespace CK.SqlServer.Parser
                     || type == SqlTokenType.Except
                     || type == SqlTokenType.Intersect
                     || type == SqlTokenType.Order
-                    || type == SqlTokenType.For;
+                    || type == SqlTokenType.For 
+                    || type == SqlTokenType.Option;
+        }
+
+        /// <summary>
+        /// True if the token is valid as an alias for column name:
+        /// it is a string, a unicode string or an identifier that is not reserved 
+        /// nor special but can be a variable name to support @var = definition 
+        /// syntax in select.
+        /// </summary>
+        /// <param name="type">Token type to test.</param>
+        /// <param name="allowVariableName">True </param>
+        /// <returns>True if this is a valid column name alias.</returns>
+        static public bool IsValidColumnAliasNameOrVariable( this SqlTokenType type )
+        {
+            return type == SqlTokenType.IdentifierVariable
+                    || type == SqlTokenType.String
+                    || type == SqlTokenType.UnicodeString
+                    || (type & SqlTokenType.IdentifierTypeMask) == SqlTokenType.IdentifierStandard
+                    || (type & SqlTokenType.IdentifierTypeMask) == SqlTokenType.IdentifierStandardStatement
+                    || (type & SqlTokenType.IdentifierTypeMask) == SqlTokenType.IdentifierQuoted
+                    || (type & SqlTokenType.IdentifierTypeMask) == SqlTokenType.IdentifierQuotedBracket
+                    || (type & SqlTokenType.IdentifierTypeMask) == SqlTokenType.IdentifierDbType;
+        }
+
+        /// <summary>
+        /// True if the token is valid as an alias for column name:
+        /// it is a string, a unicode string or an identifier that is not reserved 
+        /// nor special nor is a variable name.
+        /// </summary>
+        /// <param name="type">Token type to test.</param>
+        /// <param name="allowVariableName">True to authorize variable name (ie. to 
+        /// support @var = definition syntax in select).</param>
+        /// <returns>True if this is a valid column name alias.</returns>
+        static public bool IsValidColumnAliasName( this SqlTokenType type )
+        {
+            return type == SqlTokenType.String
+                    || type == SqlTokenType.UnicodeString
+                    || (type & SqlTokenType.IdentifierTypeMask) == SqlTokenType.IdentifierStandard
+                    || (type & SqlTokenType.IdentifierTypeMask) == SqlTokenType.IdentifierStandardStatement
+                    || (type & SqlTokenType.IdentifierTypeMask) == SqlTokenType.IdentifierQuoted
+                    || (type & SqlTokenType.IdentifierTypeMask) == SqlTokenType.IdentifierQuotedBracket
+                    || (type & SqlTokenType.IdentifierTypeMask) == SqlTokenType.IdentifierDbType;
         }
 
         /// <summary>
         /// True if the token is a @variable (or @@SystemFunction like @@RowCount) or a 
         /// literal value ('string' or 0x5454 number for instance).
         /// </summary>
-        /// <param name="type">Token to test.</param>
+        /// <param name="type">Token type to test.</param>
         /// <returns>True for a variable or a literal.</returns>
         static public bool IsVariableNameOrLiteral( this SqlTokenType type )
         {

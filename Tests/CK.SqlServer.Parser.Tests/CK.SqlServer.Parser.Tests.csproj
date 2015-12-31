@@ -79,6 +79,7 @@
     <Compile Include="SetStatementTests.cs" />
     <Compile Include="SqlNodeExtension.cs" />
     <Compile Include="SqlNodeTests.cs" />
+    <Compile Include="SqlToXmlStatementVisitor.cs" />
     <Compile Include="SqlToXmlVisitor.cs" />
     <Compile Include="StringNormalizationExtension.cs" />
     <Compile Include="TestHelper.cs" />
@@ -106,9 +107,15 @@
     <Content Include="Parsing\Scripts\sStoredProcedureInputOutput.sql" />
     <Content Include="Parsing\Scripts\sStoredProcedure01.sql" />
     <Content Include="Parsing\Scripts\AdventureWorks2012-FullSchema.sql" />
+    <Content Include="XmlTests\Multi Statements.xml" />
+    <Content Include="XmlTests\CTE.xml" />
+    <Content Include="XmlTests\Sequence.xml" />
+    <Content Include="XmlTests\IsNull.xml" />
+    <Content Include="XmlTests\Not so Simple Procedures.xml" />
     <Content Include="XmlTests\Simple Selects.xml" />
     <Content Include="XmlTests\Simple Procedures.xml" />
     <Content Include="XmlTests\If.xml" />
+    <Content Include="XmlTests\Cursors.xml" />
     <Content Include="XmlTests\Unmodeled stuff.xml" />
     <Content Include="XmlTests\Simple expressions.xml" />
     <Content Include="XmlTests\Logical operators.xml" />

@@ -53,7 +53,7 @@ namespace CK.SqlServer.Parser
             return n.LeadingTrivias.Concat( n.TrailingTrivias ).Concat( n.ChildrenNodes.SelectMany( c => GetAllTrivias( c ) ) );
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
             return new SqlParameter( this, leading, children, trailing );
         }
@@ -62,7 +62,7 @@ namespace CK.SqlServer.Parser
 
         public SqlTypedIdentifier Variable => _content.V1;
 
-        public string Name { get { return Variable.Identifier.Name; } }
+        public string Name => Variable.Identifier.Name;
 
         /// <summary>
         /// Gets the default value or null if no default are defined.

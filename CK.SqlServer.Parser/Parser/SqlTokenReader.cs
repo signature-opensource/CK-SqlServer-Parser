@@ -20,6 +20,7 @@ namespace CK.SqlServer.Parser
         IEnumerator<SqlToken> _e;
         SqlToken _c;
         SqlToken _rawLookup;
+        int _parenthesisDepth;
         bool _assignmentContext;
 
         public SqlTokenReader( IEnumerable<SqlToken> tokens, Func<string> currentAnalyzedText, Func<SourcePosition> currentTokenPosition )
@@ -31,10 +32,9 @@ namespace CK.SqlServer.Parser
             Reset();
         }
 
-        public bool AssignmentContext
-        {
-            get { return _assignmentContext; }
-        }
+        public bool AssignmentContext => _assignmentContext;
+
+        public int ParenthesisDepth => _parenthesisDepth;
 
         public IDisposable SetAssignmentContext( bool assignment )
         {
@@ -294,9 +294,10 @@ namespace CK.SqlServer.Parser
 
         public bool IsUnquotedIdentifier( out SqlTokenIdentifier identifier, string name, bool expected )
         {
-            if( Current.IsUnquotedIdentifier( name ) )
+            identifier = Current as SqlTokenIdentifier;
+            if( identifier != null && !identifier.IsQuoted && identifier.NameEquals( name ) )
             {
-                identifier = Read<SqlTokenIdentifier>();
+                MoveNext();
                 return true;
             }
             if( expected ) SetCurrentError( "Expected '{0}' identifier.", name );
@@ -313,10 +314,10 @@ namespace CK.SqlServer.Parser
         /// <param name="matcher">IsXXX function (trasforms the current token - and its following ones - into any kind of node).</param>
         /// <param name="stopperDefinition">Lambda that defines what the stopper should be. When null, the type of token is used.</param>
         /// <returns>True if no error occurred.</returns>
-        internal bool CollectUntil<T>( List<ISqlNode> items, Func<bool,ISqlNode> matcher = null, Predicate<T> stopperDefinition = null ) where T : SqlToken
+        internal bool CollectUntil<T>( List<ISqlNode> items, Func<bool, ISqlNode> matcher = null, Predicate<T> stopperDefinition = null ) where T : SqlToken
         {
             Debug.Assert( items != null );
-            while( !IsErrorOrEndOfInput && !(Current is T && (stopperDefinition == null || stopperDefinition((T)Current))) )
+            while( !IsErrorOrEndOfInput && !(Current is T && (stopperDefinition == null || stopperDefinition( (T)Current ))) )
             {
                 if( matcher != null )
                 {
@@ -429,6 +430,18 @@ namespace CK.SqlServer.Parser
         {
             if( _e == null ) throw new ObjectDisposedException( "TokenReader" );
             if( _c == SqlTokenError.EndOfInput ) return false;
+            if( _c != null )
+            {
+                if( _c.TokenType == SqlTokenType.OpenPar )
+                {
+                    ++_parenthesisDepth;
+                }
+                else if( _c.TokenType == SqlTokenType.ClosePar )
+                {
+                    --_parenthesisDepth;
+                }
+
+            }
             _c = _rawLookup;
             if( _c.TokenType > 0 )
             {

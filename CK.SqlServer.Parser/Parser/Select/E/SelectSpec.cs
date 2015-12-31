@@ -8,13 +8,14 @@ using System.Text;
 namespace CK.SqlServer.Parser
 {
     /// <summary>
-    /// Captures 'into', 'from', 'where' and 'group by' clauses.
+    /// Captures 'into', 'from', 'where' and 'group by' clauses. The <see cref="SelectOrderBy"/> and <see cref="SelectFor"/>
+    /// as well as the <see cref="SelectCombine"/> are operators that wraps other <see cref="ISelectSpecification"/>.
     /// </summary>
-    public sealed class SelectSpecification : SqlNode, ISelectSpecification
+    public sealed class SelectSpec : SqlNode, ISelectSpecification
     {
         readonly SNode<SelectHeader, SelectColumnList, SelectInto, SelectFrom, SelectWhere, SelectGroupBy> _content;
 
-        public SelectSpecification( SelectHeader header, SelectColumnList columns, SelectInto into = null, SelectFrom from = null, SelectWhere where = null, SelectGroupBy groupBy = null )
+        public SelectSpec( SelectHeader header, SelectColumnList columns, SelectInto into = null, SelectFrom from = null, SelectWhere where = null, SelectGroupBy groupBy = null )
             : base( null, null )
         {
             _content = new SNode<SelectHeader, SelectColumnList, SelectInto, SelectFrom, SelectWhere, SelectGroupBy>(
@@ -33,7 +34,7 @@ namespace CK.SqlServer.Parser
             SNode.CheckNotNull( Columns, nameof( Columns ) );
         }
 
-        SelectSpecification( SelectSpecification o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
+        SelectSpec( SelectSpec o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
             : base( leading, trailing )
         {
             if( items == null ) _content = o._content;
@@ -44,18 +45,19 @@ namespace CK.SqlServer.Parser
             }
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
-            return new SelectSpecification( this, leading, children, trailing );
+            return new SelectSpec( this, leading, children, trailing );
         }
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
 
         /// <summary>
-        /// Gets the operator token type: it is <see cref="SqlTokenType.None"/> since this is an 
-        /// actual select specification and not a <see cref="SelectCombineOperator"/>.
+        /// Gets the operator token type: it is <see cref="SelectOperatorKind.None"/> since this is an 
+        /// actual select specification and not an operator like <see cref="SelectCombine"/>, 
+        /// <see cref="SelectOrderBy"/> or <see cref="SelectFor"/>.
         /// </summary>
-        public SqlTokenType CombinationKind { get { return SqlTokenType.None; } }
+        public SelectOperatorKind SelectOperator => SelectOperatorKind.None;
 
         public SelectHeader Header => _content.V1;
 

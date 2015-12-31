@@ -63,12 +63,12 @@ namespace CK.SqlServer.Parser
             SNode.CheckToken( EndCatchT, nameof( EndCatchT ), SqlTokenType.Catch );
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
             return new SqlTryCatch( this, leading, children, trailing );
         }
 
-        public StatementName StatementName => StatementName.TryCatch;
+        public StatementKnownName StatementKnownName => StatementKnownName.TryCatch;
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
 

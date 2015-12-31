@@ -13,7 +13,7 @@ namespace CK.SqlServer.Parser
     /// <summary>
     /// Simple abstract wrapper around an array of T optionally enclosed.
     /// </summary>
-    public abstract class ASqlNodeEnclosedSeparatedList<TOpener,T,TSep,TCloser> : SqlNode, IReadOnlyList<T>
+    public abstract class ASqlNodeEnclosableSeparatedList<TOpener,T,TSep,TCloser> : SqlNode, ISqlEnclosable, IReadOnlyList<T>
         where TOpener : class, ISqlNode
         where T : class, ISqlNode
         where TSep : class, ISqlNode
@@ -23,18 +23,18 @@ namespace CK.SqlServer.Parser
         // 0 when no Opener/Closer, 1 otherwise.
         readonly int _enclosed;
 
-        protected ASqlNodeEnclosedSeparatedList(
-            ASqlNodeEnclosedSeparatedList<TOpener, T, TSep, TCloser> o,
+        protected ASqlNodeEnclosableSeparatedList(
+            ASqlNodeEnclosableSeparatedList<TOpener, T, TSep, TCloser> o,
             int minCount,
-            bool optionalEnclosing,
             ImmutableList<SqlTrivia> leading,
             IEnumerable<ISqlNode> items,
             ImmutableList<SqlTrivia> trailing )
             : base( leading, trailing )
         {
+            bool enclosed = this is ISqlStructurallyEnclosed;
             if( items == null )
             {
-                if( !optionalEnclosing && o._enclosed == 0 )
+                if( enclosed && o._enclosed == 0 )
                 {
                     throw new ArgumentException( string.Format( "{0}: Must always have Opener/Closer.", 
                         GetType().Name ), 
@@ -45,11 +45,11 @@ namespace CK.SqlServer.Parser
             }
             else
             {
-                var a = items as ISqlNode[] ?? items.ToArray();
-                if( !optionalEnclosing || (a.Length > 0 && a[0] is TOpener) )
+                var a = ASqlNodeArrayBased.EnsureArray( items );
+                if( enclosed || (a.Length > 0 && a[0] is TOpener) )
                 {
                     _enclosed = 1;
-                    ASqlNodeEnclosedList<TOpener,T,TCloser>.CheckEnclosed( this, a );
+                    ASqlNodeEnclosableList<TOpener,T,TCloser>.CheckEnclosed( this, a );
                     ASqlNodeSeparatedList<T, TSep>.CheckItemAndSeparators( this, minCount, a, 1, a.Length - 2 );
                 }
                 else
@@ -61,24 +61,33 @@ namespace CK.SqlServer.Parser
             }
         }
 
-        protected ASqlNodeEnclosedSeparatedList( 
+        protected ASqlNodeEnclosableSeparatedList( 
             int minCount,
-            bool optionalEnclosing,
-            SqlTokenOpenPar openPar,
+            TOpener opener,
             IEnumerable<ISqlNode> content, 
-            SqlTokenClosePar closePar )
+            TCloser closer )
             : this( null, 
                     minCount,
-                    optionalEnclosing, 
                     null, 
-                    openPar != null ? Build( openPar, content, closePar ) : content, 
+                    opener != null ? BuildEnclosed( opener, content, closer ) : content, 
                     null )
         {
-            if( (openPar == null) != (closePar == null) )
+            if( (opener == null) != (closer == null) )
             {
                 throw new ArgumentException( "Opener and closer must be both null or not null." );
             }
         }
+
+        static internal ISqlNode[] BuildEnclosed( TOpener opener, IEnumerable<ISqlNode> content, TCloser closer )
+        {
+            var a = new List<ISqlNode>();
+            a.Add( opener );
+            a.AddRange( content );
+            a.Add( closer );
+            return a.ToArray();
+        }
+
+
 
         public bool IsEnclosed => _enclosed != 0;
 
@@ -93,7 +102,7 @@ namespace CK.SqlServer.Parser
         /// </summary>
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _items;
 
-        public int Count => _items.Length / 2 - _enclosed;
+        public int Count => (_items.Length + 1) / 2 - _enclosed;
 
         public IEnumerator<T> GetEnumerator()
         {

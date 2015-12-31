@@ -58,10 +58,21 @@ namespace CK.SqlServer.Parser
             SNode.CheckNotNull( OffsetExpression, nameof( OffsetExpression ) );
             SNode.CheckToken( RowsT, nameof( RowsT ), SqlTokenType.Rows );
             SNode.CheckNullableToken( FetchT, nameof( RowsT ), SqlTokenType.Fetch );
-            SNode.CheckNullableToken( FetchFirstOrNextT, nameof( FetchFirstOrNextT ), SqlTokenType.First, SqlTokenType.Next );
-            SNode.CheckBothNullOrNot( FetchT, nameof( FetchT ), FetchExpression, nameof( FetchExpression ) );
-            SNode.CheckNullableToken( FetchRowsT, nameof( FetchRowsT ), SqlTokenType.Rows );
-            SNode.CheckNullableToken( FetchOnlyT, nameof( FetchOnlyT ), SqlTokenType.Only );
+            if( FetchT != null )
+            {
+                SNode.CheckToken( FetchFirstOrNextT, nameof( FetchFirstOrNextT ), SqlTokenType.First, SqlTokenType.Next );
+                SNode.CheckNotNull( FetchExpression, nameof( FetchExpression ) );
+                SNode.CheckToken( FetchRowsT, nameof( FetchRowsT ), SqlTokenType.Rows );
+                SNode.CheckToken( FetchOnlyT, nameof( FetchOnlyT ), SqlTokenType.Only );
+
+            }
+            else
+            {
+                SNode.CheckNull( FetchFirstOrNextT, nameof( FetchFirstOrNextT ) );
+                SNode.CheckNull( FetchExpression, nameof( FetchExpression ) );
+                SNode.CheckNull( FetchRowsT, nameof( FetchRowsT ) );
+                SNode.CheckNull( FetchOnlyT, nameof( FetchOnlyT ) );
+            }
         }
 
         SelectOrderByOffset( SelectOrderByOffset o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
@@ -75,7 +86,7 @@ namespace CK.SqlServer.Parser
             }
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
             return new SelectOrderByOffset( this, leading, children, trailing );
         }

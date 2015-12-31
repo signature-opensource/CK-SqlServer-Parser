@@ -2,16 +2,6 @@
 <Tests>
 
   <Test>
-    <Text></Text>
-    <Description>An empty content is an empty node list.</Description>
-    <Xml>
-      <Sql>
-          <NodeList/>
-      </Sql>
-    </Xml>
-  </Test>
-
-  <Test>
     <Text>A B</Text>
     <Description>UnnamedStatement is the "catch all" structure when parsing in "All" mode.</Description>
     <Xml>
@@ -28,6 +18,86 @@
             </NodeList>
           </Content>
         </UnnamedStatement>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test>
+    <Text>A, B</Text>
+    <Description>Content .</Description>
+    <Xml>
+      <Sql>
+        <UnnamedStatement>
+          <Content>
+            <CommaList>
+              <Item>
+                <Identifier>A</Identifier>
+              </Item>
+              <Item>
+                <Identifier>B</Identifier>
+              </Item>
+            </CommaList>
+          </Content>
+        </UnnamedStatement>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test>
+    <Text>break; continue 3+5 ; A, B</Text>
+    <Description>Two statements and an UnnamedStatement one.</Description>
+    <Xml>
+      <Sql>
+        <NodeList>
+          <Item>
+            <Statement StatementName="break" HasTerminator="true">
+              <Content>
+                <NodeList/>
+              </Content>
+            </Statement>
+          </Item>
+          <Item>
+            <Statement StatementName="continue" HasTerminator="true">
+              <Content>
+                <BinaryOperator>
+                  <Left>
+                    <LiteralInteger>3</LiteralInteger>
+                  </Left>
+                  <Operator>
+                    <Terminal>+</Terminal>
+                  </Operator>
+                  <Right>
+                    <LiteralInteger>5</LiteralInteger>
+                  </Right>
+                </BinaryOperator>
+              </Content>
+            </Statement>
+          </Item>
+          <Item>
+            <UnnamedStatement>
+              <Content>
+                <CommaList>
+                  <Item>
+                    <Identifier>A</Identifier>
+                  </Item>
+                  <Item>
+                    <Identifier>B</Identifier>
+                  </Item>
+                </CommaList>
+              </Content>
+            </UnnamedStatement>
+          </Item>
+        </NodeList>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test>
+    <Text></Text>
+    <Description>An empty content is an empty node list.</Description>
+    <Xml>
+      <Sql>
+          <NodeList/>
       </Sql>
     </Xml>
   </Test>
@@ -67,8 +137,7 @@
             </UnnamedStatement>
           </Item>
           <Item>
-            <Statement>
-              <Name>print</Name>
+            <Statement StatementName="print">
               <Content>
                 <NodeList/>
               </Content>
@@ -79,56 +148,5 @@
     </Xml>
   </Test>
 
-
-  <Test>
-    <Text>break; continue 3+5 ; A, B</Text>
-    <Description>Two statements and an UnnamedStatement one.</Description>
-    <Xml>
-      <Sql>
-        <NodeList>
-          <Item>
-            <Statement HasTerminator="true">
-              <Name>break</Name>
-              <Content>
-                <NodeList/>
-              </Content>
-            </Statement>
-          </Item>
-          <Item>
-            <Statement HasTerminator="true">
-              <Name>continue</Name>
-              <Content>
-                <BinaryOperator>
-                  <Left>
-                    <LiteralInteger>3</LiteralInteger>
-                  </Left>
-                  <Operator>
-                    <Terminal>+</Terminal>
-                  </Operator>
-                  <Right>
-                    <LiteralInteger>5</LiteralInteger>
-                  </Right>
-                </BinaryOperator>
-              </Content>
-            </Statement>
-          </Item>
-          <Item>
-            <UnnamedStatement>
-              <Content>
-                <CommaList>
-                  <Item>
-                    <Identifier>A</Identifier>
-                  </Item>
-                  <Item>
-                    <Identifier>B</Identifier>
-                  </Item>
-                </CommaList>
-              </Content>
-            </UnnamedStatement>
-          </Item>
-        </NodeList>
-      </Sql>
-    </Xml>
-  </Test>
 
 </Tests>

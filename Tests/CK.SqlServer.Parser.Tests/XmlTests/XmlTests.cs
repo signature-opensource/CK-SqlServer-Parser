@@ -14,6 +14,62 @@ namespace CK.SqlServer.Parser.Tests.XmlTests
     [TestFixture]
     public class XmlTests
     {
+        class XmlSqlTest
+        {
+            public readonly bool CombineElementType;
+            public readonly XElement Expected;
+            public readonly XElement ExpectedStatements;
+
+            public XmlSqlTest( XElement xmlTestElement )
+            {
+                CombineElementType = xmlTestElement != null ? xmlTestElement.GetAttributeBoolean( "CombineElementType", false ) : false;
+                Expected = xmlTestElement != null ? xmlTestElement.Element( "Sql" ) : null;
+                ExpectedStatements = xmlTestElement != null ? xmlTestElement.Element( "Statements" ) : null;
+            }
+
+            public void ParseAndCheck( string text, ParseMode mode )
+            {
+                ISqlNode e;
+                SqlAnalyser.ErrorResult r = SqlAnalyser.Parse( out e, mode, text );
+                Assert.That( r.IsError, Is.False, r.ToString() );
+                Assert.That( e.ToString( true ).NormalizeEOL(), Is.EqualTo( text ) );
+                if( Expected != null )
+                {
+                    using( TestHelper.ConsoleMonitor.OpenInfo().Send( "Checking detailed Xml." ) )
+                    {
+                        XElement visited = new SqlToXmlVisitor( CombineElementType ).ToXml( "Sql", e );
+                        string visitedString = visited.ToString();
+                        TestHelper.ConsoleMonitor.Trace().Send( visitedString );
+                        if( !XNode.DeepEquals( visited, Expected ) )
+                        {
+                            AssertOnXmlString( visitedString, Expected );
+                        }
+                    }
+                }
+                if( ExpectedStatements != null )
+                {
+                    using( TestHelper.ConsoleMonitor.OpenInfo().Send( "Checking statements only Xml." ) )
+                    {
+                        XElement visited = new SqlToXmlStatementVisitor().ToXml( "Statements", e );
+                        string visitedString = visited.ToString();
+                        TestHelper.ConsoleMonitor.Trace().Send( visitedString );
+                        if( !XNode.DeepEquals( visited, ExpectedStatements ) )
+                        {
+                            AssertOnXmlString( visitedString, ExpectedStatements );
+                        }
+                    }
+                }
+            }
+
+            void AssertOnXmlString( string visitedString, XElement expected )
+            {
+                visitedString = Regex.Replace( visitedString, @"\s+", " ", RegexOptions.CultureInvariant | RegexOptions.Compiled );
+                string es = expected.ToString();
+                es = Regex.Replace( es, @"\s+", " ", RegexOptions.CultureInvariant | RegexOptions.Compiled );
+                Assert.That( visitedString, Is.EqualTo( es ) );
+            }
+        }
+
         [TestCase( "LiteralTokens.xml" )]
         [TestCase( "Identifiers.xml" )]
         [TestCase( "Comma lists.xml" )]
@@ -24,6 +80,12 @@ namespace CK.SqlServer.Parser.Tests.XmlTests
         [TestCase( "If.xml" )]
         [TestCase( "Simple Procedures.xml" )]
         [TestCase( "Simple Selects.xml" )]
+        [TestCase( "Cursors.xml" )]
+        [TestCase( "IsNull.xml" )]
+        [TestCase( "Not so Simple Procedures.xml" )]
+        [TestCase( "Sequence.xml" )]
+        [TestCase( "CTE.xml" )]
+        [TestCase( "Multi Statements.xml" )]
         public void file_test( string fileName )
         {
             using( TestHelper.ConsoleMonitor.OpenInfo().Send( $"Running {fileName}." ) )
@@ -33,27 +95,14 @@ namespace CK.SqlServer.Parser.Tests.XmlTests
                 foreach( var t in tests.Elements( "Test" ) )
                 {
                     ParseMode mode = t.GetAttributeEnum<ParseMode>( "Mode", ParseMode.AllStatements );
-                    string text = t.Element( "Text" ).Value.NormalizeEOL();
+                    // TrimEnd the text because the last trivia is skipped.
+                    string text = t.Element( "Text" ).Value.TrimEnd().NormalizeEOL();
                     string desc = t.Elements( "Description" ).Select( e => e.Value ).FirstOrDefault();
-                    bool combineElementType = t.Element( "Xml" ).GetAttributeBoolean( "CombineElementType", false );
-                    XElement expected = t.Element( "Xml" ).Element( "Sql" );
-                    using( TestHelper.ConsoleMonitor.OpenInfo().Send( $"n°{i}-{desc}: {text}. ({mode.ToString()})" ) )
+                    XmlSqlTest xmlSql = new XmlSqlTest( t.Element( "Xml" ) );
+                    using( TestHelper.ConsoleMonitor.OpenInfo().Send( $"n°{i}-{desc} ({mode.ToString()})" ) )
                     {
-                        ISqlNode e;
-                        SqlAnalyser.ErrorResult r = SqlAnalyser.Parse( out e, mode, text );
-                        Assert.That( r.IsError, Is.False, r.ToString() );
-                        SqlToXmlVisitor v = new SqlToXmlVisitor( combineElementType );
-                        XElement x = v.ToXml( "Sql", e );
-                        string xs = x.ToString();
-                        TestHelper.ConsoleMonitor.Trace().Send( xs );
-                        Assert.That( e.ToString( true ).NormalizeEOL(), Is.EqualTo( text ) );
-                        if( !XNode.DeepEquals( x, expected ) )
-                        {
-                            xs = Regex.Replace( xs, @"\s+", " ", RegexOptions.CultureInvariant | RegexOptions.Compiled );
-                            string es = expected.ToString();
-                            es = Regex.Replace( es, @"\s+", " ", RegexOptions.CultureInvariant | RegexOptions.Compiled );
-                            Assert.That( xs, Is.EqualTo( es ) );
-                        }
+                        TestHelper.ConsoleMonitor.Trace().Send( text );
+                        xmlSql.ParseAndCheck( text, mode );
                         ++i;
                     }
                 }

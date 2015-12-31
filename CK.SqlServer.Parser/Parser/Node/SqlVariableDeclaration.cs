@@ -23,7 +23,7 @@ namespace CK.SqlServer.Parser
         void CheckContent()
         {
             SNode.CheckIsVariable( Variable, nameof( Variable ) );
-            SNode.CheckToken( AssignT, nameof( AssignT ), SqlTokenType.Assign );
+            SNode.CheckNullableToken( AssignT, nameof( AssignT ), SqlTokenType.Assign );
             SNode.CheckBothNullOrNot( AssignT, nameof( AssignT ), InitialValue, nameof( InitialValue ) );
         }
 
@@ -38,7 +38,7 @@ namespace CK.SqlServer.Parser
             }
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
             return new SqlVariableDeclaration( this, leading, children, trailing );
         }

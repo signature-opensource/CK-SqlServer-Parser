@@ -20,9 +20,11 @@ namespace CK.SqlServer.Parser
         {
             ISqlStatement e = IsNamedStatement( false );
             if( e != null || R.IsErrorOrEndOfInput ) return e;
-            ISqlNode n = IsAnyExpressionForStatement( expected );
+            ISqlNode n = IsAnyExpression( expected );
             if( n == null ) return null;
-            return new SqlUnnamedStatement( n, GetOptionalTerminator() );
+            return n.UnPar is ISelectSpecification 
+                    ? (ISqlStatement)new SqlSelectStatement( n, GetOptionalTerminator() )
+                    : new SqlUnnamedStatement( n, GetOptionalTerminator() );
         }
 
         public ISqlNamedStatement IsNamedStatement( bool expected )
@@ -57,11 +59,11 @@ namespace CK.SqlServer.Parser
                 // "tran" and "transaction" both map to SqlTokenType.Transaction.
                 if( R.IsToken( out tranOrTry, SqlTokenType.Transaction, false ) )
                 {
-                    SqlTokenIdentifier tranNameOrVariable;
+                    SqlTokenIdentifier tranNameOrVariable = null;
                     SqlTokenIdentifier withToken = null;
                     SqlTokenIdentifier markToken = null;
                     SqlTokenLiteralString description = null;
-                    if( R.IsToken( out tranNameOrVariable, false ) )
+                    if( !R.Current.TokenType.IsStartStatement() && R.IsToken( out tranNameOrVariable, false ) )
                     {
                         if( R.IsToken( out withToken, SqlTokenType.With, false ) )
                         {
@@ -72,8 +74,8 @@ namespace CK.SqlServer.Parser
                     return new SqlBeginTransaction( id, tranOrTry, tranNameOrVariable, withToken, markToken, description, GetOptionalTerminator() );
                 }
                 R.IsToken( out tranOrTry, SqlTokenType.Try, false );
-                SqlStatementList body;
-                if( !IsStatementList( out body, true ) ) return null;
+                SqlStatementList body = IsList( false, IsExtendedStatement, i => new SqlStatementList( i ) );
+                if( body == null ) return null;
                 SqlTokenIdentifier end;
                 if( !R.IsToken( out end, SqlTokenType.End, true ) ) return null;
                 if( tranOrTry == null )
@@ -85,8 +87,8 @@ namespace CK.SqlServer.Parser
                 if( !R.IsToken( out endTry, SqlTokenType.Try, true ) ) return null;
                 SqlTokenIdentifier begCatch, begCatchToken;
                 if( !R.IsToken( out begCatch, SqlTokenType.Begin, true ) || !R.IsToken( out begCatchToken, SqlTokenType.Catch, true ) ) return null;
-                SqlStatementList bodyCatch;
-                if( !IsStatementList( out bodyCatch, true ) ) return null;
+                SqlStatementList bodyCatch = IsList( true, IsExtendedStatement, i => new SqlStatementList( i ) );
+                if( bodyCatch == null ) return null;
                 SqlTokenIdentifier endCatch, endCatchToken;
                 if( !R.IsToken( out endCatch, SqlTokenType.End, true ) || !R.IsToken( out endCatchToken, SqlTokenType.Catch, true ) ) return null;
                 return new SqlTryCatch( id, tranOrTry,
@@ -99,20 +101,19 @@ namespace CK.SqlServer.Parser
             if( id.TokenType == SqlTokenType.Create || id.TokenType == SqlTokenType.Alter )
             {
                 R.MoveNext();
-                SqlTokenIdentifier type;
-                if( !R.IsToken( out type, true ) ) return null;
-                if( type.TokenType == SqlTokenType.Procedure )
+                if( R.Current.TokenType == SqlTokenType.Procedure )
                 {
-                    return MatchStoredProcedure( id, type );
+                    return MatchStoredProcedure( id );
                 }
-                if( type.TokenType == SqlTokenType.View )
+                if( R.Current.TokenType == SqlTokenType.View )
                 {
-                    return MatchView( id, type );
+                    return MatchView( id );
                 }
-                if( type.TokenType == SqlTokenType.Function )
+                if( R.Current.TokenType == SqlTokenType.Function )
                 {
-                    return MatchFunction( id, type );
+                    return MatchFunction( id );
                 }
+                return IsStatementStartedByIdentifier( id );
             }
             if( id.TokenType == SqlTokenType.If )
             {
@@ -133,7 +134,8 @@ namespace CK.SqlServer.Parser
             if( id.TokenType == SqlTokenType.Return )
             {
                 R.MoveNext();
-                return new SqlReturn( id, IsOneExpression( false ), GetOptionalTerminator() );
+                ISqlNode value = IsOneExpression( false );
+                return R.IsError ? null : new SqlReturn( id, value, GetOptionalTerminator() );
             }
             if( id.TokenType == SqlTokenType.Goto )
             {
@@ -159,14 +161,21 @@ namespace CK.SqlServer.Parser
                         {
                             right = MatchCursorDefinition( null, null, cursorT );
                         }
-                        else right = IsAnyExpression( true );
+                        else right = IsExtendedExpression( true );
                         if( right == null ) return null;
                         return new SqlSetVariable( id, left, assignT, right, GetOptionalTerminator() );
                     }
-                    var options = IsAnyExpressionForStatement( true );
+                    var options = IsAnyExpression( true );
                     if( options == null ) return null;
                     return new SqlSetOption( id, options, GetOptionalTerminator() );
                 }
+            }
+            if( id.TokenType == SqlTokenType.Select )
+            {
+                ISqlNode select = IsOneExpression( true );
+                if( select == null ) return null;
+                Debug.Assert( select.UnPar is ISelectSpecification );
+                return new SqlSelectStatement( select, GetOptionalTerminator() );
             }
             if( id.TokenType == SqlTokenType.Declare )
             {
@@ -196,20 +205,32 @@ namespace CK.SqlServer.Parser
                     if( cursorExpr == null ) return null;
                     return new SqlDeclareCursor( id, name, cursorExpr, GetOptionalTerminator() );
                 }
-                List<ISqlNode> items = new List<ISqlNode>();
-                if( !R.CollectCommaList( items, IsVariableDeclaration, 1 ) ) return null;
-                return new SqlDeclareVariable( id, new SqlVariableDeclarationList( items ), GetOptionalTerminator() );
+                SqlVariableDeclarationList declarations = IsCommaList( 1, IsVariableDeclaration, i => new SqlVariableDeclarationList( i ) );
+                if( declarations == null ) return null;
+                return new SqlDeclareVariable( id, declarations, GetOptionalTerminator() );
+            }
+            if( id.TokenType == SqlTokenType.With )
+            {
+                R.MoveNext();
+                SqlCTENameList names = IsCommaList( 1, IsSqlCTEName, i => new SqlCTENameList( i ) );
+                if( names == null ) return null;
+                ISqlNamedStatement s = IsNamedStatement( true );
+                if( s == null ) return null;
+                //if( s.StatementKnownName != StatementKnownName.Select
+                //    && s.StatementKnownName != StatementKnownName.Insert
+                //    && s.StatementKnownName != StatementKnownName.Update
+                //    && s.StatementKnownName != StatementKnownName.Delete
+                //    && s.StatementKnownName != StatementKnownName.Merge )
+                //{
+                //    R.SetCurrentError( "Outer statement of a With (CTE) must be Select, Insert, Update, Delete or Merge." );
+                //    return null;
+                //}
+                return new SqlCTEStatement( id, names, s );
             }
             if( id.IsStartStatement || id.TokenType == SqlTokenType.With )
             {
                 R.MoveNext();
-                var content = IsAnyExpressionForStatement( false );
-                if( content == null )
-                {
-                    if( R.IsError ) return null;
-                    content = SqlNodeList.Empty;
-                }
-                return new SqlStatement( id, content, GetOptionalTerminator() );
+                return IsStatementStartedByIdentifier( id );
             }
             // If it is not a reserved keyword, it can only be 
             // a label definition.
@@ -227,52 +248,61 @@ namespace CK.SqlServer.Parser
             return new SqlLabelDefinition( id, colon );
         }
 
-        bool IsStatementList( out SqlStatementList l, bool atLeastOneStatement )
+        SqlCTEName IsSqlCTEName( bool expected )
         {
-            l = null;
-            var statements = new List<ISqlStatement>();
-            ISqlStatement st;
-            while( (st = IsExtendedStatement( false )) != null )
+            SqlTokenIdentifier name;
+            if( !R.IsToken( out name, expected ) ) return null;
+            SqlEnclosedIdentifierCommaList columns = IsEnclosedCommaList( false, 1, IsIdentifier, ( o, i, c ) => new SqlEnclosedIdentifierCommaList( o, i, c ) );
+            SqlTokenIdentifier asT;
+            if( !R.IsToken( out asT, SqlTokenType.As , true ) ) return null;
+            SqlTokenOpenPar opener;
+            if( !R.IsToken( out opener, true ) ) return null;
+            ISqlNode select = IsOneExpression( true );
+            if( !(select is ISelectSpecification) )
             {
-                statements.Add( st );
+                R.SetCurrentError( "select specification expected." );
+                return null;
             }
-            if( statements.Count == 0 )
-            {
-                if( atLeastOneStatement && !R.IsError ) R.SetCurrentError( "At least one statement expected." );
-                return false;
-            }
-            l = new SqlStatementList( statements );
-            return !R.IsError;
+            SqlTokenClosePar closer;
+            if( !R.IsToken( out closer, true ) ) return null;
+            return new SqlCTEName( name, columns, asT, opener, select, closer );
         }
 
-        SqlView MatchView( SqlTokenIdentifier alterOrCreate, SqlTokenIdentifier type )
+        ISqlNamedStatement IsStatementStartedByIdentifier( SqlTokenIdentifier id )
         {
+            var content = IsAnyExpression( false );
+            if( content == null )
+            {
+                if( R.IsError ) return null;
+                content = SqlNodeList.Empty;
+            }
+            return new SqlStatement( id, content, GetOptionalTerminator() );
+        }
+
+        SqlView MatchView( SqlTokenIdentifier alterOrCreate )
+        {
+            SqlTokenIdentifier type = R.Read<SqlTokenIdentifier>();
+            Debug.Assert( type.TokenType == SqlTokenType.View );
             ISqlIdentifier name = IsIdentifier( true );
             if( name == null ) return null;
 
-            SqlEnclosedIdentiferCommaList columns = IsSqlEnclosedIdentiferCommaList( false );
+            // There must be at least one defined column if there is a parenthesis.
+            SqlEnclosedIdentifierCommaList columns = IsEnclosedCommaList( false, 1, IsIdentifier, ( o, i, c ) => new SqlEnclosedIdentifierCommaList( o, i, c ) ); ;
 
-            SqlNodeList options;
             SqlTokenIdentifier asToken;
-            if( !IsSqlNodeList( out options, out asToken, t => t.TokenType == SqlTokenType.As ) ) return null;
-
-            ISqlNode body = IsAnyExpressionForStatement( true );
+            SqlNodeList options = IsSqlNodeList( out asToken, t => t.TokenType == SqlTokenType.As );
+            if( options == null ) return null;
+            if( options.IsEmpty ) options = null;
+             
+            ISqlNode body = IsAnyExpression( true );
             if( body == null ) return null;
             return new SqlView( alterOrCreate, type, name, columns, options, asToken, body, GetOptionalTerminator() );
         }
 
-        SqlEnclosedIdentiferCommaList IsSqlEnclosedIdentiferCommaList( bool expected )
+        ISqlNamedStatement MatchFunction( SqlTokenIdentifier alterOrCreate )
         {
-            if( !expected && R.Current.TokenType != SqlTokenType.OpenPar ) return null;
-            SqlTokenOpenPar openPar;
-            SqlTokenClosePar closePar;
-            List<ISqlNode> items = new List<ISqlNode>();
-            if( !R.CollectCommaList<ISqlIdentifier>( items, out openPar, out closePar, IsIdentifier, 1, Parenthesis.Required ) ) return null;
-            return new SqlEnclosedIdentiferCommaList( openPar, items, closePar );
-        }
-
-        ISqlNamedStatement MatchFunction( SqlTokenIdentifier alterOrCreate, SqlTokenIdentifier type )
-        {
+            SqlTokenIdentifier type = R.Read<SqlTokenIdentifier>();
+            Debug.Assert( type.TokenType == SqlTokenType.Function );
             /*
             CREATE FUNCTION [ schema_name. ] function_name 
                 ( [ { @parameter_name [ AS ][ type_schema_name. ] parameter_data_type [ = default ] [ READONLY ] } 
@@ -292,7 +322,7 @@ namespace CK.SqlServer.Parser
 
             SqlTokenIdentifier table;
             SqlTokenIdentifier tableVariableNameToken;
-            if( R.IsToken( out table, SqlTokenType.Table, false ) )
+            if( R.IsToken( out table, SqlTokenType.TableDbType, false ) )
             {
                 // Inline Table-Valued Function Syntax
                 // CREATE FUNCTION [ schema_name. ] function_name 
@@ -371,10 +401,11 @@ namespace CK.SqlServer.Parser
                 SqlTokenIdentifier asToken;
                 SqlTokenIdentifier begin;
                 if( !IsFunctionOptionsAsAndBeginOrReturn( out options, out endOptionToken, out asToken, out begin ) ) return null;
-                SqlStatementList bodyStatements;
-                SqlTokenIdentifier end;
-                SqlTokenTerminal term;
-                if( !IsBodyStatementListSafe( out bodyStatements, ref begin, out end, out term ) ) return null;
+                if( begin == null ) R.IsToken( out begin, SqlTokenType.Begin, false );
+                SqlStatementList bodyStatements = IsList( true, IsExtendedStatement, i => new SqlStatementList( i ) );
+                if( bodyStatements == null ) return null;
+                SqlTokenIdentifier end = null;
+                if( begin != null && !R.IsToken( out end, SqlTokenType.End, true ) ) return null;
                 return new SqlFunctionScalar(
                                 alterOrCreate,
                                 type,
@@ -387,14 +418,16 @@ namespace CK.SqlServer.Parser
                                 begin,
                                 bodyStatements,
                                 end,
-                                term );
+                                GetOptionalTerminator() );
             }
         }
 
         bool IsFunctionOptionsAsAndBeginOrReturn( out SqlNodeList options, out SqlTokenIdentifier endOptionToken, out SqlTokenIdentifier asToken, out SqlTokenIdentifier beginOrReturn, bool isBegin = true )
         {
             asToken = beginOrReturn = null;
-            if( !IsSqlNodeList( out options, out endOptionToken, t => t.TokenType == SqlTokenType.As || t.TokenType == SqlTokenType.Begin ) ) return false;
+            options = IsSqlNodeList( out endOptionToken, t => t.TokenType == SqlTokenType.As || t.TokenType == SqlTokenType.Begin );
+            if( options == null ) return false;
+            if( options.IsEmpty ) options = null;
             asToken = null;
             beginOrReturn = null;
             if( endOptionToken.TokenType == SqlTokenType.As )
@@ -409,70 +442,28 @@ namespace CK.SqlServer.Parser
             return true;
         }
 
-        SqlStoredProcedure MatchStoredProcedure( SqlTokenIdentifier alterOrCreate, SqlTokenIdentifier type )
+        SqlStoredProcedure MatchStoredProcedure( SqlTokenIdentifier alterOrCreate )
         {
+            SqlTokenIdentifier type = R.Read<SqlTokenIdentifier>();
+            Debug.Assert( type.TokenType == SqlTokenType.Procedure );
             ISqlIdentifier name = IsIdentifier( true );
             if( name == null ) return null;
 
             SqlParameterList parameters = IsParameterList( Parenthesis.Optional );
             if( parameters == null ) return null;
 
-            SqlNodeList options;
             SqlTokenIdentifier asToken;
-            if( !IsSqlNodeList( out options, out asToken, t => t.TokenType == SqlTokenType.As, IsExecuteAs ) ) return null;
+            SqlNodeList options = IsSqlNodeList( out asToken, t => t.TokenType == SqlTokenType.As, IsExecuteAs );
+            if( options == null ) return null;
+            if( options.IsEmpty ) options = null;
 
-            SqlTokenIdentifier begin = null;
-            SqlStatementList bodyStatements;
-            SqlTokenIdentifier end;
-            SqlTokenTerminal term;
-            if( !IsBodyStatementListSafe( out bodyStatements, ref begin, out end, out term ) ) return null;
-            return new SqlStoredProcedure( alterOrCreate, type, name, parameters, options, asToken, begin, bodyStatements, end, term );
-        }
-
-        bool IsBodyStatementListSafe( 
-            out SqlStatementList bodyStatements, 
-            ref SqlTokenIdentifier begin, 
-            out SqlTokenIdentifier end, 
-            out SqlTokenTerminal term )
-        {
-            end = null;
-            term = null;
-            if( begin == null ) R.IsToken( out begin, SqlTokenType.Begin, false );
-            if( !IsStatementList( out bodyStatements, true ) ) return false;
-            if( begin != null && !R.IsToken( out end, SqlTokenType.End, true ) ) return false;
-            term = GetOptionalTerminator();
-
-            //using( var collector = R.OpenCollector() )
-            //{
-            //    if( begin == null ) R.IsToken( out begin, SqlTokenType.Begin, false );
-
-            //    // Attempts to read a statement list. If it fails, reads the whole stream as an unmodeled list of tokens.
-            //    if( IsStatementList( out bodyStatements, true ) )
-            //    {
-            //        if( begin != null && !R.IsToken( out end, SqlTokenType.End, true ) ) return false;
-            //        term = GetOptionalTerminator();
-            //    }
-            //    else
-            //    {
-            //        // Collects all tokens and generates a Statement list with one unmodeled list of tokens.
-            //        // Saves the begin/end and semi colon terminator if possible.
-            //        term = collector.ReadToEnd();
-            //        if( begin != null )
-            //        {
-            //            if( collector.Count > 0 && collector[collector.Count - 1].TokenType == SqlTokenType.End )
-            //            {
-            //                end = (SqlTokenIdentifier)collector[collector.Count - 1];
-            //            }
-            //            else
-            //            {
-            //                return R.SetCurrentError( "Missing END." );
-            //            }
-            //        }
-            //        var t = new SqlStatement( new SqlNodeList( begin != null ? collector.Skip( 1 ).Take( collector.Count - 2 ) : collector ) );
-            //        bodyStatements = new SqlStatementList( new[] { t } );
-            //    }
-            //}
-            return true;
+            SqlTokenIdentifier begin;
+            R.IsToken( out begin, SqlTokenType.Begin, false );
+            SqlStatementList bodyStatements = IsList( true, IsExtendedStatement, i => new SqlStatementList( i ) );
+            if( bodyStatements == null ) return null;
+            SqlTokenIdentifier end = null;
+            if( begin != null && !R.IsToken( out end, SqlTokenType.End, true ) ) return null;
+            return new SqlStoredProcedure( alterOrCreate, type, name, parameters, options, asToken, begin, bodyStatements, end, GetOptionalTerminator() );
         }
 
         SqlParameterList IsParameterList( Parenthesis parenthesis )
@@ -490,7 +481,8 @@ namespace CK.SqlServer.Parser
             SqlParameterDefaultValue defValue = null;
             using( R.SetAssignmentContext( true ) )
             {
-                if( !IsTypedIdentifer( out declVar, t => t.IsVariable, expected ) ) return null;
+                declVar = IsTypedIdentifer( t => t.IsVariable, expected );
+                if( declVar == null ) return null;
                 SqlTokenTerminal assign;
                 if( R.IsToken( out assign, SqlTokenType.Assign, false ) )
                 {
@@ -527,7 +519,8 @@ namespace CK.SqlServer.Parser
             // Syntax: declare @name [as] type
             using( R.SetAssignmentContext( true ) )
             {
-                if( !IsTypedIdentifer( out declVar, t => t.IsVariable, expected ) ) return null;
+                declVar = IsTypedIdentifer( t => t.IsVariable, expected );
+                if( declVar == null ) return null;
                 if( R.IsToken( out assignToken, SqlTokenType.Assign, false ) )
                 {
                     initialValue = IsOneExpression( true );
@@ -542,10 +535,11 @@ namespace CK.SqlServer.Parser
             SqlTokenIdentifier scrollOrInsensitiveT, 
             SqlTokenIdentifier cursorToken )
         {
-            SqlNodeList options;
             SqlTokenIdentifier forToken;
-            if( !IsSqlNodeList( out options, out forToken, t => t.TokenType == SqlTokenType.For ) ) return null;
-            Debug.Assert( forToken.TokenType == SqlTokenType.For );
+            SqlNodeList options = IsSqlNodeList( out forToken, t => t.TokenType == SqlTokenType.For );
+            if( options == null ) return null;
+            if( options.IsEmpty ) options = null;
+
             ISqlNode eSelect = IsOneExpression( true );
             ISelectSpecification select = eSelect?.UnPar as ISelectSpecification;
             if( select == null )
@@ -570,13 +564,12 @@ namespace CK.SqlServer.Parser
                     if( !R.IsToken( out updateToken, SqlTokenType.Update, true ) ) return null;
                     if( R.IsToken( out ofToken, SqlTokenType.Of, false ) )
                     {
-                        List<ISqlNode> columns = new List<ISqlNode>();
-                        if( !R.CollectCommaList( columns, IsIdentifier, 1 ) ) return null;
-                        updateColumns = new SqlIdentifierCommaList( columns );
+                        updateColumns = IsCommaList( 1, IsIdentifier, i => new SqlIdentifierCommaList( i ) );
+                        if( updateColumns == null ) return null;
                     }
                 }
             }
-            if( readTokenSql92 != null )
+            if( insensitiveOrScrollT != null || scrollOrInsensitiveT != null || readTokenSql92 != null )
             {
                 if( options != null )
                 {
@@ -587,29 +580,22 @@ namespace CK.SqlServer.Parser
             }
             else
             {
-                if( insensitiveOrScrollT != null || scrollOrInsensitiveT != null )
-                {
-                    R.SetCurrentError( "INSENSITIVE or SCROLL cursor requires Sql92 syntax." );
-                    return null;
-                }
                 return new SqlCursorDefinition( cursorToken, options, forToken, select, forOptionsToken, updateToken, ofToken, updateColumns );
             }
         }
 
-        bool IsTypedIdentifer( out SqlTypedIdentifier declVar, Predicate<SqlTokenIdentifier> idFilter, bool expected = true )
+        SqlTypedIdentifier IsTypedIdentifer( Predicate<SqlTokenIdentifier> idFilter, bool expected = true )
         {
-            declVar = null;
             SqlTokenIdentifier identifier;
-            if( !R.IsToken( out identifier, idFilter, expected ) ) return false;
+            if( !R.IsToken( out identifier, idFilter, expected ) ) return null;
 
             SqlTokenIdentifier asToken;
             R.IsToken( out asToken, SqlTokenType.As, false );
 
             ISqlUnifiedTypeDecl typeDecl = IsTypeDecl( true );
-            if( typeDecl == null ) return false;
+            if( typeDecl == null ) return null;
 
-            declVar = new SqlTypedIdentifier( identifier, asToken, typeDecl );
-            return true;
+            return new SqlTypedIdentifier( identifier, asToken, typeDecl );
         }
 
         /// <summary>
@@ -707,9 +693,19 @@ namespace CK.SqlServer.Parser
                             }
                             return new SqlTypeDeclWithSize( dbType, id );
                         }
+                    case SqlDbType.Structured:
+                        {
+                            SqlTokenOpenPar opener;
+                            if( !R.IsToken( out opener, true ) ) return null;
+                            ISqlNode content = IsAnyExpression( true );
+                            if( content == null ) return null;
+                            SqlTokenClosePar closer;
+                            if( !R.IsToken( out closer, true ) ) return null;
+                            return new SqlTypeDeclTable( id, opener, content, closer );
+                        }
                     default:
                         {
-                            return new SqlTypeDeclSimple( id );
+                            return new SqlTypeDeclSimple( dbType, id );
                         }
                 }
                 #endregion

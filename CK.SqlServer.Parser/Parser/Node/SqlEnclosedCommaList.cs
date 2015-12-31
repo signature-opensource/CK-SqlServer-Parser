@@ -11,25 +11,28 @@ namespace CK.SqlServer.Parser
 {
 
     /// <summary>
-    /// Comma separated list of <see cref="ISqlNode"/>. Possibly empty.
+    /// Enclosed comma separated list of <see cref="ISqlNode"/>. Possibly empty.
     /// </summary>
-    public sealed class SqlEnclosedCommaList : ASqlNodeEnclosedSeparatedList<SqlTokenOpenPar,ISqlNode,SqlTokenComma,SqlTokenClosePar>
+    public sealed class SqlEnclosedCommaList : ASqlNodeEnclosableSeparatedList<SqlTokenOpenPar,ISqlNode,SqlTokenComma,SqlTokenClosePar>,
+                                               ISqlStructurallyEnclosed
     {
         /// <summary>
         /// Initializes a new <see cref="SqlEnclosedCommaList"/>.
         /// </summary>
+        /// <param name="openPar">Can not be null.</param>
         /// <param name="content">Items and comma tokens.</param>
+        /// <param name="closePar">Can not be null.</param>
         public SqlEnclosedCommaList( SqlTokenOpenPar openPar, IEnumerable<ISqlNode> content, SqlTokenClosePar closePar )
-            : base( 0, true, openPar, content, closePar )
+            : base( 0, openPar, content, closePar )
         {
         }
 
         SqlEnclosedCommaList( SqlEnclosedCommaList o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
-            : base( o, 0, true, leading, items, trailing )
+            : base( o, 0, leading, items, trailing )
         {
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
             return new SqlEnclosedCommaList( this, leading, children, trailing );
         }

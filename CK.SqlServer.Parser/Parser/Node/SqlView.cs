@@ -10,12 +10,12 @@ namespace CK.SqlServer.Parser
 {
     public sealed class SqlView : SqlNode, ISqlNamedStatement
     {
-        readonly SNode<SqlTokenIdentifier, SqlTokenIdentifier, ISqlIdentifier, SqlEnclosedIdentiferCommaList, SqlNodeList, SqlTokenIdentifier, ISqlNode, SqlTokenTerminal> _content;
+        readonly SNode<SqlTokenIdentifier, SqlTokenIdentifier, ISqlIdentifier, SqlEnclosedIdentifierCommaList, SqlNodeList, SqlTokenIdentifier, ISqlNode, SqlTokenTerminal> _content;
 
-        public SqlView( SqlTokenIdentifier alterOrCreate, SqlTokenIdentifier type, ISqlIdentifier name, SqlEnclosedIdentiferCommaList columns, SqlNodeList options, SqlTokenIdentifier asToken, ISqlNode select, SqlTokenTerminal term )
+        public SqlView( SqlTokenIdentifier alterOrCreate, SqlTokenIdentifier type, ISqlIdentifier name, SqlEnclosedIdentifierCommaList columns, SqlNodeList options, SqlTokenIdentifier asToken, ISqlNode select, SqlTokenTerminal term )
             : base( null, null )
         {
-            _content = new SNode<SqlTokenIdentifier, SqlTokenIdentifier, ISqlIdentifier, SqlEnclosedIdentiferCommaList, SqlNodeList, SqlTokenIdentifier, ISqlNode, SqlTokenTerminal>(
+            _content = new SNode<SqlTokenIdentifier, SqlTokenIdentifier, ISqlIdentifier, SqlEnclosedIdentifierCommaList, SqlNodeList, SqlTokenIdentifier, ISqlNode, SqlTokenTerminal>(
                 alterOrCreate,
                 type,
                 name,
@@ -39,18 +39,18 @@ namespace CK.SqlServer.Parser
         SqlView( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
             : base( leading, trailing )
         {
-            _content = new SNode<SqlTokenIdentifier, SqlTokenIdentifier, ISqlIdentifier, SqlEnclosedIdentiferCommaList, SqlNodeList, SqlTokenIdentifier, ISqlNode, SqlTokenTerminal>( items );
+            _content = new SNode<SqlTokenIdentifier, SqlTokenIdentifier, ISqlIdentifier, SqlEnclosedIdentifierCommaList, SqlNodeList, SqlTokenIdentifier, ISqlNode, SqlTokenTerminal>( items );
             CheckContent();
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
             return new SqlView( leading, children, trailing );
         }
 
-        public StatementName StatementName => AlterOrCreateT.TokenType == SqlTokenType.Alter
-                                            ? StatementName.AlterView
-                                            : StatementName.CreateView;
+        public StatementKnownName StatementKnownName => AlterOrCreateT.TokenType == SqlTokenType.Alter
+                                            ? StatementKnownName.AlterView
+                                            : StatementKnownName.CreateView;
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
 
@@ -64,7 +64,7 @@ namespace CK.SqlServer.Parser
 
         public bool HasOptions => _content.V5 != null;
 
-        public SqlEnclosedIdentiferCommaList Columns => _content.V4;
+        public SqlEnclosedIdentifierCommaList Columns => _content.V4;
 
         public SqlNodeList Options => _content.V5;
 

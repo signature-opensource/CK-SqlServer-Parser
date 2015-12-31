@@ -31,7 +31,7 @@ namespace CK.SqlServer.Parser
             }
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
             return new SqlDeclareCursor( this, leading, children, trailing );
         }
@@ -43,7 +43,7 @@ namespace CK.SqlServer.Parser
             SNode.CheckNotNull( Cursor, nameof( Cursor ) );
         }
 
-        public StatementName StatementName => StatementName.DeclareCursor;
+        public StatementKnownName StatementKnownName => StatementKnownName.DeclareCursor;
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
 

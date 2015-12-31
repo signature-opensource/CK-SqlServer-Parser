@@ -40,12 +40,12 @@ namespace CK.SqlServer.Parser
             SNode.CheckNotNull( Declarations, nameof( Declarations ) );
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
             return new SqlDeclareVariable( this, leading, children, trailing );
         }
 
-        public StatementName StatementName => StatementName.DeclareVariable;
+        public StatementKnownName StatementKnownName => StatementKnownName.DeclareVariable;
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
 

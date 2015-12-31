@@ -21,33 +21,10 @@ namespace CK.SqlServer.Parser
             _content = new SNode<SqlTokenIdentifier, SqlTokenOpenPar, SqlToken, SqlTokenClosePar>( id, null, null, null );
             DbType = CheckContent();
         }
-
-        SqlDbType CheckContent()
-        {
-            SNode.CheckNotNull( TypeIdentifierT, nameof( TypeIdentifierT ) );
-            if( _content.Count > 1 )
-            {
-                SNode.CheckNotNull( OpenPar, nameof( OpenPar ) );
-                SNode.CheckNotNull( Size, nameof( Size ) );
-                if( !(Size is SqlTokenLiteralInteger && ((SqlTokenLiteralInteger)Size).Value > 0)
-                    && !(Size is SqlTokenIdentifier && ((SqlTokenIdentifier)Size).TokenType == SqlTokenType.Max) )
-                {
-                    throw new ArgumentException( "Size must be an integer greater than 0 or max.", nameof( Size ) );
-                }
-                SNode.CheckNotNull( ClosePar, nameof( ClosePar ) );
-            }
-            SqlDbType? dbType = SqlKeyword.FromSqlTokenTypeToSqlDbType( TypeIdentifierT.TokenType );
-            if( !dbType.HasValue || (dbType != SqlDbType.Char && dbType != SqlDbType.VarChar && dbType != SqlDbType.NChar && dbType != SqlDbType.NVarChar && dbType != SqlDbType.Binary && dbType != SqlDbType.VarBinary) )
-            {
-                throw new ArgumentException( "Expected char, varchar, nchar, nvarchar, binary, varbinary.", nameof( TypeIdentifierT ) );
-            }
-            return dbType.Value;
-        }
-
-        public SqlTypeDeclWithSize( SqlTokenIdentifier id, SqlTokenOpenPar openPar, SqlToken size, SqlTokenClosePar closePar )
+        public SqlTypeDeclWithSize( SqlTokenIdentifier id, SqlTokenOpenPar opener, SqlToken size, SqlTokenClosePar closer )
             : base( null, null )
         {
-            _content = new SNode<SqlTokenIdentifier, SqlTokenOpenPar, SqlToken, SqlTokenClosePar>( id, openPar, size, closePar );
+            _content = new SNode<SqlTokenIdentifier, SqlTokenOpenPar, SqlToken, SqlTokenClosePar>( id, opener, size, closer );
             DbType = CheckContent();
         }
 
@@ -59,12 +36,34 @@ namespace CK.SqlServer.Parser
             DbType = dbType;
         }
 
-        internal SqlTypeDeclWithSize( SqlDbType dbType, SqlTokenIdentifier id, SqlTokenOpenPar openPar, SqlToken size, SqlTokenClosePar closePar )
+        internal SqlTypeDeclWithSize( SqlDbType dbType, SqlTokenIdentifier id, SqlTokenOpenPar opener, SqlToken size, SqlTokenClosePar closer )
              : base( null, null )
         {
-            _content = new SNode<SqlTokenIdentifier, SqlTokenOpenPar, SqlToken, SqlTokenClosePar>( id, openPar, size, closePar );
+            _content = new SNode<SqlTokenIdentifier, SqlTokenOpenPar, SqlToken, SqlTokenClosePar>( id, opener, size, closer );
             Debug.Assert( dbType == CheckContent() );
             DbType = dbType;
+        }
+
+        SqlDbType CheckContent()
+        {
+            SNode.CheckNotNull( TypeIdentifierT, nameof( TypeIdentifierT ) );
+            if( _content.Count > 1 )
+            {
+                SNode.CheckNotNull( Opener, nameof( Opener ) );
+                SNode.CheckNotNull( Size, nameof( Size ) );
+                if( !(Size is SqlTokenLiteralInteger && ((SqlTokenLiteralInteger)Size).Value > 0)
+                    && !(Size is SqlTokenIdentifier && ((SqlTokenIdentifier)Size).TokenType == SqlTokenType.Max) )
+                {
+                    throw new ArgumentException( "Size must be an integer greater than 0 or max.", nameof( Size ) );
+                }
+                SNode.CheckNotNull( Closer, nameof( Closer ) );
+            }
+            SqlDbType? dbType = SqlKeyword.FromSqlTokenTypeToSqlDbType( TypeIdentifierT.TokenType );
+            if( !dbType.HasValue || (dbType != SqlDbType.Char && dbType != SqlDbType.VarChar && dbType != SqlDbType.NChar && dbType != SqlDbType.NVarChar && dbType != SqlDbType.Binary && dbType != SqlDbType.VarBinary) )
+            {
+                throw new ArgumentException( "Expected char, varchar, nchar, nvarchar, binary, varbinary.", nameof( TypeIdentifierT ) );
+            }
+            return dbType.Value;
         }
 
         SqlTypeDeclWithSize( SqlTypeDeclWithSize o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
@@ -82,7 +81,7 @@ namespace CK.SqlServer.Parser
             }
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
             return new SqlTypeDeclWithSize( this, leading, children, trailing );
         }
@@ -93,11 +92,11 @@ namespace CK.SqlServer.Parser
 
         public SqlDbType DbType { get; }
 
-        public SqlTokenOpenPar OpenPar => _content.V2;
+        public SqlTokenOpenPar Opener => _content.V2;
 
         public SqlToken Size => _content.V3;
 
-        public SqlTokenClosePar ClosePar => _content.V4;
+        public SqlTokenClosePar Closer => _content.V4;
 
         [DebuggerStepThrough]
         internal protected override ISqlNode Accept( SqlItemVisitor visitor ) => visitor.Visit( this );

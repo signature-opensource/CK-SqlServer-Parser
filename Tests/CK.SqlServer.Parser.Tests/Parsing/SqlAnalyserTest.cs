@@ -458,7 +458,7 @@ namespace CK.SqlServer.Parser.Tests
             Assert.That( sp.Parameters[0].Variable.Identifier.IsVariable, Is.True );
             Assert.That( sp.Parameters[0].Variable.Identifier.Name, Is.EqualTo( "@P" ) );
             Assert.That( sp.Parameters[0].Variable.TypeDecl.DbType, Is.EqualTo( SqlDbType.Int ) );
-            Assert.That( sp.BodyStatements.Count, Is.EqualTo( 1 ) );
+            Assert.That( sp.Body.Count, Is.EqualTo( 1 ) );
         }
 
         [Test]
@@ -525,8 +525,8 @@ namespace CK.SqlServer.Parser.Tests
                     Assert.That( sp.HasOptions );
                     Assert.That( sp.Options.ChildrenNodes.Count(), Is.EqualTo( 4 ), "[with] [recompile] [,] [execute as owner]" );
                     Assert.That( sp.Options.AllTokens.ToStringWithoutTrivias( "|" ), Is.EqualTo( "with|recompile|,|execute|as|owner" ) );
-                    Assert.That( sp.BodyStatements.Count, Is.EqualTo( 2 ).Or.EqualTo( 3 ), "Two statements (select and return) but..." );
-                    Assert.That( sp.BodyStatements.Count == 2 || sp.BodyStatements[2] is SqlEmptyStatement, "...when ';' is added, it is a third empty statement." );
+                    Assert.That( sp.Body.Count, Is.EqualTo( 2 ).Or.EqualTo( 3 ), "Two statements (select and return) but..." );
+                    Assert.That( sp.Body.Count == 2 || sp.Body[2] is SqlEmptyStatement, "...when ';' is added, it is a third empty statement." );
 
                     Assert.That( sp.Header.ToStringCompact(), Is.EqualTo( "procedure sWithOptions with recompile, execute as owner" ) );
                 } );
@@ -539,7 +539,7 @@ namespace CK.SqlServer.Parser.Tests
                 {
                     Assert.That( sp.Name.ToString( true ), Is.EqualTo( "sStrange -- funny one" + Environment.NewLine ) );
                     Assert.That( sp.Parameters, Is.Empty );
-                    Assert.That( sp.BodyStatements.Count, Is.EqualTo( 5 ) );
+                    Assert.That( sp.Body.Count, Is.EqualTo( 5 ) );
                     Assert.That( sp.Header.ToStringCompact(), Is.EqualTo( "procedure sStrange" ) );
                 } );
         }
@@ -558,7 +558,7 @@ namespace CK.SqlServer.Parser.Tests
                     Assert.That( sp.Parameters[0].Variable.TypeDecl.DbType, Is.EqualTo( SqlDbType.Int ) );
                     Assert.That( sp.HasBeginEnd );
                     Assert.That( sp.HasOptions, Is.False );
-                    Assert.That( sp.BodyStatements.Count, Is.EqualTo( 2 ) );
+                    Assert.That( sp.Body.Count, Is.EqualTo( 2 ) );
                     Assert.That( sp.Header.ToStringCompact(), Is.EqualTo( "procedure CKCore.sErrorRethrow(@ProcId int)" ) );
                 } );
         }
@@ -572,7 +572,7 @@ namespace CK.SqlServer.Parser.Tests
                     Assert.That( sp.Parameters.Count, Is.EqualTo( 2 ) );
                     Assert.That( sp.HasBeginEnd );
                     Assert.That( sp.HasOptions, Is.False );
-                    Assert.That( sp.BodyStatements.Count, Is.EqualTo( 1 ), "Unmodeled." );
+                    Assert.That( sp.Body.Count, Is.EqualTo( 1 ), "Unmodeled." );
                     Assert.That( sp.Header.ToStringCompact(), Is.EqualTo( "procedure CK.sResDataStringSet(@ResId int, @Val nvarchar(400))" ) );
                 } );
         }
@@ -684,7 +684,7 @@ namespace CK.SqlServer.Parser.Tests
 
             Assert.That( sp.Name.ToString(), Is.EqualTo( "CK.sGroupRemoveAllUsers" ) );
             Assert.That( sp.Parameters.Count, Is.EqualTo( 2 ) );
-            Assert.That( sp.BodyStatements.Count, Is.GreaterThan( 1 ) );
+            Assert.That( sp.Body.Count, Is.GreaterThan( 1 ) );
         }
 
         [Test]
@@ -694,7 +694,7 @@ namespace CK.SqlServer.Parser.Tests
 
             Assert.That( sp.Name.ToString(), Is.EqualTo( "cursor_usage" ) );
             Assert.That( sp.Parameters.Count, Is.EqualTo( 0 ) );
-            Assert.That( sp.BodyStatements.Count, Is.GreaterThan( 1 ) );
+            Assert.That( sp.Body.Count, Is.GreaterThan( 1 ) );
         }
 
         [DebuggerStepThrough]

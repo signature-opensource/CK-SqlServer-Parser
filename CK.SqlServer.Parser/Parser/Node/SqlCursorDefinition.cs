@@ -15,7 +15,7 @@ namespace CK.SqlServer.Parser
                     SqlTokenIdentifier,
                     SqlNodeList,
                     SqlTokenIdentifier,
-                    ISelectSpecification,
+                    ISqlNode,
                     SqlTokenIdentifier,
                     SqlTokenIdentifier,
                     SqlTokenIdentifier,
@@ -25,18 +25,18 @@ namespace CK.SqlServer.Parser
             SqlTokenIdentifier cursorT,
             SqlNodeList options, 
             SqlTokenIdentifier forT,
-            ISelectSpecification select, 
+            ISqlNode selectNode, 
             SqlTokenIdentifier forOptionsT, 
             SqlTokenIdentifier updateT, 
             SqlTokenIdentifier ofT, 
             SqlIdentifierCommaList updateColumns )
             : base( null, null )
         {
-            _content = new SNode<SqlTokenIdentifier, SqlNodeList, SqlTokenIdentifier, ISelectSpecification, SqlTokenIdentifier, SqlTokenIdentifier, SqlTokenIdentifier, SqlIdentifierCommaList>(
+            _content = new SNode<SqlTokenIdentifier, SqlNodeList, SqlTokenIdentifier, ISqlNode, SqlTokenIdentifier, SqlTokenIdentifier, SqlTokenIdentifier, SqlIdentifierCommaList>(
                 cursorT, 
                 options, 
                 forT, 
-                select, 
+                selectNode, 
                 forOptionsT, 
                 updateT, 
                 ofT, 
@@ -48,7 +48,7 @@ namespace CK.SqlServer.Parser
         {
             SNode.CheckToken( CursorT, nameof( CursorT ), SqlTokenType.Cursor );
             SNode.CheckToken( ForT, nameof( ForT ), SqlTokenType.For );
-            SNode.CheckNotNull( Select, nameof( Select ) );
+            SNode.CheckUnPar<ISelectSpecification>( SelectNode, nameof( Select ) );
             SNode.CheckNullableToken( ForOptionsT, nameof( ForOptionsT ), SqlTokenType.For );
             SNode.CheckNullableToken( UpdateT, nameof( UpdateT ), SqlTokenType.Update );
             SNode.CheckBothNullOrNot( ForOptionsT, nameof( ForOptionsT ), UpdateT, nameof( UpdateT ) );
@@ -62,12 +62,12 @@ namespace CK.SqlServer.Parser
             if( items == null ) _content = o._content;
             else
             {
-                _content = new SNode<SqlTokenIdentifier, SqlNodeList, SqlTokenIdentifier, ISelectSpecification, SqlTokenIdentifier, SqlTokenIdentifier, SqlTokenIdentifier, SqlIdentifierCommaList>( items );
+                _content = new SNode<SqlTokenIdentifier, SqlNodeList, SqlTokenIdentifier, ISqlNode, SqlTokenIdentifier, SqlTokenIdentifier, SqlTokenIdentifier, SqlIdentifierCommaList>( items );
                 CheckContent();
             }
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
             return new SqlCursorDefinition( this, leading, children, trailing );
         }
@@ -89,7 +89,9 @@ namespace CK.SqlServer.Parser
         /// <summary>
         /// Gets the select specification for this cursor.
         /// </summary>
-        public ISelectSpecification Select => _content.V4;
+        public ISqlNode SelectNode => _content.V4;
+
+        public ISelectSpecification Select => (ISelectSpecification)_content.V4.UnPar;
 
         public SqlTokenIdentifier ForOptionsT => _content.V5;
 

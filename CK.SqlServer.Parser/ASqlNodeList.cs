@@ -86,6 +86,8 @@ namespace CK.SqlServer.Parser
 
         public int Count => _items.Count;
 
+        public bool IsEmpty => _items.Count == 0;
+
         public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();

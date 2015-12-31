@@ -25,10 +25,10 @@ namespace CK.SqlServer.Parser
 
         void CheckContent()
         {
-            SNode.CheckToken( TypeIdentifierT, nameof( TypeIdentifierT ), SqlTokenType.IdentifierTypeDecimal );
+            SNode.CheckToken( TypeIdentifierT, nameof( TypeIdentifierT ), SqlTokenType.DecimalDbType );
             if( _content.Count > 1 )
             {
-                SNode.CheckNotNull( OpenPar, nameof( OpenPar ) );
+                SNode.CheckNotNull( Opener, nameof( Opener ) );
                 SNode.CheckNotNull( Precision, nameof( Precision ) );
                 if( Precision.Value <= 0 || Precision.Value > 38 )
                     throw new ArgumentException( "Invalid precision.", nameof( Precision ) );
@@ -39,7 +39,7 @@ namespace CK.SqlServer.Parser
                     if( Scale.Value < 0 || Scale.Value > Precision.Value )
                         throw new ArgumentException( "Invalid scale (must be less or equal to precision).", nameof( Scale ) );
                 }
-                SNode.CheckNotNull( ClosePar, nameof( ClosePar ) );
+                SNode.CheckNotNull( Closer, nameof( Closer ) );
             }
         }
 
@@ -70,7 +70,7 @@ namespace CK.SqlServer.Parser
             }
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
             return new SqlTypeDeclDecimal( this, leading, children, trailing );
         }
@@ -81,7 +81,7 @@ namespace CK.SqlServer.Parser
 
         public SqlTokenIdentifier TypeIdentifierT => _content.V1;
 
-        public SqlTokenTerminal OpenPar => _content.V2;
+        public SqlTokenTerminal Opener => _content.V2;
 
         public SqlTokenLiteralInteger Precision => _content.V3;
 
@@ -89,7 +89,7 @@ namespace CK.SqlServer.Parser
 
         public SqlTokenLiteralInteger Scale => _content.V5;
 
-        public SqlTokenTerminal ClosePar => _content.V6;
+        public SqlTokenTerminal Closer => _content.V6;
 
         [DebuggerStepThrough]
         internal protected override ISqlNode Accept( SqlItemVisitor visitor ) => visitor.Visit( this );

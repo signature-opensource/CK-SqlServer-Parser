@@ -50,7 +50,7 @@ namespace CK.SqlServer.Parser
             }
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
             return new SelectGroupBy( this, leading, children, trailing );
         }
@@ -62,6 +62,8 @@ namespace CK.SqlServer.Parser
         public SqlTokenIdentifier ByT => _content.V2;
 
         public ISqlNode GroupExpression => _content.V3;
+
+        public bool HasHaving => _content.V4 != null;
 
         public SqlTokenIdentifier HavingT => _content.V4;
 

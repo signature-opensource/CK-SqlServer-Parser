@@ -50,7 +50,7 @@ namespace CK.SqlServer.Parser
         {
             List<ISqlNode> modified = VisitItems( e.ChildrenNodes );
             if( modified == null ) return e;
-            return ((SqlNode)e).InternalClone( e.LeadingTrivias, modified, e.TrailingTrivias );
+            return ((SqlNode)e).InternalDoClone( e.LeadingTrivias, modified, e.TrailingTrivias );
         }
 
         protected virtual ISqlNode VisitTokenStandard( SqlToken e )
@@ -73,22 +73,17 @@ namespace CK.SqlServer.Parser
             return VisitStandard( e );
         }
 
-        public virtual ISqlNode Visit( SqlCommaList e )
-        {
-            return VisitStandard( e );
-        }
-
         public virtual ISqlNode Visit( SqlNodeList e )
         {
             return VisitStandard( e );
         }
 
-        public virtual ISqlNode Visit( SqlEnclosedCommaList e )
+        public virtual ISqlNode Visit( SqlEnclosableCommaList e )
         {
             return VisitStandard( e );
         }
 
-        public virtual ISqlNode Visit<T>( SqlTokenList<T> e ) where T : SqlToken
+        public virtual ISqlNode Visit( SqlEnclosedCommaList e )
         {
             return VisitStandard( e );
         }
@@ -208,12 +203,7 @@ namespace CK.SqlServer.Parser
             return VisitStandard( e );
         }
 
-        public virtual ISqlNode Visit( SqlStoredProcedure e )
-        {
-            return VisitStandard( e );
-        }
-
-        public virtual ISqlNode Visit( SqlFunctionScalar e )
+        public virtual ISqlNode Visit( SqlEmptyStatement e )
         {
             return VisitStandard( e );
         }
@@ -243,7 +233,13 @@ namespace CK.SqlServer.Parser
             return VisitStandard( e );
         }
 
-        public virtual ISqlNode Visit( SqlEmptyStatement e )
+
+        public virtual ISqlNode Visit( SqlStoredProcedure e )
+        {
+            return VisitStandard( e );
+        }
+
+        public virtual ISqlNode Visit( SqlFunctionScalar e )
         {
             return VisitStandard( e );
         }
@@ -253,7 +249,12 @@ namespace CK.SqlServer.Parser
             return VisitStandard( e );
         }
 
-        public virtual ISqlNode Visit( SqlEnclosedIdentiferCommaList e )
+        public virtual ISqlNode Visit( SqlFunctionInlineTable e )
+        {
+            return VisitStandard( e );
+        }
+
+        public virtual ISqlNode Visit( SqlEnclosedIdentifierCommaList e )
         {
             return VisitStandard( e );
         }
@@ -323,6 +324,11 @@ namespace CK.SqlServer.Parser
             return VisitTypeDeclStandard( e );
         }
 
+        public virtual ISqlNode Visit( SqlTypeDeclTable e )
+        {
+            return VisitTypeDeclStandard( e );
+        }
+
         public virtual ISqlNode Visit( SqlTypedIdentifier e )
         {
             return VisitStandard( e );
@@ -386,12 +392,12 @@ namespace CK.SqlServer.Parser
 
         #region Select
 
-        public virtual ISqlNode Visit( SelectQuery e )
+        public virtual ISqlNode Visit( SqlSelectStatement e )
         {
             return VisitStandard( e );
         }
 
-        public virtual ISqlNode Visit( SelectSpecification e )
+        public virtual ISqlNode Visit( SelectSpec e )
         {
             return VisitStandard( e );
         }
@@ -431,7 +437,7 @@ namespace CK.SqlServer.Parser
             return VisitStandard( e );
         }
 
-        public virtual ISqlNode Visit( SelectCombineOperator e )
+        public virtual ISqlNode Visit( SelectCombine e )
         {
             return VisitStandard( e );
         }
@@ -440,6 +446,13 @@ namespace CK.SqlServer.Parser
         {
             return VisitStandard( e );
         }
+
+        public virtual ISqlNode Visit( SelectOption e )
+        {
+            return VisitStandard( e );
+        }
+
+        
 
         public virtual ISqlNode Visit( SqlOrderByList e )
         {
@@ -461,16 +474,27 @@ namespace CK.SqlServer.Parser
             return VisitStandard( e );
         }
 
-        public virtual ISqlNode Visit( SelectOption e )
+        public virtual ISqlNode Visit( SqlNextValueFor e )
+        {
+            return VisitStandard( e );
+        }
+
+        public virtual ISqlNode Visit( SqlCTEStatement e )
+        {
+            return VisitStandard( e );
+        }
+
+        public virtual ISqlNode Visit( SqlCTENameList e )
+        {
+            return VisitStandard( e );
+        }
+
+        public virtual ISqlNode Visit( SqlCTEName e )
         {
             return VisitStandard( e );
         }
 
         #endregion
 
-        public virtual ISqlNode Visit( SqlFunctionInlineTable e )
-        {
-            return VisitStandard( e );
-        }
     }
 }

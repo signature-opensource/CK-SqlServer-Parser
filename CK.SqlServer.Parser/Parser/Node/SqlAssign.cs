@@ -10,25 +10,25 @@ namespace CK.SqlServer.Parser
 {
     public sealed class SqlAssign : SqlNode
     {
-        readonly SNode<ISqlIdentifier, SqlTokenTerminal, ISqlNode> _content;
+        readonly SNode<ISqlNode, SqlTokenTerminal, ISqlNode> _content;
 
-        public SqlAssign( ISqlIdentifier identifier, SqlTokenTerminal assignT, ISqlNode right )
+        public SqlAssign( ISqlNode left, SqlTokenTerminal assignT, ISqlNode right )
             : base( null, null )
         {
-            _content = new SNode<ISqlIdentifier, SqlTokenTerminal, ISqlNode>( identifier, assignT, right );
+            _content = new SNode<ISqlNode, SqlTokenTerminal, ISqlNode>( left, assignT, right );
             CheckContent();
         }
 
         void CheckContent()
         {
-            SNode.CheckNotNull( Identifier, nameof( Identifier ) );
+            SNode.CheckNotNull( Left, nameof( Left ) );
             SNode.CheckToken( AssignT, nameof( AssignT ), IsValidAssignOperator );
             SNode.CheckNotNull( Right, nameof( Right ) );
         }
 
         static bool IsValidAssignOperator( SqlTokenType tokenType )
         {
-            return (tokenType & SqlTokenType.IsAssignOperator) == 0;
+            return (tokenType & SqlTokenType.IsAssignOperator) != 0;
         }
 
         SqlAssign( SqlAssign o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
@@ -37,19 +37,19 @@ namespace CK.SqlServer.Parser
             if( items == null ) _content = o._content;
             else
             {
-                _content = new SNode<ISqlIdentifier, SqlTokenTerminal, ISqlNode>( items );
+                _content = new SNode<ISqlNode, SqlTokenTerminal, ISqlNode>( items );
                 CheckContent();
             }
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
             return new SqlAssign( this, leading, children, trailing );
         }
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
 
-        public ISqlIdentifier Identifier => _content.V1;
+        public ISqlNode Left => _content.V1;
 
         public SqlTokenTerminal AssignT => _content.V2;
 

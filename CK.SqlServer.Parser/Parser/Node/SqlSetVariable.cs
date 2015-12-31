@@ -39,7 +39,7 @@ namespace CK.SqlServer.Parser
             }
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
             return new SqlSetVariable( this, leading, children, trailing );
         }
@@ -52,7 +52,7 @@ namespace CK.SqlServer.Parser
             if( Value == null ) throw new ArgumentException( nameof( Value ) );
         }
 
-        public StatementName StatementName => StatementName.SetVariable;
+        public StatementKnownName StatementKnownName => StatementKnownName.SetVariable;
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
 

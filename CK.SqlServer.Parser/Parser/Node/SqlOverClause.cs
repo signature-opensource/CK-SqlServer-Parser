@@ -15,19 +15,19 @@ namespace CK.SqlServer.Parser
     {
         readonly SNode<SqlTokenIdentifier, SqlTokenOpenPar, SqlNodeList, SqlTokenClosePar> _content;
 
-        public SqlOverClause( SqlTokenIdentifier overT, SqlTokenOpenPar openPar, SqlNodeList overExpression, SqlTokenClosePar closePar )
+        public SqlOverClause( SqlTokenIdentifier overT, SqlTokenOpenPar opener, SqlNodeList overExpression, SqlTokenClosePar closer )
             : base( null, null )
         {
-            _content = new SNode<SqlTokenIdentifier, SqlTokenOpenPar, SqlNodeList, SqlTokenClosePar>( overT, openPar, overExpression, closePar );
+            _content = new SNode<SqlTokenIdentifier, SqlTokenOpenPar, SqlNodeList, SqlTokenClosePar>( overT, opener, overExpression, closer );
             CheckContent();
         }
 
         void CheckContent()
         {
             SNode.CheckToken( OverT, nameof( OverT ), SqlTokenType.Over );
-            SNode.CheckNotNull( OpenPar, nameof( OpenPar ) );
+            SNode.CheckNotNull( Opener, nameof( Opener ) );
             SNode.CheckNotNull( OverContent, nameof( OverContent ) );
-            SNode.CheckNotNull( ClosePar, nameof( ClosePar ) );
+            SNode.CheckNotNull( Closer, nameof( Closer ) );
         }
 
         SqlOverClause( SqlOverClause o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
@@ -41,7 +41,7 @@ namespace CK.SqlServer.Parser
             }
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
             return new SqlOverClause( this, leading, children, trailing );
         }
@@ -50,11 +50,11 @@ namespace CK.SqlServer.Parser
 
         public SqlTokenIdentifier OverT => _content.V1;
 
-        public SqlTokenOpenPar OpenPar => _content.V2;
+        public SqlTokenOpenPar Opener => _content.V2;
 
         public SqlNodeList OverContent => _content.V3;
 
-        public SqlTokenClosePar ClosePar => _content.V4;
+        public SqlTokenClosePar Closer => _content.V4;
 
         [DebuggerStepThrough]
         internal protected override ISqlNode Accept( SqlItemVisitor visitor ) => visitor.Visit( this );

@@ -68,24 +68,26 @@ namespace CK.SqlServer.Parser
             SNode.CheckNotNull( Parameters, nameof( Parameters ) );
             SNode.CheckToken( AsT, nameof( AsT ), SqlTokenType.As );
             SNode.CheckNullableToken( BeginT, nameof( BeginT ), SqlTokenType.Begin );
-            SNode.CheckNotNull( BodyStatements, nameof( BodyStatements ) );
+            SNode.CheckNotNull( Body, nameof( Body ) );
             SNode.CheckNullableToken( EndT, nameof( EndT ), SqlTokenType.End );
             SNode.CheckBothNullOrNot( BeginT, nameof( BeginT ), EndT, nameof( EndT ) );
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
             return new SqlStoredProcedure( this, leading, children, trailing );
         }
 
-        public StatementName StatementName => AlterOrCreateT.TokenType == SqlTokenType.Alter
-                                    ? StatementName.AlterProcedure
-                                    : StatementName.CreateProcedure;
+        public StatementKnownName StatementKnownName => AlterOrCreateT.TokenType == SqlTokenType.Alter
+                                    ? StatementKnownName.AlterProcedure
+                                    : StatementKnownName.CreateProcedure;
 
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
 
         public SqlTokenIdentifier AlterOrCreateT => _content.V1;
+
+        public bool IsAlter => AlterOrCreateT.TokenType == SqlTokenType.Alter;
 
         public SqlTokenIdentifier ObjectTypeT => _content.V2;
 
@@ -122,7 +124,7 @@ namespace CK.SqlServer.Parser
 
         public SqlTokenIdentifier BeginT => _content.V7;
 
-        public SqlStatementList BodyStatements => _content.V8;
+        public SqlStatementList Body => _content.V8;
 
         public SqlTokenIdentifier EndT => _content.V9;
 

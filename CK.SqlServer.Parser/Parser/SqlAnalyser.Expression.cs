@@ -11,27 +11,6 @@ namespace CK.SqlServer.Parser
 {
     public partial class SqlAnalyser
     {
-
-        bool IsExpression( out ISqlNode e, int rightBindingPower, bool expected )
-        {
-            e = null;
-            if( R.IsErrorOrEndOfInput || (e = IsExpressionNud()) == null )
-            {
-                if( expected ) R.SetCurrentError( "Expected expression." );
-                return false;
-            }
-            // Not (as a left denotation) is the same as a between or a like (since it introduces them).
-            // This could have been handled with a left and right binding power instead of only one power per operator.
-            while( !R.IsErrorOrEndOfInput
-                    && ((R.Current.TokenType == SqlTokenType.Not && SqlTokenizer.PrecedenceLevel( SqlTokenType.OpNotRightLevel ) > rightBindingPower)
-                        ||
-                        (R.Current.TokenType != SqlTokenType.Not && R.CurrentPrecedenceLevel > rightBindingPower)) )
-            {
-                if( !ExpressionCombineLed( ref e ) ) break;
-            }
-            return !R.IsError;
-        }
-
         ISqlNode IsExpression( int rightBindingPower, bool expected )
         {
             ISqlNode e = null;
@@ -72,7 +51,7 @@ namespace CK.SqlServer.Parser
                 int precedenceLevel = R.CurrentPrecedenceLevel;
                 SqlToken op = R.Read<SqlToken>();
                 ISqlNode right;
-                if( !IsExpression( out right, precedenceLevel, true ) ) return null;
+                if( (right = IsExpression( precedenceLevel, true )) == null ) return null;
                 return new SqlUnaryOperator( op, right );
             }
             if( R.Current.TokenType == SqlTokenType.Mult )
@@ -86,14 +65,19 @@ namespace CK.SqlServer.Parser
             }
             if( R.Current.TokenType == SqlTokenType.OpenPar )
             {
-                return IsAnyExpression( true );
+                SqlTokenOpenPar opener = R.Read<SqlTokenOpenPar>();
+                var content = IsAnyExpression( true );
+                if( content == null ) return null;
+                SqlTokenClosePar closer;
+                if( !R.IsToken( out closer, true ) ) return null;
+                return new SqlPar( opener, content, closer );
             }
             if( (R.Current.TokenType & SqlTokenType.IsIdentifier) != 0 )
             {
                 SqlTokenIdentifier id = R.Read<SqlTokenIdentifier>();
                 if( id.TokenType == SqlTokenType.Select )
                 {
-                    SelectSpecification select;
+                    SelectSpec select;
                     if( !MatchSelectSpecification( out select, id ) )
                     {
                         Debug.Assert( R.IsError );
@@ -111,6 +95,18 @@ namespace CK.SqlServer.Parser
                     }
                     return caseExpr;
                 }
+                if( id.TokenType == SqlTokenType.Next )
+                {
+                    SqlTokenIdentifier valueT;
+                    if( R.IsToken( out valueT, SqlTokenType.Value, false ) )
+                    {
+                        SqlTokenIdentifier forT;
+                        if( !R.IsToken( out forT, SqlTokenType.For, true ) ) return null;
+                        ISqlIdentifier seqName = IsIdentifier( true );
+                        if( seqName == null ) return null;
+                        return new SqlNextValueFor( id, valueT, forT, seqName );
+                    }
+                }
                 // This shortcuts the nud/led mechanism by directly handling 
                 // the . or the :: as a top precedence level operator.
                 return IsIdentifier( true, id );
@@ -123,13 +119,26 @@ namespace CK.SqlServer.Parser
         /// </summary>
         bool ExpressionCombineLed( ref ISqlNode left )
         {
-            Debug.Assert( R.Current.TokenType != SqlTokenType.Comma, "Comma is not an operator." );
             int precedenceLevel = R.CurrentPrecedenceLevel;
+            if( R.Current.TokenType == SqlTokenType.Comma )
+            {
+                Debug.Assert( !(left is SqlEnclosableCommaList) );
+                List<ISqlNode> items = new List<ISqlNode>();
+                items.Add( left );
+                SqlTokenComma comma;
+                while( R.IsToken( out comma, false ) )
+                {
+                    items.Add( comma );
+                    ISqlNode i = IsExtendedExpression( true );
+                    if( i == null ) return false;
+                    items.Add( i );
+                }
+                left = new SqlEnclosableCommaList( null, items, null );
+                return true;
+            }
             if( R.Current.TokenType == SqlTokenType.OpenPar )
             {
-                // This prevents (select a)(select b) multiple statements
-                // to be considered as a call.
-                if( left.UnPar is ISelectSpecification ) return false;
+                if( !(left is ISqlIdentifier) ) return false;
                 if( left.IsToken( SqlTokenType.Cast ) )
                 {
                     SqlTokenOpenPar openPar;
@@ -148,10 +157,10 @@ namespace CK.SqlServer.Parser
                     left = new SqlCast( (SqlTokenIdentifier)left, openPar, e, asToken, type, closePar );
                     return true;
                 }
-                SqlEnclosedCommaList parameters = IsEnclosedCommaList( true, Parenthesis.Required );
+                SqlEnclosedCommaList parameters = IsEnclosedCommaList( true );
                 if( parameters == null ) return false;
-                SqlOverClause over;
-                if( !IsOverClause( out over ) && R.IsError ) return false;
+                SqlOverClause over = IsOverClause( false );
+                if( over == null && R.IsError ) return false;
                 left = new SqlKoCall( left, parameters, over );
                 return true;
             }
@@ -172,7 +181,7 @@ namespace CK.SqlServer.Parser
                     ISqlNode right;
                     using( R.SetAssignmentContext( false ) )
                     {
-                        if( !IsExpression( out right, precedenceLevel, true ) ) return false;
+                        if( (right = IsExpression( precedenceLevel, true )) == null ) return false;
                         left = new SqlAssign( (ISqlIdentifier)left, assign, right );
                     }
                 }
@@ -190,6 +199,8 @@ namespace CK.SqlServer.Parser
             }
             if( R.Current.TokenType == SqlTokenType.Not )
             {
+                // Allows "not null" but as a NUD.
+                if( R.RawLookup.TokenType == SqlTokenType.Null ) return false;
                 SqlTokenIdentifier notToken = R.Read<SqlTokenIdentifier>();
                 if( R.Current.TokenType == SqlTokenType.Like ) return IsExprLike( ref left, notToken );
                 if( R.Current.TokenType == SqlTokenType.Between ) return IsExprBetween( ref left, notToken );
@@ -203,7 +214,7 @@ namespace CK.SqlServer.Parser
             {
                 SqlToken cmp = R.Read<SqlToken>();
                 ISqlNode right;
-                if( !IsExpression( out right, precedenceLevel, true ) ) return false;
+                if( (right = IsExpression( precedenceLevel, true )) == null ) return false;
                 left = new SqlBinaryOperator( left, cmp, right );
                 return true;
             }
@@ -214,49 +225,60 @@ namespace CK.SqlServer.Parser
                 SqlTokenIdentifier op;
                 if( R.Current.TokenType == SqlTokenType.For )
                 {
-                    // Limits Select For operator to 'Browse', 'Xml' and 'JSON'.
+                    // Limits Select For operator to 'Browse', 'Xml', 'JSON' and 'system_time'.
                     // The other For is for cursor options...
-                    if( R.RawLookup.TokenType == SqlTokenType.IdentifierTypeXml
+                    if( R.RawLookup.TokenType == SqlTokenType.XmlDbType
                         || R.RawLookup.TokenType == SqlTokenType.Browse
-                        || R.RawLookup.TokenType == SqlTokenType.Json )
+                        || R.RawLookup.TokenType == SqlTokenType.Json 
+                        || R.RawLookup.TokenType == SqlTokenType.SystemTime )
 
                     {
                         op = R.Read<SqlTokenIdentifier>();
+                        SqlTokenIdentifier targetType = R.Read<SqlTokenIdentifier>();
                         ISqlNode content = InternalIsExtendedExpression( true, SelectPartStopper );
                         if( content == null ) return false;
-                        left = new SelectFor( lSelect, op, content );
+                        left = new SelectFor( left, op, targetType, content );
                         return true;
                     }
                     return false;
                 }
                 op = R.Read<SqlTokenIdentifier>();
+                if( op.TokenType == SqlTokenType.Option )
+                {
+                    SqlTokenOpenPar opener;
+                    if( !R.IsToken( out opener, true ) ) return false;
+                    ISqlNode content = IsAnyExpression( false );
+                    SqlTokenClosePar closer;
+                    if( !R.IsToken( out closer, true ) ) return false;
+                    left = new SelectOption( left, op, opener, content, closer );
+                    return true;
+                }
                 if( op.TokenType == SqlTokenType.Order )
                 {
                     SqlTokenIdentifier by;
-                    SqlOrderByList columns;
                     if( !R.IsToken( out by, SqlTokenType.By, true ) ) return false;
-                    columns = IsOrderByList();
+                    SqlOrderByList columns = IsCommaList( 1, IsOrderByItem, i => new SqlOrderByList( i ) );
                     if( columns == null ) return false;
 
-                    SelectOrderByOffset offsetClause;
-                    if( IsSelectOrderByOffset( out offsetClause ) )
+                    SelectOrderByOffset offsetClause = IsSelectOrderByOffset( false );
+                    if( offsetClause != null )
                     {
-                        left = new SelectOrderBy( lSelect, op, by, columns, offsetClause );
+                        left = new SelectOrderBy( left, op, by, columns, offsetClause );
                     }
                     else
                     {
                         if( R.IsError ) return false;
-                        left = new SelectOrderBy( lSelect, op, by, columns );
+                        left = new SelectOrderBy( left, op, by, columns );
                     }
                     return true;
                 }
                 SqlTokenIdentifier all = null;
                 if( op.TokenType == SqlTokenType.Union ) R.IsToken( out all, SqlTokenType.All, false );
                 ISqlNode right;
-                if( !IsExpression( out right, precedenceLevel, true ) ) return false;
-                ISelectSpecification rSelect = right as ISelectSpecification;
+                if( (right = IsExpression( precedenceLevel, true )) == null ) return false;
+                ISelectSpecification rSelect = right.UnPar as ISelectSpecification;
                 if( rSelect == null ) return R.SetCurrentError( "Expected select expression." );
-                left = new SelectCombineOperator( lSelect, op, all, rSelect );
+                left = new SelectCombine( left, op, all, right );
                 return true;
             }
             return false;
@@ -281,7 +303,7 @@ namespace CK.SqlServer.Parser
             Debug.Assert( R.Current.TokenType == SqlTokenType.Like );
             SqlTokenIdentifier likeToken = R.Read<SqlTokenIdentifier>();
             ISqlNode pattern;
-            if( !IsExpression( out pattern, SqlTokenizer.PrecedenceLevel( SqlTokenType.OpComparisonLevel ), true ) ) return false;
+            if( (pattern = IsExpression( SqlTokenizer.PrecedenceLevel( SqlTokenType.OpComparisonLevel ), true )) == null ) return false;
             SqlTokenIdentifier escapeToken;
             SqlTokenLiteralString escapeChar = null;
             if( R.IsToken( out escapeToken, SqlTokenType.Escape, false ) )
@@ -296,7 +318,7 @@ namespace CK.SqlServer.Parser
         {
             Debug.Assert( R.Current.TokenType == SqlTokenType.In );
             SqlTokenIdentifier inToken = R.Read<SqlTokenIdentifier>();
-            SqlEnclosedCommaList values = IsEnclosedCommaList( true, Parenthesis.Required );
+            SqlEnclosedCommaList values = IsEnclosedCommaList( true );
             if( values == null ) return false;
             left = new SqlInValues( left, notToken, inToken, values );
             return true;
@@ -310,7 +332,7 @@ namespace CK.SqlServer.Parser
             if( !R.IsToken( out whenToken, SqlTokenType.When, false ) )
             {
                 // Simple case.
-                if( !IsExpression( out exprSimple, 0, true ) ) return false;
+                if( (exprSimple = IsExpression( 0, true )) == null ) return false;
                 if( !R.IsToken( out whenToken, SqlTokenType.When, true ) ) return false;
             }
             Debug.Assert( whenToken != null );
@@ -318,11 +340,11 @@ namespace CK.SqlServer.Parser
             do
             {
                 ISqlNode expr;
-                if( !IsExpression( out expr, 0, true ) ) return false;
+                if( (expr = IsExpression( 0, true )) == null ) return false;
                 SqlTokenIdentifier thenToken;
                 if( !R.IsToken( out thenToken, SqlTokenType.Then, true ) ) return false;
                 ISqlNode exprValue;
-                if( !IsExpression( out exprValue, 0, true ) ) return false;
+                if( (exprValue = IsExpression( 0, true )) == null ) return false;
                 whenItems.Add( new SqlCaseWhenSelector( whenToken, expr, thenToken, exprValue ) );
             }
             while( R.IsToken( out whenToken, SqlTokenType.When, false ) );
@@ -332,7 +354,7 @@ namespace CK.SqlServer.Parser
             SqlTokenIdentifier elseToken;
             if( R.IsToken( out elseToken, SqlTokenType.Else, false ) )
             {
-                if( !IsExpression( out exprElse, 0, true ) ) return false;
+                if( (exprElse = IsExpression( 0, true )) == null ) return false;
             }
             SqlTokenIdentifier endToken;
             if( !R.IsToken( out endToken, SqlTokenType.End, true ) ) return false;
@@ -341,6 +363,7 @@ namespace CK.SqlServer.Parser
             return true;
         }
 
+
         /// <summary>
         /// Reads one and only one expression (comma stops it).
         /// </summary>
@@ -348,7 +371,7 @@ namespace CK.SqlServer.Parser
         /// <returns>One expression or null.</returns>
         public ISqlNode IsOneExpression( bool expected )
         {
-            return IsExpression( 0, expected );
+            return IsExpression( SqlTokenizer.PrecedenceLevel( SqlTokenType.Comma ), expected );
         }
 
         /// <summary>
@@ -360,20 +383,52 @@ namespace CK.SqlServer.Parser
         /// <returns>One expression, a <see cref="SqlNodeList"/> or null.</returns>
         public ISqlNode IsExtendedExpression( bool expected )
         {
-            return InternalIsExtendedExpression( expected, SqlToken.IsCommaOrCloseParenthesis );
+            List<ISqlNode> items = new List<ISqlNode>();
+            while( !R.IsErrorOrEndOfInput 
+                && !SqlToken.IsCommaOrCloseParenthesis( R.Current )
+                && !(R.ParenthesisDepth == 0 && SqlToken.IsStatementStopper( R.Current )) )
+            {
+                ISqlNode item = IsOneExpression( expected );
+                expected = false;
+                if( item != null ) items.Add( item );
+                else
+                {
+                    if( R.IsError ) break;
+                    items.Add( R.Current );
+                    R.MoveNext();
+                }
+            }
+            if( items.Count == 0 )
+            {
+                if( expected ) R.SetCurrentError( "Expected Extended Expression." );
+                return null;
+            }
+            return items.Count == 1 ? items[0] : new SqlNodeList( items );
         }
 
         /// <summary>
-        /// An extended expression for statement is one expression or a list (a <see cref="SqlNodeList"/>) of 
-        /// tokens or expressions.
-        /// A comma, the statement terminator or a possible start statement stops this.
+        /// Any expression can be an extended expression or a comma separated list of 
+        /// extended expression optionally enclosed in parenthesis (<see cref="EncloseableCommaList"/>).
         /// </summary>
         /// <param name="expected">True to set an error if no expression exist.</param>
-        /// <returns>One expression or a <see cref="SqlNodeList"/> or null.</returns>
-        public ISqlNode IsExtendedExpressionForStatement( bool expected )
+        /// <returns>Any expression or null.</returns>
+        ISqlNode IsAnyExpression( bool expected )
         {
-            return InternalIsExtendedExpression( expected, SqlToken.IsCommaOrTerminatorOrPossibleStartStatement );
+            var e = IsEnclosableCommaList( expected );
+            if( e == null ) return null;
+            if( e.Count == 1 )
+            {
+                if( e.IsEnclosed ) return new SqlPar( e.Opener, e[0], e.Closer );
+                return e[0];
+            }
+            return e;
         }
+
+        //=========================================
+        //=========================================
+        //=========================================
+        //=========================================
+        //=========================================
 
         ISqlNode InternalIsExtendedExpression( bool expected, Predicate<SqlToken> stopperDefinition )
         {
@@ -387,45 +442,6 @@ namespace CK.SqlServer.Parser
             return items.Count == 1 ? items[0] : new SqlNodeList( items );
         }
 
-        /// <summary>
-        /// Any expression can be an extended expression or a comma separated list of 
-        /// extended expression.
-        /// </summary>
-        /// <param name="expected">True to set an error if no expression exist.</param>
-        /// <returns>One expression or a <see cref="SqlNodeList"/> or null.</returns>
-        ISqlNode IsAnyExpression( bool expected )
-        {
-            return InternalIsAnyExpression( expected, IsExtendedExpression );
-        }
-
-        /// <summary>
-        /// Any expression for statement can be an extended expression for statement or a 
-        /// comma separated list of extended expression for statement.
-        /// </summary>
-        /// <param name="expected">True to set an error if no expression exist.</param>
-        /// <returns>One expression or a <see cref="SqlNodeList"/> or null.</returns>
-        ISqlNode IsAnyExpressionForStatement( bool expected )
-        {
-            return InternalIsAnyExpression( expected, IsExtendedExpressionForStatement );
-        }
-
-        ISqlNode InternalIsAnyExpression( bool expected, Func<bool,ISqlNode> matcher )
-        {
-            SqlTokenOpenPar openPar;
-            SqlTokenClosePar closePar;
-            List<ISqlNode> items = new List<ISqlNode>();
-            if( !R.CollectCommaList( items, out openPar, out closePar, matcher ) ) return null;
-            if( openPar == null && items.Count == 0 )
-            {
-                if( expected ) R.SetCurrentError( "Expected '{0}'.", matcher.Method.Name );
-                return null;
-            }
-            ISqlNode e;
-            if( items.Count == 0 ) e = SqlNodeList.Empty;
-            else if( items.Count == 1 ) e = items[0];
-            else e = new SqlCommaList( items );
-            return openPar != null ? new SqlPar( openPar, e, closePar ) : e;
-        }
 
     }
 

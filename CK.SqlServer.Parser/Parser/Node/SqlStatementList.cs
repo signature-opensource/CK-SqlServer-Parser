@@ -10,7 +10,7 @@ using System.Collections.Immutable;
 namespace CK.SqlServer.Parser
 {
     /// <summary>
-    /// List of <see cref="ISqlStatement">statements</see>. 
+    /// List of possibly empty <see cref="ISqlStatement">statements</see>. 
     /// </summary>
     public sealed class SqlStatementList : ASqlNodeList<ISqlStatement>, ISqlStatement
     {
@@ -24,7 +24,7 @@ namespace CK.SqlServer.Parser
         {
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
             return new SqlStatementList( this, leading, children, trailing );
         }

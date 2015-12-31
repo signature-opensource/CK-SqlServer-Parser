@@ -1,10 +1,3 @@
-#region Proprietary License
-/*----------------------------------------------------------------------------
-* This file (CK.SqlServer.Parser\Tokenizer\SqlKeyword.cs) is part of CK-Database. 
-* Copyright © 2007-2014, Invenietis <http://www.invenietis.com>. All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -29,7 +22,6 @@ namespace CK.SqlServer.Parser
             "references",
             "full",
             "replication",
-            "restore",
             "bulk",
             "check",
             "holdlock",
@@ -68,7 +60,6 @@ namespace CK.SqlServer.Parser
             "default",
             "tsequal",
             "off",
-            "deny",
             "offsets",
             "unique",
             "unpivot",
@@ -82,11 +73,9 @@ namespace CK.SqlServer.Parser
             "errlvl",
 
             "restrict",
-            "grant",
             "cascade",
             "revert",
             "revoke",
-            "backup",
             "any",
             "some",
             "precision",
@@ -209,79 +198,84 @@ namespace CK.SqlServer.Parser
                 SqlDbType.VarChar,
                 SqlDbType.Char,
                 SqlDbType.VarBinary,
-                SqlDbType.Binary,  
+                SqlDbType.Binary,
                 SqlDbType.Variant,
+                SqlDbType.Structured,
             };
 
         static SqlKeyword()
         {
-            Debug.Assert( _sqlDbTypesMapped[(int)(SqlTokenType.IdentifierTypeXml                & SqlTokenType.IdentifierValueMask)] == SqlDbType.Xml );
-            Debug.Assert( _sqlDbTypesMapped[(int)(SqlTokenType.IdentifierTypeDateTimeOffset     & SqlTokenType.IdentifierValueMask)] == SqlDbType.DateTimeOffset );
-            Debug.Assert( _sqlDbTypesMapped[(int)(SqlTokenType.IdentifierTypeDateTime2          & SqlTokenType.IdentifierValueMask)] == SqlDbType.DateTime2 );
-            Debug.Assert( _sqlDbTypesMapped[(int)(SqlTokenType.IdentifierTypeDateTime           & SqlTokenType.IdentifierValueMask)] == SqlDbType.DateTime );
-            Debug.Assert( _sqlDbTypesMapped[(int)(SqlTokenType.IdentifierTypeSmallDateTime      & SqlTokenType.IdentifierValueMask)] == SqlDbType.SmallDateTime );
-            Debug.Assert( _sqlDbTypesMapped[(int)(SqlTokenType.IdentifierTypeDate               & SqlTokenType.IdentifierValueMask)] == SqlDbType.Date );
-            Debug.Assert( _sqlDbTypesMapped[(int)(SqlTokenType.IdentifierTypeTime               & SqlTokenType.IdentifierValueMask)] == SqlDbType.Time );
-            Debug.Assert( _sqlDbTypesMapped[(int)(SqlTokenType.IdentifierTypeFloat              & SqlTokenType.IdentifierValueMask)] == SqlDbType.Float );
-            Debug.Assert( _sqlDbTypesMapped[(int)(SqlTokenType.IdentifierTypeReal               & SqlTokenType.IdentifierValueMask)] == SqlDbType.Real );
-            Debug.Assert( _sqlDbTypesMapped[(int)(SqlTokenType.IdentifierTypeDecimal            & SqlTokenType.IdentifierValueMask)] == SqlDbType.Decimal );
-            Debug.Assert( _sqlDbTypesMapped[(int)(SqlTokenType.IdentifierTypeMoney              & SqlTokenType.IdentifierValueMask)] == SqlDbType.Money );
-            Debug.Assert( _sqlDbTypesMapped[(int)(SqlTokenType.IdentifierTypeSmallMoney         & SqlTokenType.IdentifierValueMask)] == SqlDbType.SmallMoney );
-            Debug.Assert( _sqlDbTypesMapped[(int)(SqlTokenType.IdentifierTypeBigInt             & SqlTokenType.IdentifierValueMask)] == SqlDbType.BigInt );
-            Debug.Assert( _sqlDbTypesMapped[(int)(SqlTokenType.IdentifierTypeInt                & SqlTokenType.IdentifierValueMask)] == SqlDbType.Int );
-            Debug.Assert( _sqlDbTypesMapped[(int)(SqlTokenType.IdentifierTypeSmallInt           & SqlTokenType.IdentifierValueMask)] == SqlDbType.SmallInt );
-            Debug.Assert( _sqlDbTypesMapped[(int)(SqlTokenType.IdentifierTypeTinyInt            & SqlTokenType.IdentifierValueMask)] == SqlDbType.TinyInt );
-            Debug.Assert( _sqlDbTypesMapped[(int)(SqlTokenType.IdentifierTypeBit                & SqlTokenType.IdentifierValueMask)] == SqlDbType.Bit );
-            Debug.Assert( _sqlDbTypesMapped[(int)(SqlTokenType.IdentifierTypeNText              & SqlTokenType.IdentifierValueMask)] == SqlDbType.NText );
-            Debug.Assert( _sqlDbTypesMapped[(int)(SqlTokenType.IdentifierTypeText               & SqlTokenType.IdentifierValueMask)] == SqlDbType.Text );
-            Debug.Assert( _sqlDbTypesMapped[(int)(SqlTokenType.IdentifierTypeImage              & SqlTokenType.IdentifierValueMask)] == SqlDbType.Image );
-            Debug.Assert( _sqlDbTypesMapped[(int)(SqlTokenType.IdentifierTypeTimestamp          & SqlTokenType.IdentifierValueMask)] == SqlDbType.Timestamp );
-            Debug.Assert( _sqlDbTypesMapped[(int)(SqlTokenType.IdentifierTypeUniqueIdentifier   & SqlTokenType.IdentifierValueMask)] == SqlDbType.UniqueIdentifier );
-            Debug.Assert( _sqlDbTypesMapped[(int)(SqlTokenType.IdentifierTypeNVarChar           & SqlTokenType.IdentifierValueMask)] == SqlDbType.NVarChar );
-            Debug.Assert( _sqlDbTypesMapped[(int)(SqlTokenType.IdentifierTypeNChar              & SqlTokenType.IdentifierValueMask)] == SqlDbType.NChar );
-            Debug.Assert( _sqlDbTypesMapped[(int)(SqlTokenType.IdentifierTypeVarChar            & SqlTokenType.IdentifierValueMask)] == SqlDbType.VarChar );
-            Debug.Assert( _sqlDbTypesMapped[(int)(SqlTokenType.IdentifierTypeChar               & SqlTokenType.IdentifierValueMask)] == SqlDbType.Char );
-            Debug.Assert( _sqlDbTypesMapped[(int)(SqlTokenType.IdentifierTypeVarBinary          & SqlTokenType.IdentifierValueMask)] == SqlDbType.VarBinary );
-            Debug.Assert( _sqlDbTypesMapped[(int)(SqlTokenType.IdentifierTypeBinary             & SqlTokenType.IdentifierValueMask)] == SqlDbType.Binary );
-            Debug.Assert( _sqlDbTypesMapped[(int)(SqlTokenType.IdentifierTypeVariant            & SqlTokenType.IdentifierValueMask)] == SqlDbType.Variant );
+            Debug.Assert( _sqlDbTypesMapped[(int)(SqlTokenType.XmlDbType                & SqlTokenType.IdentifierValueMask)] == SqlDbType.Xml );
+            Debug.Assert( _sqlDbTypesMapped[(int)(SqlTokenType.DateTimeOffsetDbType     & SqlTokenType.IdentifierValueMask)] == SqlDbType.DateTimeOffset );
+            Debug.Assert( _sqlDbTypesMapped[(int)(SqlTokenType.DateTime2DbType          & SqlTokenType.IdentifierValueMask)] == SqlDbType.DateTime2 );
+            Debug.Assert( _sqlDbTypesMapped[(int)(SqlTokenType.DateTimeDbType           & SqlTokenType.IdentifierValueMask)] == SqlDbType.DateTime );
+            Debug.Assert( _sqlDbTypesMapped[(int)(SqlTokenType.SmallDateTimeDbType      & SqlTokenType.IdentifierValueMask)] == SqlDbType.SmallDateTime );
+            Debug.Assert( _sqlDbTypesMapped[(int)(SqlTokenType.DateDbType               & SqlTokenType.IdentifierValueMask)] == SqlDbType.Date );
+            Debug.Assert( _sqlDbTypesMapped[(int)(SqlTokenType.TimeDbType               & SqlTokenType.IdentifierValueMask)] == SqlDbType.Time );
+            Debug.Assert( _sqlDbTypesMapped[(int)(SqlTokenType.FloatDbType              & SqlTokenType.IdentifierValueMask)] == SqlDbType.Float );
+            Debug.Assert( _sqlDbTypesMapped[(int)(SqlTokenType.RealDbType               & SqlTokenType.IdentifierValueMask)] == SqlDbType.Real );
+            Debug.Assert( _sqlDbTypesMapped[(int)(SqlTokenType.DecimalDbType            & SqlTokenType.IdentifierValueMask)] == SqlDbType.Decimal );
+            Debug.Assert( _sqlDbTypesMapped[(int)(SqlTokenType.MoneyDbType              & SqlTokenType.IdentifierValueMask)] == SqlDbType.Money );
+            Debug.Assert( _sqlDbTypesMapped[(int)(SqlTokenType.SmallMoneyDbType         & SqlTokenType.IdentifierValueMask)] == SqlDbType.SmallMoney );
+            Debug.Assert( _sqlDbTypesMapped[(int)(SqlTokenType.BigIntDbType             & SqlTokenType.IdentifierValueMask)] == SqlDbType.BigInt );
+            Debug.Assert( _sqlDbTypesMapped[(int)(SqlTokenType.IntDbType                & SqlTokenType.IdentifierValueMask)] == SqlDbType.Int );
+            Debug.Assert( _sqlDbTypesMapped[(int)(SqlTokenType.SmallIntDbType           & SqlTokenType.IdentifierValueMask)] == SqlDbType.SmallInt );
+            Debug.Assert( _sqlDbTypesMapped[(int)(SqlTokenType.TinyIntDbType            & SqlTokenType.IdentifierValueMask)] == SqlDbType.TinyInt );
+            Debug.Assert( _sqlDbTypesMapped[(int)(SqlTokenType.BitDbType                & SqlTokenType.IdentifierValueMask)] == SqlDbType.Bit );
+            Debug.Assert( _sqlDbTypesMapped[(int)(SqlTokenType.NTextDbType              & SqlTokenType.IdentifierValueMask)] == SqlDbType.NText );
+            Debug.Assert( _sqlDbTypesMapped[(int)(SqlTokenType.TextDbType               & SqlTokenType.IdentifierValueMask)] == SqlDbType.Text );
+            Debug.Assert( _sqlDbTypesMapped[(int)(SqlTokenType.ImageDbType              & SqlTokenType.IdentifierValueMask)] == SqlDbType.Image );
+            Debug.Assert( _sqlDbTypesMapped[(int)(SqlTokenType.TimestampDbType          & SqlTokenType.IdentifierValueMask)] == SqlDbType.Timestamp );
+            Debug.Assert( _sqlDbTypesMapped[(int)(SqlTokenType.UniqueIdentifierDbType   & SqlTokenType.IdentifierValueMask)] == SqlDbType.UniqueIdentifier );
+            Debug.Assert( _sqlDbTypesMapped[(int)(SqlTokenType.NVarCharDbType           & SqlTokenType.IdentifierValueMask)] == SqlDbType.NVarChar );
+            Debug.Assert( _sqlDbTypesMapped[(int)(SqlTokenType.NCharDbType              & SqlTokenType.IdentifierValueMask)] == SqlDbType.NChar );
+            Debug.Assert( _sqlDbTypesMapped[(int)(SqlTokenType.VarCharDbType            & SqlTokenType.IdentifierValueMask)] == SqlDbType.VarChar );
+            Debug.Assert( _sqlDbTypesMapped[(int)(SqlTokenType.CharDbType               & SqlTokenType.IdentifierValueMask)] == SqlDbType.Char );
+            Debug.Assert( _sqlDbTypesMapped[(int)(SqlTokenType.VarBinaryDbType          & SqlTokenType.IdentifierValueMask)] == SqlDbType.VarBinary );
+            Debug.Assert( _sqlDbTypesMapped[(int)(SqlTokenType.BinaryDbType             & SqlTokenType.IdentifierValueMask)] == SqlDbType.Binary );
+            Debug.Assert( _sqlDbTypesMapped[(int)(SqlTokenType.VariantDbType            & SqlTokenType.IdentifierValueMask)] == SqlDbType.Variant );
+            Debug.Assert( _sqlDbTypesMapped[(int)(SqlTokenType.TableDbType              & SqlTokenType.IdentifierValueMask)] == SqlDbType.Structured );
 
             _keywords = new Dictionary<string, SqlTokenType>( StringComparer.InvariantCultureIgnoreCase );
 
             // Identifiers mapped to SqlTokenType.
             
             // SqlDbType mapping.
-            _keywords.Add( "sql_variant", SqlTokenType.IdentifierTypeVariant );
-            _keywords.Add( "xml", SqlTokenType.IdentifierTypeXml );
-            _keywords.Add( "datetimeoffset", SqlTokenType.IdentifierTypeDateTimeOffset );
-            _keywords.Add( "datetime2", SqlTokenType.IdentifierTypeDateTime2 );
-            _keywords.Add( "datetime", SqlTokenType.IdentifierTypeDateTime );
-            _keywords.Add( "smalldatetime", SqlTokenType.IdentifierTypeSmallDateTime );
-            _keywords.Add( "date", SqlTokenType.IdentifierTypeDate );
-            _keywords.Add( "time", SqlTokenType.IdentifierTypeTime );
-            _keywords.Add( "float", SqlTokenType.IdentifierTypeFloat );
-            _keywords.Add( "real", SqlTokenType.IdentifierTypeReal );
-            _keywords.Add( "decimal", SqlTokenType.IdentifierTypeDecimal );
-            _keywords.Add( "numeric", SqlTokenType.IdentifierTypeDecimal );
-            _keywords.Add( "money", SqlTokenType.IdentifierTypeMoney );
-            _keywords.Add( "smallmoney", SqlTokenType.IdentifierTypeSmallMoney );
-            _keywords.Add( "bigint", SqlTokenType.IdentifierTypeBigInt );
-            _keywords.Add( "int", SqlTokenType.IdentifierTypeInt );
-            _keywords.Add( "smallint", SqlTokenType.IdentifierTypeSmallInt );
-            _keywords.Add( "tinyint", SqlTokenType.IdentifierTypeTinyInt );
-            _keywords.Add( "bit", SqlTokenType.IdentifierTypeBit );
-            _keywords.Add( "ntext", SqlTokenType.IdentifierTypeNText );
-            _keywords.Add( "text", SqlTokenType.IdentifierTypeText );
-            _keywords.Add( "image", SqlTokenType.IdentifierTypeImage );
-            _keywords.Add( "timestamp", SqlTokenType.IdentifierTypeTimestamp );
-            _keywords.Add( "uniqueidentifier", SqlTokenType.IdentifierTypeUniqueIdentifier );
-            _keywords.Add( "nvarchar", SqlTokenType.IdentifierTypeNVarChar );
-            _keywords.Add( "nchar", SqlTokenType.IdentifierTypeNChar );
-            _keywords.Add( "varchar", SqlTokenType.IdentifierTypeVarChar );
-            _keywords.Add( "char", SqlTokenType.IdentifierTypeChar );
-            _keywords.Add( "varbinary", SqlTokenType.IdentifierTypeVarBinary );
-            _keywords.Add( "binary", SqlTokenType.IdentifierTypeBinary );
+            _keywords.Add( "sql_variant", SqlTokenType.VariantDbType );
+            _keywords.Add( "xml", SqlTokenType.XmlDbType );
+            _keywords.Add( "datetimeoffset", SqlTokenType.DateTimeOffsetDbType );
+            _keywords.Add( "datetime2", SqlTokenType.DateTime2DbType );
+            _keywords.Add( "datetime", SqlTokenType.DateTimeDbType );
+            _keywords.Add( "smalldatetime", SqlTokenType.SmallDateTimeDbType );
+            _keywords.Add( "date", SqlTokenType.DateDbType );
+            _keywords.Add( "time", SqlTokenType.TimeDbType );
+            _keywords.Add( "float", SqlTokenType.FloatDbType );
+            _keywords.Add( "real", SqlTokenType.RealDbType );
+            _keywords.Add( "decimal", SqlTokenType.DecimalDbType );
+            _keywords.Add( "numeric", SqlTokenType.DecimalDbType );
+            _keywords.Add( "money", SqlTokenType.MoneyDbType );
+            _keywords.Add( "smallmoney", SqlTokenType.SmallMoneyDbType );
+            _keywords.Add( "bigint", SqlTokenType.BigIntDbType );
+            _keywords.Add( "int", SqlTokenType.IntDbType );
+            _keywords.Add( "smallint", SqlTokenType.SmallIntDbType );
+            _keywords.Add( "tinyint", SqlTokenType.TinyIntDbType );
+            _keywords.Add( "bit", SqlTokenType.BitDbType );
+            _keywords.Add( "ntext", SqlTokenType.NTextDbType );
+            _keywords.Add( "text", SqlTokenType.TextDbType );
+            _keywords.Add( "image", SqlTokenType.ImageDbType );
+            _keywords.Add( "timestamp", SqlTokenType.TimestampDbType );
+            _keywords.Add( "uniqueidentifier", SqlTokenType.UniqueIdentifierDbType );
+            _keywords.Add( "nvarchar", SqlTokenType.NVarCharDbType );
+            _keywords.Add( "nchar", SqlTokenType.NCharDbType );
+            _keywords.Add( "varchar", SqlTokenType.VarCharDbType );
+            _keywords.Add( "char", SqlTokenType.CharDbType );
+            _keywords.Add( "varbinary", SqlTokenType.VarBinaryDbType );
+            _keywords.Add( "binary", SqlTokenType.BinaryDbType );
+            _keywords.Add( "table", SqlTokenType.TableDbType );
 
-            Debug.Assert( _keywords.Values.All( t => !t.IsReservedKeyword() ), "Sql database type names are not reserved keyworkds." );
+            Debug.Assert( _keywords.Values.All( t => !t.IsReservedKeyword()
+                                                    || t == SqlTokenType.TableDbType ), 
+                                            "Sql database type names are not reserved keyworkds except 'table'." );
 
             // SqlTokenType.IdentifierStandardStatement values: these are not reserved keywords but they can start a statement.
             _keywords.Add( "throw", SqlTokenType.Throw );
@@ -301,6 +295,8 @@ namespace CK.SqlServer.Parser
             _keywords.Add( "scroll", SqlTokenType.Scroll );
             _keywords.Add( "mark", SqlTokenType.Mark );
             _keywords.Add( "json", SqlTokenType.Json );
+            _keywords.Add( "system_time", SqlTokenType.SystemTime );
+            _keywords.Add( "ties", SqlTokenType.Ties );
             _keywords.Add( "readonly", SqlTokenType.Readonly );
             _keywords.Add( "out", SqlTokenType.Output );
             _keywords.Add( "output", SqlTokenType.Output );
@@ -311,6 +307,8 @@ namespace CK.SqlServer.Parser
             _keywords.Add( "next", SqlTokenType.Next );
             _keywords.Add( "only", SqlTokenType.Only );
             _keywords.Add( "cast", SqlTokenType.Cast );
+            _keywords.Add( "value", SqlTokenType.Value );
+            _keywords.Add( "matched", SqlTokenType.Matched );
 
             // LogicalOperator (they are reserved keywords).
             _keywords.Add( "or", SqlTokenType.Or );
@@ -343,7 +341,6 @@ namespace CK.SqlServer.Parser
             _keywords.Add( "procedure", SqlTokenType.Procedure );
             _keywords.Add( "function", SqlTokenType.Function );
             _keywords.Add( "view", SqlTokenType.View );
-            _keywords.Add( "table", SqlTokenType.Table );
             _keywords.Add( "trigger", SqlTokenType.Trigger );
             _keywords.Add( "as", SqlTokenType.As );
             _keywords.Add( "asc", SqlTokenType.Asc );
@@ -416,6 +413,10 @@ namespace CK.SqlServer.Parser
             _keywords.Add( "writetext", SqlTokenType.Writetext );
             _keywords.Add( "dbcc", SqlTokenType.Dbcc );
             _keywords.Add( "go", SqlTokenType.Go );
+            _keywords.Add( "backup", SqlTokenType.Backup );
+            _keywords.Add( "restore", SqlTokenType.Restore );
+            _keywords.Add( "grant", SqlTokenType.Grant );
+            _keywords.Add( "deny", SqlTokenType.Deny );
 
             // Reserved keywords.
             foreach( string s in _sqlServerReserved )
@@ -429,7 +430,10 @@ namespace CK.SqlServer.Parser
 
         public static SqlDbType? FromSqlTokenTypeToSqlDbType( SqlTokenType t )
         {
-            if( t < 0 || (t & SqlTokenType.IsIdentifier) == 0 || (t & SqlTokenType.IdentifierTypeMask) != SqlTokenType.IdentifierDbType ) return null;
+            if( t < 0 
+                || (t & SqlTokenType.IsIdentifier) == 0 
+                || ((t & SqlTokenType.IdentifierTypeMask) != SqlTokenType.IdentifierDbType
+                    && (t & SqlTokenType.IdentifierTypeMask) != SqlTokenType.IdentifierReservedDbType) ) return null;
             int iT = (int)(t & SqlTokenType.IdentifierValueMask);
             return _sqlDbTypesMapped[iT];
         }

@@ -26,14 +26,10 @@ namespace CK.SqlServer.Parser
         }
 
         /// <summary>
-        /// True for star (*) identifier. 
+        /// True for type names like 'int', 'sql_variant' or 'table' (since it is mapped to <see cref="SqlDbType.Structured"/>). 
         /// </summary>
-        public bool IsStar => TokenType == SqlTokenType.IdentifierStar;
-
-        /// <summary>
-        /// True for type names like int or sql_variant. 
-        /// </summary>
-        public bool IsDbType => (TokenType&SqlTokenType.IdentifierTypeMask) == SqlTokenType.IdentifierDbType; 
+        public bool IsDbType => (TokenType&SqlTokenType.IdentifierTypeMask) == SqlTokenType.IdentifierDbType
+                                || (TokenType&SqlTokenType.IdentifierTypeMask) == SqlTokenType.IdentifierReservedDbType; 
 
         /// <summary>
         /// True if this <see cref="SqlTokenIdentifier"/> is [quoted] or "quoted".
@@ -100,7 +96,7 @@ namespace CK.SqlServer.Parser
             return String.Compare( _name, name, StringComparison.OrdinalIgnoreCase ) == 0; 
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
         {
             return new SqlTokenIdentifier( TokenType, _name, leading, trailing );
         }

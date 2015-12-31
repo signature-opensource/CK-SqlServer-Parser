@@ -13,7 +13,7 @@ namespace CK.SqlServer.Parser
     /// <summary>
     /// Abstract base class for an optionally enclosed list of nodes.
     /// </summary>
-    public abstract class ASqlNodeEnclosedList<TOpener,T,TCloser> : SqlNode, IReadOnlyList<T>
+    public abstract class ASqlNodeEnclosableList<TOpener,T,TCloser> : SqlNode, ISqlEnclosable, IReadOnlyList<T>
         where TOpener : class, ISqlNode
         where T : class, ISqlNode 
         where TCloser : class, ISqlNode
@@ -22,16 +22,16 @@ namespace CK.SqlServer.Parser
         // 0 when no Opener/Closer, 1 otherwise.
         int _enclosed;
 
-        protected ASqlNodeEnclosedList(
-            ASqlNodeEnclosedList<TOpener, T, TCloser> o,
+        protected ASqlNodeEnclosableList(
+            ASqlNodeEnclosableList<TOpener, T, TCloser> o,
             int minCount,
-            bool optionalEnclosing,
             ImmutableList<SqlTrivia> leading,
             IEnumerable<ISqlNode> items,
             ImmutableList<SqlTrivia> trailing )
             : base( leading, trailing )
         {
-            if( items == null )
+            bool enclosed = this is ISqlStructurallyEnclosed;
+           if( items == null )
             {
                 _items = o._items;
                 _enclosed = o._enclosed;
@@ -39,7 +39,7 @@ namespace CK.SqlServer.Parser
             else
             {
                 var a = items as ISqlNode[] ?? items.ToArray();
-                if( !optionalEnclosing || (a.Length > 0 && a[0] is TOpener))
+                if( enclosed || (a.Length > 0 && a[0] is TOpener))
                 {
                     CheckEnclosed( this, a );
                     int count = a.Length - 2;
@@ -67,6 +67,8 @@ namespace CK.SqlServer.Parser
                                                                 typeof( TCloser ).Name ), nameof( items ) );
             }
         }
+
+        public bool IsEnclosed => _enclosed != 0;
 
         public TOpener Opener => (TOpener)_items[0];
 

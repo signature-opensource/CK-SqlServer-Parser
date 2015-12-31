@@ -50,12 +50,12 @@ namespace CK.SqlServer.Parser
             SNode.CheckBothNullOrNot( WithT, nameof( WithT ), MarkT, nameof( MarkT ) );
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
             return new SqlBeginTransaction( this, leading, children, trailing );
         }
 
-        public StatementName StatementName => StatementName.BeginTransaction;
+        public StatementKnownName StatementKnownName => StatementKnownName.BeginTransaction;
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
 

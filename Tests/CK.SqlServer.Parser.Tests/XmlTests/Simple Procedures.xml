@@ -1,23 +1,95 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <Tests>
+  
   <Test>
     <Text>
       -- Version = 1.0.0, Package = TestMe
       create procedure sProcWithoutTerminator
       (
-      @P int
+        @P int
       )
       as
       begin
-      --[beginsp]
-      select P = @P
-      --[endsp]
+        --[beginsp]
+        select P = @P
+        --[endsp]
       end</Text>
     <Description>Simple procedure.</Description>
     <Xml>
       <Sql>
+        <StoredProcedure StatementName="CreateProcedure">
+          <Name>sProcWithoutTerminator</Name>
+          <Parameters>
+            <ParameterList IsEnclosed="true">
+              <Item>
+                <Parameter Name="@P" Direction="Input">
+                  <Type>
+                    <TypeDeclSimple Text="int" />
+                  </Type>
+                </Parameter>
+              </Item>
+            </ParameterList>
+          </Parameters>
+          <Body>
+            <StatementList>
+              <Item>
+                <SelectStatement>
+                  <Select>
+                    <SelectSpec>
+                      <Columns>
+                        <SelectColumnList>
+                          <Item>
+                            <SelectColumn Name="P">
+                              <Definition>
+                                <Identifier IsVariable="true">@P</Identifier>
+                              </Definition>
+                            </SelectColumn>
+                          </Item>
+                        </SelectColumnList>
+                      </Columns>
+                    </SelectSpec>
+                  </Select>
+                </SelectStatement>
+              </Item>
+            </StatementList>
+          </Body>
+        </StoredProcedure>
       </Sql>
     </Xml>
   </Test>
-    
+
+  <Test>
+    <Text>
+      alter procedure sStrange -- funny one
+      as
+      begin
+        begin tran
+        print 1+2
+        (select D = GETUTCDATE())
+        (((select U = USER_NAME())))
+        insert into _t$a@#b values(1)
+        rollback
+      end
+    </Text>
+    <Description>The 2 select statements are correctly detected (and not eaten by the 'print').</Description>
+    <Xml>
+      <Statements>
+        <StoredProcedure StatementName="AlterProcedure">
+          <StatementList>
+            <BeginTransaction />
+            <Statement StatementName="print" />
+            <SelectStatement>
+              <SelectSpec />
+            </SelectStatement>
+            <SelectStatement>
+              <SelectSpec />
+            </SelectStatement>
+            <Statement StatementName="insert" />
+            <Statement StatementName="rollback" />
+          </StatementList>
+        </StoredProcedure>
+      </Statements>
+    </Xml>
+  </Test>
+  
 </Tests>

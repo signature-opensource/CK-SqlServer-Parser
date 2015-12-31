@@ -17,16 +17,14 @@
             </IsNull>
           </Condition>
           <Then>
-            <Statement HasTerminator="true">
-              <Name>print</Name>
+            <Statement StatementName="print" HasTerminator="true">
               <Content>
                 <LiteralString>'1'</LiteralString>
               </Content>
             </Statement>
           </Then>
           <Else>
-            <Statement HasTerminator="true">
-              <Name>print</Name>
+            <Statement StatementName="print" HasTerminator="true">
               <Content>
                 <CommaList>
                   <Item>
@@ -54,16 +52,14 @@
       <Sql>
         <NodeList>
           <Item>
-            <Statement HasTerminator="true">
-              <Name>break</Name>
+            <Statement StatementName="break" HasTerminator="true">
               <Content>
                 <NodeList />
               </Content>
             </Statement>
           </Item>
           <Item>
-            <Statement HasTerminator="true">
-              <Name>continue</Name>
+            <Statement StatementName="continue" HasTerminator="true">
               <Content>
                   <BinaryOperator>
                     <Left>

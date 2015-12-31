@@ -8,33 +8,27 @@ namespace CK.SqlServer.Parser
 {
     public interface ISqlNamedStatement : ISqlStatement
     {
-        StatementName StatementName { get; }
+        StatementKnownName StatementKnownName { get; }
+
     }
 
-    public enum StatementName
+    static public class SqlNamedStatementExtension
     {
-        None,
-        BeginTransaction,
-        Goto,
-        If,
-        LabelDefinition,
-        Return,
-        TryCatch,
-        BeginEnd,
-        CreateView,
-        AlterView,
-        CreateFunction,
-        AlterFunction,
-        CreateProcedure,
-        AlterProcedure,
-        SetVariable,
-        SetOption,
-        DeclareVariable,
-        DeclareCursor,
+
         /// <summary>
-        /// General statement name.
+        /// Gets either the <see cref="ISqlNamedStatement.StatementKnownName"/> or,
+        /// when it is <see cref="StatementKnownName.Unknown"/>, the name of the 
+        /// first <see cref="ISqlIdentifier"/> token of the sttement.
         /// </summary>
-        Statement
+        /// <param name="@this">This named statement.</param>
+        /// <returns>The statement name.</returns>
+        static public string GetStatementName( this ISqlNamedStatement @this )
+        {
+            StatementKnownName n = @this.StatementKnownName;
+            if( n != StatementKnownName.Unknown ) return n.ToString();
+            return @this.AllTokens.OfType<ISqlIdentifier>().Select( id => id.ToString() ).FirstOrDefault() ?? String.Empty;
+        }
+
     }
 
 }

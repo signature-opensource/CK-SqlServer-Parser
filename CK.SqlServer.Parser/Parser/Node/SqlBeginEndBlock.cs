@@ -37,12 +37,12 @@ namespace CK.SqlServer.Parser
             if( EndT == null || EndT.TokenType != SqlTokenType.End ) throw new ArgumentException( nameof( EndT ) );
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
             return new SqlBeginEndBlock( leading, children, trailing );
         }
 
-        public StatementName StatementName => StatementName.BeginEnd;
+        public StatementKnownName StatementKnownName => StatementKnownName.BeginEnd;
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
 

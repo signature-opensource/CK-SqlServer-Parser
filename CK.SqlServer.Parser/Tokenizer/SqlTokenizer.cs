@@ -190,16 +190,15 @@ namespace CK.SqlServer.Parser
         }
 
         /// <summary>
-        /// Computes the precedence with a provision of 1 bit to ease the handling of right associative infix operators.
+        /// Extracts the operator precedence from a token type.
         /// </summary>
-        /// <returns>An even precedence level between 30 and 2. 
-        /// It is 0 if the token has <see cref="SqlTokenTypeError.IsErrorOrEndOfInput"/> bit set.</returns>
+        /// <returns>The precedence level between 30 and 0. 
         /// <remarks>
         /// This uses <see cref="SqlTokenType.OpLevelMask"/> and <see cref="SqlTokenType.OpLevelShift"/>.
         /// </remarks>
         public static int PrecedenceLevel( SqlTokenType t )
         {
-            return t > 0 ? (((int)(t & SqlTokenType.OpLevelMask)) >> (int)SqlTokenType.OpLevelShift) << 1 : 0;
+            return t > 0 ? (((int)(t & SqlTokenType.OpLevelMask)) >> (int)SqlTokenType.OpLevelShift) : 0;
         }
 
         #region Explain Token

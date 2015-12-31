@@ -51,40 +51,7 @@ namespace CK.SqlServer.Parser
 
         ISqlNode UnPar { get; }
 
-        /// <summary>
-        /// Adds a leading trivia.
-        /// </summary>
-        /// <param name="t">The trivia to add in front.</param>
-        /// <returns>A new immutable object.</returns>
-        ISqlNode AddLeadingTrivia( SqlTrivia t );
-
-        /// <summary>
-        /// Adds a trailing trivia.
-        /// </summary>
-        /// <param name="t">The trivia to append.</param>
-        /// <returns>A new immutable object.</returns>
-        ISqlNode AddTrailingTrivia( SqlTrivia t );
-
         bool IsToken( SqlTokenType t );
-
-        /// <summary>
-        /// Lifts leading and trailing trivias: <see cref="TrailingNodes"/> and <see cref="LeadingNodes"/> do not 
-        /// have trailing trivias any more.
-        /// </summary>
-        /// <returns>A new immutable object or this if no change occurred.</returns>
-        ISqlNode LiftBothTrivias();
-
-        /// <summary>
-        /// Lifts leading trivias: <see cref="LeadingNodes"/> do not have leading trivias any more.
-        /// </summary>
-        /// <returns>A new immutable object or this if no change occurred.</returns>
-        ISqlNode LiftLeadingTrivias();
-
-        /// <summary>
-        /// Lifts trailing trivias: <see cref="TrailingNodes"/> do not have trailing trivias any more.
-        /// </summary>
-        /// <returns>A new immutable object or this if no change occurred.</returns>
-        ISqlNode LiftTrailingTrivias();
 
         /// <summary>
         /// Sets or removes a child at a given index in <see cref="ChildrenNodes"/>.
@@ -100,14 +67,6 @@ namespace CK.SqlServer.Parser
         /// <param name="childrenNodes">Children nodes.</param>
         /// <returns>A new immutable object or this if no change occurred.</returns>
         ISqlNode SetChildrenNodes( IReadOnlyList<ISqlNode> childrenNodes );
-
-        /// <summary>
-        /// Sets trivias around this node.
-        /// </summary>
-        /// <param name="leading">Leading trivia. Can be null for empty trivias.</param>
-        /// <param name="trailing">Trailing trivia. Can be null for empty trivias.</param>
-        /// <returns>A new immutable object or this if no change occurred.</returns>
-        ISqlNode SetTrivias( ImmutableList<SqlTrivia> leading, ImmutableList<SqlTrivia> trailing );
 
         /// <summary>
         /// Inserts or replace one or more children at a given index in <see cref="ChildrenNodes"/>.

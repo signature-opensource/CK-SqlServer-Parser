@@ -10,7 +10,7 @@ using CK.Core;
 namespace CK.SqlServer.Parser
 {
     /// <summary>
-    /// List of comma separated <see cref="SelectColumn"/>
+    /// Possibly empty list of comma separated <see cref="SelectColumn"/>
     /// </summary>
     public class SelectColumnList : ASqlNodeSeparatedList<SelectColumn,SqlTokenComma>
     {
@@ -24,7 +24,7 @@ namespace CK.SqlServer.Parser
         {
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
             return new SelectColumnList( this, leading, children, trailing );
         }

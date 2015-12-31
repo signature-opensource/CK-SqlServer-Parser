@@ -16,7 +16,7 @@ namespace CK.SqlServer.Parser
             SqlTokenIdentifier,
             SqlTokenIdentifier,
             SqlTokenIdentifier,
-            ISelectSpecification,
+            ISqlNode,
             SqlTokenIdentifier,
             SqlTokenIdentifier,
             SqlTokenIdentifier,
@@ -29,7 +29,7 @@ namespace CK.SqlServer.Parser
             SqlTokenIdentifier scrollOrInsensitiveToken,
             SqlTokenIdentifier cursorToken,
             SqlTokenIdentifier forToken,
-            ISelectSpecification select,
+            ISqlNode selectNode,
             SqlTokenIdentifier forOptionsToken,
             SqlTokenIdentifier readToken,
             SqlTokenIdentifier onlyToken,
@@ -38,12 +38,12 @@ namespace CK.SqlServer.Parser
             SqlIdentifierCommaList updateColumns )
             : base( null, null )
         {
-            _content = new SNode<SqlTokenIdentifier, SqlTokenIdentifier, SqlTokenIdentifier, SqlTokenIdentifier, ISelectSpecification, SqlTokenIdentifier, SqlTokenIdentifier, SqlTokenIdentifier, SqlTokenIdentifier, SqlTokenIdentifier, SqlIdentifierCommaList>(
+            _content = new SNode<SqlTokenIdentifier, SqlTokenIdentifier, SqlTokenIdentifier, SqlTokenIdentifier, ISqlNode, SqlTokenIdentifier, SqlTokenIdentifier, SqlTokenIdentifier, SqlTokenIdentifier, SqlTokenIdentifier, SqlIdentifierCommaList>(
                 insensitiveOrScrollToken, 
                 scrollOrInsensitiveToken, 
                 cursorToken, 
                 forToken, 
-                select, 
+                selectNode, 
                 forOptionsToken, 
                 readToken, 
                 onlyToken, 
@@ -59,7 +59,7 @@ namespace CK.SqlServer.Parser
             SNode.CheckNullableToken( ScrollOrInsensitiveT, nameof( ScrollOrInsensitiveT ), SqlTokenType.Insensitive, SqlTokenType.Scroll );
             SNode.CheckToken( CursorT, nameof( CursorT ), SqlTokenType.Cursor );
             SNode.CheckToken( ForT, nameof( ForT ), SqlTokenType.For );
-            SNode.CheckNotNull( Select, nameof( Select ) );
+            SNode.CheckUnPar<ISelectSpecification>( SelectNode, nameof( Select ) );
             SNode.CheckNullableToken( ForOptionsT, nameof( ForOptionsT ), SqlTokenType.For );
             if( ForOptionsT != null )
             {
@@ -88,12 +88,12 @@ namespace CK.SqlServer.Parser
             if( items == null ) _content = o._content;
             else
             {
-                _content = new SNode<SqlTokenIdentifier, SqlTokenIdentifier, SqlTokenIdentifier, SqlTokenIdentifier, ISelectSpecification, SqlTokenIdentifier, SqlTokenIdentifier, SqlTokenIdentifier, SqlTokenIdentifier, SqlTokenIdentifier, SqlIdentifierCommaList>( items );
+                _content = new SNode<SqlTokenIdentifier, SqlTokenIdentifier, SqlTokenIdentifier, SqlTokenIdentifier, ISqlNode, SqlTokenIdentifier, SqlTokenIdentifier, SqlTokenIdentifier, SqlTokenIdentifier, SqlTokenIdentifier, SqlIdentifierCommaList>( items );
                 CheckContent();
             }
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
             return new SqlCursorDefinition92( this, leading, children, trailing );
         }
@@ -110,7 +110,9 @@ namespace CK.SqlServer.Parser
 
         public SqlTokenIdentifier ForT => _content.V4;
 
-        public ISelectSpecification Select => _content.V5;
+        public ISqlNode SelectNode => _content.V5;
+
+        public ISelectSpecification Select => (ISelectSpecification)_content.V5.UnPar;
 
         public SqlTokenIdentifier ForOptionsT => _content.V6;
 

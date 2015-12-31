@@ -74,14 +74,14 @@ namespace CK.SqlServer.Parser
             }
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
             return new SqlFunctionInlineTable( this, leading, children, trailing );
         }
 
-        public StatementName StatementName => AlterOrCreateT.TokenType == SqlTokenType.Alter 
-                                                    ? StatementName.AlterFunction 
-                                                    : StatementName.CreateFunction;
+        public StatementKnownName StatementKnownName => AlterOrCreateT.TokenType == SqlTokenType.Alter 
+                                                    ? StatementKnownName.AlterFunction 
+                                                    : StatementKnownName.CreateFunction;
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
 

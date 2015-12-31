@@ -28,40 +28,58 @@ namespace CK.SqlServer.Parser
 
         XElement StartNode( ISqlNode e )
         {
-            string typeName = e.GetType().Name;
-            if( typeName.StartsWith( "SqlToken" ) ) typeName = typeName.Substring( 8 );
-            else if( typeName.StartsWith( "Sql" ) ) typeName = typeName.Substring( 3 );
-            return StartNode( typeName );
-        }
+            string typeName;
+            if( e is SqlEnclosableCommaList ) typeName = "CommaList";
+            else
+            {
+                typeName = e.GetType().Name;
+                if( typeName.StartsWith( "SqlToken" ) ) typeName = typeName.Substring( 8 );
+                else if( typeName.StartsWith( "Sql" ) ) typeName = typeName.Substring( 3 );
+            }
 
-        XElement StartNode( string typeName )
-        {
             if( !_combineElementType )
             {
-                var e = new XElement( typeName );
-                _current.Add( e );
-                _current = e;
+                var c = new XElement( typeName );
+                _current.Add( c );
+                _current = c;
             }
             else _current.Add( new XAttribute( "Type", typeName ) );
-            OnStartNode( _current );
+            OnStartNode( e );
             return _current;
         }
 
-        void OnStartNode( XElement e )
+        void OnStartNode( ISqlNode e )
         {
-        }
-
-        protected override ISqlNode VisitTokenStandard( SqlToken e )
-        {
-            StartNode( e ).Add( e.ToString() );
-            return e;
+            if( e is ISqlEnclosable && !(e is ISqlStructurallyEnclosed) && ((ISqlEnclosable)e).IsEnclosed )
+            {
+                _current.Add( new XAttribute( "IsEnclosed", "true" ) );
+            }
+            if( e is ISqlStatement )
+            {
+                ISqlNamedStatement n = e as ISqlNamedStatement;
+                if( n != null )
+                {
+                    string sn = n.GetStatementName();
+                    if( sn != _current.Name && sn+"Statement" != _current.Name )
+                    {
+                        _current.Add( new XAttribute( "StatementName", sn ) );
+                    }
+                }
+                if( ((ISqlStatement)e).StatementTerminator != null )
+                {
+                    _current.Add( new XAttribute( "HasTerminator", "true" ) );
+                }
+            }
         }
 
         protected override ISqlNode VisitStandard( ISqlNode e )
         {
             var props = e.GetType().GetProperties()
-                                .Where( p => p.Name != "UnPar" )
-                                .Where( p => p.Name != "StatementTerminator" )
+                                .Where( p => p.Name != "UnPar"
+                                             && p.Name != "StatementTerminator"
+                                             && (p.Name != "Opener" || p.PropertyType != typeof( SqlTokenOpenPar ))
+                                             && (p.Name != "Closer" || p.PropertyType != typeof( SqlTokenClosePar ))
+                                      )
                                 .Where( p => typeof( ISqlNode ).IsAssignableFrom( p.PropertyType )
                                                 && p.GetIndexParameters().Length == 0 )
                                 .Select( p => new { Name = p.Name, Value = (ISqlNode)p.GetValue( e ) } )
@@ -72,48 +90,139 @@ namespace CK.SqlServer.Parser
             }
             StartNode( e )
                 .Add( props.Select( o => ToXml( o.Name, o.Value ) ) );
-            if( e is ISqlStatement && ((ISqlStatement)e).StatementTerminator != null )
-            {
-                _current.Add( new XAttribute( "HasTerminator", "true" ) );
-            }
+            return e;
+        }
+
+        protected override ISqlNode VisitTokenStandard( SqlToken e )
+        {
+            StartNode( e ).Add( e.ToString() );
+            return e;
+        }
+
+        protected override ISqlNode VisitTypeDeclStandard( ISqlUnifiedTypeDecl e )
+        {
+            StartNode( e )
+                .Add( new XAttribute( "Text", e.ToString() ) );
+            return e;
+        }
+
+        public override ISqlNode Visit( SqlSelectStatement e )
+        {
+            StartNode( e )
+                .Add( ToXml( "Select", e.Select ) );
+            return e;
+        }
+
+        public override ISqlNode Visit( SelectCombine e )
+        {
+            StartNode( e )
+                .Add( new XAttribute( "Type", e.SelectOperator.ToString() ),
+                      ToXml( "Left", e.Left ),
+                      ToXml( "Right", e.Right ) );
+            return e;
+        }
+
+        public override ISqlNode Visit( SelectFor e )
+        {
+            StartNode( e )
+                .Add( new XAttribute( "TargetType", e.TargeType.ToString() ),
+                      ToXml( "Select", e.Select ),
+                      ToXml( "ForExpression", e.ForExpression ) );
+            return e;
+        }
+
+        public override ISqlNode Visit( SelectOrderBy e )
+        {
+            StartNode( e )
+                .Add( ToXml( "Select", e.Select ),
+                      ToXml( "OrderByColumns", e.OrderByColumns ),
+                      e.OffsetClause != null ? ToXml( "OffsetClause", e.OffsetClause ) : null );
+            return e;
+        }
+
+        public override ISqlNode Visit( SqlOrderByItem e )
+        {
+            StartNode( e )
+                .Add( e.IsDesc ? new XAttribute( "Desc", "true" ) : null,
+                      ToXml( "Definition", e.Definition ) );
+            return e;
+        }
+
+        public override ISqlNode Visit( SelectOrderByOffset e )
+        {
+            StartNode( e )
+                .Add( ToXml( "OffsetExpression", e.OffsetExpression ),
+                      e.HasFetchClause ? ToXml( "FetchExpression", e.FetchExpression ) : null );
+            return e;
+        }
+
+        public override ISqlNode Visit( SelectSpec e )
+        {
+            StartNode( e )
+                .Add( e.Header.TopT != null 
+                            ? new XElement( "Top",
+                                e.Header.PercentT != null ? new XAttribute( "Percent", "true" ) : null,
+                                e.Header.WithT != null ? new XAttribute( "WithTies", "true" ) : null,
+                                ToXml( "TopExpression", e.Header.TopExpression ) )
+                            : null,
+                      ToXml( "Columns", e.Columns ),
+                      e.IntoClause != null ? ToXml( "Into", e.IntoClause ) : null,
+                      e.FromClause != null ? new XElement( "From", e.FromClause.ToString() ) : null,
+                      e.WhereClause != null ? ToXml( "Where", e.WhereClause ) : null,
+                      e.GroupByClause != null ? ToXml( "GroupBy", e.GroupByClause ) : null );
+            return e;
+        }
+
+        public override ISqlNode Visit( SelectColumn e )
+        {
+            StartNode( e )
+                .Add( e.ColumnName != null ? new XAttribute( "Name", e.ColumnName.ToString() ) : null,
+                      ToXml( "Definition", e.Definition ) );
             return e;
         }
 
         public override ISqlNode Visit( SqlStatement e )
         {
-            StartNode( "Statement" )
-                .Add( e.StatementTerminator != null ? new XAttribute( "HasTerminator", "true" ) : null,
-                      new XElement( "Name", e.Name.ToString() ),
-                      ToXml( "Content", e.Content ) );
+            StartNode( e ).Add( ToXml( "Content", e.Content ) );
             return e;
         }
 
         public override ISqlNode Visit( SqlIf e )
         {
-            StartNode( "If" )
-                .Add( e.StatementTerminator != null ? new XAttribute( "HasTerminator", "true" ) : null,
-                      ToXml( "Condition", e.Condition ),
+            StartNode( e )
+                .Add( ToXml( "Condition", e.Condition ),
                       ToXml( "Then", e.Then ),
-                      ToXml( "Else", e.Else ) );
+                      e.HasElse ? ToXml( "Else", e.Else ) : null );
             return e;
         }
 
-        public override ISqlNode Visit( SqlIsNull e )
+        public override ISqlNode Visit( SqlParameter e )
         {
-            StartNode( "IsNull" ).Add( ToXml( "Left", e.Left ) );
+            StartNode( e )
+                .Add( new XAttribute( "Name", e.Name ),
+                      new XAttribute( "Direction", e.IsInputOutput ? "InputOutput" : (e.IsPureInput ? "Input" : "Output" ) ),
+                      e.IsReadOnly ? new XAttribute( "IsReadOnly", "true" ) : null,
+                      ToXml( "Type", e.Variable.TypeDecl ),
+                      e.DefaultValue != null ? ToXml( "DefaultValue", e.DefaultValue ) : null
+                );
             return e;
         }
 
-        public override ISqlNode Visit( SqlEnclosedCommaList e )
+        public override ISqlNode Visit( SqlStoredProcedure e )
         {
-            StartNode( "CommaList" ).Add( e.Select( item => ToXml( "Item", item ) ) );
-            if( e.IsEnclosed ) _current.Add( new XAttribute( "IsEnclosed", "true" ) );
+            StartNode( e ).Add(
+                    e.IsAlter ? new XAttribute( "IsAlter", "true" ) : null,
+                    new XElement( "Name", e.Name.ToString() ),
+                    ToXml( "Parameters", e.Parameters ),
+                    e.HasOptions ? ToXml( "Options", e.Options ) : null,
+                    ToXml( "Body", e.Body )
+                );
             return e;
         }
 
         public override ISqlNode Visit( SqlTokenIdentifier e )
         {
-            StartNode( "Identifier" ).Add( e.ToString() );
+            StartNode( e ).Add( e.ToString() );
             if( e.IsVariable ) _current.Add( new XAttribute( "IsVariable", "true" ) );
             if( e.IsQuoted ) _current.Add( new XAttribute( "IsQuoted", "true" ) );
             if( e.IsDbType ) _current.Add( new XAttribute( "IsDbType", "true" ) );
@@ -137,7 +246,7 @@ namespace CK.SqlServer.Parser
 
         public override ISqlNode Visit( SqlBetween e )
         {
-            StartNode( "Between" ).Add(
+            StartNode( e ).Add(
                 e.IsNotBetween ? new XAttribute( "IsNotBetween", "true" ) : null,
                 ToXml( "Left", e.Left ),
                 ToXml( "Start", e.Start ),
@@ -147,16 +256,58 @@ namespace CK.SqlServer.Parser
 
         public override ISqlNode Visit( SqlLike e )
         {
-            StartNode( "Like" ).Add(
+            StartNode( e ).Add(
                 e.IsNotLike ? new XAttribute( "IsNotLike", "true" ) : null,
                 ToXml( "Left", e.Left ),
                 ToXml( "Pattern", e.Pattern ) );
             return e;
         }
 
-        public override ISqlNode Visit( SqlPar e )
+        public override ISqlNode Visit( SqlIsNull e )
         {
-            StartNode( "Par" ).Add( ToXml( "Content", e.Content ) );
+            StartNode( e ).Add( e.IsNotNull ? new XAttribute( "IsNotNull", "true" ) : null,
+                                ToXml( "Left", e.Left ) );
+            return e;
+        }
+
+        public override ISqlNode Visit( SqlNextValueFor e )
+        {
+            StartNode( e ).Add( e.SequenceName.ToString() );
+            return e;
+        }
+
+        public override ISqlNode Visit( SqlKoCall e )
+        {
+            StartNode( e ).Add( 
+                new XAttribute( "FunName", e.FunName.ToString() ), 
+                ToXml( "Parameters", e.Parameters ),
+                e.OverClause != null ? ToXml( "OverClause", e.OverClause ) : null );
+            return e;
+        }
+
+        public override ISqlNode Visit( SelectGroupBy e )
+        {
+            StartNode( e ).Add( ToXml( "GroupExpression", e.GroupExpression ),
+                                e.HasHaving ? ToXml( "Having", e.HavingExpression ) : null );
+            return e;
+        }
+
+        public override ISqlNode Visit( SqlCTEStatement e )
+        {
+            StartNode( e ).Add(
+                ToXml( "Names", e.Names ),
+                ToXml( "OuterStatement", e.OuterStatement ) );
+            return e;
+        }
+
+        public override ISqlNode Visit( SqlCTEName e )
+        {
+            StartNode( e ).Add(
+                new XAttribute( "Name", e.Name.ToString() ),
+                e.OptionalColumnNames != null 
+                    ? new XAttribute( "Columns", string.Join( ", ", e.OptionalColumnNames.Select( c => c.ToString() ) ) )
+                    : null,
+                ToXml( "Select", e.Select ) );
             return e;
         }
 

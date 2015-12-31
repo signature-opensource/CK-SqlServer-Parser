@@ -12,7 +12,7 @@ namespace CK.SqlServer.Parser
   
     public class SqlInValues : SqlNode
     {
-        readonly SNode<ISqlNode, SqlTokenIdentifier, SqlTokenIdentifier,SqlEnclosedCommaList> _content;
+        readonly SNode<ISqlNode, SqlTokenIdentifier, SqlTokenIdentifier, SqlEnclosedCommaList> _content;
 
         public SqlInValues( ISqlNode left, SqlTokenIdentifier notT, SqlTokenIdentifier inT, SqlEnclosedCommaList values )
             : base( null, null )
@@ -39,7 +39,7 @@ namespace CK.SqlServer.Parser
             }
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
             return new SqlInValues( this, leading, children, trailing );
         }

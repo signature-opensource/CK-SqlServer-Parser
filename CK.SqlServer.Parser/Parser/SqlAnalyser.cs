@@ -92,16 +92,6 @@ namespace CK.SqlServer.Parser
             return a.CreateErrorResult();
         }
 
-        [DebuggerStepThrough]
-        public static ErrorResult Parse( out ISqlNode sql, string text )
-        {
-            sql = null;
-            SqlAnalyser a = new SqlAnalyser( new SqlTokenizer(), text );
-            List<ISqlNode> items = new List<ISqlNode>();
-            if( !a.R.CollectUntil<SqlTokenError>( items, a.IsExtendedStatement ) ) return a.CreateErrorResult();
-            sql = items.Count == 1 ? items[0] : new SqlNodeList( items );
-            return ErrorResult.NoError;
-        }
 
         [DebuggerStepThrough]
         public static ErrorResult Parse( out ISqlNode sql, ParseMode mode, string text )

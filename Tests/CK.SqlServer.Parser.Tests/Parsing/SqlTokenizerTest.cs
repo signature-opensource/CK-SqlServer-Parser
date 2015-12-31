@@ -12,6 +12,23 @@ namespace CK.SqlServer.Parser.Tests
     public class SqlTokenizerTest
     {
         [Test]
+        public void column_alias_names()
+        {
+            Assert.That( SqlTokenType.TableDbType.IsValidColumnAliasName(), Is.False );
+            Assert.That( SqlTokenType.IdentifierStar.IsValidColumnAliasName(), Is.False );
+            Assert.That( SqlTokenType.Create.IsValidColumnAliasName(), Is.False );
+            Assert.That( SqlTokenType.Cursor.IsValidColumnAliasName(), Is.False );
+
+            Assert.That( SqlTokenType.Throw.IsValidColumnAliasName(), Is.True );
+            Assert.That( SqlTokenType.IdentifierQuoted.IsValidColumnAliasName(), Is.True );
+            Assert.That( SqlTokenType.String.IsValidColumnAliasName(), Is.True );
+            Assert.That( SqlTokenType.UnicodeString.IsValidColumnAliasName(), Is.True );
+            Assert.That( SqlTokenType.IdentifierQuotedBracket.IsValidColumnAliasName(), Is.True );
+            Assert.That( SqlTokenType.IdentifierStandard.IsValidColumnAliasName(), Is.True );
+
+        }
+
+        [Test]
         public void SimpleTokens()
         {
             var s = "1 = 1 and 0 = 0 and 2 = 2";
@@ -115,10 +132,10 @@ namespace CK.SqlServer.Parser.Tests
         
             Assert.That( SqlTokenizer.Explain( SqlTokenType.IdentifierStar ), Is.EqualTo( "*" ) );
 
-            Assert.That( SqlTokenizer.Explain( SqlTokenType.IdentifierTypeXml ), Is.EqualTo( "Xml" ) );
-            Assert.That( SqlTokenizer.Explain( SqlTokenType.IdentifierTypeInt ), Is.EqualTo( "Int" ) );
-            Assert.That( SqlTokenizer.Explain( SqlTokenType.IdentifierTypeVarChar ), Is.EqualTo( "VarChar" ) );
-            Assert.That( SqlTokenizer.Explain( SqlTokenType.IdentifierTypeDateTime ), Is.EqualTo( "DateTime" ) );
+            Assert.That( SqlTokenizer.Explain( SqlTokenType.XmlDbType ), Is.EqualTo( "Xml" ) );
+            Assert.That( SqlTokenizer.Explain( SqlTokenType.IntDbType ), Is.EqualTo( "Int" ) );
+            Assert.That( SqlTokenizer.Explain( SqlTokenType.VarCharDbType ), Is.EqualTo( "VarChar" ) );
+            Assert.That( SqlTokenizer.Explain( SqlTokenType.DateTimeDbType ), Is.EqualTo( "DateTime" ) );
 
             Assert.That( SqlTokenizer.Explain( SqlTokenType.String ), Is.EqualTo( "'string'" ) );
             Assert.That( SqlTokenizer.Explain( SqlTokenType.UnicodeString ), Is.EqualTo( "N'unicode string'" ) );
@@ -274,7 +291,7 @@ end".NormalizeEOL();
             Assert.That( tU.TokenType, Is.EqualTo( SqlTokenType.In ) );
 
             t = p.ParseWithoutError( "int" ).ElementAt( 0 );
-            Assert.That( t.TokenType == SqlTokenType.IdentifierTypeInt );
+            Assert.That( t.TokenType == SqlTokenType.IntDbType );
             tU = ((SqlTokenIdentifier)t).RemoveQuoteIfPossible( true );
             Assert.That( tU, Is.SameAs( t ) );
 
@@ -284,11 +301,11 @@ end".NormalizeEOL();
             tU = ((SqlTokenIdentifier)t).RemoveQuoteIfPossible( true );
             Assert.That( tU, Is.Not.SameAs( t ) );
             Assert.That( tU.ToString(), Is.EqualTo( "int" ) );
-            Assert.That( tU.TokenType == SqlTokenType.IdentifierTypeInt );
+            Assert.That( tU.TokenType == SqlTokenType.IntDbType );
             tU = ((SqlTokenIdentifier)t).RemoveQuoteIfPossible( false );
             Assert.That( tU, Is.Not.SameAs( t ) );
             Assert.That( tU.ToString(), Is.EqualTo( "int" ) );
-            Assert.That( tU.TokenType == SqlTokenType.IdentifierTypeInt );
+            Assert.That( tU.TokenType == SqlTokenType.IntDbType );
 
             t = p.ParseWithoutError( @"""smalliNt""" ).ElementAt( 0 );
             Assert.That( t.TokenType == SqlTokenType.IdentifierQuoted );
@@ -297,11 +314,11 @@ end".NormalizeEOL();
             tU = ((SqlTokenIdentifier)t).RemoveQuoteIfPossible( true );
             Assert.That( tU, Is.Not.SameAs( t ) );
             Assert.That( tU.ToString(), Is.EqualTo( "smalliNt" ) );
-            Assert.That( tU.TokenType == SqlTokenType.IdentifierTypeSmallInt );
+            Assert.That( tU.TokenType == SqlTokenType.SmallIntDbType );
             tU = ((SqlTokenIdentifier)t).RemoveQuoteIfPossible( false );
             Assert.That( tU, Is.Not.SameAs( t ) );
             Assert.That( tU.ToString(), Is.EqualTo( "smalliNt" ) );
-            Assert.That( tU.TokenType == SqlTokenType.IdentifierTypeSmallInt );
+            Assert.That( tU.TokenType == SqlTokenType.SmallIntDbType );
 
         }
 

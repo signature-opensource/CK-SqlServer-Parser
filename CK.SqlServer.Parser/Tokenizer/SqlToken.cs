@@ -44,6 +44,10 @@ namespace CK.SqlServer.Parser
         /// </summary>
         public readonly SqlTokenType TokenType;
 
+        public override sealed IEnumerable<SqlTrivia> FullLeadingTrivias => LeadingTrivias;
+
+        public override sealed IEnumerable<SqlTrivia> FullTrailingTrivias => TrailingTrivias;
+
         /// <summary>
         /// Gets an empty node list.
         /// </summary>
@@ -65,15 +69,6 @@ namespace CK.SqlServer.Parser
         }
         #endregion
 
-        /// <summary>
-        /// Empty parenthesis opener.
-        /// </summary>
-        static public readonly SqlTokenList<SqlTokenOpenPar> EmptyOpenPar = SqlTokenList<SqlTokenOpenPar>.Empty;
-
-        /// <summary>
-        /// Empty parenthesis closer.
-        /// </summary>
-        static public readonly SqlTokenList<SqlTokenClosePar> EmptyClosePar = SqlTokenList<SqlTokenClosePar>.Empty;
 
         /// <summary>
         /// True if the <see cref="SqlToken"/> is the terminator ; token or a an identifier
@@ -84,8 +79,22 @@ namespace CK.SqlServer.Parser
         static public bool IsCommaOrTerminatorOrPossibleStartStatement( SqlToken t )
         {
             if( t == null ) throw new ArgumentNullException( "t" );
-            return t.TokenType == SqlTokenType.Comma 
-                    || t.TokenType == SqlTokenType.SemiColon 
+            return t.TokenType == SqlTokenType.Comma
+                    || t.TokenType == SqlTokenType.SemiColon
+                    || t.TokenType.IsStartStatement();
+        }
+
+        /// <summary>
+        /// True if the <see cref="SqlToken"/> is the terminator ; token, an open parenthesis or a 
+        /// an identifier that starts a statement (<see cref="SqlTokenTypeExtension.IsStartStatement(SqlTokenType)"/>.
+        /// </summary>
+        /// <param name="t">Token to test.</param>
+        /// <returns>Whether the token is the statement terminator or the possible start of a new statement.</returns>
+        static public bool IsStatementStopper( SqlToken t )
+        {
+            if( t == null ) throw new ArgumentNullException( "t" );
+            return t.TokenType == SqlTokenType.SemiColon
+                    || t.TokenType == SqlTokenType.OpenPar
                     || t.TokenType.IsStartStatement();
         }
 

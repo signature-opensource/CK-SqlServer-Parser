@@ -12,16 +12,16 @@ namespace CK.SqlServer.Parser
     {
         readonly SNode<SqlTokenIdentifier, SqlTokenOpenPar, ISqlNode, SqlTokenIdentifier, ISqlUnifiedTypeDecl, SqlTokenClosePar> _content;
 
-        public SqlCast( SqlTokenIdentifier castT, SqlTokenOpenPar openPar, ISqlNode e, SqlTokenIdentifier asT, ISqlUnifiedTypeDecl type, SqlTokenClosePar closePar )
+        public SqlCast( SqlTokenIdentifier castT, SqlTokenOpenPar opener, ISqlNode e, SqlTokenIdentifier asT, ISqlUnifiedTypeDecl type, SqlTokenClosePar closer )
             : base( null, null )
         {
             _content = new SNode<SqlTokenIdentifier, SqlTokenOpenPar, ISqlNode, SqlTokenIdentifier, ISqlUnifiedTypeDecl, SqlTokenClosePar>(
                 castT, 
-                openPar, 
+                opener, 
                 e, 
                 asT, 
                 type, 
-                closePar );
+                closer );
             CheckContent();
         }
 
@@ -39,13 +39,13 @@ namespace CK.SqlServer.Parser
         void CheckContent()
         {
             SNode.CheckToken( CastT, nameof( CastT ), SqlTokenType.Cast );
-            SNode.CheckNotNull( OpenPar, nameof( OpenPar ) );
+            SNode.CheckNotNull( Opener, nameof( Opener ) );
             SNode.CheckToken( AsT, nameof( AsT ), SqlTokenType.As );
             SNode.CheckNotNull( Type, nameof( Type ) );
-            SNode.CheckNotNull( ClosePar, nameof( ClosePar ) );
+            SNode.CheckNotNull( Closer, nameof( Closer ) );
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
             return new SqlCast( this, leading, children, trailing );
         }
@@ -54,7 +54,7 @@ namespace CK.SqlServer.Parser
 
         public SqlTokenIdentifier CastT => _content.V1;
 
-        public SqlTokenOpenPar OpenPar => _content.V2;
+        public SqlTokenOpenPar Opener => _content.V2;
 
         public ISqlNode Expression => _content.V3;
 
@@ -62,7 +62,7 @@ namespace CK.SqlServer.Parser
 
         public ISqlUnifiedTypeDecl Type => _content.V5;
 
-        public SqlTokenClosePar ClosePar => _content.V6;
+        public SqlTokenClosePar Closer => _content.V6;
 
         [DebuggerStepThrough]
         internal protected override ISqlNode Accept( SqlItemVisitor visitor ) => visitor.Visit( this );

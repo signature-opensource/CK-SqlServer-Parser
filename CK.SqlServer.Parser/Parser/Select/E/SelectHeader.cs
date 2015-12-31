@@ -41,7 +41,7 @@ namespace CK.SqlServer.Parser
             }
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
             return new SelectHeader( this, leading, children, trailing );
         }
@@ -54,7 +54,7 @@ namespace CK.SqlServer.Parser
             SNode.CheckBothNullOrNot( TopT, nameof( TopT ), TopExpression, nameof(TopExpression) );
             SNode.CheckNullableToken( PercentT, nameof( PercentT ), SqlTokenType.Percent );
             SNode.CheckNullableToken( WithT, nameof( WithT ), SqlTokenType.With );
-            SNode.CheckNullableToken( TiesT, nameof( PercentT ), SqlTokenType.Percent );
+            SNode.CheckNullableToken( TiesT, nameof( TiesT ), SqlTokenType.Ties );
             SNode.CheckBothNullOrNot( WithT, nameof( WithT ), TiesT, nameof( TiesT ) );
         }
 

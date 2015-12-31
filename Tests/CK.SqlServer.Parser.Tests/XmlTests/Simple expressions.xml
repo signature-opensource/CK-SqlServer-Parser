@@ -2,6 +2,71 @@
 <Tests>
 
   <Test Mode="OneExpression">
+    <Text>null</Text>
+    <Description>Null, even if it is a reserved keyword is a simple identifier.</Description>
+    <Xml>
+      <Sql>
+        <Identifier IsReservedKeyword="true">null</Identifier>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test Mode="OneExpression">
+    <Text>not null</Text>
+    <Description>Not null: unary operator.</Description>
+    <Xml>
+      <Sql>
+        <UnaryOperator>
+          <Operator>
+            <Identifier IsReservedKeyword="true">not</Identifier>
+          </Operator>
+          <Right>
+            <Identifier IsReservedKeyword="true">null</Identifier>
+          </Right>
+        </UnaryOperator>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test Mode="OneExpression">
+    <Text>x is not null</Text>
+    <Description>Is not null: unary operator.</Description>
+    <Xml>
+      <Sql>
+        <IsNull IsNotNull="true">
+          <Left>
+            <Identifier>x</Identifier>
+          </Left>
+        </IsNull>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test Mode="ExtendedExpression">
+    <Text>XXX not null</Text>
+    <Description>This is not an expression: this is understood as an identifier and a Not unary operator.</Description>
+    <Xml>
+      <Sql>
+        <NodeList>
+          <Item>
+            <Identifier>XXX</Identifier>
+          </Item>
+          <Item>
+            <UnaryOperator>
+              <Operator>
+                <Identifier IsReservedKeyword="true">not</Identifier>
+              </Operator>
+              <Right>
+                <Identifier IsReservedKeyword="true">null</Identifier>
+              </Right>
+            </UnaryOperator>
+          </Item>
+        </NodeList>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test Mode="OneExpression">
     <Text>4 + 5</Text>
     <Description>Simple addition.</Description>
     <Xml CombineElementType="true">
@@ -114,12 +179,9 @@
     <Description></Description>
     <Xml>
       <Sql>
-        <KoCall>
-          <FunName>
-            <Identifier>simple_call</Identifier>
-          </FunName>
+        <KoCall FunName="simple_call">
           <Parameters>
-            <CommaList IsEnclosed="true" />
+            <EnclosedCommaList />
           </Parameters>
         </KoCall>
       </Sql>
@@ -131,12 +193,9 @@
     <Description></Description>
     <Xml>
       <Sql>
-        <KoCall>
-          <FunName>
-            <MultiIdentifier>a::call</MultiIdentifier>
-          </FunName>
+        <KoCall FunName="a::call">
           <Parameters>
-            <CommaList IsEnclosed="true" >
+            <EnclosedCommaList>
               <Item>
                 <BinaryOperator>
                   <Left>
@@ -149,16 +208,13 @@
                 </BinaryOperator>                
               </Item>
               <Item>
-                <KoCall>
-                  <FunName>
-                    <Identifier>simple_call</Identifier>
-                  </FunName>
+                <KoCall FunName="simple_call">
                   <Parameters>
-                    <CommaList IsEnclosed="true" />
+                    <EnclosedCommaList />
                   </Parameters>
                 </KoCall>
               </Item>
-            </CommaList>
+            </EnclosedCommaList>
           </Parameters>
         </KoCall>
       </Sql>

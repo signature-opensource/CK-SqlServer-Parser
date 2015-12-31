@@ -39,7 +39,7 @@ namespace CK.SqlServer.Parser
     /// 4       Except                                                      They act as binary operators between "Select Specification".                  
     /// 3       Union                                                                        
     /// 2       Order, For                                                  Consider them as operators (where left side is ISelectSpecification).
-    /// 0!      ,                                                           List separator (comma) is not considered as an operator.
+    /// 1       ,                                                           List separator (comma).
     /// 
     /// (1) For '=' token, disambiguation between Comparison and Assignment requires a context hint: we need to know if we are in a "assignment context" or not.
     ///     This must be done at a higher level than in <see cref="SqlTokenizer"/>.
@@ -322,9 +322,9 @@ namespace CK.SqlServer.Parser
         /// </summary>
         Dot = IsPunctuation | OpLevel15 | 1,
         /// <summary>
-        /// The comma is not considered as an operator.
+        /// The comma is an operator.
         /// </summary>
-        Comma = IsPunctuation | 2,
+        Comma = IsPunctuation | OpLevel01 | 2,
         /// <summary>
         /// Statement terminator;
         /// </summary>
@@ -432,13 +432,19 @@ namespace CK.SqlServer.Parser
 
         /// <summary>
         /// SqlDbType like int, smallint, datetime, xml, etc.
+        /// 'Table' is both IdentifierDbType and IdentifierReserved.
         /// </summary>
         IdentifierDbType = IsIdentifier | 7 << 11,
 
         /// <summary>
+        /// 'Table' is a reserved keyword mapped to <see cref="SqlDbType.Structured"/>.
+        /// </summary>
+        IdentifierReservedDbType = IsIdentifier | 8 << 11,
+
+        /// <summary>
         /// Variable token like @myVariableName or @@SystemFunctions like @@RowCount or @@Error.
         /// </summary>
-        IdentifierVariable = IsIdentifier | 8 << 11,
+        IdentifierVariable = IsIdentifier | 9 << 11,
 
         #region IdentifierStandardStatement values
         Throw = IdentifierStandardStatement | 1,
@@ -470,6 +476,11 @@ namespace CK.SqlServer.Parser
         Scroll          = IdentifierStandard | 16,
         Mark            = IdentifierStandard | 17,
         Json            = IdentifierStandard | 18,
+        SystemTime      = IdentifierStandard | 19,
+        Ties            = IdentifierStandard | 20,
+        Value           = IdentifierStandard | 21,
+        Matched         = IdentifierStandard | 22,
+
         #endregion
 
         #region IdentifierSpecial values
@@ -498,7 +509,7 @@ namespace CK.SqlServer.Parser
         And = OpLevel09 | IdentifierReserved | 3,
         #endregion
 
-        #region Select operators: Union, Except, Intersect, Order and For.
+        #region Select operators: Union, Except, Intersect, Order, For and Option.
         /// <summary>
         /// Union between select specification (lowest precedence).
         /// </summary>
@@ -520,9 +531,13 @@ namespace CK.SqlServer.Parser
         /// </summary>
         For = OpLevel02 | IdentifierReserved | 8,
         /// <summary>
+        /// Option ( {queryhint} ) is considered as an operator.
+        /// </summary>
+        Option = OpLevel02 | IdentifierReserved | 9,
+        /// <summary>
         /// Collate is an operator that has a high precedence (the same as bitwise ~).
         /// </summary>
-        Collate = OpLevel14 | IdentifierReserved | 9,
+        Collate = OpLevel14 | IdentifierReserved | 10,
 
         #endregion
 
@@ -530,71 +545,72 @@ namespace CK.SqlServer.Parser
         /// <summary>
         /// BETWEEN operator.
         /// </summary>
-        Between = OpLevel11 | IdentifierReserved | 9,
+        Between = OpLevel11 | IdentifierReserved | 11,
         /// <summary>
         /// LIKE operator.
         /// </summary>
-        Like = OpLevel11 | IdentifierReserved | 10,
+        Like = OpLevel11 | IdentifierReserved | 12,
         /// <summary>
         /// IN operator.
         /// </summary>
-        In = OpLevel11 | IdentifierReserved | 11,
+        In = OpLevel11 | IdentifierReserved | 13,
         /// <summary>
         /// IS operator.
         /// </summary>
-        Is = OpLevel11 | IdentifierReserved | 12,
+        Is = OpLevel11 | IdentifierReserved | 14,
         #endregion
 
-        IdentifierReservedFirstNonOperator = IdentifierReserved | 13,
-        Case        = IdentifierReservedFirstNonOperator,
-        Null        = IdentifierReservedFirstNonOperator + 1,
-        When        = IdentifierReservedFirstNonOperator + 2,
-        By          = IdentifierReservedFirstNonOperator + 3,
-        All         = IdentifierReservedFirstNonOperator + 4,
-        Then        = IdentifierReservedFirstNonOperator + 5,
-        Else        = IdentifierReservedFirstNonOperator + 6,
-        Transaction = IdentifierReservedFirstNonOperator + 7,
-        With        = IdentifierReservedFirstNonOperator + 8,
-        Procedure   = IdentifierReservedFirstNonOperator + 9,
-        Function    = IdentifierReservedFirstNonOperator + 10,
-        View        = IdentifierReservedFirstNonOperator + 11,
-        Table       = IdentifierReservedFirstNonOperator + 12,
-        Trigger     = IdentifierReservedFirstNonOperator + 13,
-        As          = IdentifierReservedFirstNonOperator + 14,
-        Asc         = IdentifierReservedFirstNonOperator + 15,
-        Desc        = IdentifierReservedFirstNonOperator + 16,
-        Exists      = IdentifierReservedFirstNonOperator + 17,
-        On          = IdentifierReservedFirstNonOperator + 18,
-        To          = IdentifierReservedFirstNonOperator + 19,
-        Of          = IdentifierReservedFirstNonOperator + 20,
-        Top         = IdentifierReservedFirstNonOperator + 21,
-        Escape      = IdentifierReservedFirstNonOperator + 22,
-        Into        = IdentifierReservedFirstNonOperator + 23,
-        From        = IdentifierReservedFirstNonOperator + 24,
-        Where       = IdentifierReservedFirstNonOperator + 25,
-        Group       = IdentifierReservedFirstNonOperator + 26,
-        Option      = IdentifierReservedFirstNonOperator + 27,
-        Add         = IdentifierReservedFirstNonOperator + 28,
-        Database    = IdentifierReservedFirstNonOperator + 29,
-        External    = IdentifierReservedFirstNonOperator + 30,
-        Over        = IdentifierReservedFirstNonOperator + 31,
+        /// <summary>
+        /// Internal marker for IdentifierReserved numbering.
+        /// </summary>
+        StartIdentifierReservedNonOperator = IdentifierReserved | 15,
+        Case        = StartIdentifierReservedNonOperator + 0,
+        Null        = StartIdentifierReservedNonOperator + 1,
+        When        = StartIdentifierReservedNonOperator + 2,
+        By          = StartIdentifierReservedNonOperator + 3,
+        All         = StartIdentifierReservedNonOperator + 4,
+        Then        = StartIdentifierReservedNonOperator + 5,
+        Else        = StartIdentifierReservedNonOperator + 6,
+        Transaction = StartIdentifierReservedNonOperator + 7,
+        With        = StartIdentifierReservedNonOperator + 8,
+        Procedure   = StartIdentifierReservedNonOperator + 9,
+        Function    = StartIdentifierReservedNonOperator + 10,
+        View        = StartIdentifierReservedNonOperator + 11,
+        Trigger     = StartIdentifierReservedNonOperator + 13,
+        As          = StartIdentifierReservedNonOperator + 14,
+        Asc         = StartIdentifierReservedNonOperator + 15,
+        Desc        = StartIdentifierReservedNonOperator + 16,
+        Exists      = StartIdentifierReservedNonOperator + 17,
+        On          = StartIdentifierReservedNonOperator + 18,
+        To          = StartIdentifierReservedNonOperator + 19,
+        Of          = StartIdentifierReservedNonOperator + 20,
+        Top         = StartIdentifierReservedNonOperator + 21,
+        Escape      = StartIdentifierReservedNonOperator + 22,
+        Into        = StartIdentifierReservedNonOperator + 23,
+        From        = StartIdentifierReservedNonOperator + 24,
+        Where       = StartIdentifierReservedNonOperator + 25,
+        Group       = StartIdentifierReservedNonOperator + 26,
+        Add         = StartIdentifierReservedNonOperator + 27,
+        Database    = StartIdentifierReservedNonOperator + 28,
+        External    = StartIdentifierReservedNonOperator + 29,
+        Over        = StartIdentifierReservedNonOperator + 30,
 
-        Cross       = IdentifierReservedFirstNonOperator + 32,
-        Foreign     = IdentifierReservedFirstNonOperator + 33,
-        Clustered   = IdentifierReservedFirstNonOperator + 34,
-        Left        = IdentifierReservedFirstNonOperator + 35,
-        Percent     = IdentifierReservedFirstNonOperator + 36,
-        Values      = IdentifierReservedFirstNonOperator + 37,
-        Distinct    = IdentifierReservedFirstNonOperator + 38,
-        Pivot       = IdentifierReservedFirstNonOperator + 39,
-        Having      = IdentifierReservedFirstNonOperator + 40,
-        Cursor      = IdentifierReservedFirstNonOperator + 41,
-        Read        = IdentifierReservedFirstNonOperator + 42,
-        Browse      = IdentifierReservedFirstNonOperator + 43,
+        Cross       = StartIdentifierReservedNonOperator + 31,
+        Foreign     = StartIdentifierReservedNonOperator + 32,
+        Clustered   = StartIdentifierReservedNonOperator + 33,
+        Left        = StartIdentifierReservedNonOperator + 34,
+        Percent     = StartIdentifierReservedNonOperator + 35,
+        Values      = StartIdentifierReservedNonOperator + 36,
+        Distinct    = StartIdentifierReservedNonOperator + 37,
+        Pivot       = StartIdentifierReservedNonOperator + 38,
+        Having      = StartIdentifierReservedNonOperator + 39,
+        Cursor      = StartIdentifierReservedNonOperator + 40,
+        Read        = StartIdentifierReservedNonOperator + 41,
+        Browse      = StartIdentifierReservedNonOperator + 42,
         #endregion
 
         #region IdentifierReservedStatement values
-        Select = IdentifierReservedStatement | 1,
+        Select      = IdentifierReservedStatement | 1,
         Begin       = IdentifierReservedStatement | 2,
         End         = IdentifierReservedStatement | 3,
         Create      = IdentifierReservedStatement | 4,
@@ -630,39 +646,44 @@ namespace CK.SqlServer.Parser
         Writetext   = IdentifierReservedStatement | 34,
         Dbcc        = IdentifierReservedStatement | 35,
         Go          = IdentifierReservedStatement | 36,
+        Backup      = IdentifierReservedStatement | 37,
+        Restore     = IdentifierReservedStatement | 38,
+        Grant       = IdentifierReservedStatement | 39,
+        Deny        = IdentifierReservedStatement | 40,
 
         #endregion
 
         #region IdentifierDbType values
-        IdentifierTypeXml = IdentifierDbType | 0,
-        IdentifierTypeDateTimeOffset = IdentifierDbType | 1,
-        IdentifierTypeDateTime2 = IdentifierDbType | 2,
-        IdentifierTypeDateTime = IdentifierDbType | 3,
-        IdentifierTypeSmallDateTime = IdentifierDbType | 4,
-        IdentifierTypeDate = IdentifierDbType | 5,
-        IdentifierTypeTime = IdentifierDbType | 6,
-        IdentifierTypeFloat = IdentifierDbType | 7,
-        IdentifierTypeReal = IdentifierDbType | 8,
-        IdentifierTypeDecimal = IdentifierDbType | 9,
-        IdentifierTypeMoney = IdentifierDbType | 10,
-        IdentifierTypeSmallMoney = IdentifierDbType | 11,
-        IdentifierTypeBigInt = IdentifierDbType | 12,
-        IdentifierTypeInt = IdentifierDbType | 13,
-        IdentifierTypeSmallInt = IdentifierDbType | 14,
-        IdentifierTypeTinyInt = IdentifierDbType | 15,
-        IdentifierTypeBit = IdentifierDbType | 16,
-        IdentifierTypeNText = IdentifierDbType | 17,
-        IdentifierTypeText = IdentifierDbType | 18,
-        IdentifierTypeImage = IdentifierDbType | 19,
-        IdentifierTypeTimestamp = IdentifierDbType | 20,
-        IdentifierTypeUniqueIdentifier = IdentifierDbType | 21,
-        IdentifierTypeNVarChar = IdentifierDbType | 22,
-        IdentifierTypeNChar = IdentifierDbType | 23,
-        IdentifierTypeVarChar = IdentifierDbType | 24,
-        IdentifierTypeChar = IdentifierDbType | 25,
-        IdentifierTypeVarBinary = IdentifierDbType | 26,
-        IdentifierTypeBinary = IdentifierDbType | 27,
-        IdentifierTypeVariant = IdentifierDbType | 28,
+        XmlDbType = IdentifierDbType | 0,
+        DateTimeOffsetDbType = IdentifierDbType | 1,
+        DateTime2DbType = IdentifierDbType | 2,
+        DateTimeDbType = IdentifierDbType | 3,
+        SmallDateTimeDbType = IdentifierDbType | 4,
+        DateDbType = IdentifierDbType | 5,
+        TimeDbType = IdentifierDbType | 6,
+        FloatDbType = IdentifierDbType | 7,
+        RealDbType = IdentifierDbType | 8,
+        DecimalDbType = IdentifierDbType | 9,
+        MoneyDbType = IdentifierDbType | 10,
+        SmallMoneyDbType = IdentifierDbType | 11,
+        BigIntDbType = IdentifierDbType | 12,
+        IntDbType = IdentifierDbType | 13,
+        SmallIntDbType = IdentifierDbType | 14,
+        TinyIntDbType = IdentifierDbType | 15,
+        BitDbType = IdentifierDbType | 16,
+        NTextDbType = IdentifierDbType | 17,
+        TextDbType = IdentifierDbType | 18,
+        ImageDbType = IdentifierDbType | 19,
+        TimestampDbType = IdentifierDbType | 20,
+        UniqueIdentifierDbType = IdentifierDbType | 21,
+        NVarCharDbType = IdentifierDbType | 22,
+        NCharDbType = IdentifierDbType | 23,
+        VarCharDbType = IdentifierDbType | 24,
+        CharDbType = IdentifierDbType | 25,
+        VarBinaryDbType = IdentifierDbType | 26,
+        BinaryDbType = IdentifierDbType | 27,
+        VariantDbType = IdentifierDbType | 28,
+        TableDbType = IdentifierReservedDbType | 29,
         #endregion
 
         #endregion

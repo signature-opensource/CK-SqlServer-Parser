@@ -51,7 +51,7 @@ namespace CK.SqlServer.Parser
             SNode.CheckNotNull( Stop, nameof( Stop ) );
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
             return new SqlBetween( this, leading, children, trailing );
         }

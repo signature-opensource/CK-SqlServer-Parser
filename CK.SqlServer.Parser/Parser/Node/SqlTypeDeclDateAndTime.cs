@@ -22,10 +22,10 @@ namespace CK.SqlServer.Parser
     {
         readonly SNode<SqlTokenIdentifier, SqlTokenOpenPar, SqlTokenLiteralInteger, SqlTokenClosePar> _content;
 
-        public SqlTypeDeclDateAndTime( SqlTokenIdentifier id, SqlTokenOpenPar openPar = null, SqlTokenLiteralInteger secondScale = null, SqlTokenClosePar closePar = null )
+        public SqlTypeDeclDateAndTime( SqlTokenIdentifier id, SqlTokenOpenPar opener = null, SqlTokenLiteralInteger secondScale = null, SqlTokenClosePar closer = null )
             : base( null, null )
         {
-            _content = new SNode<SqlTokenIdentifier, SqlTokenOpenPar, SqlTokenLiteralInteger, SqlTokenClosePar>( id, openPar, secondScale, closePar );
+            _content = new SNode<SqlTokenIdentifier, SqlTokenOpenPar, SqlTokenLiteralInteger, SqlTokenClosePar>( id, opener, secondScale, closer );
              DbType = CheckContent();
         }
 
@@ -34,10 +34,10 @@ namespace CK.SqlServer.Parser
             SNode.CheckNotNull( TypeIdentifierT, nameof( TypeIdentifierT ) );
             if( _content.Count > 1 )
             {
-                SNode.CheckNotNull( OpenPar, nameof( OpenPar ) );
+                SNode.CheckNotNull( Opener, nameof( Opener ) );
                 SNode.CheckNotNull( SyntaxSecondScale, nameof( SyntaxSecondScale ) );
                 if( SyntaxSecondScale.Value > 7 ) throw new ArgumentException( "Fractional seconds precision must be less or equal to 7.", nameof( SyntaxSecondScale ) );
-                SNode.CheckNotNull( ClosePar, nameof( ClosePar ) );
+                SNode.CheckNotNull( Closer, nameof( Closer ) );
             }
             SqlDbType? dbType = SqlKeyword.FromSqlTokenTypeToSqlDbType( TypeIdentifierT.TokenType );
             if( !dbType.HasValue
@@ -71,7 +71,7 @@ namespace CK.SqlServer.Parser
             }
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
             return new SqlTypeDeclDateAndTime( this, leading, children, trailing );
         }
@@ -82,11 +82,11 @@ namespace CK.SqlServer.Parser
 
         public SqlDbType DbType { get; }
 
-        public SqlTokenOpenPar OpenPar => _content.V2;
+        public SqlTokenOpenPar Opener => _content.V2;
 
         public SqlTokenLiteralInteger SyntaxSecondScale => _content.V3;
 
-        public SqlTokenClosePar ClosePar => _content.V4;
+        public SqlTokenClosePar Closer => _content.V4;
 
         [DebuggerStepThrough]
         internal protected override ISqlNode Accept( SqlItemVisitor visitor ) => visitor.Visit( this );

@@ -25,7 +25,7 @@ namespace CK.SqlServer.Parser
 
         public override string LiteralValue => string.Format( IsUnicode ? "N'{0}'" : "'{0}'", Value.Replace( "'", "''" ) );
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
         {
             return new SqlTokenLiteralString( TokenType, Value, leading, trailing );
         }

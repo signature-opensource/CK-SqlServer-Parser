@@ -39,13 +39,13 @@ namespace CK.SqlServer.Parser
             SNode.CheckNotNull( StatementTerminator, nameof( StatementTerminator ) );
         }
 
-        public StatementName StatementName => StatementName.None;
+        public StatementKnownName StatementKnownName => StatementKnownName.Empty;
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
 
         public SqlTokenTerminal StatementTerminator => _content.V;
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
             return new SqlEmptyStatement( this, leading, children, trailing );
         }

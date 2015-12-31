@@ -58,12 +58,12 @@ namespace CK.SqlServer.Parser
             }
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
             return new SqlIf( this, leading, children, trailing );
         }
 
-        public StatementName StatementName => StatementName.If;
+        public StatementKnownName StatementKnownName => StatementKnownName.If;
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
 

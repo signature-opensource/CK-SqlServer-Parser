@@ -1,0 +1,70 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Tests>
+  <Test Mode="OneExpression">
+    <Text>SELECT NEXT VALUE FOR Test.CountBy1 AS FirstUse </Text>
+    <Description>'next value for' is specifically handled as an expression.</Description>
+    <Xml>
+      <Sql>
+        <SelectSpec>
+          <Columns>
+            <SelectColumnList>
+              <Item>
+                <SelectColumn Name="FirstUse">
+                  <Definition>
+                    <NextValueFor>Test.CountBy1</NextValueFor>
+                  </Definition>
+                </SelectColumn>
+              </Item>
+            </SelectColumnList>
+          </Columns>
+        </SelectSpec>
+      </Sql>
+    </Xml>
+  </Test>
+  
+  <Test Mode="OneExpression">
+    <Text>NEXT VALUE FOR Test.CounterSeq
+    </Text>
+    <Description>'next value for' is definitely an expression.</Description>
+    <Xml>
+      <Sql>
+        <NextValueFor>Test.CounterSeq</NextValueFor>
+      </Sql>
+    </Xml>
+  </Test>
+  
+  <Test>
+    <Text>
+      USE AdventureWorks2012
+      GO
+
+      CREATE SCHEMA Test
+      GO
+
+      CREATE SEQUENCE Test.CountBy1
+      START WITH 1
+      INCREMENT BY 1
+      GO
+      SELECT NEXT VALUE FOR Test.CountBy1 AS FirstUse
+      SELECT NEXT VALUE FOR Test.CountBy1 AS SecondUse
+    </Text>
+    <Description>Sequence creation and 'select next value' (no terminator).</Description>
+    <Xml>
+      <Statements>
+        <Statement StatementName="USE" />
+        <Statement StatementName="GO" />
+        <Statement StatementName="CREATE" />
+        <Statement StatementName="GO" />
+        <Statement StatementName="CREATE" />
+        <Statement StatementName="GO" />
+        <SelectStatement>
+          <SelectSpec />
+        </SelectStatement>
+        <SelectStatement>
+          <SelectSpec />
+        </SelectStatement>
+      </Statements>
+    </Xml>
+  </Test>
+</Tests>
+

@@ -34,7 +34,7 @@ namespace CK.SqlServer.Parser
             }
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
             return new SqlReturn( this, leading, children, trailing );
         }
@@ -44,7 +44,7 @@ namespace CK.SqlServer.Parser
             SNode.CheckToken( ReturnT, nameof( ReturnT ), SqlTokenType.Return );
         }
 
-        public StatementName StatementName => StatementName.Return;
+        public StatementKnownName StatementKnownName => StatementKnownName.Return;
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
 

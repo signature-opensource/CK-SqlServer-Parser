@@ -34,7 +34,7 @@ namespace CK.SqlServer.Parser
                 throw new ArgumentException( string.Format( "{0} must be {1}, not {2}.",
                                                             name,
                                                             SqlTokenizer.Explain( tokenType ),
-                                                            SqlTokenizer.Explain( token.TokenType ) ), name );
+                                                            token.ToString() ), name );
             }
         }
 
@@ -132,6 +132,12 @@ namespace CK.SqlServer.Parser
         public static void CheckNotNull( ISqlNode e, string name )
         {
             if( e == null ) throw new ArgumentNullException( name );
+        }
+
+        public static void CheckUnPar<T>( ISqlNode e, string name )
+        {
+            if( e == null ) throw new ArgumentNullException( name );
+            if( !(e.UnPar is T) ) throw new ArgumentException( String.Format( "Must be '{0}' but found '{1}'.", typeof( T ).Name, e.GetType().Name ), name );
         }
 
         public static void CheckNull( ISqlNode e, string name )

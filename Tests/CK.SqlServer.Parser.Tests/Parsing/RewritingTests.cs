@@ -237,7 +237,7 @@ namespace CK.SqlServer.Parser.Tests
             return v;
         }
 
-        public override ISqlNode Visit( SelectSpecification e )
+        public override ISqlNode Visit( SelectSpec e )
         {
             _w.Indent += 2;
             _w.WriteLine( "/* Select:" );

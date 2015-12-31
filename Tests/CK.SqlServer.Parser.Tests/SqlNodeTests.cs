@@ -18,19 +18,19 @@ namespace CK.SqlServer.Parser.Tests
             readonly string _name;
             readonly ISqlNode[] _content;
 
-            public TestNode( string name, ISqlNode[] content = null, ImmutableList<SqlTrivia> leading = null, ImmutableList<SqlTrivia> trailing = null )
+            public TestNode( string name, IEnumerable<ISqlNode> content = null, ImmutableList<SqlTrivia> leading = null, ImmutableList<SqlTrivia> trailing = null )
                 : base( leading, trailing )
             {
                 _name = name;
-                _content = content ?? Util.EmptyArray<ISqlNode>.Empty;
+                _content = content != null ? content.ToArray() : Util.EmptyArray<ISqlNode>.Empty;
             }
 
             public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
 
 
-            protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
+            protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
             {
-                return new TestNode( _name, children.ToArray(), leading, trailing );
+                return new TestNode( _name, children ?? _content, leading, trailing );
             }
 
             public override void WriteWithoutTrivias( ISqlTextWriter w )

@@ -10,30 +10,30 @@ using System.Collections.Immutable;
 namespace CK.SqlServer.Parser
 {
     /// <summary>
-    ///  "Order by" operator.
+    /// The "Order by" operator is a <see cref="ISelectSpecification"/>.
     /// </summary>
     public class SelectOrderBy : SqlNode, ISelectSpecification
     {
-        readonly SNode<ISelectSpecification, SqlTokenIdentifier, SqlTokenIdentifier, SqlOrderByList, SelectOrderByOffset> _content;
+        readonly SNode<ISqlNode, SqlTokenIdentifier, SqlTokenIdentifier, SqlOrderByList, SelectOrderByOffset> _content;
 
-        public SelectOrderBy( ISelectSpecification select, SqlTokenIdentifier orderT, SqlTokenIdentifier byT, SqlOrderByList columns, SelectOrderByOffset offset = null )
+        public SelectOrderBy( ISqlNode selectNode, SqlTokenIdentifier orderT, SqlTokenIdentifier byT, SqlOrderByList orderByList, SelectOrderByOffset offset = null )
             : base( null, null )
         {
-            _content = new SNode<ISelectSpecification, SqlTokenIdentifier, SqlTokenIdentifier, SqlOrderByList, SelectOrderByOffset>(
-                select, 
+            _content = new SNode<ISqlNode, SqlTokenIdentifier, SqlTokenIdentifier, SqlOrderByList, SelectOrderByOffset>(
+                selectNode, 
                 orderT, 
                 byT, 
-                columns, 
+                orderByList, 
                 offset );
             CheckContent();
         }
 
         void CheckContent()
         {
-            SNode.CheckNotNull( Select, nameof( Select ) );
+            SNode.CheckUnPar<ISelectSpecification>( SelectNode, nameof( SelectNode ) );
             SNode.CheckToken( OrderT, nameof( OrderT ), SqlTokenType.Order );
             SNode.CheckToken( ByT, nameof( ByT ), SqlTokenType.By );
-            SNode.CheckNotNull( Columns, nameof( Columns ) );
+            SNode.CheckNotNull( OrderByColumns, nameof( OrderByColumns ) );
         }
 
         SelectOrderBy( SelectOrderBy o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
@@ -42,19 +42,21 @@ namespace CK.SqlServer.Parser
             if( items == null ) _content = o._content;
             else
             {
-                _content = new SNode<ISelectSpecification, SqlTokenIdentifier, SqlTokenIdentifier, SqlOrderByList, SelectOrderByOffset>( items );
+                _content = new SNode<ISqlNode, SqlTokenIdentifier, SqlTokenIdentifier, SqlOrderByList, SelectOrderByOffset>( items );
                 CheckContent();
             }
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IReadOnlyList<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
             return new SelectOrderBy( this, leading, children, trailing );
         }
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
 
-        public ISelectSpecification Select => _content.V1;
+        public ISqlNode SelectNode => _content.V1;
+
+        public ISelectSpecification Select => (ISelectSpecification)_content.V1.UnPar;
 
         public SqlTokenIdentifier OrderT => _content.V2;
 
@@ -64,9 +66,9 @@ namespace CK.SqlServer.Parser
 
         public SelectOrderByOffset OffsetClause => _content.V5;
 
-        public SqlTokenType CombinationKind => SqlTokenType.Order; 
+        SelectOperatorKind ISelectSpecification.SelectOperator => SelectOperatorKind.OrderBy; 
 
-        public SelectColumnList Columns => Select.Columns; 
+        SelectColumnList ISelectSpecification.Columns => Select.Columns; 
 
         [DebuggerStepThrough]
         internal protected override ISqlNode Accept( SqlItemVisitor visitor ) => visitor.Visit( this );
