@@ -199,13 +199,18 @@ namespace CK.SqlServer.Parser
             }
             if( R.Current.TokenType == SqlTokenType.Not )
             {
-                // Allows "not null" but as a NUD.
-                if( R.RawLookup.TokenType == SqlTokenType.Null ) return false;
-                SqlTokenIdentifier notToken = R.Read<SqlTokenIdentifier>();
-                if( R.Current.TokenType == SqlTokenType.Like ) return IsExprLike( ref left, notToken );
-                if( R.Current.TokenType == SqlTokenType.Between ) return IsExprBetween( ref left, notToken );
-                if( R.Current.TokenType == SqlTokenType.In ) return IsExprIn( ref left, notToken );
-                return R.SetCurrentError( "Expected 'like', 'between' or 'in'." );
+                // Allows not XXX without complaining ("not null", "not matched", etc.).
+                // Not will be handled as a NUD (and should generate a Unary operator).
+                if( R.RawLookup.TokenType == SqlTokenType.Like 
+                    || R.RawLookup.TokenType == SqlTokenType.Between 
+                    || R.RawLookup.TokenType == SqlTokenType.In )
+                {
+                    SqlTokenIdentifier notToken = R.Read<SqlTokenIdentifier>();
+                    if( R.Current.TokenType == SqlTokenType.Like ) return IsExprLike( ref left, notToken );
+                    if( R.Current.TokenType == SqlTokenType.Between ) return IsExprBetween( ref left, notToken );
+                    if( R.Current.TokenType == SqlTokenType.In ) return IsExprIn( ref left, notToken );
+                }
+                return false;
             }
             if( R.Current.TokenType == SqlTokenType.Like ) return IsExprLike( ref left, null );
             if( R.Current.TokenType == SqlTokenType.Between ) return IsExprBetween( ref left, null );

@@ -61,6 +61,14 @@
     <Description>MSDN Sample.</Description>
     <Xml>
       <Statements>
+        <DeclareVariable HasTerminator="true" />
+        <Statement StatementName="UPDATE" />
+        <SelectStatement HasTerminator="true">
+          <SelectSpec />
+        </SelectStatement>
+        <SelectStatement HasTerminator="true">
+          <SelectSpec />
+        </SelectStatement>
       </Statements>
     </Xml>
   </Test>
