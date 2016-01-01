@@ -121,5 +121,23 @@
       </Sql>
     </Xml>
   </Test>
-    
+
+  <Test Mode="OneExpression">
+    <Text>$action</Text>
+    <Xml>
+      <Sql>
+        <Identifier IsSpecial="true">$action</Identifier>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test Mode="OneExpression">
+    <Text>$some_thing87</Text>
+    <Xml>
+      <Sql>
+        <Identifier IsSpecial="true">$some_thing87</Identifier>
+      </Sql>
+    </Xml>
+  </Test>
+
 </Tests>

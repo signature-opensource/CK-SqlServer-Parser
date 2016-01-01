@@ -175,4 +175,59 @@
       </Sql>
     </Xml>
   </Test>
+
+  <Test Mode="OneExpression">
+    <Text>
+      SELECT Number, Customer, Date, Quantity
+      FROM OPENJSON (@JSalestOrderDetails, '$.OrdersArray')
+            WITH (
+              Number varchar(200),
+              Date datetime,
+              Customer varchar(200),
+              Quantity int
+            ) AS OrdersArray
+    </Text>
+    <Description>Select in parenthesis.</Description>
+    <Xml>
+      <Sql>
+        <SelectSpec>
+          <Columns>
+            <SelectColumnList>
+              <Item>
+                <SelectColumn>
+                  <Definition>
+                    <Identifier>Number</Identifier>
+                  </Definition>
+                </SelectColumn>
+              </Item>
+              <Item>
+                <SelectColumn>
+                  <Definition>
+                    <Identifier>Customer</Identifier>
+                  </Definition>
+                </SelectColumn>
+              </Item>
+              <Item>
+                <SelectColumn>
+                  <Definition>
+                    <Identifier IsDbType="true">Date</Identifier>
+                  </Definition>
+                </SelectColumn>
+              </Item>
+              <Item>
+                <SelectColumn>
+                  <Definition>
+                    <Identifier>Quantity</Identifier>
+                  </Definition>
+                </SelectColumn>
+              </Item>
+            </SelectColumnList>
+          </Columns>
+          <From>FROM OPENJSON(@JSalestOrderDetails, '$.OrdersArray') WITH(Number varchar(200), Date datetime, Customer varchar(200), Quantity int) AS OrdersArray</From>
+        </SelectSpec>
+      </Sql>
+    </Xml>
+  </Test>
+
+
 </Tests>

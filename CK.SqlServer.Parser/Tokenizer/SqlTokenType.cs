@@ -426,7 +426,7 @@ namespace CK.SqlServer.Parser
         IdentifierQuotedBracket = IsIdentifier | 5 << 11,
         
         /// <summary>
-        /// Special identifiers like star (in “select t.* from t)”, $identity, $Partition, etc.
+        /// Special identifiers like star (in “select t.* from t)”, $identity, $Partition, $action etc.
         /// </summary>
         IdentifierSpecial = IsIdentifier | 6 << 11,
 

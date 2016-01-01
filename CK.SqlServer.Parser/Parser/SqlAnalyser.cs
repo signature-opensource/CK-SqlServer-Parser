@@ -85,15 +85,6 @@ namespace CK.SqlServer.Parser
         }
 
         [DebuggerStepThrough]
-        public static ErrorResult ParseExpression( out ISqlNode expression, string text )
-        {
-            SqlAnalyser a = new SqlAnalyser( new SqlTokenizer(), text );
-            if( (expression = a.IsOneExpression( true )) != null ) return ErrorResult.NoError;
-            return a.CreateErrorResult();
-        }
-
-
-        [DebuggerStepThrough]
         public static ErrorResult Parse( out ISqlNode sql, ParseMode mode, string text )
         {
             sql = null;

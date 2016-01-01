@@ -521,6 +521,12 @@ namespace CK.SqlServer.Parser
                     return (int)SqlTokenType.Modulo;
                 case '~':
                     return (int)SqlTokenType.BitwiseNot;
+                case '$':
+                    if( SqlToken.IsIdentifierStartChar( Peek() ) )
+                    {
+                        return ReadIdentifier( ic );
+                    }
+                    return ReadMoney( ic );
                 default:
                     {
                         if( ic == 'N' )
@@ -764,6 +770,7 @@ namespace CK.SqlServer.Parser
         {
             Debug.Assert( SqlToken.IsIdentifierStartChar( ic ) );
             bool isVar = ic == '@';
+            bool isSpecial = ic == '$';
             ClearBuffer();
             for( ; ; )
             {
@@ -776,7 +783,7 @@ namespace CK.SqlServer.Parser
 
             // Not a variable.
             SqlTokenType mapped = SqlKeyword.MapKeyword( _identifierValue );
-            if( mapped == SqlTokenType.None ) mapped = SqlTokenType.IdentifierStandard;
+            if( mapped == SqlTokenType.None ) mapped = isSpecial ? SqlTokenType.IdentifierSpecial : SqlTokenType.IdentifierStandard;
             return (int)mapped;
         }
 

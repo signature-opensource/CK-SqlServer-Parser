@@ -423,7 +423,7 @@ namespace CK.SqlServer.Parser.Tests
             text = text.NormalizeEOL();
             explained = explained.NormalizeEOL();
             ISqlNode e;
-            var r = SqlAnalyser.ParseExpression( out e, text );
+            var r = SqlAnalyser.Parse( out e, ParseMode.OneExpression, text );
             Assert.That( r.IsError, Is.False, r.ToString() );
             Assert.That( ExplainWriter.Write( e ), Is.EqualTo( Regex.Replace( explained, @"\s*", String.Empty ) ) );
             Assert.That( e.ToString( true ).NormalizeEOL(), Is.EqualTo( textAutoCorrected ?? text ) );
@@ -441,7 +441,7 @@ namespace CK.SqlServer.Parser.Tests
                                 Quantity int
                          ) AS OrdersArray";
             ISqlNode e;
-            var r = SqlAnalyser.ParseExpression( out e, s );
+            var r = SqlAnalyser.Parse( out e, ParseMode.OneExpression, s );
             Assert.That( r.IsError, Is.False, r.ToString() );
             Assert.That( e is ISelectSpecification );
         }

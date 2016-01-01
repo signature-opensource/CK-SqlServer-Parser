@@ -226,6 +226,7 @@ namespace CK.SqlServer.Parser
             if( e.IsVariable ) _current.Add( new XAttribute( "IsVariable", "true" ) );
             if( e.IsQuoted ) _current.Add( new XAttribute( "IsQuoted", "true" ) );
             if( e.IsDbType ) _current.Add( new XAttribute( "IsDbType", "true" ) );
+            if( e.IsSpecial ) _current.Add( new XAttribute( "IsSpecial", "true" ) );
             if( e.IsReservedKeyword ) _current.Add( new XAttribute( "IsReservedKeyword", "true" ) );
             return e;
         }

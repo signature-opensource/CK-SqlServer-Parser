@@ -42,6 +42,12 @@ namespace CK.SqlServer.Parser
         public bool IsVariable => TokenType == SqlTokenType.IdentifierVariable;
 
         /// <summary>
+        /// True if this <see cref="SqlTokenIdentifier"/> is a special identifiers like 
+        /// star (in “select t.* from t)”, $identity, $Partition, $action etc. .
+        /// </summary>
+        public bool IsSpecial => TokenType == SqlTokenType.IdentifierSpecial;
+
+        /// <summary>
         /// True if this <see cref="SqlTokenIdentifier"/> denotes a reserved keyword (select, create, declare, etc.)
         /// or a standard identifer that starts a statement (throw, get, move, etc.).
         /// </summary>
