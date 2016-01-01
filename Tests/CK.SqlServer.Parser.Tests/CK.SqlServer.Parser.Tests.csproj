@@ -107,6 +107,7 @@
     <Content Include="Parsing\Scripts\sStoredProcedureInputOutput.sql" />
     <Content Include="Parsing\Scripts\sStoredProcedure01.sql" />
     <Content Include="Parsing\Scripts\AdventureWorks2012-FullSchema.sql" />
+    <Content Include="XmlTests\Insert.xml" />
     <Content Include="XmlTests\Multi Statements.xml" />
     <Content Include="XmlTests\CTE.xml" />
     <Content Include="XmlTests\Sequence.xml" />
@@ -122,7 +123,9 @@
     <Content Include="XmlTests\Between expressions.xml" />
     <Content Include="XmlTests\Comma lists.xml" />
     <Content Include="XmlTests\LiteralTokens.xml" />
-    <Content Include="XmlTests\Identifiers.xml" />
+    <Content Include="XmlTests\Identifiers.xml">
+      <SubType>Designer</SubType>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

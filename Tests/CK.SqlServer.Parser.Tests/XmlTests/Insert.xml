@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Tests>
+
+  <Test>
+    <Text>
+      INSERT INTO Cities (Location)
+      VALUES ( CONVERT(Point, '12.3:46.2') )
+    </Text>
+    <Description>Simple insert.</Description>
+    <Xml>
+      <Sql>
+      </Sql>
+    </Xml>
+  </Test>
+
+</Tests>
