@@ -484,6 +484,8 @@ namespace CK.SqlServer.Parser
         Result          = IdentifierStandard | 24,
         Sets            = IdentifierStandard | 25,
         Undefined       = IdentifierStandard | 26,
+        Login           = IdentifierStandard | 27,
+        At              = IdentifierStandard | 28,
 
         #endregion
 
@@ -616,6 +618,7 @@ namespace CK.SqlServer.Parser
         OpenXml     = StartIdentifierReservedNonOperator + 45,
         OpenQuery   = StartIdentifierReservedNonOperator + 46,
         Default     = StartIdentifierReservedNonOperator + 47,
+        User        = StartIdentifierReservedNonOperator + 48,
 
         #endregion
 

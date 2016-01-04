@@ -233,6 +233,11 @@ namespace CK.SqlServer.Parser
             return VisitStandard( e );
         }
 
+        public virtual ISqlNode Visit( SqlExecuteStringStatement e )
+        {
+            return VisitStandard( e );
+        }
+
         public virtual ISqlNode Visit( SqlSetVariable e )
         {
             return VisitStandard( e );

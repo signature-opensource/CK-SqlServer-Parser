@@ -48,21 +48,21 @@
               <Columns>
                 <SelectColumnList>
                   <Item>
-                    <SelectColumn Name="Id">
+                    <SelectColumn ColumnName="Id">
                       <Definition>
                         <Identifier>DepartmentID</Identifier>
                       </Definition>
                     </SelectColumn>
                   </Item>
                   <Item>
-                    <SelectColumn Name="Nom">
+                    <SelectColumn ColumnName="Nom">
                       <Definition>
                         <Identifier>Name</Identifier>
                       </Definition>
                     </SelectColumn>
                   </Item>
                   <Item>
-                    <SelectColumn Name="Groupe">
+                    <SelectColumn ColumnName="Groupe">
                       <Definition>
                         <Identifier>GroupName</Identifier>
                       </Definition>
@@ -153,7 +153,7 @@
                       <Columns>
                         <SelectColumnList>
                           <Item>
-                            <SelectColumn Name="D">
+                            <SelectColumn ColumnName="D">
                               <Definition>
                                 <KoCall FunName="GETUTCDATE">
                                   <Parameters>

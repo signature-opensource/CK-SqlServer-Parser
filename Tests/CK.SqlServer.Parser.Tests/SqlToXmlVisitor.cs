@@ -76,6 +76,7 @@ namespace CK.SqlServer.Parser
         {
             var props = e.GetType().GetProperties()
                                 .Where( p => p.Name != "UnPar"
+                                             && p.Name != "WithT"
                                              && p.Name != "StatementTerminator"
                                              && (p.Name != "Opener" || p.PropertyType != typeof( SqlTokenOpenPar ))
                                              && (p.Name != "Closer" || p.PropertyType != typeof( SqlTokenClosePar ))
@@ -173,10 +174,19 @@ namespace CK.SqlServer.Parser
             return e;
         }
 
+        public override ISqlNode Visit( SqlOutputClause e )
+        {
+            StartNode( e ).Add( 
+                e.HasTargetTable ? new XAttribute( "TargetTable", e.TargetTable.ToString() ) : null,
+                e.TargetTableColumnNames != null ? ToXml( "TargetTableColumnNames", e.TargetTableColumnNames ) : null,
+                ToXml( "Columns", e.Columns ) );
+            return e;
+        }
+
         public override ISqlNode Visit( SelectColumn e )
         {
             StartNode( e )
-                .Add( e.ColumnName != null ? new XAttribute( "Name", e.ColumnName.ToString() ) : null,
+                .Add( e.ColumnName != null ? new XAttribute( "ColumnName", e.ColumnName.ToString() ) : null,
                       ToXml( "Definition", e.Definition ) );
             return e;
         }
@@ -328,10 +338,11 @@ namespace CK.SqlServer.Parser
             return e;
         }
 
-        public override ISqlNode Visit( SqlWithParOptions e )
+        public override ISqlNode Visit( SqlExecuteStringStatement e )
         {
             StartNode( e ).Add(
-                ToXml( "Options", e.Options ) );
+                ToXml( "Arguments", e.Arguments ),
+                e.Options != null ? ToXml( "Options", e.Options ) : null );
             return e;
         }
 
@@ -347,8 +358,8 @@ namespace CK.SqlServer.Parser
         {
             StartNode( e ).Add(
                 new XAttribute( "Name", e.Name.ToString() ),
-                e.OptionalColumnNames != null 
-                    ? new XAttribute( "Columns", string.Join( ", ", e.OptionalColumnNames.Select( c => c.ToString() ) ) )
+                e.ColumnNames != null 
+                    ? new XAttribute( "ColumnNames", string.Join( ", ", e.ColumnNames.Select( c => c.ToString() ) ) )
                     : null,
                 ToXml( "Select", e.Select ) );
             return e;

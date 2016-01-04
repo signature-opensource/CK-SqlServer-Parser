@@ -57,14 +57,15 @@ namespace CK.SqlServer.Parser
             }
         }
 
-        static internal void CheckEnclosed( ISqlNode o, ISqlNode[] items )
+        static internal void CheckEnclosed( ISqlNode o, ISqlNode[] items, int startIdx = 0 )
         {
-            if( items.Length < 2 || !(items[0] is TOpener) || !(items[items.Length - 1] is TCloser) )
+            if( items.Length < startIdx + 2 || !(items[startIdx] is TOpener) || !(items[items.Length - 1] is TCloser) )
             {
-                throw new ArgumentException( string.Format( "'{0}': Items must start with a '{1}' and end with a '{2}'.",
+                throw new ArgumentException( string.Format( "'{0}': Items must {3} a '{1}' and end with a '{2}'.",
                                                                 o.GetType().Name,
                                                                 typeof( TOpener ).Name,
-                                                                typeof( TCloser ).Name ), nameof( items ) );
+                                                                typeof( TCloser ).Name,
+                                                                startIdx == 0 ? "start with" : "contain"), nameof( items ) );
             }
         }
 

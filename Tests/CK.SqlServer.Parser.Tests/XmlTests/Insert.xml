@@ -257,14 +257,14 @@
               <Columns>
                 <SelectColumnList>
                   <Item>
-                    <SelectColumn Name="FileName">
+                    <SelectColumn ColumnName="FileName">
                       <Definition>
                         <LiteralString>'Text1.txt'</LiteralString>
                       </Definition>
                     </SelectColumn>
                   </Item>
                   <Item>
-                    <SelectColumn Name="FileType">
+                    <SelectColumn ColumnName="FileType">
                       <Definition>
                         <LiteralString>'.txt'</LiteralString>
                       </Definition>
@@ -290,13 +290,12 @@
   <Test>
     <Text>
       INSERT TOP(5) percent INTO dbo.EmployeeSales
-      OUTPUT inserted.EmployeeID, inserted.FirstName
-      SELECT sp.BusinessEntityID, c.LastName
-      FROM Sales.SalesPerson AS sp
-      INNER JOIN Person.Person AS c
-      ON sp.BusinessEntityID = c.BusinessEntityID
-      WHERE sp.SalesYTD > 250000.00
-      ORDER BY sp.SalesYTD DESC;
+        OUTPUT inserted.EmployeeID, inserted.FirstName
+        SELECT sp.BusinessEntityID, c.LastName
+        FROM Sales.SalesPerson AS sp
+        INNER JOIN Person.Person AS c ON sp.BusinessEntityID = c.BusinessEntityID
+        WHERE sp.SalesYTD > 250000.00
+        ORDER BY sp.SalesYTD DESC;
     </Text>
     <Description></Description>
     <Xml>
@@ -314,9 +313,6 @@
           </Into>
           <OutputClause>
             <OutputClause>
-              <OutputT>
-                <Identifier>OUTPUT</Identifier>
-              </OutputT>
               <Columns>
                 <SelectColumnList>
                   <Item>
@@ -608,46 +604,119 @@
 
   <Test>
     <Text>
-      INSERT INTO HumanResources.Department WITH (IGNORE_TRIGGERS) (Name, GroupName)
-      SELECT b.Name, b.GroupName
-      FROM OPENROWSET (
-      BULK 'C:\SQLFiles\DepartmentData.txt',
-      FORMATFILE = 'C:\SQLFiles\BulkloadFormatFile.xml',
-      ROWS_PER_BATCH = 15000)AS b
+      INSERT INTO @table WITH (XLOCK, IGNORE_TRIGGERS) (Name)
+      SELECT 'name'
     </Text>
     <Description></Description>
     <Xml>
-      <Statements>
+      <Sql>
         <InsertStatement>
-          <SelectSpec />
+          <Into>
+            <Identifier IsVariable="true">@table</Identifier>
+          </Into>
+          <Columns>
+            <EnclosedIdentifierCommaList>
+              <Item>
+                <Identifier>Name</Identifier>
+              </Item>
+            </EnclosedIdentifierCommaList>
+          </Columns>
+          <Options>
+            <WithParOptions>
+              <Item>
+                <Identifier>XLOCK</Identifier>
+              </Item>
+              <Item>
+                <Identifier>IGNORE_TRIGGERS</Identifier>
+              </Item>
+            </WithParOptions>
+          </Options>
+          <Values>
+            <SelectSpec>
+              <Columns>
+                <SelectColumnList>
+                  <Item>
+                    <SelectColumn>
+                      <Definition>
+                        <LiteralString>'name'</LiteralString>
+                      </Definition>
+                    </SelectColumn>
+                  </Item>
+                </SelectColumnList>
+              </Columns>
+            </SelectSpec>
+          </Values>
         </InsertStatement>
-      </Statements>
+      </Sql>
     </Xml>
   </Test>
   
   <Test>
     <Text>
-      INSERT INTO Production.Location WITH (XLOCK)
-      (Name, CostRate, Availability)
-      VALUES ( N'Final Inventory', 15.00, 80.00);
-    </Text>
-    <Description></Description>
-    <Xml>
-      <Sql>
-      </Sql>
-    </Xml>
-  </Test>
-
-  <Test>
-    <Text>
       INSERT Production.ScrapReason
-      OUTPUT INSERTED.ScrapReasonID, INSERTED.Name, INSERTED.ModifiedDate
+      OUTPUT INSERTED.ScrapReasonID as id, INSERTED.Name, INSERTED.ModifiedDate as CreationDate
       INTO @MyTableVar
       VALUES (N'Operator error', GETDATE());
     </Text>
     <Description></Description>
     <Xml>
       <Sql>
+        <InsertStatement HasTerminator="true">
+          <Into>
+            <MultiIdentifier>Production.ScrapReason</MultiIdentifier>
+          </Into>
+          <OutputClause>
+            <OutputClause TargetTable="@MyTableVar">
+              <Columns>
+                <SelectColumnList>
+                  <Item>
+                    <SelectColumn ColumnName="id">
+                      <Definition>
+                        <MultiIdentifier>INSERTED.ScrapReasonID</MultiIdentifier>
+                      </Definition>
+                    </SelectColumn>
+                  </Item>
+                  <Item>
+                    <SelectColumn>
+                      <Definition>
+                        <MultiIdentifier>INSERTED.Name</MultiIdentifier>
+                      </Definition>
+                    </SelectColumn>
+                  </Item>
+                  <Item>
+                    <SelectColumn ColumnName="CreationDate">
+                      <Definition>
+                        <MultiIdentifier>INSERTED.ModifiedDate</MultiIdentifier>
+                      </Definition>
+                    </SelectColumn>
+                  </Item>
+                </SelectColumnList>
+              </Columns>
+            </OutputClause>
+          </OutputClause>
+          <Values>
+            <TableValues>
+              <Values>
+                <MultiCommaList>
+                  <Item>
+                    <EnclosedCommaList>
+                      <Item>
+                        <LiteralString IsUnicode="true">N'Operator error'</LiteralString>
+                      </Item>
+                      <Item>
+                        <KoCall FunName="GETDATE">
+                          <Parameters>
+                            <EnclosedCommaList />
+                          </Parameters>
+                        </KoCall>
+                      </Item>
+                    </EnclosedCommaList>
+                  </Item>
+                </MultiCommaList>
+              </Values>
+            </TableValues>
+          </Values>
+        </InsertStatement>
       </Sql>
     </Xml>
   </Test>
@@ -655,53 +724,62 @@
   <Test>
     <Text>
       INSERT INTO dbo.EmployeeSales (LastName, FirstName, CurrentSales)
-      OUTPUT INSERTED.LastName,
-      INSERTED.FirstName,
-      INSERTED.CurrentSales
+          OUTPUT INSERTED.LastName, INSERTED.FirstName, INSERTED.CurrentSales
       INTO @MyTableVar
       SELECT c.LastName, c.FirstName, sp.SalesYTD
-      FROM Sales.SalesPerson AS sp
-      INNER JOIN Person.Person AS c
-      ON sp.BusinessEntityID = c.BusinessEntityID
-      WHERE sp.BusinessEntityID LIKE '2%'
-      ORDER BY c.LastName, c.FirstName;
+        FROM Sales.SalesPerson AS sp
+        INNER JOIN Person.Person AS c ON sp.BusinessEntityID = c.BusinessEntityID
+        WHERE sp.BusinessEntityID LIKE '2%'
+        ORDER BY c.LastName, c.FirstName
     </Text>
     <Description></Description>
     <Xml>
-      <Sql>
-      </Sql>
+      <Statements>
+        <InsertStatement>
+          <SelectOrderBy>
+            <SelectSpec />
+          </SelectOrderBy>
+        </InsertStatement>
+      </Statements>
     </Xml>
   </Test>
 
   <Test>
     <Text>
-
       INSERT INTO Production.ZeroInventory (DeletedProductID, RemovedOnDate)
       SELECT ProductID, GETDATE()
       FROM
-      (   MERGE Production.ProductInventory AS pi
-      USING (SELECT ProductID, SUM(OrderQty) FROM Sales.SalesOrderDetail AS sod
-      JOIN Sales.SalesOrderHeader AS soh
-      ON sod.SalesOrderID = soh.SalesOrderID
-      AND soh.OrderDate = '20070401'
-      GROUP BY ProductID) AS src (ProductID, OrderQty)
-      ON (pi.ProductID = src.ProductID)
-      WHEN MATCHED AND pi.Quantity - src.OrderQty &lt;= 0
-      THEN DELETE
-      WHEN MATCHED
-      THEN UPDATE SET pi.Quantity = pi.Quantity - src.OrderQty
-      OUTPUT $action, deleted.ProductID) AS Changes (Action, ProductID)
+      (
+          MERGE Production.ProductInventory AS pi
+              USING (
+                      SELECT ProductID, SUM(OrderQty) FROM Sales.SalesOrderDetail AS sod
+                      JOIN Sales.SalesOrderHeader AS soh 
+                                      ON sod.SalesOrderID = soh.SalesOrderID AND soh.OrderDate = '20070401'
+                      GROUP BY ProductID
+                     ) 
+                  AS src (ProductID, OrderQty) ON (pi.ProductID = src.ProductID)
+            WHEN MATCHED AND pi.Quantity - src.OrderQty &lt;= 0 THEN DELETE
+            WHEN MATCHED THEN UPDATE SET pi.Quantity = pi.Quantity - src.OrderQty
+            OUTPUT $action, deleted.ProductID
+      ) AS Changes (Action, ProductID)
       WHERE Action = 'DELETE';
-      IF @@ROWCOUNT = 0
-      PRINT 'Warning: No rows were inserted';
+      
+      IF @@ROWCOUNT = 0 PRINT 'Warning: No rows were inserted';
     </Text>
     <Description></Description>
     <Xml>
-      <Sql>
-      </Sql>
+      <Statements>
+        <InsertStatement HasTerminator="true">
+          <SelectSpec>
+            <SelectSpec />
+          </SelectSpec>
+        </InsertStatement>
+        <If>
+          <Statement StatementName="PRINT" HasTerminator="true" />
+        </If>
+      </Statements>
     </Xml>
   </Test>
-
 
   <Test>
     <Text>
@@ -709,19 +787,40 @@
       INSERT INTO dbo.EmployeeSales
         EXECUTE
           ('
-              SELECT ''EXEC STRING'', sp.BusinessEntityID, c.LastName,
-              sp.SalesYTD
-              FROM Sales.SalesPerson AS sp
-              INNER JOIN Person.Person AS c
-              ON sp.BusinessEntityID = c.BusinessEntityID
-              WHERE sp.BusinessEntityID LIKE ''2%''
-              ORDER BY sp.BusinessEntityID, c.LastName
+              SELECT ''EXEC STRING'', sp.BusinessEntityID, c.LastName, sp.SalesYTD
+                FROM Sales.SalesPerson AS sp
+                INNER JOIN Person.Person AS c ON sp.BusinessEntityID = c.BusinessEntityID
+                WHERE sp.BusinessEntityID LIKE ''2%''
+                ORDER BY sp.BusinessEntityID, c.LastName
           ');
     </Text>
     <Description></Description>
     <Xml>
       <Sql>
+        <InsertStatement HasTerminator="true">
+          <Into>
+            <MultiIdentifier>dbo.EmployeeSales</MultiIdentifier>
+          </Into>
+          <Values>
+            <ExecuteStringStatement>
+              <Arguments>
+                <EnclosedCommaList>
+                  <Item>
+                    <LiteralString>'
+                      SELECT ''EXEC STRING'', sp.BusinessEntityID, c.LastName, sp.SalesYTD
+                      FROM Sales.SalesPerson AS sp
+                      INNER JOIN Person.Person AS c ON sp.BusinessEntityID = c.BusinessEntityID
+                      WHERE sp.BusinessEntityID LIKE ''2%''
+                      ORDER BY sp.BusinessEntityID, c.LastName
+                      '</LiteralString>
+                  </Item>
+                </EnclosedCommaList>
+              </Arguments>
+            </ExecuteStringStatement>
+          </Values>
+        </InsertStatement>
       </Sql>
     </Xml>
   </Test>
+  
 </Tests>

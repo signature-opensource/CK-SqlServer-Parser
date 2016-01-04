@@ -69,7 +69,7 @@ namespace CK.SqlServer.Parser
             : this( null, 
                     minCount,
                     null, 
-                    opener != null ? BuildEnclosed( opener, content, closer ) : content, 
+                    opener != null ? BuildEnclosed( null, opener, content, closer ) : content, 
                     null )
         {
             if( (opener == null) != (closer == null) )
@@ -78,9 +78,10 @@ namespace CK.SqlServer.Parser
             }
         }
 
-        static internal ISqlNode[] BuildEnclosed( TOpener opener, IEnumerable<ISqlNode> content, TCloser closer )
+        static internal ISqlNode[] BuildEnclosed( ISqlNode prefix, TOpener opener, IEnumerable<ISqlNode> content, TCloser closer )
         {
             var a = new List<ISqlNode>();
+            if( prefix != null ) a.Add( prefix );
             a.Add( opener );
             a.AddRange( content );
             a.Add( closer );

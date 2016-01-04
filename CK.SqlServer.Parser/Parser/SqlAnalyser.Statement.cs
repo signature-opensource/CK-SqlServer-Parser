@@ -198,7 +198,7 @@ namespace CK.SqlServer.Parser
                 }
                 else target = targetId;
 
-                SqlWithParOptions options = IsWithParOptions( false );
+                SqlWithParOptions options = IsIdentifierPrefixedCommaList( false, SqlTokenType.With, 1, IsExtendedExpression, (p,o,i,c) => new SqlWithParOptions( p, o, i, c ) );
 
                 SqlEnclosedIdentifierCommaList columns = IsEnclosedCommaList( false, 1, IsIdentifier, ( o, i, c ) => new SqlEnclosedIdentifierCommaList( o, i, c ) );
 
@@ -284,12 +284,47 @@ namespace CK.SqlServer.Parser
             return new SqlLabelDefinition( id, colon );
         }
 
-        SqlExecuteStatement MatchExecute( SqlTokenIdentifier execT, bool ignoreTerminator )
+        ISqlNamedStatement MatchExecute( SqlTokenIdentifier execT, bool ignoreTerminator )
         {
-            SqlTokenOpenPar opener;
-            if( R.IsToken( out opener, false ) )
+            if( R.Current.TokenType == SqlTokenType.OpenPar )
             {
-                throw new NotImplementedException( "exec 'string' is not implemented." );
+                var args = IsEnclosedCommaList( true );
+                if( args == null ) return null;
+                List<ISqlNode> optExec = null;
+                using( R.SetAssignmentContext( true ) )
+                {
+                    SqlTokenIdentifier asT;
+                    SqlTokenIdentifier userOrLoginT;
+                    SqlTokenTerminal asAssignT;
+                    SqlTokenLiteralString userOrLoginName;
+                    if( R.IsToken( out asT, SqlTokenType.As, false ) )
+                    {
+                        optExec = new List<ISqlNode>();
+                        optExec.Add( asT );
+                        if( !R.IsToken( out userOrLoginT, SqlTokenType.User, false )
+                            && !R.IsToken( out userOrLoginT, SqlTokenType.Login, false ) )
+                        {
+                            R.SetCurrentError( "Expected User or Login." );
+                            return null;
+                        }
+                        optExec.Add( userOrLoginT );
+                        if( !R.IsToken( out asAssignT, SqlTokenType.Assign, true ) ) return null;
+                        if( !R.IsToken( out userOrLoginName, true ) ) return null;
+                        optExec.Add( asAssignT );
+                        optExec.Add( userOrLoginName );
+                    }
+                    SqlTokenIdentifier atT;
+                    ISqlIdentifier atTarget;
+                    if( R.IsToken( out atT, SqlTokenType.At, false ) )
+                    {
+                        if( optExec == null ) optExec = new List<ISqlNode>();
+                        atTarget = IsIdentifier( true );
+                        if( atTarget == null ) return null;
+                        optExec.Add( atTarget );
+                    }
+                    var optionList = optExec != null ? new SqlNodeList( optExec ) : null;
+                    return new SqlExecuteStringStatement( execT, args, optionList, ignoreTerminator ? null : GetOptionalTerminator() );
+                }
             }
             SqlTokenIdentifier returnVar = null;
             SqlTokenTerminal assignT = null;
@@ -382,18 +417,6 @@ namespace CK.SqlServer.Parser
             return new InsOrUpdHeader( id, top, topExpression, percent );
         }
 
-        SqlWithParOptions IsWithParOptions( bool expected )
-        {
-            SqlTokenIdentifier withT;
-            if( R.IsToken( out withT, SqlTokenType.With, expected ) )
-            {
-                var opt = IsEnclosedCommaList( true );
-                if( opt == null ) return null;
-                return new SqlWithParOptions( withT, opt );
-            }
-            return null;
-        }
-
         SqlOutputClause IsOutputClause( bool expected )
         {
             SqlTokenIdentifier outputT;
@@ -418,7 +441,7 @@ namespace CK.SqlServer.Parser
         {
             SqlTokenIdentifier name;
             if( !R.IsToken( out name, expected ) ) return null;
-            SqlEnclosedIdentifierCommaList columns = IsEnclosedCommaList( false, 1, IsIdentifier, ( o, i, c ) => new SqlEnclosedIdentifierCommaList( o, i, c ) );
+            SqlEnclosedIdentifierCommaList columnNames = IsEnclosedCommaList( false, 1, IsIdentifier, ( o, i, c ) => new SqlEnclosedIdentifierCommaList( o, i, c ) );
             SqlTokenIdentifier asT;
             if( !R.IsToken( out asT, SqlTokenType.As , true ) ) return null;
             SqlTokenOpenPar opener;
@@ -431,7 +454,7 @@ namespace CK.SqlServer.Parser
             }
             SqlTokenClosePar closer;
             if( !R.IsToken( out closer, true ) ) return null;
-            return new SqlCTEName( name, columns, asT, opener, select, closer );
+            return new SqlCTEName( name, columnNames, asT, opener, select, closer );
         }
 
         ISqlNamedStatement IsStatementStartedByIdentifier( SqlTokenIdentifier id )

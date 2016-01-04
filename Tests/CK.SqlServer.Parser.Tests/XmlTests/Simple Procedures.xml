@@ -39,7 +39,7 @@
                       <Columns>
                         <SelectColumnList>
                           <Item>
-                            <SelectColumn Name="P">
+                            <SelectColumn ColumnName="P">
                               <Definition>
                                 <Identifier IsVariable="true">@P</Identifier>
                               </Definition>

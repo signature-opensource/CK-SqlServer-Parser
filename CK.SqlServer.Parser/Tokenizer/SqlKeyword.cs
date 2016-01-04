@@ -63,7 +63,6 @@ namespace CK.SqlServer.Parser
             "unique",
             "unpivot",
             "disk",
-            "user",
             "dump",
             "varying",
             "errlvl",
@@ -308,6 +307,8 @@ namespace CK.SqlServer.Parser
             _keywords.Add( "result", SqlTokenType.Result );
             _keywords.Add( "sets", SqlTokenType.Sets );
             _keywords.Add( "undefined", SqlTokenType.Undefined );
+            _keywords.Add( "login", SqlTokenType.Login );
+            _keywords.Add( "at", SqlTokenType.At );
 
             // LogicalOperator (they are reserved keywords).
             _keywords.Add( "or", SqlTokenType.Or );
@@ -377,6 +378,7 @@ namespace CK.SqlServer.Parser
             _keywords.Add( "openxml", SqlTokenType.OpenXml );
             _keywords.Add( "openquery", SqlTokenType.OpenQuery );
             _keywords.Add( "default", SqlTokenType.Default );
+            _keywords.Add( "user", SqlTokenType.User );
 
             // SqlTokenType.IdentifierReservedStatement values.
             _keywords.Add( "select", SqlTokenType.Select );

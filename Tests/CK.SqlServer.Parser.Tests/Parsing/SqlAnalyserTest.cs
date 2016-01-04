@@ -610,7 +610,7 @@ namespace CK.SqlServer.Parser.Tests
                     Assert.That( sp.Parameters[1].IsOutput, Is.False );
                     Assert.That( sp.Parameters[1].IsReadOnly, Is.False );
                     Assert.That( sp.Parameters[1].DefaultValue, Is.Not.Null );
-                    Assert.That( sp.Parameters[1].DefaultValue.ToString(), Is.EqualTo( "= 0" ) );
+                    Assert.That( sp.Parameters[1].DefaultValue.ToString(), Is.EqualTo( "0" ) );
                     Assert.That( sp.Parameters[1].Variable.Identifier.IsVariable, Is.True );
                     Assert.That( sp.Parameters[1].Variable.Identifier.Name, Is.EqualTo( "@p2" ) );
                     Assert.That( sp.Parameters[1].Variable.TypeDecl.DbType, Is.EqualTo( SqlDbType.TinyInt ) );
@@ -624,7 +624,7 @@ namespace CK.SqlServer.Parser.Tests
 
                     Assert.That( sp.Parameters[3].IsOutput, Is.False );
                     Assert.That( sp.Parameters[3].IsReadOnly, Is.False );
-                    Assert.That( sp.Parameters[3].DefaultValue.ToString(), Is.EqualTo( "=N'Murfn...'" ) );
+                    Assert.That( sp.Parameters[3].DefaultValue.ToString(), Is.EqualTo( "N'Murfn...'" ) );
                     Assert.That( sp.Parameters[3].Variable.Identifier.IsVariable, Is.True );
                     Assert.That( sp.Parameters[3].Variable.Identifier.Name, Is.EqualTo( "@p4" ) );
                     Assert.That( sp.Parameters[3].Variable.TypeDecl.DbType, Is.EqualTo( SqlDbType.NVarChar ) );

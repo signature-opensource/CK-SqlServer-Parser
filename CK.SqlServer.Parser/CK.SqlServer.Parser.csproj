@@ -61,19 +61,21 @@
     <Compile Include="..\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="ASqlNodePrefixedEnclosedSeparatedList.cs" />
     <Compile Include="ASqlNodePrefixedSeparatedList.cs" />
     <Compile Include="ISqlNode.cs" />
     <Compile Include="Parenthesis.cs" />
     <Compile Include="Parser\Insert\InsOrUpdHeader.cs" />
     <Compile Include="Parser\Insert\SqlOutputClause.cs" />
     <Compile Include="Parser\Node\SqlBasicValue.cs" />
+    <Compile Include="Parser\Node\SqlExecuteStringStatement.cs" />
     <Compile Include="Parser\Node\SqlOpenDataSource.cs" />
     <Compile Include="Parser\Node\SqlWithOptions.cs" />
     <Compile Include="Parser\Node\SqlWithParOptions.cs" />
     <Compile Include="Parser\Node\ISqlStructurallyEnclosed.cs" />
     <Compile Include="Parser\Node\ISqlNamedStatement.cs" />
     <Compile Include="Parser\Node\ISqlEnclosable.cs" />
-    <Compile Include="Parser\Node\SqlExecute.cs" />
+    <Compile Include="Parser\Node\SqlExecuteStatement.cs" />
     <Compile Include="Parser\Node\SqlMultiCommaList.cs" />
     <Compile Include="Parser\Node\SqlTableValues.cs" />
     <Compile Include="Parser\Node\SqlCTEStatement.cs" />

@@ -65,7 +65,9 @@ namespace CK.SqlServer.Parser
 
         public SqlTokenIdentifier Name => _content.V1;
 
-        public SqlEnclosedIdentifierCommaList OptionalColumnNames => _content.V2;
+        public bool HasColumnNames => _content.V2 != null;
+
+        public SqlEnclosedIdentifierCommaList ColumnNames => _content.V2;
 
         public SqlTokenIdentifier AsT => _content.V3;
 

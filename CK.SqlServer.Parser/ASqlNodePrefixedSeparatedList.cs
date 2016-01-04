@@ -51,6 +51,12 @@ namespace CK.SqlServer.Parser
 
         void CheckContent( ISqlNode[] content, int minCount )
         {
+            CheckPrefix( content );
+            ASqlNodeSeparatedList<T, TSep>.CheckItemAndSeparators( this, minCount, content, 1, content.Length - 1 );
+        }
+
+        internal static void CheckPrefix( ISqlNode[] content )
+        {
             if( content.Length == 0 )
             {
                 throw new ArgumentException( string.Format( "Expected prefix of type '{0}'.", typeof( TPrefix ).Name ) );
@@ -60,7 +66,6 @@ namespace CK.SqlServer.Parser
                 throw new ArgumentException( string.Format( "Expected prefix of type '{0}', not '{1}'.",
                     typeof( TPrefix ).Name, content[0] != null ? content[0].GetType().Name : "null" ) );
             }
-            ASqlNodeSeparatedList<T, TSep>.CheckItemAndSeparators( this, minCount, content, 1, content.Length-1 );
         }
 
         public T this[int index] => (T)_items[1+index*2];

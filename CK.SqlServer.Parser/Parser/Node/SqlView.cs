@@ -60,11 +60,11 @@ namespace CK.SqlServer.Parser
 
         public ISqlIdentifier Name => _content.V3;
 
-        public bool HasColumns => _content.V4 != null;
+        public bool HasColumnNames => _content.V4 != null;
 
         public bool HasOptions => _content.V5 != null;
 
-        public SqlEnclosedIdentifierCommaList Columns => _content.V4;
+        public SqlEnclosedIdentifierCommaList ColumnNames => _content.V4;
 
         public SqlNodeList Options => _content.V5;
 

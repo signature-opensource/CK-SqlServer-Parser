@@ -58,9 +58,11 @@ namespace CK.SqlServer.Parser
 
         public SqlTokenIdentifier IntoT => _content.V3;
 
+        public bool HasTargetTable => _content.V4 != null;
+
         public ISqlIdentifier TargetTable => _content.V4;
 
-        public SqlEnclosedIdentifierCommaList ColumnNames => _content.V5;
+        public SqlEnclosedIdentifierCommaList TargetTableColumnNames => _content.V5;
 
         [DebuggerStepThrough]
         internal protected override ISqlNode Accept( SqlItemVisitor visitor ) => visitor.Visit( this );

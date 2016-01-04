@@ -9,7 +9,7 @@
           <Columns>
             <SelectColumnList>
               <Item>
-                <SelectColumn Name="FirstUse">
+                <SelectColumn ColumnName="FirstUse">
                   <Definition>
                     <NextValueFor>Test.CountBy1</NextValueFor>
                   </Definition>

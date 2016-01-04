@@ -17,12 +17,18 @@ namespace CK.SqlServer.Parser
             IEnumerable<ISqlNode> commaSeparatedOptions )
             : base( 0, withT, commaSeparatedOptions )
         {
-            SNode.CheckToken( withT, nameof( withT ), SqlTokenType.With );
+            CheckContent();
+        }
+
+        void CheckContent()
+        {
+            SNode.CheckToken( WithT, nameof( WithT ), SqlTokenType.With );
         }
 
         SqlWithOptions( SqlWithOptions o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
             : base( o, 0, leading, items, trailing )
         {
+            if( items != null ) CheckContent();
         }
 
         protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
@@ -30,7 +36,7 @@ namespace CK.SqlServer.Parser
             return new SqlWithOptions( this, leading, children, trailing );
         }
 
-        public SqlTokenIdentifier withT => Prefix;
+        public SqlTokenIdentifier WithT => Prefix;
 
         [DebuggerStepThrough]
         internal protected override ISqlNode Accept( SqlItemVisitor visitor ) => visitor.Visit( this );

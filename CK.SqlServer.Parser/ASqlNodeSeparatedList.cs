@@ -30,7 +30,7 @@ namespace CK.SqlServer.Parser
             if( items == null ) _items = o._items;
             else
             {
-                _items = items as ISqlNode[] ?? items.ToArray();
+                _items = ASqlNodeArrayBased.EnsureArray( items );
                 CheckItemAndSeparators( o, minCount, _items, 0, _items.Length );
             }
         }

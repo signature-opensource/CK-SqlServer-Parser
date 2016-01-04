@@ -140,9 +140,28 @@ namespace CK.SqlServer.Parser
         {
             SqlTokenIdentifier prefix;
             if( !R.IsToken( out prefix, prefixType, expected ) ) return null;
+            return IsPrefixedCommaList( prefix, minCount, matcher, listCreator );
+        }
+
+        T IsPrefixedEnclosedCommaList<T, TPrefix, TItem>( TPrefix prefix, int minCount, Func<bool, TItem> matcher, Func<TPrefix, SqlTokenOpenPar, IEnumerable<ISqlNode>, SqlTokenClosePar, T> listCreator )
+            where TPrefix : class, ISqlNode
+            where TItem : class, ISqlNode
+            where T : ASqlNodePrefixedEnclosedSeparatedList<TPrefix, SqlTokenOpenPar, TItem, SqlTokenComma, SqlTokenClosePar>
+        {
             List<ISqlNode> items = new List<ISqlNode>();
-            if( !R.CollectCommaList( items, matcher, minCount ) ) return null;
-            return listCreator( prefix, items );
+            SqlTokenOpenPar opener;
+            SqlTokenClosePar closer;
+            if( !R.CollectCommaList( items, out opener, out closer, matcher, minCount, Parenthesis.Required ) ) return null;
+            return listCreator( prefix, opener, items, closer );
+        }
+
+        T IsIdentifierPrefixedCommaList<T, TItem>( bool expected, SqlTokenType prefixType, int minCount, Func<bool, TItem> matcher, Func<SqlTokenIdentifier, SqlTokenOpenPar, IEnumerable<ISqlNode>, SqlTokenClosePar, T> listCreator )
+            where TItem : class, ISqlNode
+            where T : ASqlNodePrefixedEnclosedSeparatedList<SqlTokenIdentifier, SqlTokenOpenPar, TItem, SqlTokenComma, SqlTokenClosePar>
+        {
+            SqlTokenIdentifier prefix;
+            if( !R.IsToken( out prefix, prefixType, expected ) ) return null;
+            return IsPrefixedEnclosedCommaList( prefix, minCount, matcher, listCreator );
         }
 
         /// <summary>
