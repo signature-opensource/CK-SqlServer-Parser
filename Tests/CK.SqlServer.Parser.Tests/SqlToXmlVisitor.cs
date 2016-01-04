@@ -254,6 +254,13 @@ namespace CK.SqlServer.Parser
         {
             StartNode( e ).Add( e.ToString() );
             if( e.IsVariable ) _current.Add( new XAttribute( "IsVariable", "true" ) );
+            if( e.IsOpenDataSouce ) _current.Add( new XAttribute( "IsOpenDataSouce", "true" ) );
+            return e;
+        }
+
+        public override ISqlNode Visit( SqlOpenDataSource e )
+        {
+            StartNode( e ).Add( e.ToString() );
             return e;
         }
 
@@ -318,6 +325,13 @@ namespace CK.SqlServer.Parser
                 new XElement( "Name", e.Name.ToString() ),
                 ToXml( "Parameters", e.Parameters ),
                 e.Options != null ? ToXml( "Options", e.Options ) : null );
+            return e;
+        }
+
+        public override ISqlNode Visit( SqlWithParOptions e )
+        {
+            StartNode( e ).Add(
+                ToXml( "Options", e.Options ) );
             return e;
         }
 

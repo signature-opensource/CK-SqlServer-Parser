@@ -10,7 +10,7 @@ using System.Collections.Immutable;
 namespace CK.SqlServer.Parser
 {
 
-    public sealed class SqlMultiIdentifier : ASqlNodeSeparatedList<SqlTokenIdentifier,ISqlTokenIdentifierSeparator>, ISqlIdentifier
+    public sealed class SqlMultiIdentifier : ASqlNodeSeparatedList<ISqlIdentifier, ISqlTokenIdentifierSeparator>, ISqlIdentifier
     {
         /// <summary>
         /// Initializes a new <see cref="SqlMultiIdentifier"/>.
@@ -32,7 +32,9 @@ namespace CK.SqlServer.Parser
         }
         public bool IsVariable => this[0].IsVariable;
 
-        IReadOnlyList<SqlTokenIdentifier> ISqlIdentifier.Identifiers => this;
+        public bool IsOpenDataSouce => this[0].IsOpenDataSouce;
+
+        IReadOnlyList<ISqlIdentifier> ISqlIdentifier.Identifiers => this;
 
         [DebuggerStepThrough]
         internal protected override ISqlNode Accept( SqlItemVisitor visitor ) => visitor.Visit( this );

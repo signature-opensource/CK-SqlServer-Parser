@@ -15,12 +15,17 @@ namespace CK.SqlServer.Parser
         /// <summary>
         /// Gets the <see cref="SqlTokenIdentifier"/> that composes this identifier.
         /// </summary>
-        IReadOnlyList<SqlTokenIdentifier> Identifiers { get; }
+        IReadOnlyList<ISqlIdentifier> Identifiers { get; }
 
         /// <summary>
         /// Gets whether this identifier is a variable.
         /// </summary>
         bool IsVariable { get; }
+
+        /// <summary>
+        /// Gets whether this identifier is an OpenDataSource function.
+        /// </summary>
+        bool IsOpenDataSouce { get; }
 
     }
 }

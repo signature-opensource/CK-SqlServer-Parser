@@ -67,6 +67,7 @@
     <Compile Include="Parser\Insert\InsOrUpdHeader.cs" />
     <Compile Include="Parser\Insert\SqlOutputClause.cs" />
     <Compile Include="Parser\Node\SqlBasicValue.cs" />
+    <Compile Include="Parser\Node\SqlOpenDataSource.cs" />
     <Compile Include="Parser\Node\SqlWithOptions.cs" />
     <Compile Include="Parser\Node\SqlWithParOptions.cs" />
     <Compile Include="Parser\Node\ISqlStructurallyEnclosed.cs" />

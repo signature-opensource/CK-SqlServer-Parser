@@ -372,7 +372,7 @@ namespace CK.SqlServer.Parser
             _keywords.Add( "read", SqlTokenType.Read );
             _keywords.Add( "browse", SqlTokenType.Browse );
             _keywords.Add( "collate", SqlTokenType.Collate );
-            _keywords.Add( "opendatasource", SqlTokenType.OpenDatasource );
+            _keywords.Add( "opendatasource", SqlTokenType.OpenDataSource );
             _keywords.Add( "openrowset", SqlTokenType.OpenRowSet );
             _keywords.Add( "openxml", SqlTokenType.OpenXml );
             _keywords.Add( "openquery", SqlTokenType.OpenQuery );

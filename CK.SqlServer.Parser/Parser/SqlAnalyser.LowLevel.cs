@@ -155,10 +155,17 @@ namespace CK.SqlServer.Parser
         ISqlIdentifier IsIdentifier( bool expected, SqlTokenIdentifier first )
         {
             if( first == null && !R.IsToken( out first, expected ) ) return null;
+            ISqlNode eFirst = first;
+            if( first.TokenType == SqlTokenType.OpenDataSource )
+            {
+                var parameters = IsEnclosedCommaList( true );
+                if( parameters == null ) return null;
+                eFirst = new SqlOpenDataSource( first, parameters );
+            }
             if( R.Current is ISqlTokenIdentifierSeparator )
             {
                 List<ISqlNode> parts = new List<ISqlNode>();
-                parts.Add( first );
+                parts.Add( eFirst );
                 do
                 {
                     // Adds the separator.

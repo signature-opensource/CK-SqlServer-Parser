@@ -611,7 +611,7 @@ namespace CK.SqlServer.Parser
         Cursor      = StartIdentifierReservedNonOperator + 40,
         Read        = StartIdentifierReservedNonOperator + 41,
         Browse      = StartIdentifierReservedNonOperator + 42,
-        OpenDatasource = StartIdentifierReservedNonOperator + 43,
+        OpenDataSource = StartIdentifierReservedNonOperator + 43,
         OpenRowSet  = StartIdentifierReservedNonOperator + 44,
         OpenXml     = StartIdentifierReservedNonOperator + 45,
         OpenQuery   = StartIdentifierReservedNonOperator + 46,

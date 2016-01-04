@@ -3,20 +3,6 @@
 
   <Test>
     <Text>
-      INSERT INTO OPENDATASOURCE('SQLNCLI',
-      'Data Source= server_name; Integrated Security=SSPI')
-      .AdventureWorks2012.HumanResources.Department (Name, GroupName)
-      VALUES (N'Standards and Methods', 'Quality Assurance');
-    </Text>
-    <Description></Description>
-    <Xml>
-      <Sql>
-      </Sql>
-    </Xml>
-  </Test>
-
-  <Test>
-    <Text>
       INSERT INTO dbo.EmployeeSales
       SELECT 'SELECT', sp.BusinessEntityID, c.LastName, sp.SalesYTD
         FROM Sales.SalesPerson AS sp
@@ -514,23 +500,68 @@
     </Xml>
   </Test>
   
-  
+  <Test>
+    <Text>
+      INSERT INTO OPENDATASOURCE('SQLNCLI',
+      'Data Source= server_name; Integrated Security=SSPI')
+      .AdventureWorks2012.HumanResources.Department (Name, GroupName)
+      VALUES (N'Standards and Methods', 'Quality Assurance');
+    </Text>
+    <Description></Description>
+    <Xml>
+      <Sql>
+        <InsertStatement HasTerminator="true">
+          <Into>
+            <MultiIdentifier IsOpenDataSouce="true">OPENDATASOURCE('SQLNCLI', 'Data Source= server_name; Integrated Security=SSPI').AdventureWorks2012.HumanResources.Department</MultiIdentifier>
+          </Into>
+          <Columns>
+            <EnclosedIdentifierCommaList>
+              <Item>
+                <Identifier>Name</Identifier>
+              </Item>
+              <Item>
+                <Identifier>GroupName</Identifier>
+              </Item>
+            </EnclosedIdentifierCommaList>
+          </Columns>
+          <Values>
+            <TableValues>
+              <Values>
+                <MultiCommaList>
+                  <Item>
+                    <EnclosedCommaList>
+                      <Item>
+                        <LiteralString IsUnicode="true">N'Standards and Methods'</LiteralString>
+                      </Item>
+                      <Item>
+                        <LiteralString>'Quality Assurance'</LiteralString>
+                      </Item>
+                    </EnclosedCommaList>
+                  </Item>
+                </MultiCommaList>
+              </Values>
+            </TableValues>
+          </Values>
+        </InsertStatement>
+      </Sql>
+    </Xml>
+  </Test>
 
   <Test>
     <Text>
       -- Create the target heap.
       CREATE TABLE Sales.SalesHistory(
-      SalesOrderID int NOT NULL,
-      SalesOrderDetailID int NOT NULL,
-      CarrierTrackingNumber nvarchar(25) NULL,
-      OrderQty smallint NOT NULL,
-      ProductID int NOT NULL,
-      SpecialOfferID int NOT NULL,
-      UnitPrice money NOT NULL,
-      UnitPriceDiscount money NOT NULL,
-      LineTotal money NOT NULL,
-      rowguid uniqueidentifier ROWGUIDCOL  NOT NULL,
-      ModifiedDate datetime NOT NULL );
+                            SalesOrderID int NOT NULL,
+                            SalesOrderDetailID int NOT NULL,
+                            CarrierTrackingNumber nvarchar(25) NULL,
+                            OrderQty smallint NOT NULL,
+                            ProductID int NOT NULL,
+                            SpecialOfferID int NOT NULL,
+                            UnitPrice money NOT NULL,
+                            UnitPriceDiscount money NOT NULL,
+                            LineTotal money NOT NULL,
+                            rowguid uniqueidentifier ROWGUIDCOL  NOT NULL,
+                            ModifiedDate datetime NOT NULL );
       GO
       -- Temporarily set the recovery model to BULK_LOGGED.
       ALTER DATABASE AdventureWorks2012
@@ -538,18 +569,18 @@
       GO
       -- Transfer data from Sales.SalesOrderDetail to Sales.SalesHistory
       INSERT INTO Sales.SalesHistory WITH (TABLOCK)
-      (SalesOrderID,
-      SalesOrderDetailID,
-      CarrierTrackingNumber,
-      OrderQty,
-      ProductID,
-      SpecialOfferID,
-      UnitPrice,
-      UnitPriceDiscount,
-      LineTotal,
-      rowguid,
-      ModifiedDate)
-      SELECT * FROM Sales.SalesOrderDetail;
+                ( SalesOrderID,
+                  SalesOrderDetailID,
+                  CarrierTrackingNumber,
+                  OrderQty,
+                  ProductID,
+                  SpecialOfferID,
+                  UnitPrice,
+                  UnitPriceDiscount,
+                  LineTotal,
+                  rowguid,
+                  ModifiedDate)
+        SELECT * FROM Sales.SalesOrderDetail;
       GO
       -- Reset the recovery model.
       ALTER DATABASE AdventureWorks2012
@@ -558,8 +589,20 @@
     </Text>
     <Description></Description>
     <Xml>
-      <Sql>
-      </Sql>
+      <Statements>
+        <Statement StatementName="CREATE" HasTerminator="true" />
+        <Statement StatementName="GO" />
+        <Statement StatementName="ALTER" />
+        <SetOption HasTerminator="true" />
+        <Statement StatementName="GO" />
+        <InsertStatement HasTerminator="true">
+          <SelectSpec />
+        </InsertStatement>
+        <Statement StatementName="GO" />
+        <Statement StatementName="ALTER" />
+        <SetOption HasTerminator="true" />
+        <Statement StatementName="GO" />
+      </Statements>
     </Xml>
   </Test>
 
@@ -570,12 +613,15 @@
       FROM OPENROWSET (
       BULK 'C:\SQLFiles\DepartmentData.txt',
       FORMATFILE = 'C:\SQLFiles\BulkloadFormatFile.xml',
-      ROWS_PER_BATCH = 15000)AS b ;
+      ROWS_PER_BATCH = 15000)AS b
     </Text>
     <Description></Description>
     <Xml>
-      <Sql>
-      </Sql>
+      <Statements>
+        <InsertStatement>
+          <SelectSpec />
+        </InsertStatement>
+      </Statements>
     </Xml>
   </Test>
   

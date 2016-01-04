@@ -12,7 +12,7 @@ namespace CK.SqlServer.Parser
     /// <summary>
     /// Token for identifiers.
     /// </summary>
-    public sealed class SqlTokenIdentifier : SqlToken, ISqlIdentifier, IReadOnlyList<SqlTokenIdentifier>
+    public sealed class SqlTokenIdentifier : SqlToken, ISqlIdentifier, IReadOnlyList<ISqlIdentifier>
     {
         readonly string _name;
 
@@ -58,11 +58,13 @@ namespace CK.SqlServer.Parser
         /// </summary>
         public bool IsReservedKeyword => TokenType.IsReservedKeyword();
 
-        IReadOnlyList<SqlTokenIdentifier> ISqlIdentifier.Identifiers => this;
+        bool ISqlIdentifier.IsOpenDataSouce => false;
 
-        int IReadOnlyCollection<SqlTokenIdentifier>.Count => 1;
+        IReadOnlyList<ISqlIdentifier> ISqlIdentifier.Identifiers => this;
 
-        SqlTokenIdentifier IReadOnlyList<SqlTokenIdentifier>.this[int index]
+        int IReadOnlyCollection<ISqlIdentifier>.Count => 1;
+
+        ISqlIdentifier IReadOnlyList<ISqlIdentifier>.this[int index]
         {
             get
             {
@@ -71,7 +73,7 @@ namespace CK.SqlServer.Parser
             }
         }
 
-        IEnumerator<SqlTokenIdentifier> IEnumerable<SqlTokenIdentifier>.GetEnumerator()
+        IEnumerator<ISqlIdentifier> IEnumerable<ISqlIdentifier>.GetEnumerator()
         {
             return new CKEnumeratorMono<SqlTokenIdentifier>( this );
         }

@@ -349,6 +349,11 @@ namespace CK.SqlServer.Parser
             return VisitStandard( e );
         }
 
+        public virtual ISqlNode Visit( SqlOpenDataSource e )
+        {
+            return VisitStandard( e );
+        }
+
         public virtual ISqlNode Visit( SqlUnaryOperator e )
         {
             return VisitStandard( e );
