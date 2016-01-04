@@ -479,8 +479,8 @@ namespace CK.SqlServer.Parser.Tests
                 Assert.That( f.ReturnsT, Is.Not.Null );
                 Assert.That( f.ReturnedType.DbType, Is.EqualTo( SqlDbType.TinyInt ) );
                 Assert.That( f.BodyStatements.Count, Is.EqualTo( 1 ) );
-                Assert.That( f.BodyStatements[0], Is.InstanceOf<SqlReturn>() );
-                SqlReturn r = (SqlReturn)f.BodyStatements[0];
+                Assert.That( f.BodyStatements[0], Is.InstanceOf<SqlReturnStatement>() );
+                SqlReturnStatement r = (SqlReturnStatement)f.BodyStatements[0];
                 SqlKoCall isNull = (SqlKoCall)r.Value;
                 SqlKoCall isNull2 = (SqlKoCall)isNull.Parameters[1];
                 SqlTokenLiteralInteger zero = (SqlTokenLiteralInteger)isNull2.Parameters[1];

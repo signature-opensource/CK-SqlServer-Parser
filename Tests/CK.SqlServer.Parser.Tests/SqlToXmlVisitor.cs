@@ -168,7 +168,7 @@ namespace CK.SqlServer.Parser
                       ToXml( "Columns", e.Columns ),
                       e.IntoClause != null ? ToXml( "Into", e.IntoClause ) : null,
                       e.FromClause != null ? new XElement( "From", e.FromClause.ToString() ) : null,
-                      e.WhereClause != null ? ToXml( "Where", e.WhereClause ) : null,
+                      e.WhereExpression != null ? ToXml( "WhereExpression", e.WhereExpression ) : null,
                       e.GroupByClause != null ? ToXml( "GroupBy", e.GroupByClause ) : null );
             return e;
         }
@@ -193,6 +193,25 @@ namespace CK.SqlServer.Parser
                 .Add( ToXml( "Condition", e.Condition ),
                       ToXml( "Then", e.Then ),
                       e.HasElse ? ToXml( "Else", e.Else ) : null );
+            return e;
+        }
+
+        public override ISqlNode Visit( SqlTableValues e )
+        {
+            StartNode( e )
+                .Add( ToXml( "Values", e.Values ) );
+            return e;
+        }
+
+        public override ISqlNode Visit( SqlInsertStatement e )
+        {
+            StartNode( e ).Add(
+                e.Header.HasTop ? ToXml( "Top", e.Header.TopExpression ) : null,
+                e.HasIntoTarget ? ToXml( "Into", e.IntoTarget ) : null,
+                e.HasColumns ? ToXml( "Columns", e.Columns ) : null,
+                e.HasOptions ? ToXml( "Options", e.Options ) : null,
+                e.HasOutputClause ? ToXml( "OutputClause", e.OutputClause ) : null,
+                ToXml( "Values", e.Values ) );
             return e;
         }
 
@@ -290,6 +309,15 @@ namespace CK.SqlServer.Parser
         {
             StartNode( e ).Add( ToXml( "GroupExpression", e.GroupExpression ),
                                 e.HasHaving ? ToXml( "Having", e.HavingExpression ) : null );
+            return e;
+        }
+
+        public override ISqlNode Visit( SqlExecuteStatement e )
+        {
+            StartNode( e ).Add(
+                new XElement( "Name", e.Name.ToString() ),
+                ToXml( "Parameters", e.Parameters ),
+                e.Options != null ? ToXml( "Options", e.Options ) : null );
             return e;
         }
 

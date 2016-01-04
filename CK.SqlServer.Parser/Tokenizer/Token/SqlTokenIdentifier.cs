@@ -10,7 +10,7 @@ using System.Collections.Immutable;
 namespace CK.SqlServer.Parser
 {
     /// <summary>
-    /// Token for identifiers. An identifier can be <see cref="IsQuoted"/>, be <see cref="IsVariable"/>, be <see cref="IsKeywordName"/>.
+    /// Token for identifiers.
     /// </summary>
     public sealed class SqlTokenIdentifier : SqlToken, ISqlIdentifier, IReadOnlyList<SqlTokenIdentifier>
     {

@@ -107,6 +107,15 @@ namespace CK.SqlServer.Parser
                         return new SqlNextValueFor( id, valueT, forT, seqName );
                     }
                 }
+                if( id.TokenType == SqlTokenType.Values )
+                {
+                    using( R.OpenParenthesis() )
+                    {
+                        SqlMultiCommaList values = IsCommaList( 0, IsEnclosedCommaList, i => new SqlMultiCommaList( i ) );
+                        if( values == null ) return null;
+                        if( values.Count > 0 ) return new SqlTableValues( id, values );
+                    }
+                }
                 // This shortcuts the nud/led mechanism by directly handling 
                 // the . or the :: as a top precedence level operator.
                 return IsIdentifier( true, id );
@@ -388,12 +397,14 @@ namespace CK.SqlServer.Parser
         /// <returns>One expression, a <see cref="SqlNodeList"/> or null.</returns>
         public ISqlNode IsExtendedExpression( bool expected )
         {
+            bool stopOnStatement = !expected && R.ParenthesisDepth == 0;
             List<ISqlNode> items = new List<ISqlNode>();
             while( !R.IsErrorOrEndOfInput 
-                && !SqlToken.IsCommaOrCloseParenthesis( R.Current )
-                && !(R.ParenthesisDepth == 0 && SqlToken.IsStatementStopper( R.Current )) )
+                && !SqlToken.IsEndOfExtendedExpression( R.Current )
+                && !(stopOnStatement && SqlToken.IsStatementStopper( R.Current )) )
             {
                 ISqlNode item = IsOneExpression( expected );
+                stopOnStatement = R.ParenthesisDepth == 0;
                 expected = false;
                 if( item != null ) items.Add( item );
                 else

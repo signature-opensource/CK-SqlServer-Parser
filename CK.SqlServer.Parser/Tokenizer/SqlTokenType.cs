@@ -480,6 +480,10 @@ namespace CK.SqlServer.Parser
         Ties            = IdentifierStandard | 20,
         Value           = IdentifierStandard | 21,
         Matched         = IdentifierStandard | 22,
+        Recompile       = IdentifierStandard | 23,
+        Result          = IdentifierStandard | 24,
+        Sets            = IdentifierStandard | 25,
+        Undefined       = IdentifierStandard | 26,
 
         #endregion
 
@@ -509,7 +513,7 @@ namespace CK.SqlServer.Parser
         And = OpLevel09 | IdentifierReserved | 3,
         #endregion
 
-        #region Select operators: Union, Except, Intersect, Order, For and Option.
+        #region Select operators: Union, Except, Intersect, Order, For, Option and Collate.
         /// <summary>
         /// Union between select specification (lowest precedence).
         /// </summary>
@@ -607,10 +611,16 @@ namespace CK.SqlServer.Parser
         Cursor      = StartIdentifierReservedNonOperator + 40,
         Read        = StartIdentifierReservedNonOperator + 41,
         Browse      = StartIdentifierReservedNonOperator + 42,
+        OpenDatasource = StartIdentifierReservedNonOperator + 43,
+        OpenRowSet  = StartIdentifierReservedNonOperator + 44,
+        OpenXml     = StartIdentifierReservedNonOperator + 45,
+        OpenQuery   = StartIdentifierReservedNonOperator + 46,
+        Default     = StartIdentifierReservedNonOperator + 47,
+
         #endregion
 
         #region IdentifierReservedStatement values
-        Select      = IdentifierReservedStatement | 1,
+        Select = IdentifierReservedStatement | 1,
         Begin       = IdentifierReservedStatement | 2,
         End         = IdentifierReservedStatement | 3,
         Create      = IdentifierReservedStatement | 4,

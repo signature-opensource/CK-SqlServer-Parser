@@ -10,6 +10,6 @@ namespace CK.SqlServer.Parser
     {
         Optional,
         Required,
-        NoParenthesis
+        Rejected
     }
 }

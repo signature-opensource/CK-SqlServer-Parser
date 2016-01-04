@@ -21,6 +21,11 @@ namespace CK.SqlServer.Parser
         {
         }
 
+        public SqlNodeList( params ISqlNode[] items )
+            : base( 0, items )
+        {
+        }
+
         SqlNodeList( SqlNodeList o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
             : base( o, 0, leading, items, trailing )
         {

@@ -36,6 +36,12 @@ namespace CK.SqlServer.Parser
 
         public int ParenthesisDepth => _parenthesisDepth;
 
+        public IDisposable OpenParenthesis()
+        {
+            ++_parenthesisDepth;
+            return Util.CreateDisposableAction( () => --_parenthesisDepth );
+        }
+
         public IDisposable SetAssignmentContext( bool assignment )
         {
             if( _assignmentContext == assignment ) return Util.EmptyDisposable;
@@ -359,7 +365,7 @@ namespace CK.SqlServer.Parser
         }
 
         /// <summary>
-        /// Collects a list of comma separated typed nodes with optional enclosing parenthesis.
+        /// Collects a list of comma separated typed nodes with or without optional enclosing parenthesis.
         /// </summary>
         /// <typeparam name="T">Type of the expressions to match.</typeparam>
         /// <param name="items">Collector for itemsthat will be filled with <typeparamref name="T"/> and comma tokens. Can be empty if no expression have been matched.</param>
@@ -367,15 +373,20 @@ namespace CK.SqlServer.Parser
         /// <param name="closePar">Closing parenthesis. Not null if and only if an opening parenthesis exists.</param>
         /// <param name="matcher">Function that knows how to match an item.</param>
         /// <param name="minCount">Minimum number of expected items.</param>
-        /// <param name="parenthesis">True to expect parenthesis, false to reject them (sets an error if the current token is not an opening parenthesis).</param>
+        /// <param name="parenthesis">Defines the parenthesis, null to ignore them. Use <see cref="Parenthesis.Rejected"/> to set an error if the current token is not an opening parenthesis.</param>
         /// <returns>True on success. Can be false only because of <paramref name="minCount"/> or <paramref name="parenthesis"/>.</returns>
-        internal bool CollectCommaList<T>( List<ISqlNode> items, out SqlTokenOpenPar openPar, out SqlTokenClosePar closePar, Func<bool, T> matcher, int minCount = 0, Parenthesis parenthesis = Parenthesis.Optional ) where T : class, ISqlNode
+        internal bool CollectCommaList<T>( List<ISqlNode> items, out SqlTokenOpenPar openPar, out SqlTokenClosePar closePar, Func<bool, T> matcher, int minCount = 0, Parenthesis? parenthesis = Parenthesis.Optional ) where T : class, ISqlNode
         {
             int collectedCount = 0;
+            openPar = null;
             closePar = null;
-            bool hasPar = IsToken( out openPar, parenthesis == Parenthesis.Required );
-            if( IsError ) return false;
-            if( hasPar && parenthesis == Parenthesis.NoParenthesis ) return SetCurrentError( "Unexpected parenthesis." );
+            bool hasPar = false;
+            if( parenthesis.HasValue )
+            {
+                hasPar = IsToken( out openPar, parenthesis == Parenthesis.Required );
+                if( IsError ) return false;
+                if( hasPar && parenthesis == Parenthesis.Rejected ) return SetCurrentError( "Unexpected parenthesis." );
+            }
             T item;
             if( !IsEndOfInput && (item = matcher( false )) != null )
             {
@@ -412,7 +423,7 @@ namespace CK.SqlServer.Parser
         {
             SqlTokenOpenPar openPar;
             SqlTokenClosePar closePar;
-            return CollectCommaList( items, out openPar, out closePar, matcher, minCount, Parenthesis.NoParenthesis );
+            return CollectCommaList( items, out openPar, out closePar, matcher, minCount, null );
         }
 
         /// <summary>

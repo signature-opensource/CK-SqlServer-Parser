@@ -67,6 +67,86 @@
   </Test>
 
   <Test Mode="OneExpression">
+    <Text>values</Text>
+    <Description>'values' alone is an identifier.</Description>
+    <Xml>
+      <Sql>
+        <Identifier IsReservedKeyword="true">values</Identifier>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test Mode="OneExpression">
+    <Text>values (a,b,c), (), (d), (e,f)</Text>
+    <Description>'values' is the table values constructor.</Description>
+    <Xml>
+      <Sql>
+        <TableValues>
+          <Values>
+            <MultiCommaList>
+              <Item>
+                <EnclosedCommaList>
+                  <Item>
+                    <Identifier>a</Identifier>
+                  </Item>
+                  <Item>
+                    <Identifier>b</Identifier>
+                  </Item>
+                  <Item>
+                    <Identifier>c</Identifier>
+                  </Item>
+                </EnclosedCommaList>
+              </Item>
+              <Item>
+                <EnclosedCommaList />
+              </Item>
+              <Item>
+                <EnclosedCommaList>
+                  <Item>
+                    <Identifier>d</Identifier>
+                  </Item>
+                </EnclosedCommaList>
+              </Item>
+              <Item>
+                <EnclosedCommaList>
+                  <Item>
+                    <Identifier>e</Identifier>
+                  </Item>
+                  <Item>
+                    <Identifier>f</Identifier>
+                  </Item>
+                </EnclosedCommaList>
+              </Item>
+            </MultiCommaList>
+          </Values>
+        </TableValues>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test Mode="OneExpression">
+    <Text>values (a)</Text>
+    <Description>'values' is the table values constructor.</Description>
+    <Xml>
+      <Sql>
+        <TableValues>
+          <Values>
+            <MultiCommaList>
+              <Item>
+                <EnclosedCommaList>
+                  <Item>
+                    <Identifier>a</Identifier>
+                  </Item>
+                </EnclosedCommaList>
+              </Item>
+            </MultiCommaList>
+          </Values>
+        </TableValues>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test Mode="OneExpression">
     <Text>4 + 5</Text>
     <Description>Simple addition.</Description>
     <Xml CombineElementType="true">

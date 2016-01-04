@@ -55,15 +55,14 @@ namespace CK.SqlServer.Parser
 
         public SqlTokenIdentifier InsertOrUpdateT => _content.V1;
 
+        public bool HasTop => _content.V2 != null;
+
         public SqlTokenIdentifier TopT => _content.V2;
 
-        public ISqlNode TopExpression => _content.V4;
+        public ISqlNode TopExpression => _content.V3;
 
-        public SqlTokenIdentifier PercentT => _content.V5;
+        public SqlTokenIdentifier PercentT => _content.V4;
 
-        public SqlTokenIdentifier WithT => _content.V6;
-
-        public SqlTokenIdentifier TiesT => _content.V7;
 
         [DebuggerStepThrough]
         internal protected override ISqlNode Accept( SqlItemVisitor visitor ) => visitor.Visit( this );

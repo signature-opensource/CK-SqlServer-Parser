@@ -61,15 +61,23 @@
     <Compile Include="..\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="ASqlNodePrefixedSeparatedList.cs" />
     <Compile Include="ISqlNode.cs" />
     <Compile Include="Parenthesis.cs" />
     <Compile Include="Parser\Insert\InsOrUpdHeader.cs" />
+    <Compile Include="Parser\Insert\SqlOutputClause.cs" />
+    <Compile Include="Parser\Node\SqlBasicValue.cs" />
+    <Compile Include="Parser\Node\SqlWithOptions.cs" />
+    <Compile Include="Parser\Node\SqlWithParOptions.cs" />
     <Compile Include="Parser\Node\ISqlStructurallyEnclosed.cs" />
     <Compile Include="Parser\Node\ISqlNamedStatement.cs" />
     <Compile Include="Parser\Node\ISqlEnclosable.cs" />
+    <Compile Include="Parser\Node\SqlExecute.cs" />
+    <Compile Include="Parser\Node\SqlMultiCommaList.cs" />
+    <Compile Include="Parser\Node\SqlTableValues.cs" />
     <Compile Include="Parser\Node\SqlCTEStatement.cs" />
     <Compile Include="Parser\Node\SqlCTEName.cs" />
-    <Compile Include="Parser\Insert\SqlInsert.cs" />
+    <Compile Include="Parser\Insert\SqlInsertStatement.cs" />
     <Compile Include="Parser\Node\SqlNextValueFor.cs" />
     <Compile Include="Parser\Node\SqlEnclosedCommaList.cs" />
     <Compile Include="Parser\Node\SqlCTENameList.cs" />
@@ -85,6 +93,8 @@
     <Compile Include="ASqlNodeEnclosableSeparatedList.cs" />
     <Compile Include="ASqlNodeSeparatedList.cs" />
     <Compile Include="Parser\IsFunc.cs" />
+    <Compile Include="Parser\Node\SqlCallParameterList.cs" />
+    <Compile Include="Parser\Node\SqlCallParameter.cs" />
     <Compile Include="Parser\Select\SelectOptions.cs" />
     <Compile Include="Parser\Select\SelectOperatorKind.cs" />
     <Compile Include="Parser\SqlAnalyser.Statement.cs" />
@@ -108,7 +118,7 @@
     <Compile Include="Parser\Node\SqlDeclareVariable.cs" />
     <Compile Include="Parser\Node\SqlDeclareCursor.cs" />
     <Compile Include="Parser\Node\SqlSetVariable.cs" />
-    <Compile Include="Parser\Node\SqlReturn.cs" />
+    <Compile Include="Parser\Node\SqlReturnStatement.cs" />
     <Compile Include="Parser\Node\SqlIdentifierCommaList.cs" />
     <Compile Include="Parser\Node\SqlOverClause.cs" />
     <Compile Include="Parser\Select\SelectOrderByOffset.cs" />
@@ -129,7 +139,6 @@
     <Compile Include="Parser\Select\SelectInto.cs" />
     <Compile Include="Parser\Select\SelectOrderBy.cs" />
     <Compile Include="Parser\Select\SelectSpec.cs" />
-    <Compile Include="Parser\Select\SelectWhere.cs" />
     <Compile Include="Parser\Node\SqlAssign.cs" />
     <Compile Include="Parser\Node\SqlBetween.cs" />
     <Compile Include="Parser\Node\SqlBinaryOperator.cs" />

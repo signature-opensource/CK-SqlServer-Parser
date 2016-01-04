@@ -11,7 +11,7 @@ using System.Collections;
 namespace CK.SqlServer.Parser
 {
     /// <summary>
-    /// Simple abstract wrapper around an array of T.
+    /// Generic list of T separated by TSep.
     /// </summary>
     public abstract class ASqlNodeSeparatedList<T,TSep> : SqlNode, IReadOnlyList<T>
         where T : class, ISqlNode 
@@ -75,7 +75,7 @@ namespace CK.SqlServer.Parser
         /// </summary>
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _items;
 
-        public int Count => _items.Length / 2;
+        public int Count => (_items.Length + 1) / 2;
 
         public IEnumerator<T> GetEnumerator()
         {

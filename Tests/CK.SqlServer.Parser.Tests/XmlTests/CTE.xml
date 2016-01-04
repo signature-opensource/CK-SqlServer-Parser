@@ -228,9 +228,9 @@
     <Xml>
       <Statements>
         <DeclareVariable HasTerminator="true" />
-        <Statement StatementName="INSERT" HasTerminator="true" />
+        <InsertStatement HasTerminator="true" />
         <DeclareVariable HasTerminator="true" />
-        <Statement StatementName="INSERT" HasTerminator="true" />
+        <InsertStatement HasTerminator="true" />
         <CTEStatement HasTerminator="true">
           <SelectCombine CombinationKind="UnionAll">
             <SelectSpec />

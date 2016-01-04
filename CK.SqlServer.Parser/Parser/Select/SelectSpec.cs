@@ -13,17 +13,18 @@ namespace CK.SqlServer.Parser
     /// </summary>
     public sealed class SelectSpec : SqlNode, ISelectSpecification
     {
-        readonly SNode<SelectHeader, SelectColumnList, SelectInto, SelectFrom, SelectWhere, SelectGroupBy> _content;
+        readonly SNode<SelectHeader, SelectColumnList, SelectInto, SelectFrom, SqlTokenIdentifier, ISqlNode, SelectGroupBy> _content;
 
-        public SelectSpec( SelectHeader header, SelectColumnList columns, SelectInto into = null, SelectFrom from = null, SelectWhere where = null, SelectGroupBy groupBy = null )
+        public SelectSpec( SelectHeader header, SelectColumnList columns, SelectInto into = null, SelectFrom from = null, SqlTokenIdentifier whereT = null, ISqlNode whereExpression = null, SelectGroupBy groupBy = null )
             : base( null, null )
         {
-            _content = new SNode<SelectHeader, SelectColumnList, SelectInto, SelectFrom, SelectWhere, SelectGroupBy>(
+            _content = new SNode<SelectHeader, SelectColumnList, SelectInto, SelectFrom, SqlTokenIdentifier, ISqlNode, SelectGroupBy>(
                 header, 
                 columns, 
                 into, 
                 from, 
-                where, 
+                whereT,
+                whereExpression, 
                 groupBy );
             CheckContent();
         }
@@ -32,6 +33,8 @@ namespace CK.SqlServer.Parser
         {
             SNode.CheckNotNull( Header, nameof( Header ) );
             SNode.CheckNotNull( Columns, nameof( Columns ) );
+            SNode.CheckNullableToken( WhereT, nameof( WhereT ), SqlTokenType.Where );
+            SNode.CheckBothNullOrNot( WhereT, nameof( WhereT ), WhereExpression, nameof( WhereExpression ) );
         }
 
         SelectSpec( SelectSpec o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
@@ -40,7 +43,7 @@ namespace CK.SqlServer.Parser
             if( items == null ) _content = o._content;
             else
             {
-                _content = new SNode<SelectHeader, SelectColumnList, SelectInto, SelectFrom, SelectWhere, SelectGroupBy>( items );
+                _content = new SNode<SelectHeader, SelectColumnList, SelectInto, SelectFrom, SqlTokenIdentifier, ISqlNode, SelectGroupBy>( items );
                 CheckContent();
             }
         }
@@ -67,9 +70,11 @@ namespace CK.SqlServer.Parser
 
         public SelectFrom FromClause => _content.V4;
 
-        public SelectWhere WhereClause => _content.V5;
+        public SqlTokenIdentifier WhereT => _content.V5;
 
-        public SelectGroupBy GroupByClause => _content.V6;
+        public ISqlNode WhereExpression => _content.V6;
+
+        public SelectGroupBy GroupByClause => _content.V7;
 
         [DebuggerStepThrough]
         internal protected override ISqlNode Accept( SqlItemVisitor visitor ) => visitor.Visit( this );

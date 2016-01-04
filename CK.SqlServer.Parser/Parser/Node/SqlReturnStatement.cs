@@ -12,18 +12,18 @@ namespace CK.SqlServer.Parser
     /// <summary>
     /// 
     /// </summary>
-    public sealed class SqlReturn : SqlNode, ISqlNamedStatement
+    public sealed class SqlReturnStatement : SqlNode, ISqlNamedStatement
     {
         readonly SNode<SqlTokenIdentifier, ISqlNode, SqlTokenTerminal> _content;
 
-        public SqlReturn( SqlTokenIdentifier returnToken, ISqlNode value, SqlTokenTerminal terminator )
+        public SqlReturnStatement( SqlTokenIdentifier returnToken, ISqlNode value, SqlTokenTerminal terminator )
             : base( null, null )
         {
             _content = new SNode<SqlTokenIdentifier,ISqlNode,SqlTokenTerminal>( returnToken, value, terminator );
             CheckContent();
         }
 
-        SqlReturn( SqlReturn o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
+        SqlReturnStatement( SqlReturnStatement o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
             : base( leading, trailing )
         {
             if( items == null ) _content = o._content;
@@ -36,7 +36,7 @@ namespace CK.SqlServer.Parser
 
         protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
-            return new SqlReturn( this, leading, children, trailing );
+            return new SqlReturnStatement( this, leading, children, trailing );
         }
 
         void CheckContent()

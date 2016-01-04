@@ -27,7 +27,8 @@ namespace CK.SqlServer.Parser
             {
                 SelectInto into = null;
                 SelectFrom from = null;
-                SelectWhere where = null;
+                SqlTokenIdentifier whereT = null;
+                ISqlNode whereExpression = null;
                 SelectGroupBy groupBy = null;
                 if( c == SpecificationPart.Into )
                 {
@@ -47,10 +48,9 @@ namespace CK.SqlServer.Parser
                 }
                 if( c == SpecificationPart.Where )
                 {
-                    SqlTokenIdentifier partName = R.Read<SqlTokenIdentifier>();
-                    ISqlNode whereCond = IsOneExpression( true );
-                    if( whereCond == null ) return false;
-                    where = new SelectWhere( partName, whereCond );
+                    whereT = R.Read<SqlTokenIdentifier>();
+                    whereExpression = IsOneExpression( true );
+                    if( whereExpression == null ) return false;
                     c = ToSpecificationPart( R.Current );
                 }
                 if( c == SpecificationPart.Group )
@@ -69,7 +69,7 @@ namespace CK.SqlServer.Parser
                     groupBy = new SelectGroupBy( partName, by, content, having, havingClause );
                     c = ToSpecificationPart( R.Current );
                 }
-                e = new SelectSpec( header, columns, into, from, where, groupBy );
+                e = new SelectSpec( header, columns, into, from, whereT, whereExpression, groupBy );
             }
             return true;
         }

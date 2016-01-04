@@ -115,13 +115,34 @@ namespace CK.SqlServer.Parser
             return typeCreator( openPar, items, closePar );
         }
 
-        T IsCommaList<T,TItem>( int minCount, Func<bool,TItem> matcher, Func<IEnumerable<ISqlNode>,T> listCreator )
+        T IsCommaList<T, TItem>( int minCount, Func<bool, TItem> matcher, Func<IEnumerable<ISqlNode>, T> listCreator )
             where TItem : class, ISqlNode
             where T : ASqlNodeSeparatedList<TItem, SqlTokenComma>
         {
             List<ISqlNode> items = new List<ISqlNode>();
             if( !R.CollectCommaList( items, matcher, minCount ) ) return null;
             return listCreator( items );
+        }
+
+        T IsPrefixedCommaList<T, TPrefix, TItem>( TPrefix prefix, int minCount, Func<bool, TItem> matcher, Func<TPrefix, IEnumerable<ISqlNode>, T> listCreator )
+            where TPrefix : class, ISqlNode
+            where TItem : class, ISqlNode
+            where T : ASqlNodePrefixedSeparatedList<TPrefix, TItem, SqlTokenComma>
+        {
+            List<ISqlNode> items = new List<ISqlNode>();
+            if( !R.CollectCommaList( items, matcher, minCount ) ) return null;
+            return listCreator( prefix, items );
+        }
+
+        T IsIdentifierPrefixedCommaList<T, TItem>( bool expected, SqlTokenType prefixType, int minCount, Func<bool, TItem> matcher, Func<SqlTokenIdentifier, IEnumerable<ISqlNode>, T> listCreator )
+            where TItem : class, ISqlNode
+            where T : ASqlNodePrefixedSeparatedList<SqlTokenIdentifier, TItem, SqlTokenComma>
+        {
+            SqlTokenIdentifier prefix;
+            if( !R.IsToken( out prefix, prefixType, expected ) ) return null;
+            List<ISqlNode> items = new List<ISqlNode>();
+            if( !R.CollectCommaList( items, matcher, minCount ) ) return null;
+            return listCreator( prefix, items );
         }
 
         /// <summary>
@@ -166,6 +187,34 @@ namespace CK.SqlServer.Parser
         ISqlIdentifier IsIdentifier( bool expected )
         {
             return IsIdentifier( expected, null );
+        }
+
+        /// <summary>
+        /// A basic value is NULL, a variable name (like @varName) or a litteral value ('string', N'string', 90, 12e11)
+        /// or the unary minus followed by a number.
+        /// </summary>
+        /// <param name="expected">True to set an error if not found.</param>
+        /// <returns>The found basic value or null.</returns>
+        SqlBasicValue IsBasicValue( bool expected )
+        {
+            SqlTokenIdentifier variable;
+            if( R.IsToken( out variable, SqlTokenType.Null, false )
+                || R.IsToken( out variable, SqlTokenType.IdentifierVariable, false ) )
+            {
+                return new SqlBasicValue( null, variable );
+            }
+            if( R.Current.TokenType == SqlTokenType.Minus )
+            {
+                if( (R.RawLookup.TokenType & SqlTokenType.IsNumber) != 0 )
+                {
+                    return new SqlBasicValue( R.Read<SqlTokenTerminal>(), R.Read<SqlToken>() );
+                }
+                if( expected ) R.SetCurrentError( "numerical value expected." );
+                return null;
+            }
+            SqlTokenBaseLiteral value;
+            if( !R.IsToken( out value, expected ) ) return null;
+            return new SqlBasicValue( null, value );
         }
 
         SqlTokenTerminal GetOptionalTerminator()

@@ -57,17 +57,13 @@ namespace CK.SqlServer.Parser
             "current_user",
             "national",
             "nullif",
-            "default",
             "tsequal",
             "off",
             "offsets",
             "unique",
             "unpivot",
             "disk",
-            "opendatasource",
-            "openrowset",
             "user",
-            "openxml",
             "dump",
             "varying",
             "errlvl",
@@ -86,7 +82,6 @@ namespace CK.SqlServer.Parser
             "fillfactor",
             "public",
             "authorization",
-            "openquery",
             "distributed",
             "coalesce",
             "rule",
@@ -309,6 +304,10 @@ namespace CK.SqlServer.Parser
             _keywords.Add( "cast", SqlTokenType.Cast );
             _keywords.Add( "value", SqlTokenType.Value );
             _keywords.Add( "matched", SqlTokenType.Matched );
+            _keywords.Add( "recompile", SqlTokenType.Recompile );
+            _keywords.Add( "result", SqlTokenType.Result );
+            _keywords.Add( "sets", SqlTokenType.Sets );
+            _keywords.Add( "undefined", SqlTokenType.Undefined );
 
             // LogicalOperator (they are reserved keywords).
             _keywords.Add( "or", SqlTokenType.Or );
@@ -373,7 +372,11 @@ namespace CK.SqlServer.Parser
             _keywords.Add( "read", SqlTokenType.Read );
             _keywords.Add( "browse", SqlTokenType.Browse );
             _keywords.Add( "collate", SqlTokenType.Collate );
-
+            _keywords.Add( "opendatasource", SqlTokenType.OpenDatasource );
+            _keywords.Add( "openrowset", SqlTokenType.OpenRowSet );
+            _keywords.Add( "openxml", SqlTokenType.OpenXml );
+            _keywords.Add( "openquery", SqlTokenType.OpenQuery );
+            _keywords.Add( "default", SqlTokenType.Default );
 
             // SqlTokenType.IdentifierReservedStatement values.
             _keywords.Add( "select", SqlTokenType.Select );

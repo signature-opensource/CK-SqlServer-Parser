@@ -241,7 +241,6 @@ namespace CK.SqlServer.Parser.Tests
             VisitItem( e.Columns );
             if( e.IntoClause != null ) VisitItem( e.IntoClause );
             if( e.FromClause != null ) VisitItem( e.FromClause );
-            if( e.WhereClause != null ) VisitItem( e.WhereClause );
             if( e.GroupByClause != null ) VisitItem( e.GroupByClause );
             Out.Append( ']' );
             return e;
@@ -290,14 +289,6 @@ namespace CK.SqlServer.Parser.Tests
         {
             Out.Append( "-from[" );
             VisitItem( e.Content );
-            Out.Append( "]" );
-            return e;
-        }
-
-        public override ISqlNode Visit( SelectWhere e )
-        {
-            Out.Append( "-where[" );
-            VisitItem( e.Expression );
             Out.Append( "]" );
             return e;
         }

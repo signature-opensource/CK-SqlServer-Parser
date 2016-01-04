@@ -71,6 +71,16 @@ namespace CK.SqlServer.Parser
             }
         }
 
+        public static void CheckNullableToken( SqlToken token, string name, Func<SqlTokenType, bool> predicate )
+        {
+            if( token == null && !predicate( token.TokenType ) )
+            {
+                throw new ArgumentException( string.Format( "{0} must satisfy '{1}' predicate.",
+                                                            name, predicate.Method.Name ), name );
+            }
+        }
+
+
         internal static void CheckBothNullOrNot( ISqlNode e1, string n1, ISqlNode e2, string n2 )
         {
             if( (e1 != null) != (e2 != null) )

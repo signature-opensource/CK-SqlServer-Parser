@@ -11,19 +11,20 @@ namespace CK.SqlServer.Parser
 {
     public sealed class SqlParameter : SqlNode, ISqlServerParameter
     {
-        readonly SNode<SqlTypedIdentifier, SqlParameterDefaultValue, SqlTokenIdentifier, SqlTokenIdentifier> _content;
+        readonly SNode<SqlTypedIdentifier, SqlTokenTerminal, SqlBasicValue, SqlTokenIdentifier, SqlTokenIdentifier> _content;
         readonly SqlTokenType _inputTrivia;
 
-        public SqlParameter( SqlTypedIdentifier declVar, SqlParameterDefaultValue defaultValue = null, SqlTokenIdentifier outputT = null, SqlTokenIdentifier readonlyT = null )
+        public SqlParameter( SqlTypedIdentifier declVar, SqlTokenTerminal assignT = null, SqlBasicValue defaultValue = null, SqlTokenIdentifier outputT = null, SqlTokenIdentifier readonlyT = null )
             : base( null, null )
         {
-            _content = new SNode<SqlTypedIdentifier, SqlParameterDefaultValue, SqlTokenIdentifier, SqlTokenIdentifier>( declVar, defaultValue, outputT, readonlyT );
+            _content = new SNode<SqlTypedIdentifier, SqlTokenTerminal, SqlBasicValue, SqlTokenIdentifier, SqlTokenIdentifier>( declVar, assignT, defaultValue, outputT, readonlyT );
             _inputTrivia = CheckContent();
         }
 
         SqlTokenType CheckContent()
         {
             SNode.CheckIsVariable( Variable, nameof( Variable ) );
+            SNode.CheckNullableToken( AssignT, nameof( AssignT ), SqlTokenType.Assign );
             SNode.CheckNullableToken( OutputT, nameof( OutputT ), SqlTokenType.Output );
             SNode.CheckNullableToken( ReadOnlyT, nameof( ReadOnlyT ), SqlTokenType.Readonly );
             return OutputT != null
@@ -43,7 +44,7 @@ namespace CK.SqlServer.Parser
             }
             else
             {
-                _content = new SNode<SqlTypedIdentifier, SqlParameterDefaultValue, SqlTokenIdentifier, SqlTokenIdentifier>( items );
+                _content = new SNode<SqlTypedIdentifier, SqlTokenTerminal, SqlBasicValue, SqlTokenIdentifier, SqlTokenIdentifier>( items );
                 _inputTrivia = CheckContent();
             }
         }
@@ -64,12 +65,14 @@ namespace CK.SqlServer.Parser
 
         public string Name => Variable.Identifier.Name;
 
+        public SqlTokenTerminal AssignT => _content.V2;
+
         /// <summary>
         /// Gets the default value or null if no default are defined.
         /// </summary>
-        public SqlParameterDefaultValue DefaultValue => _content.V2;
+        public SqlBasicValue DefaultValue => _content.V3;
 
-        ISqlServerParameterDefaultValue ISqlServerParameter.DefaultValue => DefaultValue;
+        ISqlServerParameterDefaultValue ISqlServerParameter.DefaultValue => _content.V3;
 
         ISqlServerUnifiedTypeDecl ISqlServerParameter.SqlType => Variable.TypeDecl;
 
@@ -101,14 +104,14 @@ namespace CK.SqlServer.Parser
         /// </summary>
         public bool IsInputOutput => _inputTrivia != SqlTokenType.None;
 
-        public SqlTokenIdentifier OutputT => _content.V3;
+        public SqlTokenIdentifier OutputT => _content.V4;
 
         /// <summary>
         /// Gets whether the parameter is read only.
         /// </summary>
         public bool IsReadOnly => ReadOnlyT != null;
 
-        public SqlTokenIdentifier ReadOnlyT => _content.V4;
+        public SqlTokenIdentifier ReadOnlyT => _content.V5;
 
         public override void WriteWithoutTrivias( ISqlTextWriter w )
         {

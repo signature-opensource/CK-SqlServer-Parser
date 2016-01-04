@@ -84,7 +84,7 @@
             <SelectStatement>
               <SelectSpec />
             </SelectStatement>
-            <Statement StatementName="insert" />
+            <InsertStatement />
             <Statement StatementName="rollback" />
           </StatementList>
         </StoredProcedure>

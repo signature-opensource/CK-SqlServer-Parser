@@ -85,16 +85,15 @@ namespace CK.SqlServer.Parser
         }
 
         /// <summary>
-        /// True if the <see cref="SqlToken"/> is the terminator ; token, an open parenthesis or a 
-        /// an identifier that starts a statement (<see cref="SqlTokenTypeExtension.IsStartStatement(SqlTokenType)"/>.
+        /// True if the <see cref="SqlToken"/> is an open parenthesis or an 
+        /// identifier that starts a statement (<see cref="SqlTokenTypeExtension.IsStartStatement(SqlTokenType)"/>.
         /// </summary>
         /// <param name="t">Token to test.</param>
-        /// <returns>Whether the token is the statement terminator or the possible start of a new statement.</returns>
+        /// <returns>Whether the token is a possible start of a new statement.</returns>
         static public bool IsStatementStopper( SqlToken t )
         {
             if( t == null ) throw new ArgumentNullException( "t" );
-            return t.TokenType == SqlTokenType.SemiColon
-                    || t.TokenType == SqlTokenType.OpenPar
+            return t.TokenType == SqlTokenType.OpenPar
                     || t.TokenType.IsStartStatement();
         }
 
@@ -112,19 +111,19 @@ namespace CK.SqlServer.Parser
         }
 
         /// <summary>
-        /// True if the <see cref="SqlToken"/> is a comma or a closing parenthesis (this ends an element in a list).
+        /// True if the <see cref="SqlToken"/> is the end of the input, a comma, a closing parenthesis 
+        /// or a semicolon (this ends an element in an extended expression).
         /// </summary>
-        /// <param name="t">Potential comma, closing parenthesis.</param>
-        /// <returns>Whether the token is a comma or a closing parenthesis.</returns>
-        static public bool IsCommaOrCloseParenthesis( SqlToken t )
+        /// <param name="t">Potential end of input, comma, closing parenthesis or semicolon.</param>
+        /// <returns>Whether the token ends an extended expression.</returns>
+        static public bool IsEndOfExtendedExpression( SqlToken t )
         {
             if( t == null ) throw new ArgumentNullException( "t" );
-            return t.TokenType == SqlTokenType.EndOfInput 
-                        || t.TokenType == SqlTokenType.Comma 
+            return t.TokenType == SqlTokenType.EndOfInput
+                        || t.TokenType == SqlTokenType.SemiColon
+                        || t.TokenType == SqlTokenType.Comma
                         || t.TokenType == SqlTokenType.ClosePar;
         }
-
-
 
 
         internal static bool IsIdentifierStartChar( int c )
