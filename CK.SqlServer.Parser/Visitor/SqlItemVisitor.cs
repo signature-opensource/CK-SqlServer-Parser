@@ -248,6 +248,16 @@ namespace CK.SqlServer.Parser
             return VisitStandard( e );
         }
 
+        public virtual ISqlNode Visit( SqlUpdateStatement e )
+        {
+            return VisitStandard( e );
+        }
+
+        public virtual ISqlNode Visit( SqlMergeStatement e )
+        {
+            return VisitStandard( e );
+        }
+
         public virtual ISqlNode Visit( SqlTableValues e )
         {
             return VisitStandard( e );
@@ -263,12 +273,22 @@ namespace CK.SqlServer.Parser
             return VisitStandard( e );
         }
 
+        public virtual ISqlNode Visit( SqlOptionParOptions e )
+        {
+            return VisitStandard( e );
+        }
+
         public virtual ISqlNode Visit( SqlWithOptions e )
         {
             return VisitStandard( e );
         }
 
-        public virtual ISqlNode Visit( InsOrUpdHeader e )
+        public virtual ISqlNode Visit( CUDHeader e )
+        {
+            return VisitStandard( e );
+        }
+
+        public virtual ISqlNode Visit( CUDTarget e )
         {
             return VisitStandard( e );
         }
@@ -404,17 +424,17 @@ namespace CK.SqlServer.Parser
             return VisitStandard( e );
         }
 
-        //public virtual ISqlNode Visit( SqlParameterDefaultValue e )
-        //{
-        //    return VisitStandard( e );
-        //}
-
         public virtual ISqlNode Visit( SqlParameterList e )
         {
             return VisitStandard( e );
         }
 
         public virtual ISqlNode Visit( SqlAssign e )
+        {
+            return VisitStandard( e );
+        }
+
+        public virtual ISqlNode Visit( SqlCommaList e )
         {
             return VisitStandard( e );
         }

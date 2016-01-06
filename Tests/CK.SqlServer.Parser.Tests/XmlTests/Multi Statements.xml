@@ -2,6 +2,7 @@
 <Tests>
   <Test>
     <Text>
+      
       CREATE PROCEDURE dbo.InsertUnitMeasure
           @UnitMeasureCode nchar(3),
           @Name nvarchar(25)
@@ -9,9 +10,9 @@
       BEGIN
           SET NOCOUNT ON;
           -- Update the row if it exists.    
-              UPDATE Production.UnitMeasure
-          SET Name = @Name
-          WHERE UnitMeasureCode = @UnitMeasureCode
+          UPDATE Production.UnitMeasure
+              SET Name = @Name
+              WHERE UnitMeasureCode = @UnitMeasureCode
           -- Insert the row if the UPDATE statement failed.
           IF (@@ROWCOUNT = 0 )
           BEGIN
@@ -69,7 +70,43 @@
     </Text>
     <Xml>
       <Statements>
-        
+        <StoredProcedure StatementName="CreateProcedure" HasTerminator="true">
+          <StatementList>
+            <SetOption HasTerminator="true" />
+            <UpdateStatement />
+            <If>
+              <BeginEndBlock StatementName="BeginEnd">
+                <StatementList>
+                  <InsertStatement />
+                </StatementList>
+              </BeginEndBlock>
+            </If>
+          </StatementList>
+        </StoredProcedure>
+        <Statement StatementName="GO" />
+        <ExecuteStatement HasTerminator="true" />
+        <SelectStatement HasTerminator="true">
+          <SelectSpec />
+        </SelectStatement>
+        <Statement StatementName="GO" />
+        <Statement StatementName="CREATE" HasTerminator="true" />
+        <Statement StatementName="GO" />
+        <StoredProcedure StatementName="AlterProcedure" HasTerminator="true">
+          <StatementList>
+            <SetOption HasTerminator="true" />
+            <MergeStatement HasTerminator="true" />
+          </StatementList>
+        </StoredProcedure>
+        <Statement StatementName="GO" />
+        <ExecuteStatement HasTerminator="true" />
+        <ExecuteStatement HasTerminator="true" />
+        <ExecuteStatement HasTerminator="true" />
+        <SelectStatement HasTerminator="true">
+          <SelectSpec />
+        </SelectStatement>
+        <Statement StatementName="DELETE" HasTerminator="true" />
+        <Statement StatementName="DROP" HasTerminator="true" />
+        <Statement StatementName="GO" />
       </Statements>
     </Xml>
   </Test> 
@@ -135,7 +172,7 @@
     <Xml>
       <Statements>
         <DeclareVariable HasTerminator="true" />
-        <Statement StatementName="UPDATE" />
+        <UpdateStatement HasTerminator="true" />
         <SelectStatement HasTerminator="true">
           <SelectSpec />
         </SelectStatement>

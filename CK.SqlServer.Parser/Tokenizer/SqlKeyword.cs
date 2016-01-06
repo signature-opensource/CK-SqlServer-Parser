@@ -46,7 +46,6 @@ namespace CK.SqlServer.Parser
             "key",
             "statistics",
             "system_user",
-            "current",
             "current_date",
             "lineno",
             "tablesample",
@@ -155,6 +154,7 @@ namespace CK.SqlServer.Parser
             // "insensitive",
             // "read",
             // "pivot",
+            // "current",
 
 
         };
@@ -309,6 +309,8 @@ namespace CK.SqlServer.Parser
             _keywords.Add( "undefined", SqlTokenType.Undefined );
             _keywords.Add( "login", SqlTokenType.Login );
             _keywords.Add( "at", SqlTokenType.At );
+            _keywords.Add( "using", SqlTokenType.Using );
+            _keywords.Add( "global", SqlTokenType.Global );
 
             // LogicalOperator (they are reserved keywords).
             _keywords.Add( "or", SqlTokenType.Or );
@@ -379,6 +381,7 @@ namespace CK.SqlServer.Parser
             _keywords.Add( "openquery", SqlTokenType.OpenQuery );
             _keywords.Add( "default", SqlTokenType.Default );
             _keywords.Add( "user", SqlTokenType.User );
+            _keywords.Add( "current", SqlTokenType.Current );
 
             // SqlTokenType.IdentifierReservedStatement values.
             _keywords.Add( "select", SqlTokenType.Select );

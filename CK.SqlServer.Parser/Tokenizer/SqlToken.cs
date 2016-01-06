@@ -71,17 +71,14 @@ namespace CK.SqlServer.Parser
 
 
         /// <summary>
-        /// True if the <see cref="SqlToken"/> is the terminator ; token or a an identifier
-        /// that starts a statement.
+        /// True if the <see cref="SqlToken"/> is the terminator statement ';'.
         /// </summary>
         /// <param name="t">Token to test.</param>
-        /// <returns>Whether the token is the statement terminator or the possible start of a new statement.</returns>
-        static public bool IsCommaOrTerminatorOrPossibleStartStatement( SqlToken t )
+        /// <returns>Whether the token is the statement terminator.</returns>
+        static public bool IsTerminator( SqlToken t )
         {
-            if( t == null ) throw new ArgumentNullException( "t" );
-            return t.TokenType == SqlTokenType.Comma
-                    || t.TokenType == SqlTokenType.SemiColon
-                    || t.TokenType.IsStartStatement();
+            Debug.Assert( t != null );
+            return t.TokenType == SqlTokenType.SemiColon;
         }
 
         /// <summary>

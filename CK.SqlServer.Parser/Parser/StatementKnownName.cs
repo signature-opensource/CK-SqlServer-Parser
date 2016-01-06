@@ -19,6 +19,8 @@ namespace CK.SqlServer.Parser
         Select,
         CTE,
         Insert,
+        Update,
+        Merge,
         Execute,
         ExecuteString,
         CreateView,

@@ -13,8 +13,8 @@ namespace CK.SqlServer.Parser
     {
         readonly SNode<SqlTokenOpenPar, ISqlNode, SqlTokenClosePar> _content;
 
-        public SqlPar( SqlTokenOpenPar opener, ISqlNode content, SqlTokenClosePar closer )
-            : base( null, null )
+        public SqlPar( SqlTokenOpenPar opener, ISqlNode content, SqlTokenClosePar closer, ImmutableList<SqlTrivia> leading = null, ImmutableList<SqlTrivia> trailing = null )
+            : base( leading, trailing )
         {
             _content = new SNode<SqlTokenOpenPar, ISqlNode, SqlTokenClosePar>( opener, content, closer );
             CheckContent();

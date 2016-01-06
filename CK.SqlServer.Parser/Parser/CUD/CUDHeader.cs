@@ -10,24 +10,24 @@ using System.Collections.Immutable;
 namespace CK.SqlServer.Parser
 {
     /// <summary>
-    /// Captures {INSERT|UPDATE} [ TOP ( expression ) [ PERCENT ] ] 
+    /// Captures {INSERT|UPDATE|MERGE|DELETE} [ TOP ( expression ) [ PERCENT ] ] 
     /// </summary>
-    public sealed class InsOrUpdHeader : SqlNode
+    public sealed class CUDHeader : SqlNode
     {
         readonly SNode<SqlTokenIdentifier, SqlTokenIdentifier, ISqlNode, SqlTokenIdentifier> _content;
 
-        public InsOrUpdHeader( SqlTokenIdentifier insOrUpdT, SqlTokenIdentifier top = null, ISqlNode topExpression = null, SqlTokenIdentifier percent = null )
+        public CUDHeader( SqlTokenIdentifier statementT, SqlTokenIdentifier top = null, ISqlNode topExpression = null, SqlTokenIdentifier percent = null )
             : base( null, null )
         {
             _content = new SNode<SqlTokenIdentifier, SqlTokenIdentifier, ISqlNode, SqlTokenIdentifier>(
-                insOrUpdT,
+                statementT,
                 top, 
                 topExpression, 
                 percent );
             CheckContent();
         }
 
-        InsOrUpdHeader( InsOrUpdHeader o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
+        CUDHeader( CUDHeader o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
             : base( leading, trailing )
         {
             if( items == null ) _content = o._content;
@@ -40,12 +40,12 @@ namespace CK.SqlServer.Parser
 
         protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
-            return new InsOrUpdHeader( this, leading, children, trailing );
+            return new CUDHeader( this, leading, children, trailing );
         }
 
         void CheckContent()
         {
-            SNode.CheckToken( InsertOrUpdateT, nameof( InsertOrUpdateT ), SqlTokenType.Insert, SqlTokenType.Update );
+            SNode.CheckToken( StatementT, nameof( StatementT ), SqlTokenType.Insert, SqlTokenType.Update, SqlTokenType.Merge, SqlTokenType.Delete );
             SNode.CheckNullableToken( TopT, nameof( TopT ), SqlTokenType.Top );
             SNode.CheckBothNullOrNot( TopT, nameof( TopT ), TopExpression, nameof(TopExpression) );
             SNode.CheckNullableToken( PercentT, nameof( PercentT ), SqlTokenType.Percent );
@@ -53,7 +53,7 @@ namespace CK.SqlServer.Parser
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
 
-        public SqlTokenIdentifier InsertOrUpdateT => _content.V1;
+        public SqlTokenIdentifier StatementT => _content.V1;
 
         public bool HasTop => _content.V2 != null;
 

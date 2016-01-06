@@ -42,6 +42,13 @@ namespace CK.SqlServer.Parser
             return Util.CreateDisposableAction( () => --_parenthesisDepth );
         }
 
+        public Predicate<SqlToken> GetDepthBasedStopper()
+        {
+            int curDepth = _parenthesisDepth;
+            if( curDepth == 0 ) return SqlToken.IsTerminator;
+            return t => _parenthesisDepth == curDepth ? t.TokenType == SqlTokenType.ClosePar : false;
+        }
+
         public IDisposable SetAssignmentContext( bool assignment )
         {
             if( _assignmentContext == assignment ) return Util.EmptyDisposable;
@@ -126,21 +133,6 @@ namespace CK.SqlServer.Parser
                 CheckPosition();
                 return _c; 
             } 
-        }
-
-        /// <summary>
-        /// Gets the current precedence with a provision of 1 bit.
-        /// </summary>
-        /// <remarks>
-        /// This uses <see cref="SqlTokenType.OpLevelMask"/> and <see cref="SqlTokenType.OpLevelShift"/>.
-        /// </remarks>
-        public int CurrentPrecedenceLevel
-        {
-            get 
-            {
-                CheckPosition();
-                return SqlTokenizer.PrecedenceLevel( _c.TokenType ); 
-            }
         }
 
         /// <summary>

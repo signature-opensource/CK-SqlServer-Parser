@@ -12,7 +12,7 @@
   <Test Mode="OneExpression">
     <Text>24.98</Text>
     <Xml CombineElementType="true">
-      <Sql Type="LiteralDecimal">24.98</Sql>
+      <Sql EType="LiteralDecimal">24.98</Sql>
     </Xml>
   </Test>
 

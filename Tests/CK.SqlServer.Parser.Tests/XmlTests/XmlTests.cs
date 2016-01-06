@@ -87,6 +87,8 @@ namespace CK.SqlServer.Parser.Tests.XmlTests
         [TestCase( "CTE.xml" )]
         [TestCase( "Multi Statements.xml" )]
         [TestCase( "Insert.xml" )]
+        [TestCase( "OpenXml.xml" )]
+        [TestCase( "Update.xml" )]
         public void file_test( string fileName )
         {
             using( TestHelper.ConsoleMonitor.OpenInfo().Send( $"Running {fileName}." ) )

@@ -5,18 +5,18 @@
     <Text>1 or 2 or 3 or 4</Text>
     <Description>Multiple binary 'or' operators.</Description>
     <Xml CombineElementType="true">
-      <Sql Type="BinaryOperator">
-        <Left Type="BinaryOperator">
-            <Left Type="BinaryOperator">
-                <Left Type="LiteralInteger">1</Left>
-                <Operator Type="Identifier" IsReservedKeyword="true">or</Operator>
-                <Right Type="LiteralInteger">2</Right>
+      <Sql EType="BinaryOperator">
+        <Left EType="BinaryOperator">
+            <Left EType="BinaryOperator">
+                <Left EType="LiteralInteger">1</Left>
+                <Operator EType="Identifier" IsReservedKeyword="true">or</Operator>
+                <Right EType="LiteralInteger">2</Right>
             </Left>
-            <Operator Type="Identifier" IsReservedKeyword="true">or</Operator>
-            <Right Type="LiteralInteger">3</Right>
+            <Operator EType="Identifier" IsReservedKeyword="true">or</Operator>
+            <Right EType="LiteralInteger">3</Right>
         </Left >
-        <Operator Type="Identifier" IsReservedKeyword="true">or</Operator>
-        <Right Type="LiteralInteger">4</Right>
+        <Operator EType="Identifier" IsReservedKeyword="true">or</Operator>
+        <Right EType="LiteralInteger">4</Right>
       </Sql>
     </Xml>
   </Test>
@@ -25,17 +25,17 @@
     <Text>1 and 2 or 3 and 4</Text>
     <Description>Binary operator 'and' has a higher priority than 'or'.</Description>
     <Xml CombineElementType="true">
-      <Sql Type="BinaryOperator">
-        <Left Type="BinaryOperator">
-          <Left Type="LiteralInteger">1</Left>
-          <Operator Type="Identifier" IsReservedKeyword="true">and</Operator>
-          <Right Type="LiteralInteger">2</Right>
+      <Sql EType="BinaryOperator">
+        <Left EType="BinaryOperator">
+          <Left EType="LiteralInteger">1</Left>
+          <Operator EType="Identifier" IsReservedKeyword="true">and</Operator>
+          <Right EType="LiteralInteger">2</Right>
         </Left>
-        <Operator Type="Identifier" IsReservedKeyword="true">or</Operator>
-        <Right Type="BinaryOperator">
-          <Left Type="LiteralInteger">3</Left>
-          <Operator Type="Identifier" IsReservedKeyword="true">and</Operator>
-          <Right Type="LiteralInteger">4</Right>
+        <Operator EType="Identifier" IsReservedKeyword="true">or</Operator>
+        <Right EType="BinaryOperator">
+          <Left EType="LiteralInteger">3</Left>
+          <Operator EType="Identifier" IsReservedKeyword="true">and</Operator>
+          <Right EType="LiteralInteger">4</Right>
         </Right>
       </Sql>
     </Xml>

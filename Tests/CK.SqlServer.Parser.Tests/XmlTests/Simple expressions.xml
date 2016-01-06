@@ -150,10 +150,10 @@
     <Text>4 + 5</Text>
     <Description>Simple addition.</Description>
     <Xml CombineElementType="true">
-      <Sql Type="BinaryOperator">
-        <Left Type="LiteralInteger">4</Left>
-        <Operator Type="Terminal">+</Operator>
-        <Right Type="LiteralInteger">5</Right>
+      <Sql EType="BinaryOperator">
+        <Left EType="LiteralInteger">4</Left>
+        <Operator EType="Terminal">+</Operator>
+        <Right EType="LiteralInteger">5</Right>
       </Sql>
     </Xml>
   </Test>
@@ -162,11 +162,11 @@
     <Text>(4 + 5)</Text>
     <Description>Expresion inside parenthesis.</Description>
     <Xml CombineElementType="true">
-      <Sql Type="Par">
-        <Content Type="BinaryOperator">
-          <Left Type="LiteralInteger">4</Left>
-          <Operator Type="Terminal">+</Operator>
-          <Right Type="LiteralInteger">5</Right>
+      <Sql EType="Par">
+        <Content EType="BinaryOperator">
+          <Left EType="LiteralInteger">4</Left>
+          <Operator EType="Terminal">+</Operator>
+          <Right EType="LiteralInteger">5</Right>
         </Content>
       </Sql>
     </Xml>
@@ -176,13 +176,13 @@
     <Text>(4 + ((5)))</Text>
     <Description>Multiple parenthesis.</Description>
     <Xml CombineElementType="true">
-      <Sql Type="Par">
-        <Content Type="BinaryOperator">
-          <Left Type="LiteralInteger">4</Left>
-          <Operator Type="Terminal">+</Operator>
-          <Right Type="Par">
-            <Content Type="Par">
-              <Content Type="LiteralInteger">5</Content>
+      <Sql EType="Par">
+        <Content EType="BinaryOperator">
+          <Left EType="LiteralInteger">4</Left>
+          <Operator EType="Terminal">+</Operator>
+          <Right EType="Par">
+            <Content EType="Par">
+              <Content EType="LiteralInteger">5</Content>
             </Content>
           </Right>
         </Content>
@@ -194,13 +194,13 @@
   <Text>-10+2</Text>
     <Description>Unary minus operator with +: additive precedence.</Description>
     <Xml CombineElementType="true">
-      <Sql Type="BinaryOperator">
-        <Left Type="UnaryOperator">
-          <Operator Type="Terminal">-</Operator>
-          <Right Type="LiteralInteger">10</Right>
+      <Sql EType="BinaryOperator">
+        <Left EType="UnaryOperator">
+          <Operator EType="Terminal">-</Operator>
+          <Right EType="LiteralInteger">10</Right>
         </Left>
-        <Operator Type="Terminal">+</Operator>
-        <Right Type="LiteralInteger">2</Right>
+        <Operator EType="Terminal">+</Operator>
+        <Right EType="LiteralInteger">2</Right>
       </Sql>
     </Xml>
   </Test>
@@ -209,13 +209,13 @@
     <Text>-10.89-2e4</Text>
     <Description>Unary minus operator with -: additive precedence.</Description>
     <Xml CombineElementType="true">
-      <Sql Type="BinaryOperator">
-        <Left Type="UnaryOperator">
-          <Operator Type="Terminal">-</Operator>
-          <Right Type="LiteralDecimal">10.89</Right>
+      <Sql EType="BinaryOperator">
+        <Left EType="UnaryOperator">
+          <Operator EType="Terminal">-</Operator>
+          <Right EType="LiteralDecimal">10.89</Right>
         </Left>
-        <Operator Type="Terminal">-</Operator>
-        <Right Type="LiteralFloat">2e4</Right>
+        <Operator EType="Terminal">-</Operator>
+        <Right EType="LiteralFloat">2e4</Right>
       </Sql>
     </Xml>
   </Test>
@@ -224,12 +224,12 @@
     <Text>-1*2</Text>
     <Description>Unary minus operator with *: additive precedence.</Description>
     <Xml CombineElementType="true">
-      <Sql Type="UnaryOperator">
-        <Operator Type="Terminal">-</Operator>
-        <Right Type="BinaryOperator">
-          <Left Type="LiteralInteger">1</Left>
-          <Operator Type="Terminal">*</Operator>
-          <Right Type="LiteralInteger">2</Right>
+      <Sql EType="UnaryOperator">
+        <Operator EType="Terminal">-</Operator>
+        <Right EType="BinaryOperator">
+          <Left EType="LiteralInteger">1</Left>
+          <Operator EType="Terminal">*</Operator>
+          <Right EType="LiteralInteger">2</Right>
         </Right>
       </Sql>
     </Xml>
@@ -239,17 +239,17 @@
     <Text>-1*2+3</Text>
     <Description>Unary minus operator with */+: additive precedence.</Description>
     <Xml CombineElementType="true">
-      <Sql Type="BinaryOperator">
-        <Left Type="UnaryOperator">
-          <Operator Type="Terminal">-</Operator>
-          <Right Type="BinaryOperator">
-            <Left Type="LiteralInteger">1</Left>
-            <Operator Type="Terminal">*</Operator>
-            <Right Type="LiteralInteger">2</Right>
+      <Sql EType="BinaryOperator">
+        <Left EType="UnaryOperator">
+          <Operator EType="Terminal">-</Operator>
+          <Right EType="BinaryOperator">
+            <Left EType="LiteralInteger">1</Left>
+            <Operator EType="Terminal">*</Operator>
+            <Right EType="LiteralInteger">2</Right>
           </Right>
         </Left>
-        <Operator Type="Terminal">+</Operator>
-        <Right Type="LiteralInteger">3</Right>
+        <Operator EType="Terminal">+</Operator>
+        <Right EType="LiteralInteger">3</Right>
       </Sql>
     </Xml>
   </Test>
@@ -300,5 +300,100 @@
       </Sql>
     </Xml>
   </Test>
+
+  <Test Mode="OneExpression">
+    <Text>
+      ( (((('U' COLLATE greek_ci_as)))) + (((( ((LatinCol)) COLLATE greek_ci_as)))) ) + GreekCol  + 'P'
+    </Text>
+    <Description>Conacatenation, parenthesis and collate operator.</Description>
+    <Xml>
+      <Sql>
+        <BinaryOperator>
+          <Left>
+            <BinaryOperator>
+              <Left>
+                <Par>
+                  <Content>
+                    <BinaryOperator>
+                      <Left>
+                        <Par>
+                          <Content>
+                            <Par>
+                              <Content>
+                                <Par>
+                                  <Content>
+                                    <Par>
+                                      <Content>
+                                        <Collate CollationName="greek_ci_as">
+                                          <Left>
+                                            <LiteralString>'U'</LiteralString>
+                                          </Left>
+                                        </Collate>
+                                      </Content>
+                                    </Par>
+                                  </Content>
+                                </Par>
+                              </Content>
+                            </Par>
+                          </Content>
+                        </Par>
+                      </Left>
+                      <Operator>
+                        <Terminal>+</Terminal>
+                      </Operator>
+                      <Right>
+                        <Par>
+                          <Content>
+                            <Par>
+                              <Content>
+                                <Par>
+                                  <Content>
+                                    <Par>
+                                      <Content>
+                                        <Collate CollationName="greek_ci_as">
+                                          <Left>
+                                            <Par>
+                                              <Content>
+                                                <Par>
+                                                  <Content>
+                                                    <Identifier>LatinCol</Identifier>
+                                                  </Content>
+                                                </Par>
+                                              </Content>
+                                            </Par>
+                                          </Left>
+                                        </Collate>
+                                      </Content>
+                                    </Par>
+                                  </Content>
+                                </Par>
+                              </Content>
+                            </Par>
+                          </Content>
+                        </Par>
+                      </Right>
+                    </BinaryOperator>
+                  </Content>
+                </Par>
+              </Left>
+              <Operator>
+                <Terminal>+</Terminal>
+              </Operator>
+              <Right>
+                <Identifier>GreekCol</Identifier>
+              </Right>
+            </BinaryOperator>
+          </Left>
+          <Operator>
+            <Terminal>+</Terminal>
+          </Operator>
+          <Right>
+            <LiteralString>'P'</LiteralString>
+          </Right>
+        </BinaryOperator>
+      </Sql>
+    </Xml>
+  </Test>
+
 
 </Tests>

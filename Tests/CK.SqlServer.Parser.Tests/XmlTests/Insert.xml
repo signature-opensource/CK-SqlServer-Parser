@@ -3,6 +3,43 @@
 
   <Test>
     <Text>
+      INSERT INTO Production.ZeroInventory (DeletedProductID, RemovedOnDate)
+      SELECT ProductID, GETDATE()
+      FROM
+      (
+          MERGE Production.ProductInventory AS pi
+              USING (
+                      SELECT ProductID, SUM(OrderQty) FROM Sales.SalesOrderDetail AS sod
+                      JOIN Sales.SalesOrderHeader AS soh 
+                                      ON sod.SalesOrderID = soh.SalesOrderID AND soh.OrderDate = '20070401'
+                      GROUP BY ProductID
+                     ) 
+                  AS src (ProductID, OrderQty) ON (pi.ProductID = src.ProductID)
+            WHEN MATCHED AND pi.Quantity - src.OrderQty &lt;= 0 THEN DELETE
+            WHEN MATCHED THEN UPDATE SET pi.Quantity = pi.Quantity - src.OrderQty
+            OUTPUT $action, deleted.ProductID
+      ) AS Changes (Action, ProductID)
+      WHERE Action = 'DELETE';
+      
+      IF @@ROWCOUNT = 0 PRINT 'Warning: No rows were inserted';
+    </Text>
+    <Description></Description>
+    <Xml>
+      <Statements>
+        <InsertStatement HasTerminator="true">
+          <SelectSpec>
+            <SelectSpec />
+          </SelectSpec>
+        </InsertStatement>
+        <If>
+          <Statement StatementName="PRINT" HasTerminator="true" />
+        </If>
+      </Statements>
+    </Xml>
+  </Test>
+
+  <Test>
+    <Text>
       INSERT INTO dbo.EmployeeSales
       SELECT 'SELECT', sp.BusinessEntityID, c.LastName, sp.SalesYTD
         FROM Sales.SalesPerson AS sp
@@ -30,9 +67,9 @@
     <Xml>
       <Sql>
         <InsertStatement HasTerminator="true">
-          <Into>
+          <Target>
             <Identifier>T1</Identifier>
-          </Into>
+          </Target>
           <Values>
             <NodeList>
               <Item>
@@ -57,9 +94,9 @@
     <Xml>
       <Sql>
         <InsertStatement>
-          <Into>
+          <Target>
             <Identifier>Cities</Identifier>
-          </Into>
+          </Target>
           <Columns>
             <EnclosedIdentifierCommaList>
               <Item>
@@ -107,9 +144,9 @@
     <Xml>
       <Sql>
         <InsertStatement HasTerminator="true">
-         <Into>
+         <Target>
            <MultiIdentifier>Production.UnitMeasure</MultiIdentifier>
-         </Into>
+         </Target>
          <Values>
            <TableValues>
              <Values>
@@ -145,9 +182,9 @@
     <Xml>
       <Sql>
         <InsertStatement HasTerminator="true">
-          <Into>
+          <Target>
             <MultiIdentifier>Production.UnitMeasure</MultiIdentifier>
-          </Into>
+          </Target>
           <Values>
             <TableValues>
               <Values>
@@ -210,9 +247,9 @@
     <Xml>
       <Sql>
         <InsertStatement HasTerminator="true">
-          <Into>
+          <Target>
             <MultiIdentifier>dbo.EmployeeSales</MultiIdentifier>
-          </Into>
+          </Target>
           <Values>
             <ExecuteStatement>
               <Name>dbo.uspGetEmployeeSales</Name>
@@ -236,9 +273,9 @@
     <Xml>
       <Sql>
         <InsertStatement HasTerminator="true">
-          <Into>
+          <Target>
             <Identifier>myTable</Identifier>
-          </Into>
+          </Target>
           <Columns>
             <EnclosedIdentifierCommaList>
               <Item>
@@ -301,16 +338,16 @@
     <Xml>
       <Sql>
         <InsertStatement HasTerminator="true">
-          <Top>
+          <Top Percent="true">
             <Par>
               <Content>
                 <LiteralInteger>5</LiteralInteger>
               </Content>
             </Par>
           </Top>
-          <Into>
+          <Target>
             <MultiIdentifier>dbo.EmployeeSales</MultiIdentifier>
-          </Into>
+          </Target>
           <OutputClause>
             <OutputClause>
               <Columns>
@@ -414,9 +451,9 @@
     <Xml>
       <Sql>
         <InsertStatement>
-          <Into>
+          <Target>
             <MultiIdentifier>MyLinkServer.AdventureWorks2012.HumanResources.Department</MultiIdentifier>
-          </Into>
+          </Target>
           <Columns>
             <EnclosedIdentifierCommaList>
               <Item>
@@ -459,7 +496,7 @@
     <Xml>
       <Sql>
         <InsertStatement HasTerminator="true">
-          <Into>
+          <Target>
             <KoCall FunName="OPENQUERY">
               <Parameters>
                 <EnclosedCommaList>
@@ -472,7 +509,7 @@
                 </EnclosedCommaList>
               </Parameters>
             </KoCall>
-          </Into>
+          </Target>
           <Values>
             <TableValues>
               <Values>
@@ -507,9 +544,9 @@
     <Xml>
       <Sql>
         <InsertStatement HasTerminator="true">
-          <Into>
+          <Target>
             <MultiIdentifier IsOpenDataSouce="true">OPENDATASOURCE('SQLNCLI', 'Data Source= server_name; Integrated Security=SSPI').AdventureWorks2012.HumanResources.Department</MultiIdentifier>
-          </Into>
+          </Target>
           <Columns>
             <EnclosedIdentifierCommaList>
               <Item>
@@ -611,17 +648,10 @@
     <Xml>
       <Sql>
         <InsertStatement>
-          <Into>
+          <Target>
             <Identifier IsVariable="true">@table</Identifier>
-          </Into>
-          <Columns>
-            <EnclosedIdentifierCommaList>
-              <Item>
-                <Identifier>Name</Identifier>
-              </Item>
-            </EnclosedIdentifierCommaList>
-          </Columns>
-          <Options>
+          </Target>
+          <WithTableHints>
             <WithParOptions>
               <Item>
                 <Identifier>XLOCK</Identifier>
@@ -630,7 +660,14 @@
                 <Identifier>IGNORE_TRIGGERS</Identifier>
               </Item>
             </WithParOptions>
-          </Options>
+          </WithTableHints>
+          <Columns>
+            <EnclosedIdentifierCommaList>
+              <Item>
+                <Identifier>Name</Identifier>
+              </Item>
+            </EnclosedIdentifierCommaList>
+          </Columns>
           <Values>
             <SelectSpec>
               <Columns>
@@ -662,9 +699,9 @@
     <Xml>
       <Sql>
         <InsertStatement HasTerminator="true">
-          <Into>
+          <Target>
             <MultiIdentifier>Production.ScrapReason</MultiIdentifier>
-          </Into>
+          </Target>
           <OutputClause>
             <OutputClause TargetTable="@MyTableVar">
               <Columns>
@@ -746,43 +783,6 @@
 
   <Test>
     <Text>
-      INSERT INTO Production.ZeroInventory (DeletedProductID, RemovedOnDate)
-      SELECT ProductID, GETDATE()
-      FROM
-      (
-          MERGE Production.ProductInventory AS pi
-              USING (
-                      SELECT ProductID, SUM(OrderQty) FROM Sales.SalesOrderDetail AS sod
-                      JOIN Sales.SalesOrderHeader AS soh 
-                                      ON sod.SalesOrderID = soh.SalesOrderID AND soh.OrderDate = '20070401'
-                      GROUP BY ProductID
-                     ) 
-                  AS src (ProductID, OrderQty) ON (pi.ProductID = src.ProductID)
-            WHEN MATCHED AND pi.Quantity - src.OrderQty &lt;= 0 THEN DELETE
-            WHEN MATCHED THEN UPDATE SET pi.Quantity = pi.Quantity - src.OrderQty
-            OUTPUT $action, deleted.ProductID
-      ) AS Changes (Action, ProductID)
-      WHERE Action = 'DELETE';
-      
-      IF @@ROWCOUNT = 0 PRINT 'Warning: No rows were inserted';
-    </Text>
-    <Description></Description>
-    <Xml>
-      <Statements>
-        <InsertStatement HasTerminator="true">
-          <SelectSpec>
-            <SelectSpec />
-          </SelectSpec>
-        </InsertStatement>
-        <If>
-          <Statement StatementName="PRINT" HasTerminator="true" />
-        </If>
-      </Statements>
-    </Xml>
-  </Test>
-
-  <Test>
-    <Text>
       --INSERT...EXECUTE('string') example
       INSERT INTO dbo.EmployeeSales
         EXECUTE
@@ -798,9 +798,9 @@
     <Xml>
       <Sql>
         <InsertStatement HasTerminator="true">
-          <Into>
+          <Target>
             <MultiIdentifier>dbo.EmployeeSales</MultiIdentifier>
-          </Into>
+          </Target>
           <Values>
             <ExecuteStringStatement>
               <Arguments>

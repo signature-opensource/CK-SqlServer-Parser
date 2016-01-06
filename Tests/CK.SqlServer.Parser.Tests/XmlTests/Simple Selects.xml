@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <Tests>
-  
+
   <Test Mode="OneExpression">
     <Text>select 1</Text>
     <Description>Simplest select.</Description>
@@ -229,5 +229,321 @@
     </Xml>
   </Test>
 
+  <Test Mode="OneExpression">
+    <Text>
+      SELECT ROW_NUMBER() OVER(PARTITION BY PostalCode ORDER BY SalesYTD DESC) AS RowNumber from table
+    </Text>
+    <Description>Select in parenthesis.</Description>
+    <Xml>
+      <Sql>
+        <SelectSpec>
+          <Columns>
+            <SelectColumnList>
+              <Item>
+                <SelectColumn ColumnName="RowNumber">
+                  <Definition>
+                    <KoCall FunName="ROW_NUMBER">
+                      <Parameters>
+                        <EnclosedCommaList />
+                      </Parameters>
+                      <OverClause>
+                        <OverClause>
+                          <OverT>
+                            <Identifier IsReservedKeyword="true">OVER</Identifier>
+                          </OverT>
+                          <OverContent>
+                            <NodeList>
+                              <Item>
+                                <Identifier>PARTITION</Identifier>
+                              </Item>
+                              <Item>
+                                <Identifier IsReservedKeyword="true">BY</Identifier>
+                              </Item>
+                              <Item>
+                                <Identifier>PostalCode</Identifier>
+                              </Item>
+                              <Item>
+                                <Identifier IsReservedKeyword="true">ORDER</Identifier>
+                              </Item>
+                              <Item>
+                                <Identifier IsReservedKeyword="true">BY</Identifier>
+                              </Item>
+                              <Item>
+                                <Identifier>SalesYTD</Identifier>
+                              </Item>
+                              <Item>
+                                <Identifier IsReservedKeyword="true">DESC</Identifier>
+                              </Item>
+                            </NodeList>
+                          </OverContent>
+                        </OverClause>
+                      </OverClause>
+                    </KoCall>
+                  </Definition>
+                </SelectColumn>
+              </Item>
+            </SelectColumnList>
+          </Columns>
+          <From>from table</From>
+        </SelectSpec>
+      </Sql>
+    </Xml>
+  </Test>
 
+
+  <Test Mode="OneExpression">
+    <Text>
+      SELECT ProductID,
+             'Qty' = OrderQty,
+             Kilo + 'gramme' AS Total,
+             "Percent by Product" = 3712 + 1234,
+             [The total] = SUM( Cost )
+      FROM Sales.SalesOrderDetail
+      WHERE SalesOrderID IN(43659,43664)
+    </Text>
+    <Description>All kind of column names.</Description>
+    <Xml>
+      <Sql>
+        <SelectSpec>
+          <Columns>
+            <SelectColumnList>
+              <Item>
+                <SelectColumn>
+                  <Definition>
+                    <Identifier>ProductID</Identifier>
+                  </Definition>
+                </SelectColumn>
+              </Item>
+              <Item>
+                <SelectColumn ColumnName="'Qty'">
+                  <Definition>
+                    <Identifier>OrderQty</Identifier>
+                  </Definition>
+                </SelectColumn>
+              </Item>
+              <Item>
+                <SelectColumn ColumnName="Total">
+                  <Definition>
+                    <BinaryOperator>
+                      <Left>
+                        <Identifier>Kilo</Identifier>
+                      </Left>
+                      <Operator>
+                        <Terminal>+</Terminal>
+                      </Operator>
+                      <Right>
+                        <LiteralString>'gramme'</LiteralString>
+                      </Right>
+                    </BinaryOperator>
+                  </Definition>
+                </SelectColumn>
+              </Item>
+              <Item>
+                <SelectColumn ColumnName="&quot;Percent by Product&quot;">
+                  <Definition>
+                    <BinaryOperator>
+                      <Left>
+                        <LiteralInteger>3712</LiteralInteger>
+                      </Left>
+                      <Operator>
+                        <Terminal>+</Terminal>
+                      </Operator>
+                      <Right>
+                        <LiteralInteger>1234</LiteralInteger>
+                      </Right>
+                    </BinaryOperator>
+                  </Definition>
+                </SelectColumn>
+              </Item>
+              <Item>
+                <SelectColumn ColumnName="[The total]">
+                  <Definition>
+                    <KoCall FunName="SUM">
+                      <Parameters>
+                        <EnclosedCommaList>
+                          <Item>
+                            <Identifier>Cost</Identifier>
+                          </Item>
+                        </EnclosedCommaList>
+                      </Parameters>
+                    </KoCall>
+                  </Definition>
+                </SelectColumn>
+              </Item>
+            </SelectColumnList>
+          </Columns>
+          <From>FROM Sales.SalesOrderDetail</From>
+          <WhereExpression>
+            <InValues>
+              <Left>
+                <Identifier>SalesOrderID</Identifier>
+              </Left>
+              <InT>
+                <Identifier IsReservedKeyword="true">IN</Identifier>
+              </InT>
+              <Values>
+                <EnclosedCommaList>
+                  <Item>
+                    <LiteralInteger>43659</LiteralInteger>
+                  </Item>
+                  <Item>
+                    <LiteralInteger>43664</LiteralInteger>
+                  </Item>
+                </EnclosedCommaList>
+              </Values>
+            </InValues>
+          </WhereExpression>
+        </SelectSpec>
+      </Sql>
+    </Xml>
+  </Test>
+  
+  <Test Mode="OneExpression">
+    <Text>
+     Select id as ID,
+            GreekCol COLLATE latin1_general_ci_as as T11,
+            LatinCol COLLATE greek_ci_as as [collate]
+            from TestTab11
+    UNION
+	   Select id as ID,
+			  T11 = GreekCol COLLATE latin1_general_ci_as,
+			  LatinCol
+			  from TestTab12
+	  UNION
+       Select id as ID,
+              GreekCol COLLATE latin1_general_ci_as + LatinCol,
+              LatinCol + GreekCol COLLATE greek_ci_as
+              from TestTab12
+	  UNION
+       Select id as ID,
+              GreekCol + LatinCol COLLATE latin1_general_ci_as,
+              LatinCol COLLATE greek_ci_as + GreekCol COLLATE greek_ci_as
+              from TestTab12
+	  UNION
+       Select id as ID,
+              GreekCol + LatinCol COLLATE latin1_general_ci_as,
+              Fake
+              from TestTab12
+    </Text>
+    <Description>Multiple select combination.</Description>
+    <Xml CombineElementType="true">
+      <Sql EType="SelectCombine" SelectType="UnionDistinct">
+        <Left EType="SelectCombine" SelectType="UnionDistinct">
+          <Left EType="SelectCombine" SelectType="UnionDistinct">
+            <Left EType="SelectCombine" SelectType="UnionDistinct">
+              <Left EType="SelectSpec">
+                <Columns EType="SelectColumnList">
+                  <Item EType="SelectColumn" ColumnName="ID">
+                    <Definition EType="Identifier">id</Definition>
+                  </Item>
+                  <Item EType="SelectColumn" ColumnName="T11">
+                    <Definition EType="Collate" CollationName="latin1_general_ci_as">
+                      <Left EType="Identifier">GreekCol</Left>
+                    </Definition>
+                  </Item>
+                  <Item EType="SelectColumn" ColumnName="[collate]">
+                    <Definition EType="Collate" CollationName="greek_ci_as">
+                      <Left EType="Identifier">LatinCol</Left>
+                    </Definition>
+                  </Item>
+                </Columns>
+                <From>from TestTab11</From>
+              </Left>
+              <Right EType="SelectSpec">
+                <Columns EType="SelectColumnList">
+                  <Item EType="SelectColumn" ColumnName="ID">
+                    <Definition EType="Identifier">id</Definition>
+                  </Item>
+                  <Item EType="SelectColumn" ColumnName="T11">
+                    <Definition EType="Collate" CollationName="latin1_general_ci_as">
+                      <Left EType="Identifier">GreekCol</Left>
+                    </Definition>
+                  </Item>
+                  <Item EType="SelectColumn">
+                    <Definition EType="Identifier">LatinCol</Definition>
+                  </Item>
+                </Columns>
+                <From>from TestTab12</From>
+              </Right>
+            </Left>
+            <Right EType="SelectSpec">
+              <Columns EType="SelectColumnList">
+                <Item EType="SelectColumn" ColumnName="ID">
+                  <Definition EType="Identifier">id</Definition>
+                </Item>
+                <Item EType="SelectColumn">
+                  <Definition EType="BinaryOperator">
+                    <Left EType="Collate" CollationName="latin1_general_ci_as">
+                      <Left EType="Identifier">GreekCol</Left>
+                    </Left>
+                    <Operator EType="Terminal">+</Operator>
+                    <Right EType="Identifier">LatinCol</Right>
+                  </Definition>
+                </Item>
+                <Item EType="SelectColumn">
+                  <Definition EType="BinaryOperator">
+                    <Left EType="Identifier">LatinCol</Left>
+                    <Operator EType="Terminal">+</Operator>
+                    <Right EType="Collate" CollationName="greek_ci_as">
+                      <Left EType="Identifier">GreekCol</Left>
+                    </Right>
+                  </Definition>
+                </Item>
+              </Columns>
+              <From>from TestTab12</From>
+            </Right>
+          </Left>
+          <Right EType="SelectSpec">
+            <Columns EType="SelectColumnList">
+              <Item EType="SelectColumn" ColumnName="ID">
+                <Definition EType="Identifier">id</Definition>
+              </Item>
+              <Item EType="SelectColumn">
+                <Definition EType="BinaryOperator">
+                  <Left EType="Identifier">GreekCol</Left>
+                  <Operator EType="Terminal">+</Operator>
+                  <Right EType="Collate" CollationName="latin1_general_ci_as">
+                    <Left EType="Identifier">LatinCol</Left>
+                  </Right>
+                </Definition>
+              </Item>
+              <Item EType="SelectColumn">
+                <Definition EType="BinaryOperator">
+                  <Left EType="Collate" CollationName="greek_ci_as">
+                    <Left EType="Identifier">LatinCol</Left>
+                  </Left>
+                  <Operator EType="Terminal">+</Operator>
+                  <Right EType="Collate" CollationName="greek_ci_as">
+                    <Left EType="Identifier">GreekCol</Left>
+                  </Right>
+                </Definition>
+              </Item>
+            </Columns>
+            <From>from TestTab12</From>
+          </Right>
+        </Left>
+        <Right EType="SelectSpec">
+          <Columns EType="SelectColumnList">
+            <Item EType="SelectColumn" ColumnName="ID">
+              <Definition EType="Identifier">id</Definition>
+            </Item>
+            <Item EType="SelectColumn">
+              <Definition EType="BinaryOperator">
+                <Left EType="Identifier">GreekCol</Left>
+                <Operator EType="Terminal">+</Operator>
+                <Right EType="Collate" CollationName="latin1_general_ci_as">
+                  <Left EType="Identifier">LatinCol</Left>
+                </Right>
+              </Definition>
+            </Item>
+            <Item EType="SelectColumn">
+              <Definition EType="Identifier">Fake</Definition>
+            </Item>
+          </Columns>
+          <From>from TestTab12</From>
+        </Right>
+      </Sql>
+    </Xml>
+  </Test>
+  
 </Tests>

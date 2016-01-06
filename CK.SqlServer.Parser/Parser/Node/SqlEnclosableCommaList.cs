@@ -19,8 +19,8 @@ namespace CK.SqlServer.Parser
         /// Initializes a new <see cref="SqlEnclosableCommaList"/>.
         /// </summary>
         /// <param name="content">Items and comma tokens.</param>
-        public SqlEnclosableCommaList( SqlTokenOpenPar openPar, IEnumerable<ISqlNode> content, SqlTokenClosePar closePar )
-            : base( 0, openPar, content, closePar )
+        public SqlEnclosableCommaList( SqlTokenOpenPar openPar, IEnumerable<ISqlNode> content, SqlTokenClosePar closePar, ImmutableList<SqlTrivia> leading = null, ImmutableList<SqlTrivia> trailing = null )
+            : base( 0, openPar, content, closePar, leading, trailing )
         {
         }
 
@@ -33,6 +33,15 @@ namespace CK.SqlServer.Parser
         {
             return new SqlEnclosableCommaList( this, leading, children, trailing );
         }
+
+        public ISqlNode Enclose( SqlTokenOpenPar opener, SqlTokenClosePar closer )
+        {
+            if( opener == null ) throw new ArgumentNullException( nameof( opener ) );
+            if( closer == null ) throw new ArgumentNullException( nameof( closer ) );
+            if( IsEnclosed ) return new SqlPar( opener, this, closer, LeadingTrivias, TrailingTrivias );
+            return new SqlEnclosableCommaList( opener, ChildrenNodes, closer, LeadingTrivias, TrailingTrivias );
+        }
+
         
         [DebuggerStepThrough]
         internal protected override ISqlNode Accept( SqlItemVisitor visitor ) => visitor.Visit( this );

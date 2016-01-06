@@ -15,7 +15,26 @@ namespace CK.SqlServer.Parser
         /// Reads a <see cref="SqlNodeList"/> until a stopper is found.
         /// </summary>
         /// <typeparam name="T">Stopper type.</typeparam>
-        /// <param name="e"></param>
+        /// <param name="stopperDefinition"></param>
+        /// <param name="matcher"></param>
+        /// <param name="minCount"></param>
+        /// <returns></returns>
+        SqlNodeList IsSqlNodeList<T>( Predicate<T> stopperDefinition = null, Func<bool, ISqlNode> matcher = null, int minCount = 0 ) where T : SqlToken
+        {
+            List<ISqlNode> items = new List<ISqlNode>();
+            if( !R.CollectUntil( items, matcher, stopperDefinition ) ) return null;
+            if( items.Count < minCount )
+            {
+                R.SetCurrentError( "Expected at least {0} item(s).", minCount );
+                return null;
+            }
+            return items.Count > 0 ? new SqlNodeList( items ) : SqlNodeList.Empty;
+        }
+
+        /// <summary>
+        /// Reads a <see cref="SqlNodeList"/> until a stopper is found.
+        /// </summary>
+        /// <typeparam name="T">Stopper type.</typeparam>
         /// <param name="stopper"></param>
         /// <param name="stopperDefinition"></param>
         /// <param name="matcher"></param>
@@ -23,14 +42,12 @@ namespace CK.SqlServer.Parser
         /// <returns></returns>
         SqlNodeList IsSqlNodeList<T>( out T stopper, Predicate<T> stopperDefinition = null, Func<bool, ISqlNode> matcher = null, int minCount = 0 ) where T : SqlToken
         {
-            List<ISqlNode> items = new List<ISqlNode>();
-            if( !R.CollectUntil<T>( items, out stopper, matcher, stopperDefinition ) ) return null;
-            if( items.Count < minCount )
-            {
-                R.SetCurrentError( "Expected at least {0} item(s).", minCount );
-                return null;
-            }
-            return items.Count > 0 ? new SqlNodeList( items ) : SqlNodeList.Empty;
+            stopper = null;
+            SqlNodeList result = IsSqlNodeList( stopperDefinition, matcher, minCount );
+            if( result == null ) return null;
+            stopper = (T)R.Current;
+            R.MoveNext();
+            return result;
         }
 
         /// <summary>
@@ -122,6 +139,13 @@ namespace CK.SqlServer.Parser
             List<ISqlNode> items = new List<ISqlNode>();
             if( !R.CollectCommaList( items, matcher, minCount ) ) return null;
             return listCreator( items );
+        }
+
+        SqlCommaList IsCommaList( int minCount, Func<bool, ISqlNode> matcher )
+        {
+            List<ISqlNode> items = new List<ISqlNode>();
+            if( !R.CollectCommaList( items, matcher, minCount ) ) return null;
+            return new SqlCommaList( items );
         }
 
         T IsPrefixedCommaList<T, TPrefix, TItem>( TPrefix prefix, int minCount, Func<bool, TItem> matcher, Func<TPrefix, IEnumerable<ISqlNode>, T> listCreator )

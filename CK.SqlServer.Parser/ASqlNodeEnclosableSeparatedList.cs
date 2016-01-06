@@ -65,17 +65,15 @@ namespace CK.SqlServer.Parser
             int minCount,
             TOpener opener,
             IEnumerable<ISqlNode> content, 
-            TCloser closer )
+            TCloser closer, 
+            ImmutableList<SqlTrivia> leading = null, 
+            ImmutableList<SqlTrivia> trailing = null )
             : this( null, 
                     minCount,
-                    null, 
+                    leading, 
                     opener != null ? BuildEnclosed( null, opener, content, closer ) : content, 
-                    null )
+                    trailing )
         {
-            if( (opener == null) != (closer == null) )
-            {
-                throw new ArgumentException( "Opener and closer must be both null or not null." );
-            }
         }
 
         static internal ISqlNode[] BuildEnclosed( ISqlNode prefix, TOpener opener, IEnumerable<ISqlNode> content, TCloser closer )

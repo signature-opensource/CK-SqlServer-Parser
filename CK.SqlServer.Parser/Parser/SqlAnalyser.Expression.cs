@@ -24,7 +24,7 @@ namespace CK.SqlServer.Parser
             while( !R.IsErrorOrEndOfInput
                     && ((R.Current.TokenType == SqlTokenType.Not && SqlTokenizer.PrecedenceLevel( SqlTokenType.OpNotRightLevel ) > rightBindingPower)
                         ||
-                        (R.Current.TokenType != SqlTokenType.Not && R.CurrentPrecedenceLevel > rightBindingPower)) )
+                        (R.Current.TokenType != SqlTokenType.Not && SqlTokenizer.PrecedenceLevel( R.Current.TokenType ) > rightBindingPower)) )
             {
                 if( !ExpressionCombineLed( ref e ) ) break;
             }
@@ -48,10 +48,9 @@ namespace CK.SqlServer.Parser
                 || R.Current.TokenType == SqlTokenType.BitwiseNot
                 || R.Current.TokenType == SqlTokenType.Not )
             {
-                int precedenceLevel = R.CurrentPrecedenceLevel;
                 SqlToken op = R.Read<SqlToken>();
                 ISqlNode right;
-                if( (right = IsExpression( precedenceLevel, true )) == null ) return null;
+                if( (right = IsExpression( SqlTokenizer.PrecedenceLevel( op.TokenType ), true )) == null ) return null;
                 return new SqlUnaryOperator( op, right );
             }
             if( R.Current.TokenType == SqlTokenType.Mult )
@@ -70,6 +69,12 @@ namespace CK.SqlServer.Parser
                 if( content == null ) return null;
                 SqlTokenClosePar closer;
                 if( !R.IsToken( out closer, true ) ) return null;
+                // Lifts a SqlEnclosable that is not enclosed instead of a (Encloseable).
+                SqlEnclosableCommaList enclosed = content as SqlEnclosableCommaList;
+                if( enclosed != null && !enclosed.IsEnclosed )
+                {
+                    return enclosed.Enclose( opener, closer );
+                }
                 return new SqlPar( opener, content, closer );
             }
             if( (R.Current.TokenType & SqlTokenType.IsIdentifier) != 0 )
@@ -77,23 +82,15 @@ namespace CK.SqlServer.Parser
                 SqlTokenIdentifier id = R.Read<SqlTokenIdentifier>();
                 if( id.TokenType == SqlTokenType.Select )
                 {
-                    SelectSpec select;
-                    if( !MatchSelectSpecification( out select, id ) )
-                    {
-                        Debug.Assert( R.IsError );
-                        return null;
-                    }
-                    return select;
+                    return MatchSelectSpecification( id );
+                }
+                if( id.TokenType == SqlTokenType.Insert )
+                {
+                    return MatchInsertStatement( id );
                 }
                 if( id.TokenType == SqlTokenType.Case )
                 {
-                    SqlCase caseExpr;
-                    if( !MatchCaseExpression( out caseExpr, id ) )
-                    {
-                        Debug.Assert( R.IsError );
-                        return null;
-                    }
-                    return caseExpr;
+                    return MatchCaseExpression( id );
                 }
                 if( id.TokenType == SqlTokenType.Next )
                 {
@@ -128,7 +125,7 @@ namespace CK.SqlServer.Parser
         /// </summary>
         bool ExpressionCombineLed( ref ISqlNode left )
         {
-            int precedenceLevel = R.CurrentPrecedenceLevel;
+            int precedenceLevel = SqlTokenizer.PrecedenceLevel( R.Current.TokenType );
             if( R.Current.TokenType == SqlTokenType.Comma )
             {
                 Debug.Assert( !(left is SqlEnclosableCommaList) );
@@ -183,16 +180,12 @@ namespace CK.SqlServer.Parser
             }
             if( (R.Current.TokenType & SqlTokenType.IsAssignOperator) != 0 )
             {
-                if( !(left is ISqlIdentifier) ) return R.SetCurrentError( "Unexpected '='. Assignment must follow an identifier." );
-                else
+                SqlTokenTerminal assign = R.Read<SqlTokenTerminal>();
+                ISqlNode right;
+                using( R.SetAssignmentContext( false ) )
                 {
-                    SqlTokenTerminal assign = R.Read<SqlTokenTerminal>();
-                    ISqlNode right;
-                    using( R.SetAssignmentContext( false ) )
-                    {
-                        if( (right = IsExpression( precedenceLevel, true )) == null ) return false;
-                        left = new SqlAssign( (ISqlIdentifier)left, assign, right );
-                    }
+                    if( (right = IsExpression( precedenceLevel, true )) == null ) return false;
+                    left = new SqlAssign( left, assign, right );
                 }
                 return true;
             }
@@ -338,27 +331,26 @@ namespace CK.SqlServer.Parser
             return true;
         }
 
-        bool MatchCaseExpression( out SqlCase e, SqlTokenIdentifier caseToken )
+        SqlCase MatchCaseExpression( SqlTokenIdentifier caseToken )
         {
-            e = null;
             ISqlNode exprSimple = null;
             SqlTokenIdentifier whenToken;
             if( !R.IsToken( out whenToken, SqlTokenType.When, false ) )
             {
                 // Simple case.
-                if( (exprSimple = IsExpression( 0, true )) == null ) return false;
-                if( !R.IsToken( out whenToken, SqlTokenType.When, true ) ) return false;
+                if( (exprSimple = IsOneExpression( true )) == null ) return null;
+                if( !R.IsToken( out whenToken, SqlTokenType.When, true ) ) return null;
             }
             Debug.Assert( whenToken != null );
             var whenItems = new List<SqlCaseWhenSelector>();
             do
             {
                 ISqlNode expr;
-                if( (expr = IsExpression( 0, true )) == null ) return false;
+                if( (expr = IsOneExpression( true )) == null ) return null;
                 SqlTokenIdentifier thenToken;
-                if( !R.IsToken( out thenToken, SqlTokenType.Then, true ) ) return false;
+                if( !R.IsToken( out thenToken, SqlTokenType.Then, true ) ) return null;
                 ISqlNode exprValue;
-                if( (exprValue = IsExpression( 0, true )) == null ) return false;
+                if( (exprValue = IsOneExpression( true )) == null ) return null;
                 whenItems.Add( new SqlCaseWhenSelector( whenToken, expr, thenToken, exprValue ) );
             }
             while( R.IsToken( out whenToken, SqlTokenType.When, false ) );
@@ -368,13 +360,12 @@ namespace CK.SqlServer.Parser
             SqlTokenIdentifier elseToken;
             if( R.IsToken( out elseToken, SqlTokenType.Else, false ) )
             {
-                if( (exprElse = IsExpression( 0, true )) == null ) return false;
+                if( (exprElse = IsOneExpression( true )) == null ) return null;
             }
             SqlTokenIdentifier endToken;
-            if( !R.IsToken( out endToken, SqlTokenType.End, true ) ) return false;
+            if( !R.IsToken( out endToken, SqlTokenType.End, true ) ) return null;
 
-            e = new SqlCase( caseToken, exprSimple, whenList, elseToken, exprElse, endToken );
-            return true;
+            return new SqlCase( caseToken, exprSimple, whenList, elseToken, exprElse, endToken );
         }
 
 
@@ -388,6 +379,11 @@ namespace CK.SqlServer.Parser
             return IsExpression( SqlTokenizer.PrecedenceLevel( SqlTokenType.Comma ), expected );
         }
 
+        public ISqlNode IsExtendedExpression( bool expected )
+        {
+            return IsExtendedExpression( expected, true );
+        }
+
         /// <summary>
         /// An extended expression is one expression or a list (a <see cref="SqlNodeList"/>) of 
         /// tokens or expressions.
@@ -395,9 +391,9 @@ namespace CK.SqlServer.Parser
         /// </summary>
         /// <param name="expected">True to set an error if no expression exist.</param>
         /// <returns>One expression, a <see cref="SqlNodeList"/> or null.</returns>
-        public ISqlNode IsExtendedExpression( bool expected )
+        public ISqlNode IsExtendedExpression( bool expected, bool allowLeadingStatement )
         {
-            bool stopOnStatement = !expected && R.ParenthesisDepth == 0;
+            bool stopOnStatement = !allowLeadingStatement;  //!expected && R.ParenthesisDepth == 0;
             List<ISqlNode> items = new List<ISqlNode>();
             while( !R.IsErrorOrEndOfInput 
                 && !SqlToken.IsEndOfExtendedExpression( R.Current )
@@ -428,16 +424,38 @@ namespace CK.SqlServer.Parser
         /// </summary>
         /// <param name="expected">True to set an error if no expression exist.</param>
         /// <returns>Any expression or null.</returns>
-        ISqlNode IsAnyExpression( bool expected )
+        ISqlNode IsAnyExpression( bool expected, bool allowLeadingStatement = true )
         {
-            var e = IsEnclosableCommaList( expected );
-            if( e == null ) return null;
-            if( e.Count == 1 )
+            ISqlNode item = IsExtendedExpression( expected, allowLeadingStatement );
+            if( item == null ) return null;
+            SqlTokenComma comma;
+            if( R.IsToken( out comma, false ) )
             {
-                if( e.IsEnclosed ) return new SqlPar( e.Opener, e[0], e.Closer );
-                return e[0];
+                List<ISqlNode> items = new List<ISqlNode>();
+                items.Add( item );
+                do
+                {
+                    items.Add( comma );
+                    if( (item = IsExtendedExpression( true )) == null )
+                    {
+                        if( !R.IsError ) R.SetCurrentError( "Expected extended expression." );
+                        return null;
+                    }
+                    items.Add( item );
+                }
+                while( R.IsToken( out comma, false ) );
+                return new SqlEnclosableCommaList( null, items, null );
             }
-            return e;
+            return item;
+            //if( R.Current.TokenType == SqlTokenType.OpenPar ) return IsExpression( 0, expected );
+            //var e = IsEnclosableCommaList( expected );
+            //if( e == null ) return null;
+            //if( e.Count == 1 )
+            //{
+            //    if( e.IsEnclosed ) return new SqlPar( e.Opener, e[0], e.Closer );
+            //    return e[0];
+            //}
+            //return e;
         }
 
         //=========================================

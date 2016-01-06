@@ -62,31 +62,6 @@ namespace CK.SqlServer.Parser.Tests
                               )" );
         }
         
-        [Test]
-        public void WindowingFunctions()
-        {
-            string s;
-
-            s = @"SELECT ROW_NUMBER() OVER(PARTITION BY PostalCode ORDER BY SalesYTD DESC) AS RowNumber from table";
-            Check( s, "[SELECT-(RowNumber-AS-call:ROW_NUMBER()OVER[¤{PARTITION-BY-PostalCode-ORDER-BY-SalesYTD-DESC}¤])-from[table]]" );
-
-            s = @"SELECT SalesOrderID, ProductID, OrderQty,
-                        SUM(OrderQty) OVER(PARTITION BY SalesOrderID) AS Total,
-                        ""PercentByProductID"" = CAST(1. * OrderQty / SUM(OrderQty) OVER(PARTITION BY SalesOrderID)*100 AS DECIMAL(5,2))
-                  FROM Sales.SalesOrderDetail 
-                  WHERE SalesOrderID IN(43659,43664)";
-            Check( s, @"[SELECT-( 
-                                    SalesOrderID, 
-                                    ProductID, 
-                                    OrderQty,
-                                    Total-AS-call:SUM(OrderQty)OVER[¤{PARTITION-BY-SalesOrderID}¤],
-                                    ""PercentByProductID""-=-(DECIMAL-(-5-,-2-))[[[[1.*OrderQty]/call:SUM(OrderQty)OVER[¤{PARTITION-BY-SalesOrderID}¤]]*100]]
-                                )
-                               -from[Sales.SalesOrderDetail]
-                               -where[In(SalesOrderID∈{43659,43664})]
-                        ]" );
-
-        }
 
         [Test]
         public void CollationTests() 
@@ -394,15 +369,15 @@ namespace CK.SqlServer.Parser.Tests
                         else print 2, 9, 'toto';" );
 
             var x = XElement.Parse( @"
-                <Sql Type=""SqlIf"">
+                <Sql EType=""SqlIf"">
                     <T>if @i is null print '1'; else print 2, 9, 'toto';</T>
-                    <Condition Type=""SqlIsNull"">
+                    <Condition EType=""SqlIsNull"">
                         <T>@i is null</T>
                     </Condition>
-                    <ThenStatement Type=""SqlUnmodeledStatement"">
+                    <ThenStatement EType=""SqlUnmodeledStatement"">
 
                     </ThenStatement>
-                    <ElseStatement Type=""SqlUnmodeledStatement"">
+                    <ElseStatement EType=""SqlUnmodeledStatement"">
 
                     </ElseStatement>
                 </Sql>" );

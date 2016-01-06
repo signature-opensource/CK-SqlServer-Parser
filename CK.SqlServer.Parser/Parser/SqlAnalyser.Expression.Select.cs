@@ -10,18 +10,17 @@ namespace CK.SqlServer.Parser
 {
     public partial class SqlAnalyser
     {
-        bool MatchSelectSpecification( out SelectSpec e, SqlTokenIdentifier select )
+        SelectSpec MatchSelectSpecification( SqlTokenIdentifier select )
         {
-            e = null;
             SelectHeader header;
-            if( !MatchSelectHeader( out header, select ) ) return false;
+            if( !MatchSelectHeader( out header, select ) ) return null;
             SelectColumnList columns = IsCommaList( 0, IsSelectColumn, i => new SelectColumnList( i ) );
-            if( columns == null ) return false;
+            if( columns == null ) return null;
 
             SpecificationPart c = ToSpecificationPart( R.Current );
             if( c == SpecificationPart.None )
             {
-                e = new SelectSpec( header, columns );
+                return new SelectSpec( header, columns );
             }
             else
             {
@@ -34,7 +33,7 @@ namespace CK.SqlServer.Parser
                 {
                     SqlTokenIdentifier partName = R.Read<SqlTokenIdentifier>();
                     ISqlIdentifier table = IsIdentifier( true );
-                    if( table == null ) return false;
+                    if( table == null ) return null;
                     into = new SelectInto( partName, table );
                     c = ToSpecificationPart( R.Current );
                 }
@@ -42,7 +41,7 @@ namespace CK.SqlServer.Parser
                 {
                     SqlTokenIdentifier partName = R.Read<SqlTokenIdentifier>();
                     ISqlNode content = InternalIsExtendedExpression( true, SelectPartStopper );
-                    if( content == null ) return false;
+                    if( content == null ) return null;
                     from = new SelectFrom( partName, content );
                     c = ToSpecificationPart( R.Current );
                 }
@@ -50,7 +49,7 @@ namespace CK.SqlServer.Parser
                 {
                     whereT = R.Read<SqlTokenIdentifier>();
                     whereExpression = IsOneExpression( true );
-                    if( whereExpression == null ) return false;
+                    if( whereExpression == null ) return null;
                     c = ToSpecificationPart( R.Current );
                 }
                 if( c == SpecificationPart.Group )
@@ -60,18 +59,17 @@ namespace CK.SqlServer.Parser
                     ISqlNode content;
                     SqlTokenIdentifier having;
                     ISqlNode havingClause = null;
-                    if( !R.IsToken( out by, SqlTokenType.By, true ) ) return false;
-                    if( (content = InternalIsExtendedExpression( true, SelectPartStopper )) == null ) return false;
+                    if( !R.IsToken( out by, SqlTokenType.By, true ) ) return null;
+                    if( (content = InternalIsExtendedExpression( true, SelectPartStopper )) == null ) return null;
                     if( R.IsToken( out having, SqlTokenType.Having, false ) )
                     {
-                        if( (havingClause = IsOneExpression( true )) == null ) return false;
+                        if( (havingClause = IsOneExpression( true )) == null ) return null;
                     }
                     groupBy = new SelectGroupBy( partName, by, content, having, havingClause );
                     c = ToSpecificationPart( R.Current );
                 }
-                e = new SelectSpec( header, columns, into, from, whereT, whereExpression, groupBy );
+                return new SelectSpec( header, columns, into, from, whereT, whereExpression, groupBy );
             }
-            return true;
         }
 
         SelectColumn IsSelectColumn( bool expected )

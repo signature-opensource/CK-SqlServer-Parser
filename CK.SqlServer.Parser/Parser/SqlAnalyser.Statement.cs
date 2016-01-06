@@ -12,7 +12,7 @@ namespace CK.SqlServer.Parser
     public partial class SqlAnalyser
     {
         /// <summary>
-        /// A named statement.
+        /// A named statement or any expression considered as a <see cref="SqlUnnamedStatement"/>.
         /// </summary>
         /// <param name="expected"></param>
         /// <returns></returns>
@@ -20,6 +20,7 @@ namespace CK.SqlServer.Parser
         {
             ISqlStatement e = IsNamedStatement( false );
             if( e != null || R.IsErrorOrEndOfInput ) return e;
+            if( R.Current.TokenType == SqlTokenType.End ) return null;
             ISqlNode n = IsAnyExpression( expected );
             if( n == null ) return null;
             return n.UnPar is ISelectSpecification 
@@ -137,6 +138,11 @@ namespace CK.SqlServer.Parser
                 ISqlNode value = IsOneExpression( false );
                 return R.IsError ? null : new SqlReturnStatement( id, value, GetOptionalTerminator() );
             }
+            if( id.TokenType == SqlTokenType.Execute )
+            {
+                R.MoveNext();
+                return MatchExecute( id, false );
+            }
             if( id.TokenType == SqlTokenType.Goto )
             {
                 R.MoveNext();
@@ -180,38 +186,17 @@ namespace CK.SqlServer.Parser
             if( id.TokenType == SqlTokenType.Insert )
             {
                 R.MoveNext();
-                InsOrUpdHeader header = MatchInsOrUpdHeader( id );
-                if( header == null ) return null;
-
-                SqlTokenIdentifier intoT;
-                R.IsToken( out intoT, SqlTokenType.Into, false );
-
-                ISqlNode target;
-                ISqlIdentifier targetId = IsIdentifier( true );
-                if( targetId == null ) return null;
-                if( targetId.IsToken( SqlTokenType.OpenRowSet )
-                    || targetId.IsToken( SqlTokenType.OpenQuery ) )
-                {
-                    SqlEnclosedCommaList parameters = IsEnclosedCommaList( true );
-                    if( parameters == null ) return null;
-                    target = new SqlKoCall( targetId, parameters );
-                }
-                else target = targetId;
-
-                SqlWithParOptions options = IsIdentifierPrefixedCommaList( false, SqlTokenType.With, 1, IsExtendedExpression, (p,o,i,c) => new SqlWithParOptions( p, o, i, c ) );
-
-                SqlEnclosedIdentifierCommaList columns = IsEnclosedCommaList( false, 1, IsIdentifier, ( o, i, c ) => new SqlEnclosedIdentifierCommaList( o, i, c ) );
-
-                SqlOutputClause outputClause = IsOutputClause( false );
-
-                ISqlNode values = null;
-                SqlTokenIdentifier execT;
-                if( R.IsToken( out execT, SqlTokenType.Execute, false ) )
-                {
-                    values = MatchExecute( execT, true );
-                }
-                else values = IsExtendedExpression( true );
-                return new SqlInsertStatement( header, intoT, target, options, columns, outputClause, values, GetOptionalTerminator() );
+                return MatchInsertStatement( id );
+            }
+            if( id.TokenType == SqlTokenType.Merge )
+            {
+                R.MoveNext();
+                return MatchMergeStatement( id );
+            }
+            if( id.TokenType == SqlTokenType.Update )
+            {
+                R.MoveNext();
+                return MatchUpdateStatement( id );
             }
             if( id.TokenType == SqlTokenType.Declare )
             {
@@ -282,6 +267,175 @@ namespace CK.SqlServer.Parser
             R.MoveNext();
             R.MoveNext();
             return new SqlLabelDefinition( id, colon );
+        }
+
+        SqlInsertStatement MatchInsertStatement( SqlTokenIdentifier id )
+        {
+            CUDHeader header = MatchCUDHeader( id );
+            if( header == null ) return null;
+
+            SqlTokenIdentifier intoT;
+            R.IsToken( out intoT, SqlTokenType.Into, false );
+
+            CUDTarget target = MatchCUDTarget();
+            if( target == null ) return null;
+
+            SqlEnclosedIdentifierCommaList columns = IsEnclosedCommaList( false, 1, IsIdentifier, ( o, i, c ) => new SqlEnclosedIdentifierCommaList( o, i, c ) );
+            if( R.IsError ) return null;
+
+            SqlOutputClause outputClause = IsOutputClause( false );
+            if( R.IsError ) return null;
+
+            ISqlNode values = null;
+            SqlTokenIdentifier execT;
+            if( R.IsToken( out execT, SqlTokenType.Execute, false ) )
+            {
+                values = MatchExecute( execT, true );
+            }
+            else values = IsAnyExpression( true );
+            if( values == null ) return null;
+            return new SqlInsertStatement( header, intoT, target, columns, outputClause, values, GetOptionalTerminator() );
+        }
+
+        CUDHeader MatchCUDHeader( SqlTokenIdentifier id )
+        {
+            SqlTokenIdentifier top = null;
+            ISqlNode topExpression = null;
+            SqlTokenIdentifier percent = null;
+            if( R.IsToken( out top, SqlTokenType.Top, false ) )
+            {
+                if( (topExpression = IsOneExpression( true )) == null ) return null;
+                R.IsToken( out percent, SqlTokenType.Percent, false );
+            }
+            return new CUDHeader( id, top, topExpression, percent );
+        }
+
+        CUDTarget MatchCUDTarget()
+        {
+            ISqlIdentifier targetId = IsIdentifier( true );
+            if( targetId == null ) return null;
+            ISqlNode target;
+            if( targetId.IsToken( SqlTokenType.OpenRowSet )
+                || targetId.IsToken( SqlTokenType.OpenQuery ) )
+            {
+                SqlEnclosedCommaList parameters = IsEnclosedCommaList( true );
+                if( parameters == null ) return null;
+                target = new SqlKoCall( targetId, parameters );
+            }
+            else target = targetId;
+            SqlWithParOptions withTableHints = IsIdentifierPrefixedCommaList( false, SqlTokenType.With, 1, IsExtendedExpression, ( p, o, i, c ) => new SqlWithParOptions( p, o, i, c ) );
+            return R.IsError ? null : new CUDTarget( target, withTableHints );
+        }
+
+        SqlUpdateStatement MatchUpdateStatement( SqlTokenIdentifier id )
+        {
+            CUDHeader header = MatchCUDHeader( id );
+            if( header == null ) return null;
+
+            CUDTarget target = MatchCUDTarget();
+            if( target == null ) return null;
+
+            SqlTokenIdentifier setT;
+            if( !R.IsToken( out setT, SqlTokenType.Set, true ) ) return null;
+
+            SqlCommaList assigns = IsCommaList( 1, IsUpdateSetAssign );
+            if( assigns == null ) return null;
+
+            SqlOutputClause outputClause = IsOutputClause( false );
+            if( R.IsError ) return null;
+
+            SelectFrom from = IsFrom( false );
+            if( R.IsError ) return null;
+
+            SqlTokenIdentifier whereT;
+            ISqlNode whereExpression = null;
+            if( R.IsToken( out whereT, SqlTokenType.Where, false ) )
+            {
+                SqlTokenIdentifier currentT;
+                if( R.IsToken( out currentT, SqlTokenType.Current, false ) )
+                {
+                    SqlTokenIdentifier ofT;
+                    SqlTokenIdentifier globalT = null;
+                    ISqlIdentifier cursorName = null;
+                    if( !R.IsToken( out ofT, SqlTokenType.Of, true ) ) return null;
+                    R.IsToken( out globalT, SqlTokenType.Global, false );
+                    cursorName = IsIdentifier( true );
+                    if( cursorName == null ) return null;
+                    whereExpression = globalT != null 
+                                        ? new SqlNodeList( currentT, ofT, globalT, cursorName )
+                                        : new SqlNodeList( currentT, ofT, cursorName );
+                }
+                else whereExpression = IsOneExpression( true );
+            }
+
+            SqlOptionParOptions options = IsIdentifierPrefixedCommaList( false, SqlTokenType.Option, 1, IsExtendedExpression, ( p, o, i, c ) => new SqlOptionParOptions( p, o, i, c ) ); 
+
+            return new SqlUpdateStatement( header, target, setT, assigns, outputClause, from, whereT, whereExpression, options, GetOptionalTerminator() );
+        }
+
+        SelectFrom IsFrom( bool expected )
+        {
+            SqlTokenIdentifier fromT;
+            if( !R.IsToken( out fromT, SqlTokenType.From, expected ) ) return null;
+            ISqlNode content = IsSqlNodeList<SqlToken>( SelectPartStopper, IsOneExpression, 1 );
+            if( content == null ) return null;
+            return new SelectFrom( fromT, content );
+        }
+
+        ISqlNode IsUpdateSetAssign( bool expected )
+        {
+            using( R.SetAssignmentContext( true ) )
+            {
+                ISqlNode safeExpr;
+                if( R.Current.TokenType == SqlTokenType.From
+                    || R.Current.TokenType == SqlTokenType.Where
+                    || R.Current.TokenType == SqlTokenType.Option
+                    || R.Current.TokenType == SqlTokenType.Output
+                    || R.Current.TokenType == SqlTokenType.SemiColon
+                    || (R.ParenthesisDepth == 0 && SqlToken.IsStatementStopper( R.Current ))
+                    || (safeExpr = IsOneExpression( false )) == null
+                    || !(safeExpr is SqlAssign || safeExpr is SqlKoCall) )
+                {
+                    if( expected ) R.SetCurrentError( "Expected assignment or call." );
+                    return null;
+                }
+                return safeExpr;
+            }
+        }
+
+        SqlMergeStatement MatchMergeStatement( SqlTokenIdentifier id )
+        {
+            CUDHeader header = MatchCUDHeader( id );
+            if( header == null ) return null;
+
+            SqlTokenIdentifier intoT;
+            R.IsToken( out intoT, SqlTokenType.Into, false );
+
+            ISqlIdentifier targetTable = IsIdentifier( true );
+
+            SqlWithParOptions withMergeHints = IsIdentifierPrefixedCommaList( false, SqlTokenType.With, 1, IsExtendedExpression, ( p, o, i, c ) => new SqlWithParOptions( p, o, i, c ) );
+
+            SqlTokenIdentifier asT = null;
+            SqlTokenIdentifier targetAliasName = null;
+            SqlTokenIdentifier usingT;
+            if( !R.IsToken( out usingT, SqlTokenType.Using, false ) )
+            {
+                R.IsToken( out asT, SqlTokenType.As, false );
+                if( !R.IsToken( out targetAliasName, true ) ) return null;
+            }
+            if( !R.IsToken( out usingT, SqlTokenType.Using, true ) ) return null;
+
+            // We cannot use IsAnyExpression here since on top level, 
+            // we hit the WHEN NOT MATCHED THEN INSERT clause (note: the insert here has no target table)
+            // that ends the AnyExpression (same for THEN UPDATE SET and THEN DELETE).
+            // But, since MERGE statement MUST end with a ; (or is enclosed), we can collect 
+            // every token until ; or ).
+            // And we can not match IsOneExpression inside because INSERT/UPDATE/DELETE have not the same syntax
+            // as their regular statement.
+            ISqlNode unmodeledRemaider = IsSqlNodeList( R.GetDepthBasedStopper() );
+            if( unmodeledRemaider == null ) return null;
+
+            return new SqlMergeStatement( header, intoT, targetTable, withMergeHints, asT, targetAliasName, usingT, unmodeledRemaider, GetOptionalTerminator() );
         }
 
         ISqlNamedStatement MatchExecute( SqlTokenIdentifier execT, bool ignoreTerminator )
@@ -378,12 +532,15 @@ namespace CK.SqlServer.Parser
             SqlTokenIdentifier variable = null;
             if( R.Current.TokenType == SqlTokenType.IdentifierVariable )
             {
-                variable = R.Read<SqlTokenIdentifier>();
-                if( R.IsToken( out assignT, false ) )
+                using( R.SetAssignmentContext( true ) )
                 {
-                    name = variable;
-                    variable = null;
-                    expected = true;
+                    variable = R.Read<SqlTokenIdentifier>();
+                    if( R.IsToken( out assignT, SqlTokenType.Assign, false ) )
+                    {
+                        name = variable;
+                        variable = null;
+                        expected = true;
+                    }
                 }
             }
             if( R.Current.TokenType == SqlTokenType.Default )
@@ -402,19 +559,6 @@ namespace CK.SqlServer.Parser
             SqlBasicValue value = IsBasicValue( expected );
             if( value == null ) return null;
             return new SqlCallParameter( name, assignT, value );
-        }
-
-        InsOrUpdHeader MatchInsOrUpdHeader( SqlTokenIdentifier id )
-        {
-            SqlTokenIdentifier top = null;
-            ISqlNode topExpression = null;
-            SqlTokenIdentifier percent = null;
-            if( R.IsToken( out top, SqlTokenType.Top, false ) )
-            {
-                if( (topExpression = IsOneExpression( true )) == null ) return null;
-                R.IsToken( out percent, SqlTokenType.Percent, false );
-            }
-            return new InsOrUpdHeader( id, top, topExpression, percent );
         }
 
         SqlOutputClause IsOutputClause( bool expected )
@@ -459,7 +603,7 @@ namespace CK.SqlServer.Parser
 
         ISqlNamedStatement IsStatementStartedByIdentifier( SqlTokenIdentifier id )
         {
-            var content = IsAnyExpression( false );
+            var content = IsAnyExpression( false, false );
             if( content == null )
             {
                 if( R.IsError ) return null;

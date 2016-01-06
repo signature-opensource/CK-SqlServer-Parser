@@ -5,10 +5,10 @@
     <Text>1 between 2 and 3</Text>
     <Description>Simple between expression.</Description>
     <Xml CombineElementType="true">
-      <Sql Type="Between">
-        <Left Type="LiteralInteger">1</Left>
-        <Start Type="LiteralInteger">2</Start>
-        <Stop Type="LiteralInteger">3</Stop>
+      <Sql EType="Between">
+        <Left EType="LiteralInteger">1</Left>
+        <Start EType="LiteralInteger">2</Start>
+        <Stop EType="LiteralInteger">3</Stop>
       </Sql>
     </Xml>
   </Test>
@@ -17,10 +17,10 @@
     <Text>1 not between 2 and 3</Text>
     <Description>Not between: a Between where IsNotBetween is true.</Description>
     <Xml CombineElementType="true">
-      <Sql Type="Between" IsNotBetween="true">
-        <Left Type="LiteralInteger">1</Left>
-        <Start Type="LiteralInteger">2</Start>
-        <Stop Type="LiteralInteger">3</Stop>
+      <Sql EType="Between" IsNotBetween="true">
+        <Left EType="LiteralInteger">1</Left>
+        <Start EType="LiteralInteger">2</Start>
+        <Stop EType="LiteralInteger">3</Stop>
       </Sql>
     </Xml>
   </Test>
@@ -29,25 +29,25 @@
     <Text> 1=0 or 50 between 49 and 51 or 10&lt;&gt;10</Text>
     <Description>Between with 'or'.</Description>
     <Xml CombineElementType="true">
-      <Sql Type="BinaryOperator">
-        <Left Type="BinaryOperator">
-          <Left Type="BinaryOperator">
-            <Left Type="LiteralInteger">1</Left>
-            <Operator Type="Terminal">=</Operator>
-            <Right Type="LiteralInteger">0</Right>
+      <Sql EType="BinaryOperator">
+        <Left EType="BinaryOperator">
+          <Left EType="BinaryOperator">
+            <Left EType="LiteralInteger">1</Left>
+            <Operator EType="Terminal">=</Operator>
+            <Right EType="LiteralInteger">0</Right>
           </Left>
-          <Operator Type="Identifier" IsReservedKeyword="true">or</Operator>
-          <Right Type="Between">
-            <Left Type="LiteralInteger">50</Left>
-            <Start Type="LiteralInteger">49</Start>
-            <Stop Type="LiteralInteger">51</Stop>
+          <Operator EType="Identifier" IsReservedKeyword="true">or</Operator>
+          <Right EType="Between">
+            <Left EType="LiteralInteger">50</Left>
+            <Start EType="LiteralInteger">49</Start>
+            <Stop EType="LiteralInteger">51</Stop>
           </Right>
         </Left>
-        <Operator Type="Identifier" IsReservedKeyword="true">or</Operator>
-        <Right Type="BinaryOperator">
-          <Left Type="LiteralInteger">10</Left>
-          <Operator Type="Terminal">&lt;&gt;</Operator>
-          <Right Type="LiteralInteger">10</Right>
+        <Operator EType="Identifier" IsReservedKeyword="true">or</Operator>
+        <Right EType="BinaryOperator">
+          <Left EType="LiteralInteger">10</Left>
+          <Operator EType="Terminal">&lt;&gt;</Operator>
+          <Right EType="LiteralInteger">10</Right>
         </Right>
       </Sql>
     </Xml>

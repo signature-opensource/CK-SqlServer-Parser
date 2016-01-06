@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Tests>
+
+  <Test>
+    <Text>
+      UPDATE dbo.Table1
+      SET c2 = c2 + d2
+      FROM dbo.Table2
+      WHERE CURRENT OF abc;
+    </Text>
+    <Description>Current of a cursor.</Description>
+    <Xml>
+      <Sql>
+      </Sql>
+    </Xml>
+  </Test>
+
+  
+</Tests>

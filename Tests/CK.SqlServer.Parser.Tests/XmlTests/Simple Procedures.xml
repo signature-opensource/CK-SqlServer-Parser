@@ -3,6 +3,41 @@
   
   <Test>
     <Text>
+      alter procedure sStrange -- funny one
+      as
+      begin
+        begin tran
+        print 1+2
+        (select D = GETUTCDATE())
+        (((select U = USER_NAME())))
+        insert into _t$a@#b values(1)
+        rollback
+      end
+    </Text>
+    <Description>The 2 select statements are correctly detected (and not eaten by the 'print').</Description>
+    <Xml>
+      <Statements>
+        <StoredProcedure StatementName="AlterProcedure">
+          <StatementList>
+            <BeginTransaction />
+            <Statement StatementName="print" />
+            <SelectStatement>
+              <SelectSpec />
+            </SelectStatement>
+            <SelectStatement>
+              <SelectSpec />
+            </SelectStatement>
+            <InsertStatement />
+            <Statement StatementName="rollback" />
+          </StatementList>
+        </StoredProcedure>
+      </Statements>
+    </Xml>
+  </Test>
+  
+  
+  <Test>
+    <Text>
       -- Version = 1.0.0, Package = TestMe
       create procedure sProcWithoutTerminator
       (
@@ -58,38 +93,4 @@
     </Xml>
   </Test>
 
-  <Test>
-    <Text>
-      alter procedure sStrange -- funny one
-      as
-      begin
-        begin tran
-        print 1+2
-        (select D = GETUTCDATE())
-        (((select U = USER_NAME())))
-        insert into _t$a@#b values(1)
-        rollback
-      end
-    </Text>
-    <Description>The 2 select statements are correctly detected (and not eaten by the 'print').</Description>
-    <Xml>
-      <Statements>
-        <StoredProcedure StatementName="AlterProcedure">
-          <StatementList>
-            <BeginTransaction />
-            <Statement StatementName="print" />
-            <SelectStatement>
-              <SelectSpec />
-            </SelectStatement>
-            <SelectStatement>
-              <SelectSpec />
-            </SelectStatement>
-            <InsertStatement />
-            <Statement StatementName="rollback" />
-          </StatementList>
-        </StoredProcedure>
-      </Statements>
-    </Xml>
-  </Test>
-  
 </Tests>

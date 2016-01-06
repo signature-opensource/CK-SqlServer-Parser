@@ -17,10 +17,11 @@ namespace CK.SqlServer.Parser
             _combineElementType = combineElementType;
         }
 
-        public XElement ToXml( string name, ISqlNode item )
+        public XElement ToXml( string name, ISqlNode item, params object[] xElements )
         {
             var prev = _current;
             var e = _current = new XElement( name );
+            e.Add( xElements );
             VisitItem( item );
             _current = prev;
             return e;
@@ -43,7 +44,7 @@ namespace CK.SqlServer.Parser
                 _current.Add( c );
                 _current = c;
             }
-            else _current.Add( new XAttribute( "Type", typeName ) );
+            else _current.Add( new XAttribute( "EType", typeName ) );
             OnStartNode( e );
             return _current;
         }
@@ -117,7 +118,7 @@ namespace CK.SqlServer.Parser
         public override ISqlNode Visit( SelectCombine e )
         {
             StartNode( e )
-                .Add( new XAttribute( "Type", e.SelectOperator.ToString() ),
+                .Add( new XAttribute( "SelectType", e.SelectOperator.ToString() ),
                       ToXml( "Left", e.Left ),
                       ToXml( "Right", e.Right ) );
             return e;
@@ -216,12 +217,44 @@ namespace CK.SqlServer.Parser
         public override ISqlNode Visit( SqlInsertStatement e )
         {
             StartNode( e ).Add(
-                e.Header.HasTop ? ToXml( "Top", e.Header.TopExpression ) : null,
-                e.HasIntoTarget ? ToXml( "Into", e.IntoTarget ) : null,
+                e.Header.HasTop
+                            ? ToXml( "Top", e.Header.TopExpression,
+                                        e.Header.PercentT != null ? new XAttribute( "Percent", "true" ) : null )
+                            : null,
+                ToXml( "Target", e.Target.Target ),
+                e.Target.HasWithTableHints ? ToXml( "WithTableHints", e.Target.WithTableHints ) : null,
                 e.HasColumns ? ToXml( "Columns", e.Columns ) : null,
-                e.HasOptions ? ToXml( "Options", e.Options ) : null,
                 e.HasOutputClause ? ToXml( "OutputClause", e.OutputClause ) : null,
                 ToXml( "Values", e.Values ) );
+            return e;
+        }
+
+        public override ISqlNode Visit( SqlUpdateStatement e )
+        {
+            StartNode( e ).Add(
+                e.Header.HasTop
+                            ? ToXml( "Top", e.Header.TopExpression,
+                                        e.Header.PercentT != null ? new XAttribute( "Percent", "true" ) : null )
+                            : null,
+                ToXml( "Target", e.Target.Target ),
+                e.Target.HasWithTableHints ? ToXml( "WithTableHints", e.Target.WithTableHints ) : null,
+                ToXml( "Assigns", e.Assigns ),
+                e.HasOutputClause ? ToXml( "OutputClause", e.OutputClause ) : null,
+                e.HasFrom ? new XElement( "From", e.From.ToString() ) : null,
+                e.HasWhere ? ToXml( "WhereExpression", e.WhereExpression ) : null,
+                e.HasOptions ? ToXml( "Options", e.Options ) : null );
+            return e;
+        }
+
+        public override ISqlNode Visit( SqlMergeStatement e )
+        {
+            StartNode( e ).Add(
+                e.Header.HasTop ? ToXml( "Top", e.Header.TopExpression ) : null,
+                e.HasIntoTarget ? ToXml( "Into", e.TargetTable, 
+                                        e.HasTargetAliasName ? new XAttribute( "TargetAliasName", e.TargetAliasName.ToString() ) : null ) 
+                                        : null,
+                e.HasWithMergeHints ? ToXml( "WithMergeHints", e.WithMergeHints ) : null,
+                ToXml( "UnmodeledRemaider", e.UnmodeledRemaider ) );
             return e;
         }
 
@@ -278,6 +311,14 @@ namespace CK.SqlServer.Parser
         {
             base.Visit( e );
             if( e.IsUnicode ) _current.Add( new XAttribute( "IsUnicode", "true" ) );
+            return e;
+        }
+
+        public override ISqlNode Visit( SqlCollate e )
+        {
+            StartNode( e ).Add(
+                new XAttribute( "CollationName", e.CollationName ),
+                ToXml( "Left", e.Left ) );
             return e;
         }
 

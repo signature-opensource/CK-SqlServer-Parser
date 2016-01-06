@@ -16,10 +16,10 @@
     <Text>~@i is null</Text>
     <Description></Description>
     <Xml CombineElementType="true">
-      <Sql Type="IsNull">
-        <Left Type="UnaryOperator">
-          <Operator Type="Terminal">~</Operator>
-          <Right Type="Identifier" IsVariable="true">@i</Right>
+      <Sql EType="IsNull">
+        <Left EType="UnaryOperator">
+          <Operator EType="Terminal">~</Operator>
+          <Right EType="Identifier" IsVariable="true">@i</Right>
         </Left>
       </Sql>
     </Xml>
@@ -30,10 +30,10 @@
     <Text>~@i is not null</Text>
     <Description></Description>
     <Xml CombineElementType="true">
-      <Sql Type="IsNull" IsNotNull="true">
-        <Left Type="UnaryOperator">
-          <Operator Type="Terminal">~</Operator>
-          <Right Type="Identifier" IsVariable="true">@i</Right>
+      <Sql EType="IsNull" IsNotNull="true">
+        <Left EType="UnaryOperator">
+          <Operator EType="Terminal">~</Operator>
+          <Right EType="Identifier" IsVariable="true">@i</Right>
         </Left>
       </Sql>
     </Xml>
