@@ -65,8 +65,8 @@
     <Compile Include="ASqlNodePrefixedSeparatedList.cs" />
     <Compile Include="ISqlNode.cs" />
     <Compile Include="Parenthesis.cs" />
-    <Compile Include="Parser\CUD\CUDTarget.cs" />
-    <Compile Include="Parser\CUD\CUDHeader.cs" />
+    <Compile Include="Parser\CUD\IUDTarget.cs" />
+    <Compile Include="Parser\CUD\MIUDHeader.cs" />
     <Compile Include="Parser\CUD\SqlUpdateStatement.cs" />
     <Compile Include="Parser\CUD\SqlMergeStatement.cs" />
     <Compile Include="Parser\CUD\SqlOutputClause.cs" />

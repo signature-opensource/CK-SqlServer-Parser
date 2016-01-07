@@ -25,7 +25,7 @@ namespace CK.SqlServer.Parser.Tests
         {
             Out.Append( '[' );
             VisitItem( e.Left );
-            Out.Append( e.AssignT.ToString() );
+            Out.Append( e.Operator.ToString() );
             VisitItem( e.Right );           
             Out.Append( ']' );
             return e;

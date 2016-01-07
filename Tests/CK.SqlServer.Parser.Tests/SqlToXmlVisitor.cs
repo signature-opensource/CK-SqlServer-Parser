@@ -10,15 +10,23 @@ namespace CK.SqlServer.Parser
     public class SqlToXmlVisitor : SqlItemVisitor
     {
         readonly bool _combineElementType;
+        readonly HashSet<string> _shortForms;
         XElement _current;
 
-        public SqlToXmlVisitor( bool combineElementType = false )
+        public SqlToXmlVisitor( bool combineElementType = false, params string[] shortForms )
         {
             _combineElementType = combineElementType;
+            _shortForms = new HashSet<string>( shortForms );
         }
 
         public XElement ToXml( string name, ISqlNode item, params object[] xElements )
         {
+            if( _shortForms.Contains(name) )
+            {
+                var sE = new XElement( name );
+                sE.Add( item.ToString() );
+                return sE;
+            }
             var prev = _current;
             var e = _current = new XElement( name );
             e.Add( xElements );
@@ -73,25 +81,34 @@ namespace CK.SqlServer.Parser
             }
         }
 
+        void StartNode( ISqlNode e, Action<XElement> config )
+        {
+            XElement x = StartNode( e );
+            if( _shortForms.Contains( x.Name.ToString() ) ) x.Add( e.ToString() );
+            else config( x );
+        }
+
         protected override ISqlNode VisitStandard( ISqlNode e )
         {
-            var props = e.GetType().GetProperties()
-                                .Where( p => p.Name != "UnPar"
-                                             && p.Name != "WithT"
-                                             && p.Name != "StatementTerminator"
-                                             && (p.Name != "Opener" || p.PropertyType != typeof( SqlTokenOpenPar ))
-                                             && (p.Name != "Closer" || p.PropertyType != typeof( SqlTokenClosePar ))
-                                      )
-                                .Where( p => typeof( ISqlNode ).IsAssignableFrom( p.PropertyType )
-                                                && p.GetIndexParameters().Length == 0 )
-                                .Select( p => new { Name = p.Name, Value = (ISqlNode)p.GetValue( e ) } )
-                                .Where( o => o.Value != null );
-            if( !props.Any() && e is IEnumerable<ISqlNode> )
+            StartNode( e, x =>
             {
-                props = ((IEnumerable<ISqlNode>)e).Select( x => new { Name = "Item", Value = x } );
-            }
-            StartNode( e )
-                .Add( props.Select( o => ToXml( o.Name, o.Value ) ) );
+                var props = e.GetType().GetProperties()
+                    .Where( p => p.Name != "UnPar"
+                                 && p.Name != "WithT"
+                                 && p.Name != "StatementTerminator"
+                                 && (p.Name != "Opener" || p.PropertyType != typeof( SqlTokenOpenPar ))
+                                 && (p.Name != "Closer" || p.PropertyType != typeof( SqlTokenClosePar ))
+                          )
+                    .Where( p => typeof( ISqlNode ).IsAssignableFrom( p.PropertyType )
+                                    && p.GetIndexParameters().Length == 0 )
+                    .Select( p => new { Name = p.Name, Value = (ISqlNode)p.GetValue( e ) } )
+                    .Where( o => o.Value != null );
+                if( !props.Any() && e is IEnumerable<ISqlNode> )
+                {
+                    props = ((IEnumerable<ISqlNode>)e).Select( p => new { Name = "Item", Value = p } );
+                }
+                x.Add( props.Select( o => ToXml( o.Name, o.Value ) ) );
+            } );
             return e;
         }
 
@@ -103,15 +120,17 @@ namespace CK.SqlServer.Parser
 
         protected override ISqlNode VisitTypeDeclStandard( ISqlUnifiedTypeDecl e )
         {
-            StartNode( e )
-                .Add( new XAttribute( "Text", e.ToString() ) );
+            StartNode( e, x => 
+                x.Add( new XAttribute( "DBType", e.DbType ), new XAttribute( "Text", e.ToString() ) ) 
+                );
             return e;
         }
 
         public override ISqlNode Visit( SqlSelectStatement e )
         {
-            StartNode( e )
-                .Add( ToXml( "Select", e.Select ) );
+            StartNode( e, x => 
+                x.Add( ToXml( "Select", e.Select ) ) 
+                );
             return e;
         }
 
@@ -200,23 +219,25 @@ namespace CK.SqlServer.Parser
 
         public override ISqlNode Visit( SqlIf e )
         {
-            StartNode( e )
-                .Add( ToXml( "Condition", e.Condition ),
+            StartNode( e, x =>
+                x.Add( ToXml( "Condition", e.Condition ),
                       ToXml( "Then", e.Then ),
-                      e.HasElse ? ToXml( "Else", e.Else ) : null );
+                      e.HasElse ? ToXml( "Else", e.Else ) : null )
+                      );
             return e;
         }
 
         public override ISqlNode Visit( SqlTableValues e )
         {
-            StartNode( e )
-                .Add( ToXml( "Values", e.Values ) );
+            StartNode( e, x =>
+                x.Add( ToXml( "Values", e.Values ) )
+                );
             return e;
         }
 
         public override ISqlNode Visit( SqlInsertStatement e )
         {
-            StartNode( e ).Add(
+            StartNode( e, x => x.Add(
                 e.Header.HasTop
                             ? ToXml( "Top", e.Header.TopExpression,
                                         e.Header.PercentT != null ? new XAttribute( "Percent", "true" ) : null )
@@ -225,13 +246,14 @@ namespace CK.SqlServer.Parser
                 e.Target.HasWithTableHints ? ToXml( "WithTableHints", e.Target.WithTableHints ) : null,
                 e.HasColumns ? ToXml( "Columns", e.Columns ) : null,
                 e.HasOutputClause ? ToXml( "OutputClause", e.OutputClause ) : null,
-                ToXml( "Values", e.Values ) );
+                ToXml( "Values", e.Values ) ) 
+                );
             return e;
         }
 
         public override ISqlNode Visit( SqlUpdateStatement e )
         {
-            StartNode( e ).Add(
+            StartNode( e, x => x.Add(
                 e.Header.HasTop
                             ? ToXml( "Top", e.Header.TopExpression,
                                         e.Header.PercentT != null ? new XAttribute( "Percent", "true" ) : null )
@@ -240,9 +262,10 @@ namespace CK.SqlServer.Parser
                 e.Target.HasWithTableHints ? ToXml( "WithTableHints", e.Target.WithTableHints ) : null,
                 ToXml( "Assigns", e.Assigns ),
                 e.HasOutputClause ? ToXml( "OutputClause", e.OutputClause ) : null,
-                e.HasFrom ? new XElement( "From", e.From.ToString() ) : null,
+                e.HasFrom ? ToXml( "From", e.From ) : null,
                 e.HasWhere ? ToXml( "WhereExpression", e.WhereExpression ) : null,
-                e.HasOptions ? ToXml( "Options", e.Options ) : null );
+                e.HasOptions ? ToXml( "Options", e.Options ) : null )
+                );
             return e;
         }
 
@@ -260,12 +283,12 @@ namespace CK.SqlServer.Parser
 
         public override ISqlNode Visit( SqlParameter e )
         {
-            StartNode( e )
-                .Add( new XAttribute( "Name", e.Name ),
+            StartNode( e, x =>
+                x.Add( new XAttribute( "Name", e.Name ),
                       new XAttribute( "Direction", e.IsInputOutput ? "InputOutput" : (e.IsPureInput ? "Input" : "Output" ) ),
                       e.IsReadOnly ? new XAttribute( "IsReadOnly", "true" ) : null,
                       ToXml( "Type", e.Variable.TypeDecl ),
-                      e.DefaultValue != null ? ToXml( "DefaultValue", e.DefaultValue ) : null
+                      e.DefaultValue != null ? ToXml( "DefaultValue", e.DefaultValue ) : null )
                 );
             return e;
         }
@@ -284,20 +307,26 @@ namespace CK.SqlServer.Parser
 
         public override ISqlNode Visit( SqlTokenIdentifier e )
         {
-            StartNode( e ).Add( e.ToString() );
-            if( e.IsVariable ) _current.Add( new XAttribute( "IsVariable", "true" ) );
-            if( e.IsQuoted ) _current.Add( new XAttribute( "IsQuoted", "true" ) );
-            if( e.IsDbType ) _current.Add( new XAttribute( "IsDbType", "true" ) );
-            if( e.IsSpecial ) _current.Add( new XAttribute( "IsSpecial", "true" ) );
-            if( e.IsReservedKeyword ) _current.Add( new XAttribute( "IsReservedKeyword", "true" ) );
+            StartNode( e, x =>
+            {
+                x.Add( e.ToString() );
+                if( e.IsVariable ) x.Add( new XAttribute( "IsVariable", "true" ) );
+                if( e.IsQuoted ) x.Add( new XAttribute( "IsQuoted", "true" ) );
+                if( e.IsDbType ) x.Add( new XAttribute( "IsDbType", "true" ) );
+                if( e.IsSpecial ) x.Add( new XAttribute( "IsSpecial", "true" ) );
+                if( e.IsReservedKeyword ) x.Add( new XAttribute( "IsReservedKeyword", "true" ) );
+            } );
             return e;
         }
 
         public override ISqlNode Visit( SqlMultiIdentifier e )
         {
-            StartNode( e ).Add( e.ToString() );
-            if( e.IsVariable ) _current.Add( new XAttribute( "IsVariable", "true" ) );
-            if( e.IsOpenDataSouce ) _current.Add( new XAttribute( "IsOpenDataSouce", "true" ) );
+            StartNode( e, x =>
+            {
+                x.Add( e.ToString() );
+                if( e.IsVariable ) x.Add( new XAttribute( "IsVariable", "true" ) );
+                if( e.IsOpenDataSouce ) x.Add( new XAttribute( "IsOpenDataSouce", "true" ) );
+            } );
             return e;
         }
 
@@ -316,35 +345,38 @@ namespace CK.SqlServer.Parser
 
         public override ISqlNode Visit( SqlCollate e )
         {
-            StartNode( e ).Add(
+            StartNode( e, x => x.Add(
                 new XAttribute( "CollationName", e.CollationName ),
-                ToXml( "Left", e.Left ) );
+                ToXml( "Left", e.Left ) )
+                );
             return e;
         }
 
         public override ISqlNode Visit( SqlBetween e )
         {
-            StartNode( e ).Add(
+            StartNode( e, x => x.Add(
                 e.IsNotBetween ? new XAttribute( "IsNotBetween", "true" ) : null,
                 ToXml( "Left", e.Left ),
                 ToXml( "Start", e.Start ),
-                ToXml( "Stop", e.Stop ) );
+                ToXml( "Stop", e.Stop ) )
+                );
             return e;
         }
 
         public override ISqlNode Visit( SqlLike e )
         {
-            StartNode( e ).Add(
+            StartNode( e, x=> x.Add(
                 e.IsNotLike ? new XAttribute( "IsNotLike", "true" ) : null,
                 ToXml( "Left", e.Left ),
-                ToXml( "Pattern", e.Pattern ) );
+                ToXml( "Pattern", e.Pattern ) )
+                );
             return e;
         }
 
         public override ISqlNode Visit( SqlIsNull e )
         {
-            StartNode( e ).Add( e.IsNotNull ? new XAttribute( "IsNotNull", "true" ) : null,
-                                ToXml( "Left", e.Left ) );
+            StartNode( e, x => x.Add( e.IsNotNull ? new XAttribute( "IsNotNull", "true" ) : null,
+                                ToXml( "Left", e.Left ) ) );
             return e;
         }
 
@@ -356,10 +388,10 @@ namespace CK.SqlServer.Parser
 
         public override ISqlNode Visit( SqlKoCall e )
         {
-            StartNode( e ).Add( 
+            StartNode( e, x => x.Add( 
                 new XAttribute( "FunName", e.FunName.ToString() ), 
                 ToXml( "Parameters", e.Parameters ),
-                e.OverClause != null ? ToXml( "OverClause", e.OverClause ) : null );
+                e.OverClause != null ? ToXml( "OverClause", e.OverClause ) : null ) );
             return e;
         }
 
@@ -372,18 +404,18 @@ namespace CK.SqlServer.Parser
 
         public override ISqlNode Visit( SqlExecuteStatement e )
         {
-            StartNode( e ).Add(
+            StartNode( e, x => x.Add(
                 new XElement( "Name", e.Name.ToString() ),
                 ToXml( "Parameters", e.Parameters ),
-                e.Options != null ? ToXml( "Options", e.Options ) : null );
+                e.Options != null ? ToXml( "Options", e.Options ) : null ) );
             return e;
         }
 
         public override ISqlNode Visit( SqlExecuteStringStatement e )
         {
-            StartNode( e ).Add(
+            StartNode( e, x => x.Add(
                 ToXml( "Arguments", e.Arguments ),
-                e.Options != null ? ToXml( "Options", e.Options ) : null );
+                e.Options != null ? ToXml( "Options", e.Options ) : null ) );
             return e;
         }
 
@@ -397,12 +429,12 @@ namespace CK.SqlServer.Parser
 
         public override ISqlNode Visit( SqlCTEName e )
         {
-            StartNode( e ).Add(
+            StartNode( e, x => x.Add(
                 new XAttribute( "Name", e.Name.ToString() ),
                 e.ColumnNames != null 
                     ? new XAttribute( "ColumnNames", string.Join( ", ", e.ColumnNames.Select( c => c.ToString() ) ) )
                     : null,
-                ToXml( "Select", e.Select ) );
+                ToXml( "Select", e.Select ) ) );
             return e;
         }
 

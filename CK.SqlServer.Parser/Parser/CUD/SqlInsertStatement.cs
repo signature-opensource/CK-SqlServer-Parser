@@ -14,19 +14,19 @@ namespace CK.SqlServer.Parser
     /// </summary>
     public sealed class SqlInsertStatement : SqlNode, ISqlNamedStatement
     {
-        readonly SNode<CUDHeader, SqlTokenIdentifier, CUDTarget, SqlEnclosedIdentifierCommaList, SqlOutputClause, ISqlNode, SqlTokenTerminal> _content;
+        readonly SNode<MIUDHeader, SqlTokenIdentifier, IUDTarget, SqlEnclosedIdentifierCommaList, SqlOutputClause, ISqlNode, SqlTokenTerminal> _content;
 
         public SqlInsertStatement( 
-            CUDHeader header, 
+            MIUDHeader header, 
             SqlTokenIdentifier intoT,
-            CUDTarget target, 
+            IUDTarget target, 
             SqlEnclosedIdentifierCommaList columns,
             SqlOutputClause outputClause,
             ISqlNode values,
             SqlTokenTerminal terminator )
             : base( null, null )
         {
-            _content = new SNode<CUDHeader, SqlTokenIdentifier, CUDTarget, SqlEnclosedIdentifierCommaList, SqlOutputClause, ISqlNode, SqlTokenTerminal>( 
+            _content = new SNode<MIUDHeader, SqlTokenIdentifier, IUDTarget, SqlEnclosedIdentifierCommaList, SqlOutputClause, ISqlNode, SqlTokenTerminal>( 
                 header, 
                 intoT, 
                 target,
@@ -51,7 +51,7 @@ namespace CK.SqlServer.Parser
             if( items == null ) _content = o._content;
             else
             {
-                _content = new SNode<CUDHeader, SqlTokenIdentifier, CUDTarget, SqlEnclosedIdentifierCommaList, SqlOutputClause, ISqlNode, SqlTokenTerminal>( items );
+                _content = new SNode<MIUDHeader, SqlTokenIdentifier, IUDTarget, SqlEnclosedIdentifierCommaList, SqlOutputClause, ISqlNode, SqlTokenTerminal>( items );
                 CheckContent();
             }
         }
@@ -65,11 +65,11 @@ namespace CK.SqlServer.Parser
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
 
-        public CUDHeader Header => _content.V1;
+        public MIUDHeader Header => _content.V1;
 
         public SqlTokenIdentifier IntoT => _content.V2;
 
-        public CUDTarget Target => _content.V3;
+        public IUDTarget Target => _content.V3;
 
         public bool HasColumns => _content.V4 != null;
 

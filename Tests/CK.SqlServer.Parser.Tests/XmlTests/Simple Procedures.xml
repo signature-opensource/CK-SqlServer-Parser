@@ -59,7 +59,7 @@
               <Item>
                 <Parameter Name="@P" Direction="Input">
                   <Type>
-                    <TypeDeclSimple Text="int" />
+                    <TypeDeclSimple DBType="Int" Text="int" />
                   </Type>
                 </Parameter>
               </Item>

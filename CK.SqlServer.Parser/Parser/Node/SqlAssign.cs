@@ -12,17 +12,17 @@ namespace CK.SqlServer.Parser
     {
         readonly SNode<ISqlNode, SqlTokenTerminal, ISqlNode> _content;
 
-        public SqlAssign( ISqlNode left, SqlTokenTerminal assignT, ISqlNode right )
+        public SqlAssign( ISqlNode left, SqlTokenTerminal operatorT, ISqlNode right )
             : base( null, null )
         {
-            _content = new SNode<ISqlNode, SqlTokenTerminal, ISqlNode>( left, assignT, right );
+            _content = new SNode<ISqlNode, SqlTokenTerminal, ISqlNode>( left, operatorT, right );
             CheckContent();
         }
 
         void CheckContent()
         {
             SNode.CheckNotNull( Left, nameof( Left ) );
-            SNode.CheckToken( AssignT, nameof( AssignT ), IsValidAssignOperator );
+            SNode.CheckToken( Operator, nameof( Operator ), IsValidAssignOperator );
             SNode.CheckNotNull( Right, nameof( Right ) );
         }
 
@@ -51,7 +51,7 @@ namespace CK.SqlServer.Parser
 
         public ISqlNode Left => _content.V1;
 
-        public SqlTokenTerminal AssignT => _content.V2;
+        public SqlTokenTerminal Operator => _content.V2;
 
         public ISqlNode Right => _content.V3;
 

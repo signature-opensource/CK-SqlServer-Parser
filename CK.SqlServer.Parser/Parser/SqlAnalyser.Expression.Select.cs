@@ -92,7 +92,7 @@ namespace CK.SqlServer.Parser
                         R.SetCurrentError( "Invalid Column alias. Expected string, a unicode string or an identifier that is not reserved nor special." );
                         return null;
                     }
-                    return new SelectColumn( alias, eA.AssignT, eA.Right );
+                    return new SelectColumn( alias, eA.Operator, eA.Right );
                 }
                 SqlTokenIdentifier asToken;
                 SqlToken colName = null;

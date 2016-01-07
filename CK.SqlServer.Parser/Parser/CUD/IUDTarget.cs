@@ -14,18 +14,18 @@ namespace CK.SqlServer.Parser
     ///     { table_alias | table_or_view | rowset_function_limited  [WITH( Table_Hint_Limited [ ...n] )] }
     ///       | @table_variable }
     /// </summary>
-    public sealed class CUDTarget : SqlNode
+    public sealed class IUDTarget : SqlNode
     {
         readonly SNode<ISqlNode, SqlWithParOptions> _content;
 
-        public CUDTarget( ISqlNode target, SqlWithParOptions withTableHints = null, ImmutableList<SqlTrivia> leading = null, ImmutableList<SqlTrivia> trailing = null )
+        public IUDTarget( ISqlNode target, SqlWithParOptions withTableHints = null, ImmutableList<SqlTrivia> leading = null, ImmutableList<SqlTrivia> trailing = null )
             : base( leading, trailing )
         {
             _content = new SNode<ISqlNode, SqlWithParOptions>( target, withTableHints );
             CheckContent();
         }
 
-        CUDTarget( CUDTarget o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
+        IUDTarget( IUDTarget o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
             : base( leading, trailing )
         {
             if( items == null ) _content = o._content;
@@ -38,7 +38,7 @@ namespace CK.SqlServer.Parser
 
         protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
-            return new CUDTarget( this, leading, children, trailing );
+            return new IUDTarget( this, leading, children, trailing );
         }
 
         void CheckContent()

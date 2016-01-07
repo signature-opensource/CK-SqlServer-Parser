@@ -14,10 +14,10 @@ namespace CK.SqlServer.Parser
     /// </summary>
     public sealed class SqlMergeStatement : SqlNode, ISqlNamedStatement
     {
-        readonly SNode<CUDHeader, SqlTokenIdentifier, ISqlNode, SqlWithParOptions, SqlTokenIdentifier, SqlTokenIdentifier, SqlTokenIdentifier, ISqlNode, SqlTokenTerminal> _content;
+        readonly SNode<MIUDHeader, SqlTokenIdentifier, ISqlNode, SqlWithParOptions, SqlTokenIdentifier, SqlTokenIdentifier, SqlTokenIdentifier, ISqlNode, SqlTokenTerminal> _content;
 
         public SqlMergeStatement( 
-            CUDHeader header, 
+            MIUDHeader header, 
             SqlTokenIdentifier intoT, 
             ISqlNode targetTable, 
             SqlWithParOptions withMergeHints,
@@ -28,7 +28,7 @@ namespace CK.SqlServer.Parser
             SqlTokenTerminal terminator )
             : base( null, null )
         {
-            _content = new SNode<CUDHeader, SqlTokenIdentifier, ISqlNode, SqlWithParOptions, SqlTokenIdentifier, SqlTokenIdentifier, SqlTokenIdentifier, ISqlNode, SqlTokenTerminal>( 
+            _content = new SNode<MIUDHeader, SqlTokenIdentifier, ISqlNode, SqlWithParOptions, SqlTokenIdentifier, SqlTokenIdentifier, SqlTokenIdentifier, ISqlNode, SqlTokenTerminal>( 
                 header, 
                 intoT, 
                 targetTable,
@@ -57,7 +57,7 @@ namespace CK.SqlServer.Parser
             if( items == null ) _content = o._content;
             else
             {
-                _content = new SNode<CUDHeader, SqlTokenIdentifier, ISqlNode, SqlWithParOptions, SqlTokenIdentifier, SqlTokenIdentifier, SqlTokenIdentifier, ISqlNode, SqlTokenTerminal>( items );
+                _content = new SNode<MIUDHeader, SqlTokenIdentifier, ISqlNode, SqlWithParOptions, SqlTokenIdentifier, SqlTokenIdentifier, SqlTokenIdentifier, ISqlNode, SqlTokenTerminal>( items );
                 CheckContent();
             }
         }
@@ -71,7 +71,7 @@ namespace CK.SqlServer.Parser
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
 
-        public CUDHeader Header => _content.V1;
+        public MIUDHeader Header => _content.V1;
 
         public bool HasIntoTarget => _content.V3 != null;
 

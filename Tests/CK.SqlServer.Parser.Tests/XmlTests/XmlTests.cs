@@ -19,11 +19,15 @@ namespace CK.SqlServer.Parser.Tests.XmlTests
             public readonly bool CombineElementType;
             public readonly XElement Expected;
             public readonly XElement ExpectedStatements;
+            public readonly string[] ShortenForms;
 
             public XmlSqlTest( XElement xmlTestElement )
             {
                 CombineElementType = xmlTestElement != null ? xmlTestElement.GetAttributeBoolean( "CombineElementType", false ) : false;
                 Expected = xmlTestElement != null ? xmlTestElement.Element( "Sql" ) : null;
+                var s = (string)xmlTestElement.Attribute( "Shorten" );
+                if( s != null ) ShortenForms = s.Split( ',' ).Select( f => f.Trim() ).ToArray();
+                else ShortenForms = Util.EmptyStringArray;
                 ExpectedStatements = xmlTestElement != null ? xmlTestElement.Element( "Statements" ) : null;
             }
 
@@ -37,7 +41,7 @@ namespace CK.SqlServer.Parser.Tests.XmlTests
                 {
                     using( TestHelper.ConsoleMonitor.OpenInfo().Send( "Checking detailed Xml." ) )
                     {
-                        XElement visited = new SqlToXmlVisitor( CombineElementType ).ToXml( "Sql", e );
+                        XElement visited = new SqlToXmlVisitor( CombineElementType, ShortenForms ).ToXml( "Sql", e );
                         string visitedString = visited.ToString();
                         TestHelper.ConsoleMonitor.Trace().Send( visitedString );
                         if( !XNode.DeepEquals( visited, Expected ) )

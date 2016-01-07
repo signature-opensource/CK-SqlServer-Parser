@@ -283,12 +283,12 @@ namespace CK.SqlServer.Parser
             return VisitStandard( e );
         }
 
-        public virtual ISqlNode Visit( CUDHeader e )
+        public virtual ISqlNode Visit( MIUDHeader e )
         {
             return VisitStandard( e );
         }
 
-        public virtual ISqlNode Visit( CUDTarget e )
+        public virtual ISqlNode Visit( IUDTarget e )
         {
             return VisitStandard( e );
         }

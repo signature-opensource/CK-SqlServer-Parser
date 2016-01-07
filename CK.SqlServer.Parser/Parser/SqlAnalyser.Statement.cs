@@ -271,13 +271,13 @@ namespace CK.SqlServer.Parser
 
         SqlInsertStatement MatchInsertStatement( SqlTokenIdentifier id )
         {
-            CUDHeader header = MatchCUDHeader( id );
+            MIUDHeader header = MatchCUDHeader( id );
             if( header == null ) return null;
 
             SqlTokenIdentifier intoT;
             R.IsToken( out intoT, SqlTokenType.Into, false );
 
-            CUDTarget target = MatchCUDTarget();
+            IUDTarget target = MatchCUDTarget();
             if( target == null ) return null;
 
             SqlEnclosedIdentifierCommaList columns = IsEnclosedCommaList( false, 1, IsIdentifier, ( o, i, c ) => new SqlEnclosedIdentifierCommaList( o, i, c ) );
@@ -297,7 +297,7 @@ namespace CK.SqlServer.Parser
             return new SqlInsertStatement( header, intoT, target, columns, outputClause, values, GetOptionalTerminator() );
         }
 
-        CUDHeader MatchCUDHeader( SqlTokenIdentifier id )
+        MIUDHeader MatchCUDHeader( SqlTokenIdentifier id )
         {
             SqlTokenIdentifier top = null;
             ISqlNode topExpression = null;
@@ -307,10 +307,10 @@ namespace CK.SqlServer.Parser
                 if( (topExpression = IsOneExpression( true )) == null ) return null;
                 R.IsToken( out percent, SqlTokenType.Percent, false );
             }
-            return new CUDHeader( id, top, topExpression, percent );
+            return new MIUDHeader( id, top, topExpression, percent );
         }
 
-        CUDTarget MatchCUDTarget()
+        IUDTarget MatchCUDTarget()
         {
             ISqlIdentifier targetId = IsIdentifier( true );
             if( targetId == null ) return null;
@@ -324,15 +324,15 @@ namespace CK.SqlServer.Parser
             }
             else target = targetId;
             SqlWithParOptions withTableHints = IsIdentifierPrefixedCommaList( false, SqlTokenType.With, 1, IsExtendedExpression, ( p, o, i, c ) => new SqlWithParOptions( p, o, i, c ) );
-            return R.IsError ? null : new CUDTarget( target, withTableHints );
+            return R.IsError ? null : new IUDTarget( target, withTableHints );
         }
 
         SqlUpdateStatement MatchUpdateStatement( SqlTokenIdentifier id )
         {
-            CUDHeader header = MatchCUDHeader( id );
+            MIUDHeader header = MatchCUDHeader( id );
             if( header == null ) return null;
 
-            CUDTarget target = MatchCUDTarget();
+            IUDTarget target = MatchCUDTarget();
             if( target == null ) return null;
 
             SqlTokenIdentifier setT;
@@ -405,7 +405,7 @@ namespace CK.SqlServer.Parser
 
         SqlMergeStatement MatchMergeStatement( SqlTokenIdentifier id )
         {
-            CUDHeader header = MatchCUDHeader( id );
+            MIUDHeader header = MatchCUDHeader( id );
             if( header == null ) return null;
 
             SqlTokenIdentifier intoT;

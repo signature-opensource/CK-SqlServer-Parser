@@ -12,11 +12,11 @@ namespace CK.SqlServer.Parser
     /// <summary>
     /// Captures {INSERT|UPDATE|MERGE|DELETE} [ TOP ( expression ) [ PERCENT ] ] 
     /// </summary>
-    public sealed class CUDHeader : SqlNode
+    public sealed class MIUDHeader : SqlNode
     {
         readonly SNode<SqlTokenIdentifier, SqlTokenIdentifier, ISqlNode, SqlTokenIdentifier> _content;
 
-        public CUDHeader( SqlTokenIdentifier statementT, SqlTokenIdentifier top = null, ISqlNode topExpression = null, SqlTokenIdentifier percent = null )
+        public MIUDHeader( SqlTokenIdentifier statementT, SqlTokenIdentifier top = null, ISqlNode topExpression = null, SqlTokenIdentifier percent = null )
             : base( null, null )
         {
             _content = new SNode<SqlTokenIdentifier, SqlTokenIdentifier, ISqlNode, SqlTokenIdentifier>(
@@ -27,7 +27,7 @@ namespace CK.SqlServer.Parser
             CheckContent();
         }
 
-        CUDHeader( CUDHeader o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
+        MIUDHeader( MIUDHeader o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
             : base( leading, trailing )
         {
             if( items == null ) _content = o._content;
@@ -40,7 +40,7 @@ namespace CK.SqlServer.Parser
 
         protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
-            return new CUDHeader( this, leading, children, trailing );
+            return new MIUDHeader( this, leading, children, trailing );
         }
 
         void CheckContent()

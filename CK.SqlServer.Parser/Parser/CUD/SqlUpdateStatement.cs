@@ -15,8 +15,8 @@ namespace CK.SqlServer.Parser
     public sealed class SqlUpdateStatement : SqlNode, ISqlNamedStatement
     {
         readonly SNode<
-            CUDHeader,
-            CUDTarget,
+            MIUDHeader,
+            IUDTarget,
             SqlTokenIdentifier,
             SqlCommaList,
             SqlOutputClause,
@@ -27,8 +27,8 @@ namespace CK.SqlServer.Parser
             SqlTokenTerminal> _content;
 
         public SqlUpdateStatement( 
-            CUDHeader header,
-            CUDTarget target,
+            MIUDHeader header,
+            IUDTarget target,
             SqlTokenIdentifier setT,
             SqlCommaList assigns,
             SqlOutputClause outputClause,
@@ -39,7 +39,7 @@ namespace CK.SqlServer.Parser
             SqlTokenTerminal terminator )
             : base( null, null )
         {
-            _content = new SNode<CUDHeader, CUDTarget, SqlTokenIdentifier, SqlCommaList, SqlOutputClause, SelectFrom, SqlTokenIdentifier, ISqlNode, SqlOptionParOptions, SqlTokenTerminal>( 
+            _content = new SNode<MIUDHeader, IUDTarget, SqlTokenIdentifier, SqlCommaList, SqlOutputClause, SelectFrom, SqlTokenIdentifier, ISqlNode, SqlOptionParOptions, SqlTokenTerminal>( 
                 header, 
                 target,
                 setT,
@@ -69,7 +69,7 @@ namespace CK.SqlServer.Parser
             if( items == null ) _content = o._content;
             else
             {
-                _content = new SNode<CUDHeader, CUDTarget, SqlTokenIdentifier, SqlCommaList, SqlOutputClause, SelectFrom, SqlTokenIdentifier, ISqlNode, SqlOptionParOptions, SqlTokenTerminal>( items );
+                _content = new SNode<MIUDHeader, IUDTarget, SqlTokenIdentifier, SqlCommaList, SqlOutputClause, SelectFrom, SqlTokenIdentifier, ISqlNode, SqlOptionParOptions, SqlTokenTerminal>( items );
                 CheckContent();
             }
         }
@@ -83,9 +83,9 @@ namespace CK.SqlServer.Parser
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
 
-        public CUDHeader Header => _content.V1;
+        public MIUDHeader Header => _content.V1;
 
-        public CUDTarget Target => _content.V2;
+        public IUDTarget Target => _content.V2;
 
         public SqlTokenIdentifier SetT => _content.V3;
 
