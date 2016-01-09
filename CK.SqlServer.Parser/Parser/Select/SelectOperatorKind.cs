@@ -29,28 +29,8 @@ namespace CK.SqlServer.Parser
         /// </summary>
         Intersect,
         /// <summary>
-        /// Supported by <see cref="SelectFor"/>.
+        /// Decorator: supports order by, for [xml|browse|json|system_time] and option.
         /// </summary>
-        ForXml,
-        /// <summary>
-        /// Supported by <see cref="SelectFor"/>.
-        /// </summary>
-        ForBrowse,
-        /// <summary>
-        /// Supported by <see cref="SelectFor"/>.
-        /// </summary>
-        ForJSON,
-        /// <summary>
-        /// Supported by <see cref="SelectFor"/>.
-        /// </summary>
-        ForSystemTime,
-        /// <summary>
-        /// Supported by <see cref="SelectOrderBy"/>.
-        /// </summary>
-        OrderBy,
-         /// <summary>
-         /// Supported by <see cref="SelectOption"/>.
-         /// </summary>
-        Option
+        Decorator,
     }
 }

@@ -141,9 +141,9 @@
         <InsertStatement />
         <Statement StatementName="go" />
         <SelectStatement>
-          <SelectFor TargetType="XML">
+          <SelectDecorator>
             <SelectSpec />
-          </SelectFor>
+          </SelectDecorator>
         </SelectStatement>
         <Statement StatementName="go" />
         <DeclareVariable HasTerminator="true" />

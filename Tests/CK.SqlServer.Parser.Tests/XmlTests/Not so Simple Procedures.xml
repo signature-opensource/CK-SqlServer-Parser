@@ -72,9 +72,9 @@ end</Text>
             <DeclareVariable />
             <Statement StatementName="PRINT" />
             <DeclareCursor>
-              <SelectOrderBy>
+              <SelectDecorator>
                 <SelectSpec />
-              </SelectOrderBy>
+              </SelectDecorator>
             </DeclareCursor>
             <Statement StatementName="OPEN" />
             <Statement StatementName="FETCH" />

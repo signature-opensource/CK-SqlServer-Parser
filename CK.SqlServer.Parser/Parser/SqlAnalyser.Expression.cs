@@ -251,57 +251,27 @@ namespace CK.SqlServer.Parser
             if( R.Current.TokenType.IsSelectOperator() )
             {
                 ISelectSpecification lSelect = left.UnPar as ISelectSpecification;
-                if( lSelect == null ) return false;
-                SqlTokenIdentifier op;
-                if( R.Current.TokenType == SqlTokenType.For )
+                if( lSelect == null 
+                    || (R.Current.TokenType == SqlTokenType.For && !R.RawLookup.TokenType.IsSelectForTargetType() ) )
                 {
-                    // Limits Select For operator to 'Browse', 'Xml', 'JSON' and 'system_time'.
-                    // The other For is for cursor options...
-                    if( R.RawLookup.TokenType == SqlTokenType.XmlDbType
-                        || R.RawLookup.TokenType == SqlTokenType.Browse
-                        || R.RawLookup.TokenType == SqlTokenType.Json 
-                        || R.RawLookup.TokenType == SqlTokenType.SystemTime )
-
-                    {
-                        op = R.Read<SqlTokenIdentifier>();
-                        SqlTokenIdentifier targetType = R.Read<SqlTokenIdentifier>();
-                        ISqlNode content = InternalIsExtendedExpression( true, SelectPartStopper );
-                        if( content == null ) return false;
-                        left = new SelectFor( left, op, targetType, content );
-                        return true;
-                    }
                     return false;
                 }
-                op = R.Read<SqlTokenIdentifier>();
-                if( op.TokenType == SqlTokenType.Option )
+                if( R.Current.TokenType == SqlTokenType.Order
+                    || R.Current.TokenType == SqlTokenType.For
+                    || R.Current.TokenType == SqlTokenType.Option )
                 {
-                    SqlTokenOpenPar opener;
-                    if( !R.IsToken( out opener, true ) ) return false;
-                    ISqlNode content = IsAnyExpression( false );
-                    SqlTokenClosePar closer;
-                    if( !R.IsToken( out closer, true ) ) return false;
-                    left = new SelectOption( left, op, opener, content, closer );
+                    SelectOrderBy orderBy;
+                    SelectFor forClause;
+                    SqlOptionParOptions option;
+                    orderBy = IsSelectOrderBy( false );
+                    if( R.IsError ) return false;
+                    forClause = IsSelectFor( false );
+                    if( R.IsError ) return false;
+                    option = IsIdentifierPrefixedCommaList( false, SqlTokenType.Option, 1, IsExtendedExpression, ( p, o, i, c ) => new SqlOptionParOptions( p, o, i, c ) );
+                    left = new SelectDecorator( left, orderBy, forClause, option );
                     return true;
                 }
-                if( op.TokenType == SqlTokenType.Order )
-                {
-                    SqlTokenIdentifier by;
-                    if( !R.IsToken( out by, SqlTokenType.By, true ) ) return false;
-                    SqlOrderByList columns = IsCommaList( 1, IsOrderByItem, i => new SqlOrderByList( i ) );
-                    if( columns == null ) return false;
-
-                    SelectOrderByOffset offsetClause = IsSelectOrderByOffset( false );
-                    if( offsetClause != null )
-                    {
-                        left = new SelectOrderBy( left, op, by, columns, offsetClause );
-                    }
-                    else
-                    {
-                        if( R.IsError ) return false;
-                        left = new SelectOrderBy( left, op, by, columns );
-                    }
-                    return true;
-                }
+                SqlTokenIdentifier op = R.Read<SqlTokenIdentifier>();
                 SqlTokenIdentifier all = null;
                 if( op.TokenType == SqlTokenType.Union ) R.IsToken( out all, SqlTokenType.All, false );
                 ISqlNode right;
@@ -313,6 +283,7 @@ namespace CK.SqlServer.Parser
             }
             return false;
         }
+
 
         bool IsExprBetween( ref ISqlNode left, SqlTokenIdentifier notToken )
         {
@@ -446,8 +417,9 @@ namespace CK.SqlServer.Parser
         /// extended expression optionally enclosed in parenthesis (<see cref="EncloseableCommaList"/>).
         /// </summary>
         /// <param name="expected">True to set an error if no expression exist.</param>
+        /// <param name="allowLeadingStatement">True to accept the first statement, false to not consider it.</param>
         /// <returns>Any expression or null.</returns>
-        ISqlNode IsAnyExpression( bool expected, bool allowLeadingStatement = true )
+        ISqlNode IsAnyExpression( bool expected, bool allowLeadingStatement )
         {
             ISqlNode item = IsExtendedExpression( expected, allowLeadingStatement );
             if( item == null ) return null;
@@ -470,15 +442,17 @@ namespace CK.SqlServer.Parser
                 return new SqlEnclosableCommaList( null, items, null );
             }
             return item;
-            //if( R.Current.TokenType == SqlTokenType.OpenPar ) return IsExpression( 0, expected );
-            //var e = IsEnclosableCommaList( expected );
-            //if( e == null ) return null;
-            //if( e.Count == 1 )
-            //{
-            //    if( e.IsEnclosed ) return new SqlPar( e.Opener, e[0], e.Closer );
-            //    return e[0];
-            //}
-            //return e;
+        }
+
+        /// <summary>
+        /// Any expression can be an extended expression or a comma separated list of 
+        /// extended expression optionally enclosed in parenthesis (<see cref="EncloseableCommaList"/>).
+        /// </summary>
+        /// <param name="expected">True to set an error if no expression exist.</param>
+        /// <returns>Any expression or null.</returns>
+        ISqlNode IsAnyExpression( bool expected )
+        {
+            return IsAnyExpression( expected, true );
         }
 
         //=========================================

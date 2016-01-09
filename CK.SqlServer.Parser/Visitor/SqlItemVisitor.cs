@@ -532,17 +532,16 @@ namespace CK.SqlServer.Parser
             return VisitStandard( e );
         }
 
-        public virtual ISqlNode Visit( SelectOrderBy e )
+        public virtual ISqlNode Visit( SelectDecorator e )
         {
             return VisitStandard( e );
         }
 
-        public virtual ISqlNode Visit( SelectOption e )
+        public virtual ISqlNode Visit( SelectFor e )
         {
             return VisitStandard( e );
         }
 
-        
 
         public virtual ISqlNode Visit( SqlOrderByList e )
         {
@@ -554,12 +553,7 @@ namespace CK.SqlServer.Parser
             return VisitStandard( e );
         }
 
-        public virtual ISqlNode Visit( SelectOrderByOffset e )
-        {
-            return VisitStandard( e );
-        }
-
-        public virtual ISqlNode Visit( SelectFor e )
+        public virtual ISqlNode Visit( SelectOrderBy e )
         {
             return VisitStandard( e );
         }

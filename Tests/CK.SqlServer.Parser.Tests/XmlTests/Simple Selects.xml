@@ -2,6 +2,43 @@
 <Tests>
 
   <Test Mode="OneExpression">
+    <Text>
+      select 1 order by 1 desc
+    </Text>
+    <Description>Order is an operator for the decorator.</Description>
+    <Xml>
+      <SelectDecorator>
+        <Select>
+          <SelectSpec>
+            <Columns>
+              <SelectColumnList>
+                <Item>
+                  <SelectColumn>
+                    <Definition>
+                      <LiteralInteger>1</LiteralInteger>
+                    </Definition>
+                  </SelectColumn>
+                </Item>
+              </SelectColumnList>
+            </Columns>
+          </SelectSpec>
+        </Select>
+        <OrderByColumns>
+          <OrderByList>
+            <Item>
+              <OrderByItem Desc="true">
+                <Definition>
+                  <LiteralInteger>1</LiteralInteger>
+                </Definition>
+              </OrderByItem>
+            </Item>
+          </OrderByList>
+        </OrderByColumns>
+      </SelectDecorator>
+    </Xml>
+  </Test>
+
+  <Test Mode="OneExpression">
     <Text>select 1</Text>
     <Description>Simplest select.</Description>
     <Xml>
@@ -22,7 +59,92 @@
       </Sql>
     </Xml>
   </Test>
-  
+
+  <Test>
+    <Text>
+      SELECT 2015 as year, 12 as month, 15 as day
+      FOR JSON PATH, WITHOUT_ARRAY_WRAPPER
+      OPTION( an_option, another = 2 )
+    </Text>
+    <Description>For and option are handled by the SelectDecorator.</Description>
+    <Xml>
+      <Sql>
+          <SelectStatement>
+            <Select>
+              <SelectDecorator>
+                <Select>
+                  <SelectSpec>
+                    <Columns>
+                      <SelectColumnList>
+                        <Item>
+                          <SelectColumn ColumnName="year">
+                            <Definition>
+                              <LiteralInteger>2015</LiteralInteger>
+                            </Definition>
+                          </SelectColumn>
+                        </Item>
+                        <Item>
+                          <SelectColumn ColumnName="month">
+                            <Definition>
+                              <LiteralInteger>12</LiteralInteger>
+                            </Definition>
+                          </SelectColumn>
+                        </Item>
+                        <Item>
+                          <SelectColumn ColumnName="day">
+                            <Definition>
+                              <LiteralInteger>15</LiteralInteger>
+                            </Definition>
+                          </SelectColumn>
+                        </Item>
+                      </SelectColumnList>
+                    </Columns>
+                  </SelectSpec>
+                </Select>
+                <For>
+                  <SelectFor TargetType="JSON">
+                    <Format>
+                      <NodeList>
+                        <Item>
+                          <Identifier>PATH</Identifier>
+                        </Item>
+                        <Item>
+                          <Comma>,</Comma>
+                        </Item>
+                        <Item>
+                          <Identifier>WITHOUT_ARRAY_WRAPPER</Identifier>
+                        </Item>
+                      </NodeList>
+                    </Format>
+                  </SelectFor>
+                </For>
+                <Option>
+                  <OptionParOptions>
+                    <Item>
+                      <Identifier>an_option</Identifier>
+                    </Item>
+                    <Item>
+                      <BinaryOperator>
+                        <Left>
+                          <Identifier>another</Identifier>
+                        </Left>
+                        <Operator>
+                          <Terminal>=</Terminal>
+                        </Operator>
+                        <Right>
+                          <LiteralInteger>2</LiteralInteger>
+                        </Right>
+                      </BinaryOperator>
+                    </Item>
+                  </OptionParOptions>
+                </Option>
+              </SelectDecorator>
+            </Select>
+          </SelectStatement>
+      </Sql>
+    </Xml>
+  </Test>
+
   <Test Mode="OneExpression">
     <Text>
       select top (15) percent with ties DepartmentID Id, Name as Nom, Groupe = GroupName
@@ -30,108 +152,108 @@
         order by DepartmentID DESC, Shmurtz
         offset @StartingRowNumber - 1 rows
           fetch next @EndingRowNumber - @StartingRowNumber + 1 rows only</Text>
-    <Description>SelectOrderBy is an operator, just like SelectOrderFor (browse, xml, json, system_time).</Description>
+    <Description>SelectDecorator captures OrderBy, For (browse, xml, json, system_time) and Option.</Description>
     <Xml Shorten="From">
       <Sql>
-        <SelectOrderBy>
-          <Select>
-            <SelectSpec>
-              <Top Percent="true" WithTies="true">
-                <TopExpression>
-                  <Par>
-                    <Content>
-                      <LiteralInteger>15</LiteralInteger>
-                    </Content>
-                  </Par>
-                </TopExpression>
-              </Top>
-              <Columns>
-                <SelectColumnList>
-                  <Item>
-                    <SelectColumn ColumnName="Id">
-                      <Definition>
-                        <Identifier>DepartmentID</Identifier>
-                      </Definition>
-                    </SelectColumn>
-                  </Item>
-                  <Item>
-                    <SelectColumn ColumnName="Nom">
-                      <Definition>
-                        <Identifier>Name</Identifier>
-                      </Definition>
-                    </SelectColumn>
-                  </Item>
-                  <Item>
-                    <SelectColumn ColumnName="Groupe">
-                      <Definition>
-                        <Identifier>GroupName</Identifier>
-                      </Definition>
-                    </SelectColumn>
-                  </Item>
-                </SelectColumnList>
-              </Columns>
-              <From>from HumanResources.Department</From>
-            </SelectSpec>
-          </Select>
-          <OrderByColumns>
-            <OrderByList>
-              <Item>
-                <OrderByItem Desc="true">
-                  <Definition>
-                    <Identifier>DepartmentID</Identifier>
-                  </Definition>
-                </OrderByItem>
-              </Item>
-              <Item>
-                <OrderByItem>
-                  <Definition>
-                    <Identifier>Shmurtz</Identifier>
-                  </Definition>
-                </OrderByItem>
-              </Item>
-            </OrderByList>
-          </OrderByColumns>
-          <OffsetClause>
-            <SelectOrderByOffset>
-              <OffsetExpression>
-                <BinaryOperator>
-                  <Left>
-                    <Identifier IsVariable="true">@StartingRowNumber</Identifier>
-                  </Left>
-                  <Operator>
-                    <Terminal>-</Terminal>
-                  </Operator>
-                  <Right>
-                    <LiteralInteger>1</LiteralInteger>
-                  </Right>
-                </BinaryOperator>
-              </OffsetExpression>
-              <FetchExpression>
-                <BinaryOperator>
-                  <Left>
-                    <BinaryOperator>
-                      <Left>
-                        <Identifier IsVariable="true">@EndingRowNumber</Identifier>
-                      </Left>
-                      <Operator>
-                        <Terminal>-</Terminal>
-                      </Operator>
-                      <Right>
-                        <Identifier IsVariable="true">@StartingRowNumber</Identifier>
-                      </Right>
-                    </BinaryOperator>
-                  </Left>
-                  <Operator>
-                    <Terminal>+</Terminal>
-                  </Operator>
-                  <Right>
-                    <LiteralInteger>1</LiteralInteger>
-                  </Right>
-                </BinaryOperator>
-              </FetchExpression>
-            </SelectOrderByOffset>
-          </OffsetClause>
-        </SelectOrderBy>
+          <SelectDecorator>
+            <Select>
+              <SelectSpec>
+                <Top Percent="true" WithTies="true">
+                  <TopExpression>
+                    <Par>
+                      <Content>
+                        <LiteralInteger>15</LiteralInteger>
+                      </Content>
+                    </Par>
+                  </TopExpression>
+                </Top>
+                <Columns>
+                  <SelectColumnList>
+                    <Item>
+                      <SelectColumn ColumnName="Id">
+                        <Definition>
+                          <Identifier>DepartmentID</Identifier>
+                        </Definition>
+                      </SelectColumn>
+                    </Item>
+                    <Item>
+                      <SelectColumn ColumnName="Nom">
+                        <Definition>
+                          <Identifier>Name</Identifier>
+                        </Definition>
+                      </SelectColumn>
+                    </Item>
+                    <Item>
+                      <SelectColumn ColumnName="Groupe">
+                        <Definition>
+                          <Identifier>GroupName</Identifier>
+                        </Definition>
+                      </SelectColumn>
+                    </Item>
+                  </SelectColumnList>
+                </Columns>
+                <From>from HumanResources.Department</From>
+              </SelectSpec>
+            </Select>
+            <OrderBy>
+              <SelectOrderBy>
+                <OrderByColumns>
+                  <OrderByList>
+                    <Item>
+                      <OrderByItem Desc="true">
+                        <Definition>
+                          <Identifier>DepartmentID</Identifier>
+                        </Definition>
+                      </OrderByItem>
+                    </Item>
+                    <Item>
+                      <OrderByItem>
+                        <Definition>
+                          <Identifier>Shmurtz</Identifier>
+                        </Definition>
+                      </OrderByItem>
+                    </Item>
+                  </OrderByList>
+                </OrderByColumns>
+                <OffsetExpression>
+                  <BinaryOperator>
+                    <Left>
+                      <Identifier IsVariable="true">@StartingRowNumber</Identifier>
+                    </Left>
+                    <Operator>
+                      <Terminal>-</Terminal>
+                    </Operator>
+                    <Right>
+                      <LiteralInteger>1</LiteralInteger>
+                    </Right>
+                  </BinaryOperator>
+                </OffsetExpression>
+                <FetchExpression>
+                  <BinaryOperator>
+                    <Left>
+                      <BinaryOperator>
+                        <Left>
+                          <Identifier IsVariable="true">@EndingRowNumber</Identifier>
+                        </Left>
+                        <Operator>
+                          <Terminal>-</Terminal>
+                        </Operator>
+                        <Right>
+                          <Identifier IsVariable="true">@StartingRowNumber</Identifier>
+                        </Right>
+                      </BinaryOperator>
+                    </Left>
+                    <Operator>
+                      <Terminal>+</Terminal>
+                    </Operator>
+                    <Right>
+                      <LiteralInteger>1</LiteralInteger>
+                    </Right>
+                  </BinaryOperator>
+                </FetchExpression>
+              </SelectOrderBy>
+            </OrderBy>
+          </SelectDecorator>
       </Sql>
     </Xml>
   </Test>
@@ -642,7 +764,7 @@
       </Sql>
     </Xml>
   </Test>
-  
+
   <Test Mode="OneExpression">
     <Text>
       select 1 except select 2 intersect select 0
@@ -676,5 +798,5 @@
       </Sql>
     </Xml>
   </Test>
-  
+
 </Tests>

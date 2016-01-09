@@ -40,14 +40,14 @@
       <Statements>
         <Statement StatementName="USE" HasTerminator="true" />
         <SelectStatement HasTerminator="true">
-          <SelectOrderBy>
+          <SelectDecorator>
             <SelectSpec />
-          </SelectOrderBy>
+          </SelectDecorator>
         </SelectStatement>
         <DeclareCursor HasTerminator="true">
-          <SelectOrderBy>
+          <SelectDecorator>
             <SelectSpec />
-          </SelectOrderBy>
+          </SelectDecorator>
         </DeclareCursor>
         <Statement StatementName="OPEN" HasTerminator="true" />
         <Statement StatementName="FETCH" HasTerminator="true" />

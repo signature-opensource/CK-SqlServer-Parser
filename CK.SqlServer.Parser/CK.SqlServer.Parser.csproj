@@ -105,7 +105,7 @@
     <Compile Include="Parser\IsFunc.cs" />
     <Compile Include="Parser\Node\SqlCallParameterList.cs" />
     <Compile Include="Parser\Node\SqlCallParameter.cs" />
-    <Compile Include="Parser\Select\SelectOptions.cs" />
+    <Compile Include="Parser\Select\SelectFor.cs" />
     <Compile Include="Parser\Select\SelectOperatorKind.cs" />
     <Compile Include="Parser\SqlAnalyser.Statement.cs" />
     <Compile Include="Parser\StatementKnownName.cs" />
@@ -131,7 +131,7 @@
     <Compile Include="Parser\Node\SqlReturnStatement.cs" />
     <Compile Include="Parser\Node\SqlIdentifierCommaList.cs" />
     <Compile Include="Parser\Node\SqlOverClause.cs" />
-    <Compile Include="Parser\Select\SelectOrderByOffset.cs" />
+    <Compile Include="Parser\Select\SelectOrderBy.cs" />
     <Compile Include="Parser\Node\SqlOrderByList.cs" />
     <Compile Include="Parser\Node\SqlOrderByItem.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -142,12 +142,11 @@
     <Compile Include="Parser\Select\SelectColumn.cs" />
     <Compile Include="Parser\Select\SelectColumnList.cs" />
     <Compile Include="Parser\Select\SelectCombine.cs" />
-    <Compile Include="Parser\Select\SelectFor.cs" />
     <Compile Include="Parser\Select\SelectFrom.cs" />
     <Compile Include="Parser\Select\SelectGroupBy.cs" />
     <Compile Include="Parser\Select\SelectHeader.cs" />
     <Compile Include="Parser\Select\SelectInto.cs" />
-    <Compile Include="Parser\Select\SelectOrderBy.cs" />
+    <Compile Include="Parser\Select\SelectDecorator.cs" />
     <Compile Include="Parser\Select\SelectSpec.cs" />
     <Compile Include="Parser\Node\SqlAssign.cs" />
     <Compile Include="Parser\Node\SqlBetween.cs" />

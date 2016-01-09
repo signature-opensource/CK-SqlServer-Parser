@@ -200,30 +200,56 @@ namespace CK.SqlServer.Parser
             return new SqlOrderByItem( definition, ascOrDesc );
         }
 
-        SelectOrderByOffset IsSelectOrderByOffset( bool expected )
+        SelectOrderBy IsSelectOrderBy( bool expected )
         {
+            SqlTokenIdentifier orderT, byT = null;
+            if( !R.IsToken( out orderT, SqlTokenType.Order, expected ) 
+                || !R.IsToken( out byT, SqlTokenType.By, true ) ) return null;
+            SqlOrderByList orderByList = IsCommaList( 1, IsOrderByItem, i => new SqlOrderByList( i ) );
+            if( orderByList == null ) return null;
+
             SqlTokenIdentifier offsetToken;
-            if( !R.IsToken( out offsetToken, SqlTokenType.Offset, expected ) ) return null;
-            ISqlNode offsetExpr = IsOneExpression( true );
-            if( offsetExpr == null ) return null;
-            SqlTokenIdentifier rowsToken;
-            if( !R.IsToken( out rowsToken, SqlTokenType.Rows, true ) ) return null;
-            SqlTokenIdentifier fetchToken;
-            if( R.IsToken( out fetchToken, SqlTokenType.Fetch, false ) )
+            ISqlNode offsetExpr = null;
+            SqlTokenIdentifier rowsToken = null;
+            SqlTokenIdentifier fetchToken = null;
+            if( R.IsToken( out offsetToken, SqlTokenType.Offset, false ) )
             {
-                SqlTokenIdentifier firstOrNextToken;
-                if( !R.IsToken( out firstOrNextToken, SqlTokenType.First, false ) 
-                    && !R.IsToken( out firstOrNextToken, SqlTokenType.Next, true ) ) return null;
-                ISqlNode fetchExpr = IsOneExpression( true );
-                if( fetchExpr == null ) return null;
-                SqlTokenIdentifier fetchRowsToken;
-                if( !R.IsToken( out fetchRowsToken, SqlTokenType.Rows, true ) ) return null;
-                SqlTokenIdentifier onlyToken;
-                if( !R.IsToken( out onlyToken, SqlTokenType.Only, true ) ) return null;
-                return new SelectOrderByOffset( offsetToken, offsetExpr, rowsToken, fetchToken, firstOrNextToken, fetchExpr, fetchRowsToken, onlyToken );
+                offsetExpr = IsOneExpression( true );
+                if( offsetExpr == null ) return null;
+                if( !R.IsToken( out rowsToken, SqlTokenType.Rows, true ) ) return null;
+                if( R.IsToken( out fetchToken, SqlTokenType.Fetch, false ) )
+                {
+                    SqlTokenIdentifier firstOrNextToken;
+                    if( !R.IsToken( out firstOrNextToken, SqlTokenType.First, false )
+                        && !R.IsToken( out firstOrNextToken, SqlTokenType.Next, true ) )
+                        return null;
+                    ISqlNode fetchExpr = IsOneExpression( true );
+                    if( fetchExpr == null ) return null;
+                    SqlTokenIdentifier fetchRowsToken;
+                    if( !R.IsToken( out fetchRowsToken, SqlTokenType.Rows, true ) ) return null;
+                    SqlTokenIdentifier onlyToken;
+                    if( !R.IsToken( out onlyToken, SqlTokenType.Only, true ) ) return null;
+                    return new SelectOrderBy( orderT, byT, orderByList, offsetToken, offsetExpr, rowsToken, fetchToken, firstOrNextToken, fetchExpr, fetchRowsToken, onlyToken );
+                }
             }
-            return new SelectOrderByOffset( offsetToken, offsetExpr, rowsToken );
+            return new SelectOrderBy( orderT, byT, orderByList, offsetToken, offsetExpr, rowsToken );
         }
+
+        SelectFor IsSelectFor( bool expected )
+        {
+            if( R.Current.TokenType != SqlTokenType.For || !R.RawLookup.TokenType.IsSelectForTargetType() )
+            {
+                if( expected ) R.SetCurrentError( "Expected Select for clase." );
+                return null;
+            }
+            SqlTokenIdentifier forT = R.Read<SqlTokenIdentifier>();
+            SqlTokenIdentifier targetType = R.Read<SqlTokenIdentifier>();
+            ISqlNode forExpression = IsSqlNodeList<SqlToken>( SelectPartStopper, IsOneExpression, 1 );
+            if( forExpression == null ) return null;
+            return new SelectFor( forT, targetType, forExpression );
+        }
+
+
     }
 }
 

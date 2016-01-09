@@ -307,21 +307,6 @@ namespace CK.SqlServer.Parser.Tests
             return e;
         }
 
-        public override ISqlNode Visit( SelectOrderBy e )
-        {
-            Out.Append( "OrderBy(" );
-            VisitItem( e.SelectNode );
-            Out.Append( "," );
-            VisitItem( e.OrderByColumns );
-            if( e.OffsetClause != null )
-            {
-                Out.Append( "," );
-                VisitItem( e.OffsetClause );
-            }
-            Out.Append( ")" );
-            return e;
-        }
-
         public override ISqlNode Visit( SqlOrderByList e )
         {
             Out.Append( "(" );
@@ -347,11 +332,11 @@ namespace CK.SqlServer.Parser.Tests
             return e;
         }
 
-        public override ISqlNode Visit( SelectOrderByOffset e )
+        public override ISqlNode Visit( SelectOrderBy e )
         {
             Out.Append( "offset:" );
             VisitItem( e.OffsetExpression );
-            if( e.HasFetchClause )
+            if( e.HasFetch )
             {
                 Out.Append( ",fetch:" );
                 VisitItem( e.FetchExpression );
@@ -359,16 +344,6 @@ namespace CK.SqlServer.Parser.Tests
             return e;
         }
 
-
-        public override ISqlNode Visit( SelectFor e )
-        {
-            Out.Append( "For(" );
-            VisitItem( e.ForExpression );
-            Out.Append( "," );
-            VisitItem( e.ForExpression );
-            Out.Append( ")" );
-            return e;
-        }
 
         public override ISqlNode Visit( SelectCombine e )
         {

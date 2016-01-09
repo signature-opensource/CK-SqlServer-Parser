@@ -3,6 +3,31 @@
 
   <Test>
     <Text>
+      UPDATE HumanResources.Employee
+      SET VacationHours = VacationHours + 8
+      FROM (SELECT TOP 10 BusinessEntityID FROM HumanResources.Employee
+      ORDER BY HireDate ASC) AS th
+      WHERE HumanResources.Employee.BusinessEntityID = th.BusinessEntityID
+    </Text>
+    <Description>
+      B. Using the TOP clause
+    </Description>
+    <Xml Shorten="From,WhereExpression,Assigns">
+      <Sql>
+        <UpdateStatement>
+          <Target>
+            <MultiIdentifier>HumanResources.Employee</MultiIdentifier>
+          </Target>
+          <Assigns>VacationHours = VacationHours + 8</Assigns>
+          <From>FROM(SELECT TOP 10 BusinessEntityID FROM HumanResources.Employee ORDER BY HireDate ASC) AS th</From>
+          <WhereExpression>HumanResources.Employee.BusinessEntityID = th.BusinessEntityID</WhereExpression>
+        </UpdateStatement>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test>
+    <Text>
       UPDATE Sales.SalesPerson
       SET Bonus = 6000, 
           CommissionPct = 0.10, 
@@ -78,31 +103,6 @@
               </Item>
             </NodeList>
           </WhereExpression>
-        </UpdateStatement>
-      </Sql>
-    </Xml>
-  </Test>
-
-  <Test>
-    <Text>
-      UPDATE HumanResources.Employee
-      SET VacationHours = VacationHours + 8
-      FROM (SELECT TOP 10 BusinessEntityID FROM HumanResources.Employee
-      ORDER BY HireDate ASC) AS th
-      WHERE HumanResources.Employee.BusinessEntityID = th.BusinessEntityID
-    </Text>
-    <Description>
-      B. Using the TOP clause
-    </Description>
-    <Xml Shorten="From,WhereExpression,Assigns">
-      <Sql>
-        <UpdateStatement>
-          <Target>
-            <MultiIdentifier>HumanResources.Employee</MultiIdentifier>
-          </Target>
-          <Assigns>VacationHours = VacationHours + 8</Assigns>
-          <From>FROM(SELECT TOP 10 BusinessEntityID FROM HumanResources.Employee ORDER BY HireDate ASC) AS th</From>
-          <WhereExpression>HumanResources.Employee.BusinessEntityID = th.BusinessEntityID</WhereExpression>
         </UpdateStatement>
       </Sql>
     </Xml>
@@ -586,20 +586,45 @@
     </Description>
     <Xml Shorten="Assigns,WhereExpression">
       <Sql>
-        <UpdateStatement>
-          <Target>
-            <MultiIdentifier>Production.Product</MultiIdentifier>
-          </Target>
-          <Assigns>ListPrice = ListPrice * 1.10</Assigns>
-          <WhereExpression>ProductNumber LIKE @Product</WhereExpression>
-          <Options>
-            <OptionParOptions>
-              <OptionT>
-                <Identifier IsReservedKeyword="true">OPTION</Identifier>
-              </OptionT>
-            </OptionParOptions>
-          </Options>
-        </UpdateStatement>
+          <UpdateStatement>
+            <Target>
+              <MultiIdentifier>Production.Product</MultiIdentifier>
+            </Target>
+            <Assigns>ListPrice = ListPrice * 1.10</Assigns>
+            <WhereExpression>ProductNumber LIKE @Product</WhereExpression>
+            <Options>
+              <OptionParOptions>
+                <Item>
+                  <NodeList>
+                    <Item>
+                      <Identifier>OPTIMIZE</Identifier>
+                    </Item>
+                    <Item>
+                      <KoCall FunName="FOR">
+                        <Parameters>
+                          <EnclosedCommaList>
+                            <Item>
+                              <BinaryOperator>
+                                <Left>
+                                  <Identifier IsVariable="true">@Product</Identifier>
+                                </Left>
+                                <Operator>
+                                  <Terminal>=</Terminal>
+                                </Operator>
+                                <Right>
+                                  <LiteralString>'BK-%'</LiteralString>
+                                </Right>
+                              </BinaryOperator>
+                            </Item>
+                          </EnclosedCommaList>
+                        </Parameters>
+                      </KoCall>
+                    </Item>
+                  </NodeList>
+                </Item>
+              </OptionParOptions>
+            </Options>
+          </UpdateStatement>
       </Sql>
     </Xml>
   </Test>

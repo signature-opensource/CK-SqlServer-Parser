@@ -71,6 +71,20 @@ namespace CK.SqlServer.Parser
             }
         }
 
+        public static void CheckNullableToken( SqlToken token, string name, SqlTokenType t1, SqlTokenType t2, SqlTokenType t3, SqlTokenType t4 )
+        {
+            if( token != null && token.TokenType != t1 && token.TokenType != t2 && token.TokenType != t3 && token.TokenType != t4 )
+            {
+                throw new ArgumentException( string.Format( "{0} must be {1}, {2}, {3} or {4}, not {5}.",
+                                                            name,
+                                                            SqlTokenizer.Explain( t1 ),
+                                                            SqlTokenizer.Explain( t2 ),
+                                                            SqlTokenizer.Explain( t3 ),
+                                                            SqlTokenizer.Explain( t4 ),
+                                                            SqlTokenizer.Explain( token.TokenType ) ), name );
+            }
+        }
+
         public static void CheckNullableToken( SqlToken token, string name, Func<SqlTokenType, bool> predicate )
         {
             if( token == null && !predicate( token.TokenType ) )

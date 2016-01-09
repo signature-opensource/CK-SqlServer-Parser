@@ -9,6 +9,20 @@ namespace CK.SqlServer.Parser
 {
     public static class SqlTokenTypeExtension
     {
+
+        /// <summary>
+        /// True if this is xml, browse, json or system_time.
+        /// </summary>
+        /// <param name="type">Token type.</param>
+        /// <returns>Whether the token is a valid target for 'select for'.</returns>
+        static public bool IsSelectForTargetType( this SqlTokenType token )
+        {
+            return token == SqlTokenType.XmlDbType
+                        || token == SqlTokenType.Browse
+                        || token == SqlTokenType.Json
+                        || token == SqlTokenType.SystemTime;
+        }
+
         /// <summary>
         /// True if this is a select operator: <see cref="SqlTokenType.Union"/>, <see cref="SqlTokenType.Except"/>, 
         /// <see cref="SqlTokenType.Intersect"/>, <see cref="SqlTokenType.Order"/>, <see cref="SqlTokenType.For"/>

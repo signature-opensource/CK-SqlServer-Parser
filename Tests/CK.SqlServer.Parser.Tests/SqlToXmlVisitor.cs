@@ -95,6 +95,7 @@ namespace CK.SqlServer.Parser
                 var props = e.GetType().GetProperties()
                     .Where( p => p.Name != "UnPar"
                                  && p.Name != "WithT"
+                                 && p.Name != "OptionT"
                                  && p.Name != "StatementTerminator"
                                  && (p.Name != "Opener" || p.PropertyType != typeof( SqlTokenOpenPar ))
                                  && (p.Name != "Closer" || p.PropertyType != typeof( SqlTokenClosePar ))
@@ -143,37 +144,42 @@ namespace CK.SqlServer.Parser
             return e;
         }
 
-        public override ISqlNode Visit( SelectFor e )
+        public override ISqlNode Visit( SelectDecorator e )
         {
             StartNode( e )
-                .Add( new XAttribute( "TargetType", e.TargeType.ToString() ),
-                      ToXml( "Select", e.Select ),
-                      ToXml( "ForExpression", e.ForExpression ) );
+                .Add( ToXml( "Select", e.Select ),
+                      e.HasOrderBy ? ToXml( nameof(e.OrderBy), e.OrderBy ) : null,
+                      e.HasFor ? ToXml( nameof( e.For ), e.For ) : null,
+                      e.HasOption ? ToXml( nameof(e.Option), e.Option ) : null
+                      );
             return e;
         }
 
         public override ISqlNode Visit( SelectOrderBy e )
         {
-            StartNode( e )
-                .Add( ToXml( "Select", e.Select ),
-                      ToXml( "OrderByColumns", e.OrderByColumns ),
-                      e.OffsetClause != null ? ToXml( "OffsetClause", e.OffsetClause ) : null );
+            StartNode( e, x => x.Add(
+                    ToXml( nameof( e.OrderByColumns ), e.OrderByColumns ),
+                    e.HasOffset ? ToXml( nameof( e.OffsetExpression ), e.OffsetExpression ) : null,
+                    e.HasFetch ? ToXml( nameof( e.FetchExpression ), e.FetchExpression ) : null )
+                    );
             return e;
         }
+
+        public override ISqlNode Visit( SelectFor e )
+        {
+            StartNode( e, x => x.Add(
+                    new XAttribute( nameof( e.TargetType ), e.TargetType.ToString() ),
+                    ToXml( nameof( e.Format ), e.Format ) )
+                    );
+            return e;
+        }
+
 
         public override ISqlNode Visit( SqlOrderByItem e )
         {
             StartNode( e )
                 .Add( e.IsDesc ? new XAttribute( "Desc", "true" ) : null,
                       ToXml( "Definition", e.Definition ) );
-            return e;
-        }
-
-        public override ISqlNode Visit( SelectOrderByOffset e )
-        {
-            StartNode( e )
-                .Add( ToXml( "OffsetExpression", e.OffsetExpression ),
-                      e.HasFetchClause ? ToXml( "FetchExpression", e.FetchExpression ) : null );
             return e;
         }
 

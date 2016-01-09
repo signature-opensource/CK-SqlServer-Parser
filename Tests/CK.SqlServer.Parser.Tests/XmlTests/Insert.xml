@@ -51,9 +51,9 @@
     <Xml>
       <Statements>
         <InsertStatement HasTerminator="true">
-          <SelectOrderBy>
+          <SelectDecorator>
             <SelectSpec/>
-          </SelectOrderBy>
+          </SelectDecorator>
         </InsertStatement>
       </Statements>
     </Xml>
@@ -371,7 +371,7 @@
             </OutputClause>
           </OutputClause>
           <Values>
-            <SelectOrderBy>
+            <SelectDecorator>
               <Select>
                 <SelectSpec>
                   <Columns>
@@ -408,18 +408,22 @@
                   </WhereExpression>
                 </SelectSpec>
               </Select>
-              <OrderByColumns>
-                <OrderByList>
-                  <Item>
-                    <OrderByItem Desc="true">
-                      <Definition>
-                        <MultiIdentifier>sp.SalesYTD</MultiIdentifier>
-                      </Definition>
-                    </OrderByItem>
-                  </Item>
-                </OrderByList>
-              </OrderByColumns>
-            </SelectOrderBy>
+              <OrderBy>
+                <SelectOrderBy>
+                  <OrderByColumns>
+                    <OrderByList>
+                      <Item>
+                        <OrderByItem Desc="true">
+                          <Definition>
+                            <MultiIdentifier>sp.SalesYTD</MultiIdentifier>
+                          </Definition>
+                        </OrderByItem>
+                      </Item>
+                    </OrderByList>
+                  </OrderByColumns>
+                </SelectOrderBy>
+              </OrderBy>
+            </SelectDecorator>
           </Values>
         </InsertStatement>
       </Sql>
@@ -773,9 +777,9 @@
     <Xml>
       <Statements>
         <InsertStatement>
-          <SelectOrderBy>
+          <SelectDecorator>
             <SelectSpec />
-          </SelectOrderBy>
+          </SelectDecorator>
         </InsertStatement>
       </Statements>
     </Xml>

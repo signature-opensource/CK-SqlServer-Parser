@@ -8,7 +8,7 @@ using System.Text;
 namespace CK.SqlServer.Parser
 {
     /// <summary>
-    /// Captures 'into', 'from', 'where' and 'group by' clauses. The <see cref="SelectOrderBy"/> and <see cref="SelectFor"/>
+    /// Captures 'into', 'from', 'where' and 'group by' clauses. The <see cref="SelectDecorator"/> and <see cref="SelectFor"/>
     /// as well as the <see cref="SelectCombine"/> are operators that wraps other <see cref="ISelectSpecification"/>.
     /// </summary>
     public sealed class SelectSpec : SqlNode, ISelectSpecification
@@ -58,7 +58,7 @@ namespace CK.SqlServer.Parser
         /// <summary>
         /// Gets the operator token type: it is <see cref="SelectOperatorKind.None"/> since this is an 
         /// actual select specification and not an operator like <see cref="SelectCombine"/>, 
-        /// <see cref="SelectOrderBy"/> or <see cref="SelectFor"/>.
+        /// <see cref="SelectDecorator"/> or <see cref="SelectFor"/>.
         /// </summary>
         public SelectOperatorKind SelectOperator => SelectOperatorKind.None;
 

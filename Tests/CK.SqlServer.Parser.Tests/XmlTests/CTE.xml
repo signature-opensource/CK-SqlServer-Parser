@@ -73,9 +73,9 @@
           <SelectSpec />
           <SelectSpec />
           <SelectStatement>
-            <SelectOrderBy>
+            <SelectDecorator>
               <SelectSpec />
-            </SelectOrderBy>
+            </SelectDecorator>
           </SelectStatement>
         </CTEStatement>
         <Statement StatementName="Go" />
@@ -87,18 +87,18 @@
     <Text>
       WITH DirectReports(ManagerID, EmployeeID, Title, EmployeeLevel) AS
       (
-      SELECT ManagerID, EmployeeID, Title, 0 AS EmployeeLevel
-      FROM dbo.MyEmployees
-      WHERE ManagerID IS NULL
-      UNION ALL
-      SELECT e.ManagerID, e.EmployeeID, e.Title, EmployeeLevel + 1
-      FROM dbo.MyEmployees AS e
-      INNER JOIN DirectReports AS d
-      ON e.ManagerID = d.EmployeeID
+          SELECT ManagerID, EmployeeID, Title, 0 AS EmployeeLevel
+            FROM dbo.MyEmployees
+            WHERE ManagerID IS NULL
+        UNION ALL
+          SELECT e.ManagerID, e.EmployeeID, e.Title, EmployeeLevel + 1
+            FROM dbo.MyEmployees AS e
+            INNER JOIN DirectReports AS d
+        ON e.ManagerID = d.EmployeeID
       )
       SELECT ManagerID, EmployeeID, Title, EmployeeLevel
-      FROM DirectReports
-      ORDER BY ManagerID
+        FROM DirectReports
+        ORDER BY ManagerID
       Go
     </Text>
     <Description>MSDN Sample n°4.</Description>
@@ -110,9 +110,9 @@
             <SelectSpec />
           </SelectCombine>
           <SelectStatement>
-            <SelectOrderBy>
+            <SelectDecorator>
               <SelectSpec />
-            </SelectOrderBy>
+            </SelectDecorator>
           </SelectStatement>
         </CTEStatement>
         <Statement StatementName="Go" />
@@ -190,7 +190,9 @@
             <SelectSpec />
           </SelectCombine>
           <SelectStatement HasTerminator="true">
-            <SelectSpec />
+            <SelectDecorator>
+              <SelectSpec />
+            </SelectDecorator>
           </SelectStatement>
         </CTEStatement>
         <Statement StatementName="Go" />

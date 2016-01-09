@@ -73,15 +73,7 @@ namespace CK.SqlServer.Parser
             }
         }
 
-        public override ISqlNode Visit( SelectFor e )
-        {
-            using( StartNode( e ) )
-            {
-                _current.Add( new XAttribute( "TargetType", e.TargeType.ToString() ) );
-                return base.Visit( e );
-            }
-        }
-        public override ISqlNode Visit( SelectOrderBy e )
+        public override ISqlNode Visit( SelectDecorator e )
         {
             using( StartNode( e ) )
             {

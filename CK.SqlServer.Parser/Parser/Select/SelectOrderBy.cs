@@ -1,39 +1,91 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Globalization;
 using System.Linq;
 using System.Text;
-using CK.Core;
-using System.Collections.Immutable;
+using System.Threading.Tasks;
 
 namespace CK.SqlServer.Parser
 {
-    /// <summary>
-    /// The "Order by" operator is a <see cref="ISelectSpecification"/>.
-    /// </summary>
-    public class SelectOrderBy : SqlNode, ISelectSpecification
+    public sealed class SelectOrderBy : SqlNode
     {
-        readonly SNode<ISqlNode, SqlTokenIdentifier, SqlTokenIdentifier, SqlOrderByList, SelectOrderByOffset> _content;
+        readonly SNode<
+                    SqlTokenIdentifier,
+                    SqlTokenIdentifier,
+                    SqlOrderByList,
+                    SqlTokenIdentifier,
+                    ISqlNode,
+                    SqlTokenIdentifier,
+                    SqlTokenIdentifier,
+                    SqlTokenIdentifier,
+                    ISqlNode,
+                    SqlTokenIdentifier,
+                    SqlTokenIdentifier> _content;
 
-        public SelectOrderBy( ISqlNode selectNode, SqlTokenIdentifier orderT, SqlTokenIdentifier byT, SqlOrderByList orderByList, SelectOrderByOffset offset = null )
+        public SelectOrderBy(
+            SqlTokenIdentifier orderT, SqlTokenIdentifier byT, SqlOrderByList orderByList,
+            SqlTokenIdentifier offsetToken, ISqlNode offsetExpr, SqlTokenIdentifier rowsToken )
             : base( null, null )
         {
-            _content = new SNode<ISqlNode, SqlTokenIdentifier, SqlTokenIdentifier, SqlOrderByList, SelectOrderByOffset>(
-                selectNode, 
-                orderT, 
-                byT, 
-                orderByList, 
-                offset );
+            _content = new SNode<SqlTokenIdentifier, SqlTokenIdentifier, SqlOrderByList, SqlTokenIdentifier, ISqlNode, SqlTokenIdentifier, SqlTokenIdentifier, SqlTokenIdentifier, ISqlNode, SqlTokenIdentifier, SqlTokenIdentifier>(
+                orderT, byT, orderByList,
+                offsetToken,
+                offsetExpr,
+                rowsToken,
+                null,
+                null,
+                null,
+                null,
+                null
+                );
+            CheckContent();
+        }
+
+        public SelectOrderBy( SqlTokenIdentifier orderT, SqlTokenIdentifier byT, SqlOrderByList orderByList, 
+                                    SqlTokenIdentifier offsetToken, ISqlNode offsetExpr, SqlTokenIdentifier rowsToken,
+                                    SqlTokenIdentifier fetchToken, SqlTokenIdentifier firstOrNextToken, ISqlNode fetchExpr, SqlTokenIdentifier fetchRowsToken, SqlTokenIdentifier onlyToken )
+            : base( null, null )
+        {
+            _content = new SNode<SqlTokenIdentifier, SqlTokenIdentifier, SqlOrderByList, SqlTokenIdentifier, ISqlNode, SqlTokenIdentifier, SqlTokenIdentifier, SqlTokenIdentifier, ISqlNode, SqlTokenIdentifier, SqlTokenIdentifier>(
+                orderT, byT, orderByList,
+                offsetToken, 
+                offsetExpr, 
+                rowsToken, 
+                fetchToken, 
+                firstOrNextToken, 
+                fetchExpr, 
+                fetchRowsToken, 
+                onlyToken );
             CheckContent();
         }
 
         void CheckContent()
         {
-            SNode.CheckUnPar<ISelectSpecification>( SelectNode, nameof( SelectNode ) );
             SNode.CheckToken( OrderT, nameof( OrderT ), SqlTokenType.Order );
             SNode.CheckToken( ByT, nameof( ByT ), SqlTokenType.By );
             SNode.CheckNotNull( OrderByColumns, nameof( OrderByColumns ) );
+
+            SNode.CheckNullableToken( OffsetT, nameof( OffsetT ), SqlTokenType.Offset );
+            SNode.CheckBothNullOrNot( OffsetT, nameof( OffsetT ), OffsetExpression, nameof( OffsetExpression ) );
+            SNode.CheckNullableToken( RowsT, nameof( RowsT ), SqlTokenType.Rows );
+            SNode.CheckBothNullOrNot( OffsetT, nameof( OffsetT ), RowsT, nameof( RowsT ) );
+            SNode.CheckNullableToken( FetchT, nameof( RowsT ), SqlTokenType.Fetch );
+            if( FetchT != null )
+            {
+                SNode.CheckToken( FetchFirstOrNextT, nameof( FetchFirstOrNextT ), SqlTokenType.First, SqlTokenType.Next );
+                SNode.CheckNotNull( FetchExpression, nameof( FetchExpression ) );
+                SNode.CheckToken( FetchRowsT, nameof( FetchRowsT ), SqlTokenType.Rows );
+                SNode.CheckToken( FetchOnlyT, nameof( FetchOnlyT ), SqlTokenType.Only );
+
+            }
+            else
+            {
+                SNode.CheckNull( FetchFirstOrNextT, nameof( FetchFirstOrNextT ) );
+                SNode.CheckNull( FetchExpression, nameof( FetchExpression ) );
+                SNode.CheckNull( FetchRowsT, nameof( FetchRowsT ) );
+                SNode.CheckNull( FetchOnlyT, nameof( FetchOnlyT ) );
+            }
         }
 
         SelectOrderBy( SelectOrderBy o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
@@ -42,7 +94,7 @@ namespace CK.SqlServer.Parser
             if( items == null ) _content = o._content;
             else
             {
-                _content = new SNode<ISqlNode, SqlTokenIdentifier, SqlTokenIdentifier, SqlOrderByList, SelectOrderByOffset>( items );
+                _content = new SNode<SqlTokenIdentifier, SqlTokenIdentifier, SqlOrderByList, SqlTokenIdentifier, ISqlNode, SqlTokenIdentifier, SqlTokenIdentifier, SqlTokenIdentifier, ISqlNode, SqlTokenIdentifier, SqlTokenIdentifier>( items );
                 CheckContent();
             }
         }
@@ -54,26 +106,34 @@ namespace CK.SqlServer.Parser
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
 
-        public ISqlNode SelectNode => _content.V1;
+        public SqlTokenIdentifier OrderT => _content.V1;
 
-        public ISelectSpecification Select => (ISelectSpecification)_content.V1.UnPar;
+        public SqlTokenIdentifier ByT => _content.V2;
 
-        public SqlTokenIdentifier OrderT => _content.V2;
+        public SqlOrderByList OrderByColumns => _content.V3;
 
-        public SqlTokenIdentifier ByT => _content.V3;
+        public bool HasOffset => _content.V4 != null;
 
-        public SqlOrderByList OrderByColumns => _content.V4;
+        public SqlTokenIdentifier OffsetT => _content.V4;
 
-        public SelectOrderByOffset OffsetClause => _content.V5;
+        public ISqlNode OffsetExpression => _content.V5;
 
-        SelectOperatorKind ISelectSpecification.SelectOperator => SelectOperatorKind.OrderBy; 
+        public SqlTokenIdentifier RowsT => _content.V6;
+    
+        public bool HasFetch => _content.V7 != null;
 
-        SelectColumnList ISelectSpecification.Columns => Select.Columns; 
+        public SqlTokenIdentifier FetchT => _content.V7;
+
+        public SqlTokenIdentifier FetchFirstOrNextT => _content.V8;
+
+        public ISqlNode FetchExpression => _content.V9;
+
+        public SqlTokenIdentifier FetchRowsT => _content.V10;
+
+        public SqlTokenIdentifier FetchOnlyT => _content.V11;
 
         [DebuggerStepThrough]
         internal protected override ISqlNode Accept( SqlItemVisitor visitor ) => visitor.Visit( this );
 
     }
-
-
 }
