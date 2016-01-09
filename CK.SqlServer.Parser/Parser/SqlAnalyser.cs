@@ -112,7 +112,7 @@ namespace CK.SqlServer.Parser
                 {
                     Debug.Assert( mode == ParseMode.AllStatements );
                     List<ISqlNode> items = new List<ISqlNode>();
-                    if( !R.CollectUntil<SqlTokenError>( items, IsExtendedStatement ) ) return null;
+                    if( !R.CollectUntil<SqlTokenError>( items, IsExtendedStatement, t => t.IsEndOfInput ) ) return null;
                     return items.Count == 1 ? items[0] : new SqlNodeList( items );
                 } 
             }

@@ -919,7 +919,7 @@ namespace CK.SqlServer.Parser
         }
 
         /// <summary>
-        /// Is a SqlExprTypeDecl: either a SqlDbType (int, sql_variant) or multiple identifiers that is a user defined type.
+        /// Either a SqlDbType (int, sql_variant) or multiple identifiers that is a user defined type.
         /// </summary>
         /// <returns></returns>
         ISqlUnifiedTypeDecl IsTypeDecl( bool expected )
@@ -1030,11 +1030,19 @@ namespace CK.SqlServer.Parser
                 }
                 #endregion
             }
+            else if( R.Current.TokenType.IsReservedKeyword() 
+                        || R.Current.TokenType.IsVariableNameOrLiteral()
+                        || R.Current.TokenType.IsIdentifierSpecial() )
+            {
+                if( expected ) R.SetCurrentError( "Expected type or user defined type (not a reserved keyword, a variable, a special identifier or a literal)." );
+                return null;
+            }
             else
             {
-                // A Userd defined type is simply one or more identifiers.
+                // A User defined type is simply one or more identifiers.
                 ISqlIdentifier identifier = IsIdentifier( expected );
                 if( identifier == null ) return null;
+                SqlTokenIdentifier tId = identifier as SqlTokenIdentifier;
                 return new SqlTypeDeclUserDefined( identifier );
             }
         }

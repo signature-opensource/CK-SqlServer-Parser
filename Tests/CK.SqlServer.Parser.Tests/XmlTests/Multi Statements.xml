@@ -1,5 +1,39 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <Tests>
+
+  <Test>
+    <Text>
+      -- Create these tables:
+      DROP TABLE CourseAttendance
+      DROP TABLE Students
+      DROP TABLE Courses
+      GO
+      CREATE TABLE Students( id varchar(5) primary key, name varchar(30) )
+      GO
+      CREATE TABLE Courses( id varchar(5) primary key, name varchar(30), taughtBy varchar(5) )
+      GO
+      CREATE TABLE CourseAttendance( 
+          id         varchar(5) references Courses(id),
+          attendedBy varchar(5) references Students(id),
+          constraint CourseAttendance_PK primary key (id, attendedBy) )
+
+    </Text>
+    <Description>MSDN Sample.</Description>
+    <Xml>
+      <Statements>
+            <Statement StatementName="DROP" />
+            <Statement StatementName="DROP" />
+            <Statement StatementName="DROP" />
+            <Statement StatementName="GO" />
+            <Statement StatementName="CREATE" />
+            <Statement StatementName="GO" />
+            <Statement StatementName="CREATE" />
+            <Statement StatementName="GO" />
+            <Statement StatementName="CREATE" />
+      </Statements>
+    </Xml>
+  </Test>
+
   <Test>
     <Text>
       

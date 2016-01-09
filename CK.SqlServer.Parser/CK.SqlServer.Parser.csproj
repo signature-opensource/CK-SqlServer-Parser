@@ -71,6 +71,8 @@
     <Compile Include="Parser\CUD\SqlMergeStatement.cs" />
     <Compile Include="Parser\CUD\SqlOutputClause.cs" />
     <Compile Include="Parser\Node\SqlBasicValue.cs" />
+    <Compile Include="Parser\Node\SqlOpenXml.cs" />
+    <Compile Include="Parser\Node\SqlOpenJSON.cs" />
     <Compile Include="Parser\Node\SqlExecuteStringStatement.cs" />
     <Compile Include="Parser\Node\SqlCommaList.cs" />
     <Compile Include="Parser\Node\SqlOpenDataSource.cs" />

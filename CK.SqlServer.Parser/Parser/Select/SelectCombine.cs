@@ -31,7 +31,7 @@ namespace CK.SqlServer.Parser
             SNode.CheckUnPar<ISelectSpecification>( LeftNode, nameof( LeftNode ) );
             SNode.CheckToken( OperatorT, nameof( OperatorT ), SqlTokenType.Union, SqlTokenType.Intersect, SqlTokenType.Except );
             SNode.CheckNullableToken( AllT, nameof( AllT ), SqlTokenType.All );
-            if( AllTokens != null ) SNode.CheckToken( OperatorT, nameof( OperatorT ), SqlTokenType.Union );
+            if( AllT != null ) SNode.CheckToken( OperatorT, nameof( OperatorT ), SqlTokenType.Union );
             SNode.CheckNotNull( RightNode, nameof( RightNode ) );
         }
 

@@ -165,8 +165,31 @@ namespace CK.SqlServer.Parser
                 }
                 SqlEnclosedCommaList parameters = IsEnclosedCommaList( true );
                 if( parameters == null ) return false;
+                if( left.IsToken( SqlTokenType.OpenJSON ) )
+                {
+                    SqlWithParOptions options = IsIdentifierPrefixedCommaList( false, SqlTokenType.With, 1, IsExtendedExpression, ( p, o, i, c ) => new SqlWithParOptions( p, o, i, c ) );
+                    if( R.IsError ) return false;
+                    left = new SqlOpenJSON( (SqlTokenIdentifier)left, parameters, options );
+                    return true;
+                }
+                if( left.IsToken( SqlTokenType.OpenXml ) )
+                {
+                    SqlTokenIdentifier withT;
+                    ISqlIdentifier schemaTable = null;
+                    SqlEnclosedCommaList schemaDefintion = null;
+                    if( R.IsToken( out withT, SqlTokenType.With, false ) )
+                    {
+                        if( (schemaTable = IsIdentifier( false )) == null 
+                            && (schemaDefintion = IsEnclosedCommaList( true ) ) == null )
+                        {
+                            return false;
+                        }
+                    }
+                    left = new SqlOpenXml( (SqlTokenIdentifier)left, parameters, withT, schemaDefintion, schemaTable );
+                    return true;
+                }
                 SqlOverClause over = IsOverClause( false );
-                if( over == null && R.IsError ) return false;
+                if( R.IsError ) return false;
                 left = new SqlKoCall( left, parameters, over );
                 return true;
             }

@@ -59,7 +59,14 @@ namespace CK.SqlServer.Parser
                 SNode.CheckNotNull( Closer, nameof( Closer ) );
             }
             SqlDbType? dbType = SqlKeyword.FromSqlTokenTypeToSqlDbType( TypeIdentifierT.TokenType );
-            if( !dbType.HasValue || (dbType != SqlDbType.Char && dbType != SqlDbType.VarChar && dbType != SqlDbType.NChar && dbType != SqlDbType.NVarChar && dbType != SqlDbType.Binary && dbType != SqlDbType.VarBinary) )
+            if( !dbType.HasValue 
+                || (dbType != SqlDbType.Char 
+                    && dbType != SqlDbType.VarChar 
+                    && dbType != SqlDbType.NChar 
+                    && dbType != SqlDbType.NVarChar
+                    && dbType != SqlDbType.Float
+                    && dbType != SqlDbType.Binary
+                    && dbType != SqlDbType.VarBinary) )
             {
                 throw new ArgumentException( "Expected char, varchar, nchar, nvarchar, binary, varbinary.", nameof( TypeIdentifierT ) );
             }

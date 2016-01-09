@@ -135,8 +135,6 @@
       C. Using the WITH common_table_expression clause
     </Description>
     <Xml>
-      <Sql>
-      </Sql>
     </Xml>
   </Test>
 
@@ -161,9 +159,6 @@
       D. Using the WHERE CURRENT OF clause
     </Description>
     <Xml>
-      <Sql>
-
-      </Sql>
     </Xml>
   </Test>
 
@@ -176,9 +171,6 @@
       Specifying compound operators
     </Description>
     <Xml>
-      <Sql>
-
-      </Sql>
     </Xml>
   </Test>
 
@@ -198,9 +190,6 @@
       Specifying a subquery in the SET clause
     </Description>
     <Xml>
-      <Sql>
-
-      </Sql>
     </Xml>
   </Test>
 
@@ -213,8 +202,31 @@
     <Description>
       Updating rows using DEFAULT values
     </Description>
-    <Xml>
+    <Xml Shorten="WhereExpression">
       <Sql>
+          <UpdateStatement>
+            <Target>
+              <MultiIdentifier>Production.Location</MultiIdentifier>
+            </Target>
+            <Assigns>
+              <CommaList>
+                <Item>
+                  <Assign>
+                    <Left>
+                      <Identifier>CostRate</Identifier>
+                    </Left>
+                    <Operator>
+                      <Terminal>=</Terminal>
+                    </Operator>
+                    <Right>
+                      <Identifier IsReservedKeyword="true">DEFAULT</Identifier>
+                    </Right>
+                  </Assign>
+                </Item>
+              </CommaList>
+            </Assigns>
+            <WhereExpression>CostRate &gt; 20.00</WhereExpression>
+          </UpdateStatement>
 
       </Sql>
     </Xml>
@@ -233,9 +245,6 @@
        Specifying a table alias as the target object
     </Description>
     <Xml>
-      <Sql>
-
-      </Sql>
     </Xml>
   </Test>
 
@@ -251,9 +260,6 @@
        Specifying a table variable as the target object
     </Description>
     <Xml>
-      <Sql>
-
-      </Sql>
     </Xml>
   </Test>
 
@@ -273,9 +279,6 @@
       Using the UPDATE statement with information from another table
     </Description>
     <Xml>
-      <Sql>
-
-      </Sql>
     </Xml>
   </Test>
 
@@ -288,9 +291,15 @@
     <Description>
       Updating data in a remote table by using a linked server
     </Description>
-    <Xml>
+    <Xml Shorten="Assigns,WhereExpression">
       <Sql>
-
+          <UpdateStatement>
+            <Target>
+              <MultiIdentifier>MyLinkServer.AdventureWorks2012.HumanResources.Department</MultiIdentifier>
+            </Target>
+            <Assigns>GroupName = N'Public Relations'</Assigns>
+            <WhereExpression>DepartmentID = 4</WhereExpression>
+          </UpdateStatement>
       </Sql>
     </Xml>
   </Test>
@@ -303,9 +312,25 @@
     <Description>
       Updating data in a remote table by using the OPENQUERY function
     </Description>
-    <Xml>
+    <Xml Shorten="Assigns">
       <Sql>
-
+        <UpdateStatement>
+          <Target>
+            <KoCall FunName="OPENQUERY">
+              <Parameters>
+                <EnclosedCommaList>
+                  <Item>
+                    <Identifier>MyLinkServer</Identifier>
+                  </Item>
+                  <Item>
+                    <LiteralString>'SELECT GroupName FROM HumanResources.Department WHERE DepartmentID = 4'</LiteralString>
+                  </Item>
+                </EnclosedCommaList>
+              </Parameters>
+            </KoCall>
+          </Target>
+          <Assigns>GroupName = 'Sales and Marketing'</Assigns>
+        </UpdateStatement>
       </Sql>
     </Xml>
   </Test>
@@ -339,9 +364,127 @@
     <Description>
       Using UPDATE with .WRITE to modify data in an nvarchar(max) column
     </Description>
-    <Xml>
+    <Xml Shorten="OutputClause,WhereExpression">
       <Sql>
-
+        <NodeList>
+          <Item>
+            <UpdateStatement>
+              <Target>
+                <MultiIdentifier>Production.Document</MultiIdentifier>
+              </Target>
+              <Assigns>
+                <CommaList>
+                  <Item>
+                    <KoCall FunName="DocumentSummary.WRITE">
+                      <Parameters>
+                        <EnclosedCommaList>
+                          <Item>
+                            <LiteralString IsUnicode="true">N'features'</LiteralString>
+                          </Item>
+                          <Item>
+                            <LiteralInteger>28</LiteralInteger>
+                          </Item>
+                          <Item>
+                            <LiteralInteger>10</LiteralInteger>
+                          </Item>
+                        </EnclosedCommaList>
+                      </Parameters>
+                    </KoCall>
+                  </Item>
+                </CommaList>
+              </Assigns>
+              <OutputClause>OUTPUT deleted.DocumentSummary, inserted.DocumentSummary INTO @MyTableVar</OutputClause>
+              <WhereExpression>Title = N'Front Reflector Bracket Installation'</WhereExpression>
+            </UpdateStatement>
+          </Item>
+          <Item>
+            <UpdateStatement HasTerminator="true">
+              <Target>
+                <MultiIdentifier>Production.Document</MultiIdentifier>
+              </Target>
+              <Assigns>
+                <CommaList>
+                  <Item>
+                    <KoCall FunName="DocumentSummary.WRITE">
+                      <Parameters>
+                        <EnclosedCommaList>
+                          <Item>
+                            <LiteralString IsUnicode="true">N' Appending data to the end of the column.'</LiteralString>
+                          </Item>
+                          <Item>
+                            <Identifier IsReservedKeyword="true">NULL</Identifier>
+                          </Item>
+                          <Item>
+                            <LiteralInteger>0</LiteralInteger>
+                          </Item>
+                        </EnclosedCommaList>
+                      </Parameters>
+                    </KoCall>
+                  </Item>
+                </CommaList>
+              </Assigns>
+              <WhereExpression>Title = N'Crank Arm and Tire Maintenance'</WhereExpression>
+            </UpdateStatement>
+          </Item>
+          <Item>
+            <UpdateStatement>
+              <Target>
+                <MultiIdentifier>Production.Document</MultiIdentifier>
+              </Target>
+              <Assigns>
+                <CommaList>
+                  <Item>
+                    <KoCall FunName="DocumentSummary.WRITE">
+                      <Parameters>
+                        <EnclosedCommaList>
+                          <Item>
+                            <Identifier IsReservedKeyword="true">NULL</Identifier>
+                          </Item>
+                          <Item>
+                            <LiteralInteger>56</LiteralInteger>
+                          </Item>
+                          <Item>
+                            <LiteralInteger>0</LiteralInteger>
+                          </Item>
+                        </EnclosedCommaList>
+                      </Parameters>
+                    </KoCall>
+                  </Item>
+                </CommaList>
+              </Assigns>
+              <WhereExpression>Title = N'Crank Arm and Tire Maintenance'</WhereExpression>
+            </UpdateStatement>
+          </Item>
+          <Item>
+            <UpdateStatement HasTerminator="true">
+              <Target>
+                <MultiIdentifier>Production.Document</MultiIdentifier>
+              </Target>
+              <Assigns>
+                <CommaList>
+                  <Item>
+                    <KoCall FunName="DocumentSummary.WRITE">
+                      <Parameters>
+                        <EnclosedCommaList>
+                          <Item>
+                            <LiteralString>''</LiteralString>
+                          </Item>
+                          <Item>
+                            <LiteralInteger>9</LiteralInteger>
+                          </Item>
+                          <Item>
+                            <LiteralInteger>12</LiteralInteger>
+                          </Item>
+                        </EnclosedCommaList>
+                      </Parameters>
+                    </KoCall>
+                  </Item>
+                </CommaList>
+              </Assigns>
+              <WhereExpression>Title = N'Crank Arm and Tire Maintenance'</WhereExpression>
+            </UpdateStatement>
+          </Item>
+        </NodeList>
       </Sql>
     </Xml>
   </Test>
@@ -358,9 +501,6 @@
       Using UPDATE with OPENROWSET to modify a varbinary(max) column
     </Description>
     <Xml>
-      <Sql>
-
-      </Sql>
     </Xml>
   </Test>
 
@@ -373,8 +513,32 @@
     <Description>
       Invoking a method
     </Description>
-    <Xml>
+    <Xml Shorten="WhereExpression">
       <Sql>
+             <UpdateStatement>
+               <Target>
+                 <MultiIdentifier>dbo.Cities</MultiIdentifier>
+               </Target>
+               <Assigns>
+                 <CommaList>
+                   <Item>
+                     <KoCall FunName="Location.SetXY">
+                       <Parameters>
+                         <EnclosedCommaList>
+                           <Item>
+                             <LiteralDecimal>23.5</LiteralDecimal>
+                           </Item>
+                           <Item>
+                             <LiteralDecimal>23.5</LiteralDecimal>
+                           </Item>
+                         </EnclosedCommaList>
+                       </Parameters>
+                     </KoCall>
+                   </Item>
+                 </CommaList>
+               </Assigns>
+               <WhereExpression>Name = 'Anchorage'</WhereExpression>
+             </UpdateStatement>
 
       </Sql>
     </Xml>
@@ -384,15 +548,28 @@
     <Text>
       UPDATE Production.Product
       WITH (TABLOCK)
-      SET ListPrice = ListPrice * 1.10
+      SET ListPrice *= 1.10
       WHERE ProductNumber LIKE 'BK-%'
     </Text>
     <Description>
       Specifying a table hint
     </Description>
-    <Xml>
+    <Xml Shorten="Assigns,WhereExpression">
       <Sql>
-
+        <UpdateStatement>
+          <Target>
+            <MultiIdentifier>Production.Product</MultiIdentifier>
+          </Target>
+          <WithTableHints>
+            <WithParOptions>
+              <Item>
+                <Identifier>TABLOCK</Identifier>
+              </Item>
+            </WithParOptions>
+          </WithTableHints>
+          <Assigns>ListPrice *= 1.10</Assigns>
+          <WhereExpression>ProductNumber LIKE 'BK-%'</WhereExpression>
+        </UpdateStatement>
       </Sql>
     </Xml>
   </Test>
@@ -407,9 +584,22 @@
     <Description>
       Specifying a query hint
     </Description>
-    <Xml>
+    <Xml Shorten="Assigns,WhereExpression">
       <Sql>
-
+        <UpdateStatement>
+          <Target>
+            <MultiIdentifier>Production.Product</MultiIdentifier>
+          </Target>
+          <Assigns>ListPrice = ListPrice * 1.10</Assigns>
+          <WhereExpression>ProductNumber LIKE @Product</WhereExpression>
+          <Options>
+            <OptionParOptions>
+              <OptionT>
+                <Identifier IsReservedKeyword="true">OPTION</Identifier>
+              </OptionT>
+            </OptionParOptions>
+          </Options>
+        </UpdateStatement>
       </Sql>
     </Xml>
   </Test>
@@ -419,18 +609,42 @@
       UPDATE TOP (10) HumanResources.Employee
       SET VacationHours = VacationHours * 1.25,
           ModifiedDate = GETDATE() 
-      OUTPUT inserted.BusinessEntityID,
-             deleted.VacationHours,
-             inserted.VacationHours,
-             inserted.ModifiedDate
+      OUTPUT inserted.BusinessEntityID "COL",
+             deleted.VacationHours as First,
+             'other' = inserted.VacationHours,
+             [another] = inserted.ModifiedDate
       INTO @MyTableVar;
     </Text>
     <Description>
-      Specifying a query hint
+      Update top with output.
     </Description>
-    <Xml>
+    <Xml Shorten="Assigns,Item">
       <Sql>
-
+        <UpdateStatement HasTerminator="true">
+          <Top>
+            <Par>
+              <Content>
+                <LiteralInteger>10</LiteralInteger>
+              </Content>
+            </Par>
+          </Top>
+          <Target>
+            <MultiIdentifier>HumanResources.Employee</MultiIdentifier>
+          </Target>
+          <Assigns>VacationHours = VacationHours * 1.25, ModifiedDate = GETDATE()</Assigns>
+          <OutputClause>
+            <OutputClause TargetTable="@MyTableVar">
+              <Columns>
+                <SelectColumnList>
+                  <Item>inserted.BusinessEntityID "COL"</Item>
+                  <Item>deleted.VacationHours as First</Item>
+                  <Item>'other' = inserted.VacationHours</Item>
+                  <Item>[another] = inserted.ModifiedDate</Item>
+                </SelectColumnList>
+              </Columns>
+            </OutputClause>
+          </OutputClause>
+        </UpdateStatement>
       </Sql>
     </Xml>
   </Test>
@@ -448,9 +662,63 @@
     <Description>
       Update with case
     </Description>
-    <Xml>
+    <Xml Shorten="Operator">
       <Sql>
-
+        <UpdateStatement>
+          <Target>
+            <MultiIdentifier>HumanResources.Employee</MultiIdentifier>
+          </Target>
+          <Assigns>
+            <CommaList>
+              <Item>
+                <Assign>
+                  <Left>
+                    <Identifier>VacationHours</Identifier>
+                  </Left>
+                  <Operator>=</Operator>
+                  <Right>
+                    <Par>
+                      <Content>
+                        <Case>
+                          <WhenList>
+                            <CaseWhenList>
+                              <Item>
+                                <CaseWhenSelector>
+                                  <Expression>
+                                    <BinaryOperator>
+                                      <Left>
+                                        <Identifier>SalariedFlag</Identifier>
+                                      </Left>
+                                      <Operator>=</Operator>
+                                      <Right>
+                                        <LiteralInteger>0</LiteralInteger>
+                                      </Right>
+                                    </BinaryOperator>
+                                  </Expression>
+                                  <Value>
+                                    <BinaryOperator>
+                                      <Left>
+                                        <Identifier>VacationHours</Identifier>
+                                      </Left>
+                                      <Operator>+</Operator>
+                                      <Right>
+                                        <Identifier IsVariable="true">@NewHours</Identifier>
+                                      </Right>
+                                    </BinaryOperator>
+                                  </Value>
+                                </CaseWhenSelector>
+                              </Item>
+                            </CaseWhenList>
+                          </WhenList>
+                        </Case>
+                      </Content>
+                    </Par>
+                  </Right>
+                </Assign>
+              </Item>
+            </CommaList>
+          </Assigns>
+        </UpdateStatement>
       </Sql>
     </Xml>
   </Test>

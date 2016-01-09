@@ -314,16 +314,17 @@ namespace CK.SqlServer.Parser
         /// <returns>True if no error occurred.</returns>
         internal bool CollectUntil<T>( List<ISqlNode> items, Func<bool, ISqlNode> matcher = null, Predicate<T> stopperDefinition = null ) where T : SqlToken
         {
-            Debug.Assert( items != null );
-            while( !IsErrorOrEndOfInput && !(Current is T && (stopperDefinition == null || stopperDefinition( (T)Current ))) )
+            Debug.Assert( items != null && !IsError );
+            while( !(Current is T && (stopperDefinition == null || stopperDefinition( (T)Current ))) )
             {
+                if( IsEndOfInput ) return SetCurrentError( "Expected stopper for node list: {0} {1}.", typeof( T ).Name, stopperDefinition != null ? stopperDefinition.Method.Name : null );
                 if( matcher != null )
                 {
                     ISqlNode item = matcher( false );
                     if( item != null ) items.Add( item );
                     else
                     {
-                        if( IsError ) break;
+                        if( IsError ) return false;
                         items.Add( Current );
                         MoveNext();
                     }
@@ -334,7 +335,8 @@ namespace CK.SqlServer.Parser
                     MoveNext();
                 }
             }
-            return !IsError;
+            Debug.Assert( !IsError );
+            return true;
         }
 
         /// <summary>

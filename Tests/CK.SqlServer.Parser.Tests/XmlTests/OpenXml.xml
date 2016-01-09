@@ -29,49 +29,28 @@
     </Text>
     <Description>OpenXml has WITH() options.</Description>
     <Xml>
-      <Sql>
-      </Sql>
+      <Statements>
+        <DeclareVariable HasTerminator="true" />
+        <SetVariable HasTerminator="true" />
+        <ExecuteStatement HasTerminator="true" />
+        <SelectStatement HasTerminator="true">
+          <SelectSpec />
+        </SelectStatement>
+      </Statements>
     </Xml>
   </Test> 
   
-  <Test>
+  <Test Mode="OneExpression">
     <Text>
-      <![CDATA[
-        DECLARE @idoc int, @doc varchar(1000); 
-        SET @doc ='
-        <ROOT>
-        <Customer CustomerID="VINET" ContactName="Paul Henriot">
-           <Order OrderID="10248" CustomerID="VINET" EmployeeID="5" 
-                   OrderDate="1996-07-04T00:00:00">
-              <OrderDetail ProductID="11" Quantity="12"/>
-              <OrderDetail ProductID="42" Quantity="10"/>
-           </Order>
-        </Customer>
-        <Customer CustomerID="LILAS" ContactName="Carlos Gonzlez">v
-           <Order OrderID="10283" CustomerID="LILAS" EmployeeID="3" 
-                   OrderDate="1996-08-16T00:00:00">
-              <OrderDetail ProductID="72" Quantity="3"/>
-           </Order>
-        </Customer>
-        </ROOT>'; 
-
-        --Create an internal representation of the XML document.
-        EXEC sp_xml_preparedocument @idoc OUTPUT, @doc; 
-
-        -- SELECT stmt using OPENXML rowset provider
-        SELECT *
-        FROM   OPENXML (@idoc, '/ROOT/Customer/Order/OrderDetail',2) 
+        OPENXML (@idoc, '/ROOT/Customer/Order/OrderDetail',2) 
                  WITH (OrderID       int         '../@OrderID', 
                        CustomerID  varchar(10) '../@CustomerID', 
                        OrderDate   datetime    '../@OrderDate', 
                        ProdID      int         '@ProductID', 
-                       Qty         int         '@Quantity');
-    ]]>
+                       Qty         int         '@Quantity')
     </Text>
     <Description>Sample n°2.</Description>
     <Xml>
-      <Sql>
-      </Sql>
     </Xml>
   </Test> 
   
@@ -111,8 +90,18 @@
     </Text>
     <Description>With option can be a... table name, but NOT a local table (@T1)!</Description>
     <Xml>
-      <Sql>
-      </Sql>
+      <Statements>
+        <Statement StatementName="CREATE" />
+        <Statement StatementName="GO" />
+        <DeclareVariable />
+        <DeclareVariable />
+        <SetVariable />
+        <ExecuteStatement />
+        <SelectStatement>
+          <SelectSpec />
+        </SelectStatement>
+        <ExecuteStatement />
+      </Statements>
     </Xml>
   </Test> 
   
@@ -146,8 +135,26 @@
     </Text>
     <Description>Another sample from MSDN.</Description>
     <Xml>
-      <Sql>
-      </Sql>
+      <Statements>
+        <Statement StatementName="CREATE" />
+        <Statement StatementName="go" />
+        <InsertStatement />
+        <Statement StatementName="go" />
+        <SelectStatement>
+          <SelectFor TargetType="XML">
+            <SelectSpec />
+          </SelectFor>
+        </SelectStatement>
+        <Statement StatementName="go" />
+        <DeclareVariable HasTerminator="true" />
+        <ExecuteStatement HasTerminator="true" />
+        <SelectStatement>
+          <SelectSpec />
+        </SelectStatement>
+        <UnnamedStatement HasTerminator="true" />
+        <ExecuteStatement HasTerminator="true" />
+        <Statement StatementName="GO" />
+      </Statements>
     </Xml>
   </Test> 
   
@@ -277,6 +284,88 @@
     <Description>Big sample from MSDN.</Description>
     <Xml>
       <Statements>
+          <Statement StatementName="DROP" />
+          <Statement StatementName="DROP" />
+          <Statement StatementName="DROP" />
+          <Statement StatementName="GO" />
+          <Statement StatementName="CREATE" />
+          <Statement StatementName="GO" />
+          <Statement StatementName="CREATE" />
+          <Statement StatementName="GO" />
+          <Statement StatementName="CREATE" />
+          <Statement StatementName="go" />
+          <Statement StatementName="DROP" />
+          <Statement StatementName="GO" />
+          <StoredProcedure StatementName="CreateProcedure">
+            <StatementList>
+              <DeclareVariable />
+              <DeclareVariable />
+              <SetVariable />
+              <Statement StatementName="WHILE" />
+              <UnnamedStatement />
+              <BeginEndBlock StatementName="BeginEnd">
+                <StatementList>
+                  <SetVariable />
+                  <SetVariable />
+                  <ExecuteStringStatement />
+                  <SetVariable />
+                </StatementList>
+              </BeginEndBlock>
+              <Statement StatementName="Go" />
+              <Statement StatementName="DROP" />
+              <Statement StatementName="GO" />
+              <StoredProcedure StatementName="CreateProcedure">
+                <StatementList>
+                  <DeclareVariable />
+                  <DeclareVariable />
+                  <SelectStatement>
+                    <SelectSpec />
+                  </SelectStatement>
+                  <DeclareCursor>
+                    <SelectSpec />
+                  </DeclareCursor>
+                  <Statement StatementName="OPEN" />
+                  <Statement StatementName="FETCH" />
+                  <Statement StatementName="WHILE" />
+                  <UnnamedStatement />
+                  <BeginEndBlock StatementName="BeginEnd">
+                    <StatementList>
+                      <If>
+                        <BeginEndBlock StatementName="BeginEnd">
+                          <StatementList>
+                            <ExecuteStatement />
+                          </StatementList>
+                        </BeginEndBlock>
+                      </If>
+                      <Statement StatementName="FETCH" />
+                    </StatementList>
+                  </BeginEndBlock>
+                  <Statement StatementName="CLOSE" />
+                  <Statement StatementName="DEALLOCATE" />
+                  <Statement StatementName="Go" />
+                  <DeclareVariable />
+                  <ExecuteStatement />
+                  <InsertStatement>
+                    <SelectSpec />
+                  </InsertStatement>
+                  <InsertStatement>
+                    <SelectSpec />
+                  </InsertStatement>
+                  <ExecuteStatement />
+                  <SelectStatement>
+                    <SelectSpec />
+                  </SelectStatement>
+                  <SelectStatement>
+                    <SelectSpec />
+                  </SelectStatement>
+                  <SelectStatement>
+                    <SelectSpec />
+                  </SelectStatement>
+                  <ExecuteStatement />
+                </StatementList>
+              </StoredProcedure>
+            </StatementList>
+          </StoredProcedure>
       </Statements>
     </Xml>
   </Test> 

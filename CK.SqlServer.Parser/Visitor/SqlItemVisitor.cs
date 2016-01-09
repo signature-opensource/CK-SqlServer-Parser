@@ -68,6 +68,16 @@ namespace CK.SqlServer.Parser
             return VisitStandard( e );
         }
 
+        public virtual ISqlNode Visit( SqlOpenXml e )
+        {
+            return VisitStandard( e );
+        }
+
+        public virtual ISqlNode Visit( SqlOpenJSON e )
+        {
+            return VisitStandard( e );
+        }
+
         public virtual ISqlNode Visit( SqlCallParameter e )
         {
             return VisitStandard( e );

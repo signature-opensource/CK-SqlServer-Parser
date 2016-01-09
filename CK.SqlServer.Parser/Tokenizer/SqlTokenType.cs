@@ -488,6 +488,10 @@ namespace CK.SqlServer.Parser
         At              = IdentifierStandard | 28,
         Using           = IdentifierStandard | 29,
         Global          = IdentifierStandard | 30,
+        // OpenDataSource, OpenRowSet, OpenXml and OpenQuery are reserved keywords.
+        // OpenJSON is not.
+        // OpenJSON and Open
+        OpenJSON        = IdentifierStandard | 31,
 
         #endregion
 
@@ -616,9 +620,12 @@ namespace CK.SqlServer.Parser
         Read        = StartIdentifierReservedNonOperator + 41,
         Browse      = StartIdentifierReservedNonOperator + 42,
         OpenDataSource = StartIdentifierReservedNonOperator + 43,
+        // An OpenRowSet call is a kind of table, just like OpenQuery.
         OpenRowSet  = StartIdentifierReservedNonOperator + 44,
-        OpenXml     = StartIdentifierReservedNonOperator + 45,
-        OpenQuery   = StartIdentifierReservedNonOperator + 46,
+        // OpenQuey and OpenJSON (that is not a reserved keyword), support
+        // WITH options. 
+        OpenQuery   = StartIdentifierReservedNonOperator + 45,
+        OpenXml     = StartIdentifierReservedNonOperator + 46,
         Default     = StartIdentifierReservedNonOperator + 47,
         User        = StartIdentifierReservedNonOperator + 48,
         Current     = StartIdentifierReservedNonOperator + 49,

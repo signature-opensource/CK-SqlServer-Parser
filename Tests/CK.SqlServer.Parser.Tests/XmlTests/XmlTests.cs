@@ -93,6 +93,7 @@ namespace CK.SqlServer.Parser.Tests.XmlTests
         [TestCase( "Insert.xml" )]
         [TestCase( "OpenXml.xml" )]
         [TestCase( "Update.xml" )]
+        [TestCase( "Big Procedures.xml" )]
         public void file_test( string fileName )
         {
             using( TestHelper.ConsoleMonitor.OpenInfo().Send( $"Running {fileName}." ) )

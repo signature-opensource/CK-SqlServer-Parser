@@ -15,197 +15,90 @@ namespace CK.SqlServer.Parser.Tests
     public class SqlAnalyserTest
     {
         [Test]
-        public void SimpleSelect()
+        public void ParseStoredProcedureInputOutput()
         {
-            // We allow empty columns definition.
-            Check( "select", "[select-()]" );
-            Check( "select from a", "[select-()-from[a]]" );
+            CheckStatement<SqlStoredProcedure>( "sStoredProcedureInputOutput.sql", sp =>
+            {
+                Assert.That( sp.Name.Identifiers[0].ToString(), Is.EqualTo( "CK" ) );
+                Assert.That( sp.Name.Identifiers[1].ToString(), Is.EqualTo( "sStoredProcedureInputOutput" ) );
+                Assert.That( sp.Name.ToString(), Is.EqualTo( "CK.sStoredProcedureInputOutput" ) );
 
-            Check( "select 1", "[select-(1)]" );
-            Check( "select 1, 2*5, *, (@i*7)", "[select-(1,[2*5],*,(%[@i*7]%))]" );
-            Check( "select name, upper(N'u'+t.name) from sys.tables t", "[select-(name,call:upper([N'u'+t.name]))-from[¤{sys.tables-t}¤]]" );
-            Check( "select name from sys.tables t inner join dbo.tC k on k.id = t.id or k.id=-t.id", "[select-(name)-from[¤{sys.tables-t-inner-join-dbo.tC-k-on-[[k.id=t.id]or[k.id=-[t.id]]]}¤]]" );
+                Assert.That( sp.Parameters[0].IsOutput, Is.False );
+                Assert.That( sp.Parameters[0].IsReadOnly, Is.False );
+                Assert.That( sp.Parameters[0].DefaultValue, Is.Null );
+                Assert.That( sp.Parameters[0].Variable.Identifier.IsVariable, Is.True );
+                Assert.That( sp.Parameters[0].Variable.Identifier.Name, Is.EqualTo( "@p1" ) );
+                Assert.That( sp.Parameters[0].Variable.TypeDecl.DbType, Is.EqualTo( SqlDbType.Int ) );
+                Assert.That( sp.Parameters[0].Variable.TypeDecl.SyntaxSize, Is.EqualTo( -2 ), "Size does not apply." );
 
-            Check( "select name n from a", "[select-(n-as-name)-from[a]]", textAutoCorrected: "select name as n from a" );
-            Check( "select n=name from a", "[select-(n-=-name)-from[a]]" );
-            Check( "select avg(z) [from] from a", "[select-([from]-as-call:avg(z))-from[a]]", textAutoCorrected: "select avg(z) as [from] from a" );
-            Check( "select @X = avg(z) from a", "[select-(@X-=-call:avg(z))-from[a]]" );
-        }
+                Assert.That( sp.Parameters[1].IsOutput, Is.False );
+                Assert.That( sp.Parameters[1].IsReadOnly, Is.False );
+                Assert.That( sp.Parameters[1].DefaultValue, Is.Not.Null );
+                Assert.That( sp.Parameters[1].DefaultValue.ToString(), Is.EqualTo( "0" ) );
+                Assert.That( sp.Parameters[1].Variable.Identifier.IsVariable, Is.True );
+                Assert.That( sp.Parameters[1].Variable.Identifier.Name, Is.EqualTo( "@p2" ) );
+                Assert.That( sp.Parameters[1].Variable.TypeDecl.DbType, Is.EqualTo( SqlDbType.TinyInt ) );
 
-        [Test]
-        public void SelectFromWhere()
-        {
-            Check( "select from dbo.fC( (5 * 2) ) where x = 4", "[select-()-from[call:dbo.fC([5*2])]-where[[x=4]]]" );
-            Check( "select X from a where x = 4 order by z", "OrderBy([select-(X)-from[a]-where[[x=4]]],(z))" );
-            Check( "select from t group by a, b with rollup", "[select-()-from[t]-groupBy[¤{a-,-b-with-rollup}¤]]" );
-            Check( "select from t group by rollup(a,b)", "[select-()-from[t]-groupBy[call:rollup(a,b)]]" );
+                Assert.That( sp.Parameters[2].IsOutput, Is.True );
+                Assert.That( sp.Parameters[2].IsReadOnly, Is.False );
+                Assert.That( sp.Parameters[2].DefaultValue, Is.Null );
+                Assert.That( sp.Parameters[2].Variable.Identifier.IsVariable, Is.True );
+                Assert.That( sp.Parameters[2].Variable.Identifier.Name, Is.EqualTo( "@p3" ) );
+                Assert.That( sp.Parameters[2].Variable.TypeDecl.DbType, Is.EqualTo( SqlDbType.SmallInt ) );
 
-            Check( "select from t inner join z on z.id = [group].gid group by rollup(a,b)",
-                    "[select-()-from[¤{t-inner-join-z-on-[z.id=[group].gid]}¤]-groupBy[call:rollup(a,b)]]" );
+                Assert.That( sp.Parameters[3].IsOutput, Is.False );
+                Assert.That( sp.Parameters[3].IsReadOnly, Is.False );
+                Assert.That( sp.Parameters[3].DefaultValue.ToString(), Is.EqualTo( "N'Murfn...'" ) );
+                Assert.That( sp.Parameters[3].Variable.Identifier.IsVariable, Is.True );
+                Assert.That( sp.Parameters[3].Variable.Identifier.Name, Is.EqualTo( "@p4" ) );
+                Assert.That( sp.Parameters[3].Variable.TypeDecl.DbType, Is.EqualTo( SqlDbType.NVarChar ) );
+                Assert.That( sp.Parameters[3].Variable.TypeDecl.SyntaxSize, Is.EqualTo( 50 ) );
 
-            Check( "select * from a order by z asc, r desc", "OrderBy([select-(*)-from[a]],(z-asc,r-desc))" );
-            Check( @"SELECT top (3) DepartmentID, Name, GroupName
-                        FROM HumanResources.Department
-                        order by DepartmentID ASC, Shmurtz 
-                            OFFSET @StartingRowNumber - 1 ROWS 
-                            FETCH NEXT @EndingRowNumber - @StartingRowNumber + 1 ROWS ONLY",
-                    @"OrderBy( [SELECT-top-(-3-)-(DepartmentID,Name,GroupName)-from[HumanResources.Department]],
-                               (DepartmentID-ASC, Shmurtz), offset: [@StartingRowNumber-1], fetch: [[@EndingRowNumber-@StartingRowNumber]+1]
-                             )" );
+                Assert.That( sp.Parameters[4].IsOutput, Is.True );
+                Assert.That( sp.Parameters[4].IsInputOutput, Is.True );
+                Assert.That( sp.Parameters[4].IsReadOnly, Is.False );
+                Assert.That( sp.Parameters[4].DefaultValue, Is.Null );
+                Assert.That( sp.Parameters[4].Variable.Identifier.IsVariable, Is.True );
+                Assert.That( sp.Parameters[4].Variable.Identifier.Name, Is.EqualTo( "@p5" ) );
+                Assert.That( sp.Parameters[4].Variable.TypeDecl.DbType, Is.EqualTo( SqlDbType.VarChar ) );
+                Assert.That( sp.Parameters[4].Variable.TypeDecl.SyntaxSize, Is.EqualTo( -1 ), "Size is max." );
 
-            Check( "select from t group by rollup(a,b), nimp * [order\"by] order by s, k offset (@i+8) rows fetch next 45 - 8 rows only",
-                    @"OrderBy( 
-                                [select-()-from[t]-groupBy[¤{call:rollup(a,b)-,-[nimp*[order""by]]}¤]],
-                                (s,k),
-                                offset: [@i+8], 
-                                fetch: [45-8]
-                              )" );
-        }
-        
+                Assert.That( sp.Parameters[5].IsOutput, Is.True );
+                Assert.That( sp.Parameters[5].IsInputOutput, Is.True );
+                Assert.That( sp.Parameters[5].IsReadOnly, Is.False );
+                Assert.That( sp.Parameters[5].DefaultValue, Is.Null );
+                Assert.That( sp.Parameters[5].Variable.Identifier.IsVariable, Is.True );
+                Assert.That( sp.Parameters[5].Variable.Identifier.Name, Is.EqualTo( "@p6" ) );
+                Assert.That( sp.Parameters[5].Variable.TypeDecl.DbType, Is.EqualTo( SqlDbType.Char ) );
+                Assert.That( sp.Parameters[5].Variable.TypeDecl.SyntaxSize, Is.EqualTo( 0 ), "Size is undefined." );
 
-        [Test]
-        public void CollationTests() 
-        {
-            string s = @"
-     Select id as ID,
-            GreekCol COLLATE latin1_general_ci_as as T11,
-            LatinCol COLLATE greek_ci_as as [collate]
-            from TestTab11
-    UNION
-	 Select id as ID,
-			T11 = GreekCol COLLATE latin1_general_ci_as,
-			LatinCol
-			from TestTab12
-	UNION
-     Select id as ID,
-            GreekCol COLLATE latin1_general_ci_as + LatinCol,
-            LatinCol + GreekCol COLLATE greek_ci_as
-            from TestTab12
-	UNION
-     Select id as ID,
-            GreekCol + LatinCol COLLATE latin1_general_ci_as,
-            LatinCol COLLATE greek_ci_as + GreekCol COLLATE greek_ci_as
-            from TestTab12
-	UNION
-     Select id as ID,
-            GreekCol + LatinCol COLLATE latin1_general_ci_as,
-            ( (((('U' COLLATE greek_ci_as)))) + (((( ((LatinCol)) COLLATE greek_ci_as)))) ) + GreekCol  + 'P'
-            from TestTab12";
+                Assert.That( sp.Parameters[6].IsOutput, Is.True );
+                Assert.That( sp.Parameters[6].IsInputOutput, Is.False, "--input behind the comma..." );
+                Assert.That( sp.Parameters[6].IsReadOnly, Is.False );
+                Assert.That( sp.Parameters[6].DefaultValue, Is.Null );
+                Assert.That( sp.Parameters[6].Variable.Identifier.IsVariable, Is.True );
+                Assert.That( sp.Parameters[6].Variable.Identifier.Name, Is.EqualTo( "@p7" ) );
+                Assert.That( sp.Parameters[6].Variable.TypeDecl.DbType, Is.EqualTo( SqlDbType.Xml ) );
+                Assert.That( sp.Parameters[6].Variable.TypeDecl.SyntaxSize, Is.EqualTo( -2 ), "Size does not apply." );
 
-            Check( s, @"[
-                            [
-                                [
-                                    [
-                                        [Select-(
-                                                  ID-as-id,
-                                                  T11-as-GreekCol-COLLATE-latin1_general_ci_as,
-                                                  [collate]-as-LatinCol-COLLATE-greek_ci_as
-                                                )
-                                               -from[TestTab11]
-                                        ]
-                                        UNION
-                                        [Select-(
-                                                    ID-as-id,
-                                                    T11-=-GreekCol-COLLATE-latin1_general_ci_as,
-                                                    LatinCol
-                                                )
-                                               -from[TestTab12]
-                                        ]
-                                    ]
-                                    UNION
-                                    [Select-(
-                                                ID-as-id,
-                                                [GreekCol-COLLATE-latin1_general_ci_as+LatinCol],
-                                                [LatinCol+GreekCol-COLLATE-greek_ci_as]
-                                            )
-                                           -from[TestTab12]
-                                    ]
-                                ]
-                                UNION
-                                [Select-(
-                                            ID-as-id,
-                                            [GreekCol+LatinCol-COLLATE-latin1_general_ci_as],
-                                            [LatinCol-COLLATE-greek_ci_as+GreekCol-COLLATE-greek_ci_as]
-                                        )
-                                       -from[TestTab12]
-                                ]
-                            ]
-                            UNION
-                            [Select-(
-                                        ID-as-id,
-                                        [GreekCol+LatinCol-COLLATE-latin1_general_ci_as],
-                                        [[(%[(%(%(%(%'U'-COLLATE-greek_ci_as%)%)%)%)+(%(%(%(%(-(-LatinCol-)-)-COLLATE-greek_ci_as%)%)%)%)]%)+GreekCol]+'P']
-                                    )
-                                   -from[TestTab12]
-                            ]
-                        ]" );
+                Assert.That( sp.Parameters[7].IsOutput, Is.True );
+                Assert.That( sp.Parameters[7].IsInputOutput, Is.True, "-- input on the line above." );
+                Assert.That( sp.Parameters[7].IsReadOnly, Is.False );
+                Assert.That( sp.Parameters[7].DefaultValue, Is.Null );
+                Assert.That( sp.Parameters[7].Variable.Identifier.IsVariable, Is.True );
+                Assert.That( sp.Parameters[7].Variable.Identifier.Name, Is.EqualTo( "@p8" ) );
+                Assert.That( sp.Parameters[7].Variable.TypeDecl.DbType, Is.EqualTo( SqlDbType.SmallDateTime ) );
+                Assert.That( sp.Parameters[7].Variable.TypeDecl.SyntaxSize, Is.EqualTo( -2 ), "Size does not apply." );
 
-        }
+                Assert.That( sp.Parameters[8].IsOutput, Is.False );
+                Assert.That( sp.Parameters[8].IsInputOutput, Is.False );
+                Assert.That( sp.Parameters[8].IsReadOnly, Is.False );
+                Assert.That( sp.Parameters[8].DefaultValue.IsVariable, Is.False );
+                Assert.That( sp.Parameters[8].DefaultValue.IsNull, Is.True );
+                Assert.That( sp.Parameters[8].DefaultValue.IsLiteral, Is.False );
 
-        [Test]
-        public void SelectUnionIntersect()
-        {
-            // -- intersect > union
-            var intersectStrongerThanUnion = @"[
-                                                    [select-(1)]
-                                                  union
-                                                    [ [select-(2)]intersect[select-(0)] ]
-                                               ]";
-            Check( "select 1 union select 2 intersect select 0", intersectStrongerThanUnion );
-	        // -- Same as 
-	        Check( "select 1 union (select 2 intersect select 0)", intersectStrongerThanUnion );
-	        // -- Not the same as 
-            Check( "(select 1 union select 2) intersect select 0", @"[
-                                                                          [ [select-(1)]union[select-(2)] ]
-                                                                       intersect
-                                                                          [select-(0)]
-                                                                     ]" );
-        }
-
-        [Test]
-        public void SelectUnionAllExcept()
-        {
-            // -- except > union
-            var exceptStrongerThanUnion = @"[
-                                                [select-(1)]
-                                              union-all
-                                                [ [select-(2)]except[select-(1)] ]
-                                            ]";
-            Check( "select 1 union all select 2 except select 1", exceptStrongerThanUnion );
-
-	        // -- Same as 
-	        Check( "select 1 union all (select 2 except select 1)", exceptStrongerThanUnion );
-	        
-            // -- Not the same as 
-            Check( "(select 1 union all select 2) except select 1", @"[
-                                                                            [ [select-(1)]union-all[select-(2)] ]
-                                                                        except
-                                                                            [select-(1)]
-                                                                      ]" );
-        }
-
-        [Test]
-        public void SelectExceptIntersect()
-        {
-            // -- intersect > except
-            var sc1 = "(select 1 union select 2 union select 3)";
-            var c1 = "[[[select-(1)]union[select-(2)]]union[select-(3)]]";
-            Check( sc1, c1 );
-            
-            var sc2 = "(select 1 union select 2)";
-            var c2 = "[[select-(1)]union[select-(2)]]";
-            Check( sc2, c2 );
-            
-            var sc3 = "(select 1)";
-            var c3 = "[select-(1)]";
-            Check( sc3, c3 );
-
-            var intersectStrongerThanExpect = "["+c1+"except["+c2+"intersect"+c3+"]]";
-            Check( sc1 +" except "+ sc2 + " intersect " + sc3, intersectStrongerThanExpect );
-	        // -- Same as 
-            Check( sc1 + " except " + "(" + sc2 + " intersect " + sc3 + ")", intersectStrongerThanExpect );
-            // -- Not the same as 
-            Check( "(" + sc1 + " except " + sc2 + ")" + " intersect " + sc3, "[[" + c1 + "except" + c2 + "]intersect" + c3 + "]" );
+                Assert.That( sp.Header.ToStringCompact(), Is.EqualTo( "procedure CK.sStoredProcedureInputOutput @p1 int, @p2 tinyint = 0, @p3 smallint output, @p4 nvarchar(50)=N'Murfn...', @p5 varchar(max) /*input*/output, @p6 char /*input*/output, @p7 Xml output, @p8 smalldatetime /*input*/output, @p9 smalldatetime = null" ) );
+            } );
         }
 
         [Test]
@@ -562,93 +455,6 @@ namespace CK.SqlServer.Parser.Tests
                     Assert.That( sp.HasOptions, Is.False );
                     Assert.That( sp.Parameters.Count, Is.EqualTo( 7 ) );
                     Assert.That( sp.Header.ToStringCompact(), Is.EqualTo( "proc InvBack.sOfferCreate(@ActorId int, @Title nvarchar(256), @ProjectName nvarchar(256), @ClientId int, @ContactId int, @CompanyLocationId int, @OfferIdResult int output)" ) );
-                } );
-        }
-
-        [Test]
-        public void ParseStoredProcedureInputOutput()
-        {
-            CheckStatement<SqlStoredProcedure>( "sStoredProcedureInputOutput.sql", sp =>
-                {
-                    Assert.That( sp.Name.Identifiers[0].ToString(), Is.EqualTo( "CK" ) );
-                    Assert.That( sp.Name.Identifiers[1].ToString(), Is.EqualTo( "sStoredProcedureInputOutput" ) );
-                    Assert.That( sp.Name.ToString(), Is.EqualTo( "CK.sStoredProcedureInputOutput" ) );
-
-                    Assert.That( sp.Parameters[0].IsOutput, Is.False );
-                    Assert.That( sp.Parameters[0].IsReadOnly, Is.False );
-                    Assert.That( sp.Parameters[0].DefaultValue, Is.Null );
-                    Assert.That( sp.Parameters[0].Variable.Identifier.IsVariable, Is.True );
-                    Assert.That( sp.Parameters[0].Variable.Identifier.Name, Is.EqualTo( "@p1" ) );
-                    Assert.That( sp.Parameters[0].Variable.TypeDecl.DbType, Is.EqualTo( SqlDbType.Int ) );
-                    Assert.That( sp.Parameters[0].Variable.TypeDecl.SyntaxSize, Is.EqualTo( -2 ), "Size does not apply." );
-
-                    Assert.That( sp.Parameters[1].IsOutput, Is.False );
-                    Assert.That( sp.Parameters[1].IsReadOnly, Is.False );
-                    Assert.That( sp.Parameters[1].DefaultValue, Is.Not.Null );
-                    Assert.That( sp.Parameters[1].DefaultValue.ToString(), Is.EqualTo( "0" ) );
-                    Assert.That( sp.Parameters[1].Variable.Identifier.IsVariable, Is.True );
-                    Assert.That( sp.Parameters[1].Variable.Identifier.Name, Is.EqualTo( "@p2" ) );
-                    Assert.That( sp.Parameters[1].Variable.TypeDecl.DbType, Is.EqualTo( SqlDbType.TinyInt ) );
-
-                    Assert.That( sp.Parameters[2].IsOutput, Is.True );
-                    Assert.That( sp.Parameters[2].IsReadOnly, Is.False );
-                    Assert.That( sp.Parameters[2].DefaultValue, Is.Null );
-                    Assert.That( sp.Parameters[2].Variable.Identifier.IsVariable, Is.True );
-                    Assert.That( sp.Parameters[2].Variable.Identifier.Name, Is.EqualTo( "@p3" ) );
-                    Assert.That( sp.Parameters[2].Variable.TypeDecl.DbType, Is.EqualTo( SqlDbType.SmallInt ) );
-
-                    Assert.That( sp.Parameters[3].IsOutput, Is.False );
-                    Assert.That( sp.Parameters[3].IsReadOnly, Is.False );
-                    Assert.That( sp.Parameters[3].DefaultValue.ToString(), Is.EqualTo( "N'Murfn...'" ) );
-                    Assert.That( sp.Parameters[3].Variable.Identifier.IsVariable, Is.True );
-                    Assert.That( sp.Parameters[3].Variable.Identifier.Name, Is.EqualTo( "@p4" ) );
-                    Assert.That( sp.Parameters[3].Variable.TypeDecl.DbType, Is.EqualTo( SqlDbType.NVarChar ) );
-                    Assert.That( sp.Parameters[3].Variable.TypeDecl.SyntaxSize, Is.EqualTo( 50 ) );
-
-                    Assert.That( sp.Parameters[4].IsOutput, Is.True );
-                    Assert.That( sp.Parameters[4].IsInputOutput, Is.True );
-                    Assert.That( sp.Parameters[4].IsReadOnly, Is.False );
-                    Assert.That( sp.Parameters[4].DefaultValue, Is.Null );
-                    Assert.That( sp.Parameters[4].Variable.Identifier.IsVariable, Is.True );
-                    Assert.That( sp.Parameters[4].Variable.Identifier.Name, Is.EqualTo( "@p5" ) );
-                    Assert.That( sp.Parameters[4].Variable.TypeDecl.DbType, Is.EqualTo( SqlDbType.VarChar ) );
-                    Assert.That( sp.Parameters[4].Variable.TypeDecl.SyntaxSize, Is.EqualTo( -1 ), "Size is max." );
-
-                    Assert.That( sp.Parameters[5].IsOutput, Is.True );
-                    Assert.That( sp.Parameters[5].IsInputOutput, Is.True );
-                    Assert.That( sp.Parameters[5].IsReadOnly, Is.False );
-                    Assert.That( sp.Parameters[5].DefaultValue, Is.Null );
-                    Assert.That( sp.Parameters[5].Variable.Identifier.IsVariable, Is.True );
-                    Assert.That( sp.Parameters[5].Variable.Identifier.Name, Is.EqualTo( "@p6" ) );
-                    Assert.That( sp.Parameters[5].Variable.TypeDecl.DbType, Is.EqualTo( SqlDbType.Char ) );
-                    Assert.That( sp.Parameters[5].Variable.TypeDecl.SyntaxSize, Is.EqualTo( 0 ), "Size is undefined." );
-
-                    Assert.That( sp.Parameters[6].IsOutput, Is.True );
-                    Assert.That( sp.Parameters[6].IsInputOutput, Is.False, "--input behind the comma..." );
-                    Assert.That( sp.Parameters[6].IsReadOnly, Is.False );
-                    Assert.That( sp.Parameters[6].DefaultValue, Is.Null );
-                    Assert.That( sp.Parameters[6].Variable.Identifier.IsVariable, Is.True );
-                    Assert.That( sp.Parameters[6].Variable.Identifier.Name, Is.EqualTo( "@p7" ) );
-                    Assert.That( sp.Parameters[6].Variable.TypeDecl.DbType, Is.EqualTo( SqlDbType.Xml ) );
-                    Assert.That( sp.Parameters[6].Variable.TypeDecl.SyntaxSize, Is.EqualTo( -2 ), "Size does not apply." );
-
-                    Assert.That( sp.Parameters[7].IsOutput, Is.True );
-                    Assert.That( sp.Parameters[7].IsInputOutput, Is.True, "-- input on the line above." );
-                    Assert.That( sp.Parameters[7].IsReadOnly, Is.False );
-                    Assert.That( sp.Parameters[7].DefaultValue, Is.Null );
-                    Assert.That( sp.Parameters[7].Variable.Identifier.IsVariable, Is.True );
-                    Assert.That( sp.Parameters[7].Variable.Identifier.Name, Is.EqualTo( "@p8" ) );
-                    Assert.That( sp.Parameters[7].Variable.TypeDecl.DbType, Is.EqualTo( SqlDbType.SmallDateTime ) );
-                    Assert.That( sp.Parameters[7].Variable.TypeDecl.SyntaxSize, Is.EqualTo( -2 ), "Size does not apply." );
-
-                    Assert.That( sp.Parameters[8].IsOutput, Is.False );
-                    Assert.That( sp.Parameters[8].IsInputOutput, Is.False );
-                    Assert.That( sp.Parameters[8].IsReadOnly, Is.False );
-                    Assert.That( sp.Parameters[8].DefaultValue.IsVariable, Is.False );
-                    Assert.That( sp.Parameters[8].DefaultValue.IsNull, Is.True );
-                    Assert.That( sp.Parameters[8].DefaultValue.IsLiteral, Is.False );
-
-                    Assert.That( sp.Header.ToStringCompact(), Is.EqualTo( "procedure CK.sStoredProcedureInputOutput @p1 int, @p2 tinyint = 0, @p3 smallint output, @p4 nvarchar(50)=N'Murfn...', @p5 varchar(max) /*input*/output, @p6 char /*input*/output, @p7 Xml output, @p8 smalldatetime /*input*/output, @p9 smalldatetime = null" ) );
                 } );
         }
 

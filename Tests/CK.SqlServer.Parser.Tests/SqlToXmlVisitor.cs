@@ -188,7 +188,7 @@ namespace CK.SqlServer.Parser
                             : null,
                       ToXml( "Columns", e.Columns ),
                       e.IntoClause != null ? ToXml( "Into", e.IntoClause ) : null,
-                      e.FromClause != null ? new XElement( "From", e.FromClause.ToString() ) : null,
+                      e.FromClause != null ? ToXml( "From", e.FromClause ) : null,
                       e.WhereExpression != null ? ToXml( "WhereExpression", e.WhereExpression ) : null,
                       e.GroupByClause != null ? ToXml( "GroupBy", e.GroupByClause ) : null );
             return e;
@@ -278,6 +278,28 @@ namespace CK.SqlServer.Parser
                                         : null,
                 e.HasWithMergeHints ? ToXml( "WithMergeHints", e.WithMergeHints ) : null,
                 ToXml( "UnmodeledRemaider", e.UnmodeledRemaider ) );
+            return e;
+        }
+
+        public override ISqlNode Visit( SqlOpenJSON e )
+        {
+            StartNode( e, x => x.Add(
+                ToXml( nameof( e.Parameters ), e.Parameters ),
+                e.HasSchema ? ToXml( nameof( e.Schema ), e.Schema ) : null )
+                );
+            return e;
+        }
+
+        public override ISqlNode Visit( SqlOpenXml e )
+        {
+            StartNode( e, x => x.Add(
+                ToXml( nameof( e.Parameters ), e.Parameters ),
+                e.HasSchemaDefinition 
+                    ? ToXml( nameof( e.SchemaDefinition ), e.SchemaDefinition ) 
+                    : (e.HasSchemaTable
+                        ? ToXml( nameof( e.SchemaTable ), e.SchemaTable ) 
+                        : null))
+                );
             return e;
         }
 
@@ -405,38 +427,52 @@ namespace CK.SqlServer.Parser
         public override ISqlNode Visit( SqlExecuteStatement e )
         {
             StartNode( e, x => x.Add(
-                new XElement( "Name", e.Name.ToString() ),
-                ToXml( "Parameters", e.Parameters ),
-                e.Options != null ? ToXml( "Options", e.Options ) : null ) );
+                new XElement( nameof( e.Name ), e.Name.ToString() ),
+                ToXml( nameof( e.Parameters ), e.Parameters ),
+                e.Options != null ? ToXml( nameof( e.Options ), e.Options ) : null ) );
             return e;
         }
 
         public override ISqlNode Visit( SqlExecuteStringStatement e )
         {
             StartNode( e, x => x.Add(
-                ToXml( "Arguments", e.Arguments ),
-                e.Options != null ? ToXml( "Options", e.Options ) : null ) );
+                ToXml( nameof( e.Arguments ), e.Arguments ),
+                e.Options != null ? ToXml( nameof( e.Options ), e.Options ) : null ) );
             return e;
         }
 
         public override ISqlNode Visit( SqlCTEStatement e )
         {
             StartNode( e ).Add(
-                ToXml( "Names", e.Names ),
-                ToXml( "OuterStatement", e.OuterStatement ) );
+                ToXml( nameof( e.Names ), e.Names ),
+                ToXml( nameof( e.OuterStatement ), e.OuterStatement ) );
             return e;
         }
 
         public override ISqlNode Visit( SqlCTEName e )
         {
             StartNode( e, x => x.Add(
-                new XAttribute( "Name", e.Name.ToString() ),
+                new XAttribute( nameof(e.Name ), e.Name.ToString() ),
                 e.ColumnNames != null 
-                    ? new XAttribute( "ColumnNames", string.Join( ", ", e.ColumnNames.Select( c => c.ToString() ) ) )
+                    ? new XAttribute( nameof(e.ColumnNames), string.Join( ", ", e.ColumnNames.Select( c => c.ToString() ) ) )
                     : null,
-                ToXml( "Select", e.Select ) ) );
+                ToXml( nameof(e.Select), e.Select ) ) );
             return e;
         }
 
+        public override ISqlNode Visit( SqlCase e )
+        {
+            StartNode( e, x => x.Add( ToXml( nameof( e.WhenList ), e.WhenList ) ) );
+            return e;
+        }
+
+        public override ISqlNode Visit( SqlCaseWhenSelector e )
+        {
+            StartNode( e, x => x.Add( 
+                ToXml( nameof( e.Expression ), e.Expression ),
+                ToXml( nameof( e.Value ), e.Value ) )
+                );
+            return e;
+        }
     }
 }

@@ -105,6 +105,16 @@ namespace CK.SqlServer.Parser
         }
 
         /// <summary>
+        /// True if this <see cref="SqlTokenType"/> denotes a special identifier ($action, * in select * from..., etc).
+        /// </summary>
+        /// <param name="this">Token to test.</param>
+        static public bool IsIdentifierSpecial( this SqlTokenType type )
+        {
+            return type > 0
+                    && (type & SqlTokenType.IdentifierTypeMask) == SqlTokenType.IdentifierSpecial;
+        }
+
+        /// <summary>
         /// True if this <see cref="SqlTokenType"/> denotes a reserved keyword.
         /// </summary>
         /// <param name="this">Token to test.</param>

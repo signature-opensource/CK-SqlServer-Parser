@@ -31,7 +31,7 @@
         offset @StartingRowNumber - 1 rows
           fetch next @EndingRowNumber - @StartingRowNumber + 1 rows only</Text>
     <Description>SelectOrderBy is an operator, just like SelectOrderFor (browse, xml, json, system_time).</Description>
-    <Xml>
+    <Xml Shorten="From">
       <Sql>
         <SelectOrderBy>
           <Select>
@@ -176,7 +176,7 @@
     </Xml>
   </Test>
 
-  <Test Mode="OneExpression">
+  <Test>
     <Text>
       SELECT Number, Customer, Date, Quantity
       FROM OPENJSON (@JSalestOrderDetails, '$.OrdersArray')
@@ -188,43 +188,106 @@
             ) AS OrdersArray
     </Text>
     <Description>Select in parenthesis.</Description>
-    <Xml>
+    <Xml Shorten="Columns">
       <Sql>
-        <SelectSpec>
-          <Columns>
-            <SelectColumnList>
-              <Item>
-                <SelectColumn>
-                  <Definition>
-                    <Identifier>Number</Identifier>
-                  </Definition>
-                </SelectColumn>
-              </Item>
-              <Item>
-                <SelectColumn>
-                  <Definition>
-                    <Identifier>Customer</Identifier>
-                  </Definition>
-                </SelectColumn>
-              </Item>
-              <Item>
-                <SelectColumn>
-                  <Definition>
-                    <Identifier IsDbType="true">Date</Identifier>
-                  </Definition>
-                </SelectColumn>
-              </Item>
-              <Item>
-                <SelectColumn>
-                  <Definition>
-                    <Identifier>Quantity</Identifier>
-                  </Definition>
-                </SelectColumn>
-              </Item>
-            </SelectColumnList>
-          </Columns>
-          <From>FROM OPENJSON(@JSalestOrderDetails, '$.OrdersArray') WITH(Number varchar(200), Date datetime, Customer varchar(200), Quantity int) AS OrdersArray</From>
-        </SelectSpec>
+       <SelectStatement>
+         <Select>
+           <SelectSpec>
+             <Columns>Number, Customer, Date, Quantity</Columns>
+             <From>
+               <SelectFrom>
+                 <FromT>
+                   <Identifier IsReservedKeyword="true">FROM</Identifier>
+                 </FromT>
+                 <Content>
+                   <NodeList>
+                     <Item>
+                       <OpenJSON>
+                         <Parameters>
+                           <EnclosedCommaList>
+                             <Item>
+                               <Identifier IsVariable="true">@JSalestOrderDetails</Identifier>
+                             </Item>
+                             <Item>
+                               <LiteralString>'$.OrdersArray'</LiteralString>
+                             </Item>
+                           </EnclosedCommaList>
+                         </Parameters>
+                         <Schema>
+                           <WithParOptions>
+                             <Item>
+                               <NodeList>
+                                 <Item>
+                                   <Identifier>Number</Identifier>
+                                 </Item>
+                                 <Item>
+                                   <KoCall FunName="varchar">
+                                     <Parameters>
+                                       <EnclosedCommaList>
+                                         <Item>
+                                           <LiteralInteger>200</LiteralInteger>
+                                         </Item>
+                                       </EnclosedCommaList>
+                                     </Parameters>
+                                   </KoCall>
+                                 </Item>
+                               </NodeList>
+                             </Item>
+                             <Item>
+                               <NodeList>
+                                 <Item>
+                                   <Identifier IsDbType="true">Date</Identifier>
+                                 </Item>
+                                 <Item>
+                                   <Identifier IsDbType="true">datetime</Identifier>
+                                 </Item>
+                               </NodeList>
+                             </Item>
+                             <Item>
+                               <NodeList>
+                                 <Item>
+                                   <Identifier>Customer</Identifier>
+                                 </Item>
+                                 <Item>
+                                   <KoCall FunName="varchar">
+                                     <Parameters>
+                                       <EnclosedCommaList>
+                                         <Item>
+                                           <LiteralInteger>200</LiteralInteger>
+                                         </Item>
+                                       </EnclosedCommaList>
+                                     </Parameters>
+                                   </KoCall>
+                                 </Item>
+                               </NodeList>
+                             </Item>
+                             <Item>
+                               <NodeList>
+                                 <Item>
+                                   <Identifier>Quantity</Identifier>
+                                 </Item>
+                                 <Item>
+                                   <Identifier IsDbType="true">int</Identifier>
+                                 </Item>
+                               </NodeList>
+                             </Item>
+                           </WithParOptions>
+                         </Schema>
+                       </OpenJSON>
+                     </Item>
+                     <Item>
+                       <Identifier IsReservedKeyword="true">AS</Identifier>
+                     </Item>
+                     <Item>
+                       <Identifier>OrdersArray</Identifier>
+                     </Item>
+                   </NodeList>
+                 </Content>
+               </SelectFrom>
+             </From>
+           </SelectSpec>
+         </Select>
+       </SelectStatement>
       </Sql>
     </Xml>
   </Test>
@@ -234,7 +297,7 @@
       SELECT ROW_NUMBER() OVER(PARTITION BY PostalCode ORDER BY SalesYTD DESC) AS RowNumber from table
     </Text>
     <Description>Select in parenthesis.</Description>
-    <Xml>
+    <Xml Shorten="From">
       <Sql>
         <SelectSpec>
           <Columns>
@@ -302,7 +365,7 @@
       WHERE SalesOrderID IN(43659,43664)
     </Text>
     <Description>All kind of column names.</Description>
-    <Xml>
+    <Xml Shorten="From">
       <Sql>
         <SelectSpec>
           <Columns>
@@ -426,7 +489,7 @@
               from TestTab12
     </Text>
     <Description>Multiple select combination.</Description>
-    <Xml CombineElementType="true">
+    <Xml CombineElementType="true" Shorten="From">
       <Sql EType="SelectCombine" SelectType="UnionDistinct">
         <Left EType="SelectCombine" SelectType="UnionDistinct">
           <Left EType="SelectCombine" SelectType="UnionDistinct">
@@ -541,6 +604,74 @@
             </Item>
           </Columns>
           <From>from TestTab12</From>
+        </Right>
+      </Sql>
+    </Xml>
+  </Test>
+  
+  <Test Mode="OneExpression">
+    <Text>
+      select 1 union select 2 intersect select 0
+    </Text>
+    <Description>intersect is stronger than union.</Description>
+    <Xml CombineElementType="true" Shorten="From">
+      <Sql EType="SelectCombine" SelectType="UnionDistinct">
+        <Left EType="SelectSpec">
+          <Columns EType="SelectColumnList">
+            <Item EType="SelectColumn">
+              <Definition EType="LiteralInteger">1</Definition>
+            </Item>
+          </Columns>
+        </Left>
+        <Right EType="SelectCombine" SelectType="Intersect">
+          <Left EType="SelectSpec">
+            <Columns EType="SelectColumnList">
+              <Item EType="SelectColumn">
+                <Definition EType="LiteralInteger">2</Definition>
+              </Item>
+            </Columns>
+          </Left>
+          <Right EType="SelectSpec">
+            <Columns EType="SelectColumnList">
+              <Item EType="SelectColumn">
+                <Definition EType="LiteralInteger">0</Definition>
+              </Item>
+            </Columns>
+          </Right>
+        </Right>
+      </Sql>
+    </Xml>
+  </Test>
+  
+  <Test Mode="OneExpression">
+    <Text>
+      select 1 except select 2 intersect select 0
+    </Text>
+    <Description>intersect is stronger than except.</Description>
+    <Xml CombineElementType="true" Shorten="From">
+      <Sql EType="SelectCombine" SelectType="Except">
+        <Left EType="SelectSpec">
+          <Columns EType="SelectColumnList">
+            <Item EType="SelectColumn">
+              <Definition EType="LiteralInteger">1</Definition>
+            </Item>
+          </Columns>
+        </Left>
+        <Right EType="SelectCombine" SelectType="Intersect">
+          <Left EType="SelectSpec">
+            <Columns EType="SelectColumnList">
+              <Item EType="SelectColumn">
+                <Definition EType="LiteralInteger">2</Definition>
+              </Item>
+            </Columns>
+          </Left>
+          <Right EType="SelectSpec">
+            <Columns EType="SelectColumnList">
+              <Item EType="SelectColumn">
+                <Definition EType="LiteralInteger">0</Definition>
+              </Item>
+            </Columns>
+          </Right>
         </Right>
       </Sql>
     </Xml>

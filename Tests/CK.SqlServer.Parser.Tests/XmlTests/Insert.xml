@@ -270,7 +270,7 @@
         FROM OPENROWSET(BULK N'C:\Text1.txt', SINGLE_BLOB) AS Document;
     </Text>
     <Description></Description>
-    <Xml>
+    <Xml Shorten="From">
       <Sql>
         <InsertStatement HasTerminator="true">
           <Target>
@@ -335,7 +335,7 @@
         ORDER BY sp.SalesYTD DESC;
     </Text>
     <Description></Description>
-    <Xml>
+    <Xml Shorten="From">
       <Sql>
         <InsertStatement HasTerminator="true">
           <Top Percent="true">
