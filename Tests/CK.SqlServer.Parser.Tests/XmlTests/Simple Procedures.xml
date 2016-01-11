@@ -34,21 +34,21 @@
       </Statements>
     </Xml>
   </Test>
-  
-  
+
   <Test>
     <Text>
       -- Version = 1.0.0, Package = TestMe
       create procedure sProcWithoutTerminator
       (
-        @P int
+      @P int
       )
       as
       begin
-        --[beginsp]
-        select P = @P
-        --[endsp]
-      end</Text>
+      --[beginsp]
+      select P = @P
+      --[endsp]
+      end
+    </Text>
     <Description>Simple procedure.</Description>
     <Xml>
       <Sql>
@@ -93,4 +93,66 @@
     </Xml>
   </Test>
 
+  <Test>
+    <Text>
+      CREATE PROCEDURE dbo.uspCurrencyCursor 
+          @CurrencyCursor CURSOR VARYING OUTPUT
+      AS
+          SET NOCOUNT ON
+          SET @CurrencyCursor = CURSOR
+          FORWARD_ONLY STATIC FOR
+            SELECT CurrencyCode, Name
+            FROM Sales.Currency;
+          OPEN @CurrencyCursor
+    </Text>
+    <Description>CURSOR VARYING is a special case of type declaration that applies only to parameters.</Description>
+    <Xml Shorten="SetOption, CursorDefinition">
+      <Sql>
+        <StoredProcedure StatementName="CreateProcedure">
+          <Name>dbo.uspCurrencyCursor</Name>
+          <Parameters>
+            <ParameterList>
+              <Item>
+                <Parameter Name="@CurrencyCursor" Direction="Output">
+                  <Type>
+                    <TypeDeclCursorParameter DBType="Udt" Text="CURSOR VARYING" />
+                  </Type>
+                </Parameter>
+              </Item>
+            </ParameterList>
+          </Parameters>
+          <Body>
+            <StatementList>
+              <Item>
+                <SetOption>SET NOCOUNT ON</SetOption>
+              </Item>
+              <Item>
+                <SetVariable HasTerminator="true">
+                  <Variable>
+                    <Identifier IsVariable="true">@CurrencyCursor</Identifier>
+                  </Variable>
+                  <AssignT>
+                    <Terminal>=</Terminal>
+                  </AssignT>
+                  <Value>
+                    <CursorDefinition>CURSOR FORWARD_ONLY STATIC FOR SELECT CurrencyCode, Name FROM Sales.Currency</CursorDefinition>
+                  </Value>
+                </SetVariable>
+              </Item>
+              <Item>
+                <Statement StatementName="OPEN">
+                  <Content>
+                    <Identifier IsVariable="true">@CurrencyCursor</Identifier>
+                  </Content>
+                </Statement>
+              </Item>
+            </StatementList>
+          </Body>
+        </StoredProcedure>
+      </Sql>
+    </Xml>
+  </Test>
+
+  
+  
 </Tests>

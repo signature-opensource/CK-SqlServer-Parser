@@ -106,8 +106,7 @@ namespace CK.SqlServer.Parser
                 case ParseMode.OneExpression: return IsOneExpression( true );
                 case ParseMode.ExtendedExpression: return IsExtendedExpression( true );
                 case ParseMode.AnyExpression: return IsAnyExpression( true );
-                case ParseMode.NamedStatement: return IsNamedStatement( true );
-                case ParseMode.ExtendedStatement: return IsExtendedStatement( true );
+                case ParseMode.Statement: return IsExtendedStatement( true );
                 default:
                 {
                     Debug.Assert( mode == ParseMode.AllStatements );

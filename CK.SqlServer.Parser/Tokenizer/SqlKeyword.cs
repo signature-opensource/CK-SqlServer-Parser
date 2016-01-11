@@ -63,7 +63,6 @@ namespace CK.SqlServer.Parser
             "unpivot",
             "disk",
             "dump",
-            "varying",
             "errlvl",
 
             "restrict",
@@ -155,6 +154,7 @@ namespace CK.SqlServer.Parser
             // "read",
             // "pivot",
             // "current",
+            // "varying",
 
 
         };
@@ -384,6 +384,7 @@ namespace CK.SqlServer.Parser
             _keywords.Add( "default", SqlTokenType.Default );
             _keywords.Add( "user", SqlTokenType.User );
             _keywords.Add( "current", SqlTokenType.Current );
+            _keywords.Add( "varying", SqlTokenType.Varying );
 
             // SqlTokenType.IdentifierReservedStatement values.
             _keywords.Add( "select", SqlTokenType.Select );

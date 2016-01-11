@@ -105,6 +105,7 @@
     <Content Include="Parsing\Scripts\sStoredProcedure01.sql" />
     <Content Include="Parsing\Scripts\AdventureWorks2012-FullSchema.sql" />
     <Content Include="XmlTests\Big procedures.xml" />
+    <Content Include="XmlTests\Merge.xml" />
     <Content Include="XmlTests\Update.xml" />
     <Content Include="XmlTests\OpenXml.xml" />
     <Content Include="XmlTests\Insert.xml" />

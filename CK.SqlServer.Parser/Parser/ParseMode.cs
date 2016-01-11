@@ -29,15 +29,11 @@ namespace CK.SqlServer.Parser
         /// </summary>
         AnyExpression,
         /// <summary>
-        /// A named statement.
+        /// A statement can be a select or any sql statement. GO is considered a statement.
         /// </summary>
-        NamedStatement,
+        Statement,
         /// <summary>
-        /// An extended statement can be a named statement or an expression (typically a select).
-        /// </summary>
-        ExtendedStatement,
-        /// <summary>
-        /// Parses all possible items.
+        /// Parses all possible statements.
         /// </summary>
         AllStatements
    }

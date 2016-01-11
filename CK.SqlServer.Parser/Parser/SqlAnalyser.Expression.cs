@@ -88,6 +88,14 @@ namespace CK.SqlServer.Parser
                 {
                     return MatchInsertStatement( id );
                 }
+                if( id.TokenType == SqlTokenType.Merge )
+                {
+                    return MatchMergeStatement( id );
+                }
+                if( id.TokenType == SqlTokenType.Update || id.TokenType == SqlTokenType.Update )
+                {
+                    return MatchUpdateOrDeleteStatement( id );
+                }
                 if( id.TokenType == SqlTokenType.Case )
                 {
                     return MatchCaseExpression( id );

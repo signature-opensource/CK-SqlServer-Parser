@@ -96,6 +96,7 @@ namespace CK.SqlServer.Parser
                     .Where( p => p.Name != "UnPar"
                                  && p.Name != "WithT"
                                  && p.Name != "OptionT"
+                                 && p.Name != "SetT"
                                  && p.Name != "StatementTerminator"
                                  && (p.Name != "Opener" || p.PropertyType != typeof( SqlTokenOpenPar ))
                                  && (p.Name != "Closer" || p.PropertyType != typeof( SqlTokenClosePar ))

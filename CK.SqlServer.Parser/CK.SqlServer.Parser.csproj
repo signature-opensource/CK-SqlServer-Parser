@@ -67,6 +67,7 @@
     <Compile Include="Parenthesis.cs" />
     <Compile Include="Parser\CUD\IUDTarget.cs" />
     <Compile Include="Parser\CUD\MIUDHeader.cs" />
+    <Compile Include="Parser\CUD\SqlDeleteStatement.cs" />
     <Compile Include="Parser\CUD\SqlUpdateStatement.cs" />
     <Compile Include="Parser\CUD\SqlMergeStatement.cs" />
     <Compile Include="Parser\CUD\SqlOutputClause.cs" />
@@ -76,6 +77,7 @@
     <Compile Include="Parser\Node\SqlExecuteStringStatement.cs" />
     <Compile Include="Parser\Node\SqlCommaList.cs" />
     <Compile Include="Parser\Node\SqlOpenDataSource.cs" />
+    <Compile Include="Parser\Node\SqlTypeDeclCursorParameter.cs" />
     <Compile Include="Parser\Node\SqlWithOptions.cs" />
     <Compile Include="Parser\Node\SqlOptionParOptions.cs" />
     <Compile Include="Parser\Node\SqlWithParOptions.cs" />

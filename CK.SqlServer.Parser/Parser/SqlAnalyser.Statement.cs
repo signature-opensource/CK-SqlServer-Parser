@@ -193,10 +193,10 @@ namespace CK.SqlServer.Parser
                 R.MoveNext();
                 return MatchMergeStatement( id );
             }
-            if( id.TokenType == SqlTokenType.Update )
+            if( id.TokenType == SqlTokenType.Update || id.TokenType == SqlTokenType.Delete )
             {
                 R.MoveNext();
-                return MatchUpdateStatement( id );
+                return MatchUpdateOrDeleteStatement( id );
             }
             if( id.TokenType == SqlTokenType.Declare )
             {
@@ -237,15 +237,15 @@ namespace CK.SqlServer.Parser
                 if( names == null ) return null;
                 ISqlNamedStatement s = IsNamedStatement( true );
                 if( s == null ) return null;
-                //if( s.StatementKnownName != StatementKnownName.Select
-                //    && s.StatementKnownName != StatementKnownName.Insert
-                //    && s.StatementKnownName != StatementKnownName.Update
-                //    && s.StatementKnownName != StatementKnownName.Delete
-                //    && s.StatementKnownName != StatementKnownName.Merge )
-                //{
-                //    R.SetCurrentError( "Outer statement of a With (CTE) must be Select, Insert, Update, Delete or Merge." );
-                //    return null;
-                //}
+                if( s.StatementKnownName != StatementKnownName.Select
+                    && s.StatementKnownName != StatementKnownName.Insert
+                    && s.StatementKnownName != StatementKnownName.Update
+                    && s.StatementKnownName != StatementKnownName.Delete
+                    && s.StatementKnownName != StatementKnownName.Merge )
+                {
+                    R.SetCurrentError( "Outer statement of a With (CTE) must be Select, Insert, Update, Delete or Merge." );
+                    return null;
+                }
                 return new SqlCTEStatement( id, names, s );
             }
             if( id.IsStartStatement || id.TokenType == SqlTokenType.With )
@@ -327,7 +327,7 @@ namespace CK.SqlServer.Parser
             return R.IsError ? null : new IUDTarget( target, withTableHints );
         }
 
-        SqlUpdateStatement MatchUpdateStatement( SqlTokenIdentifier id )
+        ISqlNamedStatement MatchUpdateOrDeleteStatement( SqlTokenIdentifier id )
         {
             MIUDHeader header = MatchCUDHeader( id );
             if( header == null ) return null;
@@ -335,11 +335,15 @@ namespace CK.SqlServer.Parser
             IUDTarget target = MatchCUDTarget();
             if( target == null ) return null;
 
-            SqlTokenIdentifier setT;
-            if( !R.IsToken( out setT, SqlTokenType.Set, true ) ) return null;
+            SqlTokenIdentifier setT = null;
+            SqlCommaList assigns = null;
+            if( id.TokenType == SqlTokenType.Update )
+            {
+                if( !R.IsToken( out setT, SqlTokenType.Set, true ) ) return null;
 
-            SqlCommaList assigns = IsCommaList( 1, IsUpdateSetAssign );
-            if( assigns == null ) return null;
+                assigns = IsCommaList( 1, IsUpdateSetAssign );
+                if( assigns == null ) return null;
+            }
 
             SqlOutputClause outputClause = IsOutputClause( false );
             if( R.IsError ) return null;
@@ -368,9 +372,12 @@ namespace CK.SqlServer.Parser
                 else whereExpression = IsOneExpression( true );
             }
 
-            SqlOptionParOptions options = IsIdentifierPrefixedCommaList( false, SqlTokenType.Option, 1, IsExtendedExpression, ( p, o, i, c ) => new SqlOptionParOptions( p, o, i, c ) ); 
-
-            return new SqlUpdateStatement( header, target, setT, assigns, outputClause, from, whereT, whereExpression, options, GetOptionalTerminator() );
+            SqlOptionParOptions options = IsIdentifierPrefixedCommaList( false, SqlTokenType.Option, 1, IsExtendedExpression, ( p, o, i, c ) => new SqlOptionParOptions( p, o, i, c ) );
+            if( id.TokenType == SqlTokenType.Update )
+            {
+                return new SqlUpdateStatement( header, target, setT, assigns, outputClause, from, whereT, whereExpression, options, GetOptionalTerminator() );
+            }
+            return new SqlDeleteStatement( header, target, outputClause, from, whereT, whereExpression, options, GetOptionalTerminator() );
         }
 
         SelectFrom IsFrom( bool expected )
@@ -1029,6 +1036,13 @@ namespace CK.SqlServer.Parser
                         }
                 }
                 #endregion
+            }
+            else if( R.Current.TokenType == SqlTokenType.Cursor )
+            {
+                SqlTokenIdentifier cursorT = R.Read<SqlTokenIdentifier>();
+                SqlTokenIdentifier varyingT;
+                if( !R.IsToken( out varyingT, SqlTokenType.Varying, true ) ) return null;
+                return new SqlTypeDeclCursorParameter( cursorT, varyingT );
             }
             else if( R.Current.TokenType.IsReservedKeyword() 
                         || R.Current.TokenType.IsVariableNameOrLiteral()

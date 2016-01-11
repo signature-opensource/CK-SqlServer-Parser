@@ -28,7 +28,7 @@
       <Statements>
         <InsertStatement HasTerminator="true">
           <SelectSpec>
-            <SelectSpec />
+            <MergeStatement />
           </SelectSpec>
         </InsertStatement>
         <If>

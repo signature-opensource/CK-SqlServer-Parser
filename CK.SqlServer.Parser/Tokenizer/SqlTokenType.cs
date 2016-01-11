@@ -629,6 +629,7 @@ namespace CK.SqlServer.Parser
         Default     = StartIdentifierReservedNonOperator + 47,
         User        = StartIdentifierReservedNonOperator + 48,
         Current     = StartIdentifierReservedNonOperator + 49,
+        Varying     = StartIdentifierReservedNonOperator + 50,
 
         #endregion
 

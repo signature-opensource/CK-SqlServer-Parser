@@ -263,6 +263,11 @@ namespace CK.SqlServer.Parser
             return VisitStandard( e );
         }
 
+        public virtual ISqlNode Visit( SqlDeleteStatement e )
+        {
+            return VisitStandard( e );
+        }
+
         public virtual ISqlNode Visit( SqlMergeStatement e )
         {
             return VisitStandard( e );
@@ -420,6 +425,11 @@ namespace CK.SqlServer.Parser
         }
 
         public virtual ISqlNode Visit( SqlTypeDeclTable e )
+        {
+            return VisitTypeDeclStandard( e );
+        }
+
+        public virtual ISqlNode Visit( SqlTypeDeclCursorParameter  e )
         {
             return VisitTypeDeclStandard( e );
         }

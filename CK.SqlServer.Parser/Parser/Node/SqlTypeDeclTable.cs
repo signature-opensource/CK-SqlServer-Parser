@@ -2,11 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Data;
-using System.Data.SqlClient;
 using System.Diagnostics;
-using System.Globalization;
-using System.Linq;
-using System.Text;
 
 namespace CK.SqlServer.Parser
 {
@@ -22,7 +18,7 @@ namespace CK.SqlServer.Parser
 
         void CheckContent()
         {
-            SNode.CheckNotNull( TableT, nameof( TableT ) );
+            SNode.CheckToken( TableT, nameof( TableT ), SqlTokenType.TableDbType );
             SNode.CheckNotNull( Opener, nameof( Opener ) );
             SNode.CheckNotNull( Content, nameof( Content ) );
             SNode.CheckNotNull( Closer, nameof( Closer ) );
