@@ -489,9 +489,13 @@ namespace CK.SqlServer.Parser
         Using           = IdentifierStandard | 29,
         Global          = IdentifierStandard | 30,
         // OpenDataSource, OpenRowSet, OpenXml and OpenQuery are reserved keywords.
-        // OpenJSON is not.
-        // OpenJSON and Open
+        // OpenJSON is not a rserved keyword.
+        // OpenJSON and OpenXML are both rowset functions that support WITH format specification.
         OpenJSON        = IdentifierStandard | 31,
+        Encryption      = IdentifierStandard | 32,
+        SchemaBinding   = IdentifierStandard | 33,
+        Input           = IdentifierStandard | 34,
+        Called          = IdentifierStandard | 35,
 
         #endregion
 

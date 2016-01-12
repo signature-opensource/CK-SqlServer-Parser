@@ -1,90 +1,30 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <Tests>
 
+
   <Test>
     <Text>
-      /* Create a table type. */
-      CREATE TYPE LocationTableType AS TABLE 
-      ( LocationName VARCHAR(50)
-      , CostRate INT );
-      GO
-
-      /* Create a procedure to receive data for the table-valued parameter. */
-      CREATE PROCEDURE usp_InsertProductionLocation
-          @TVP LocationTableType READONLY
-          AS 
-          SET NOCOUNT ON
-          INSERT INTO [AdventureWorks2012].[Production].[Location]
-                 ([Name]
-                 ,[CostRate]
-                 ,[Availability]
-                 ,[ModifiedDate])
-              SELECT *, 0, GETDATE()
-              FROM  @TVP;
-      GO
-
-      /* Declare a variable that references the type. */
-      DECLARE @LocationTVP 
-      AS LocationTableType;
-
-      /* Add data to the table variable. */
-      INSERT INTO @LocationTVP (LocationName, CostRate)
-          SELECT [Name], 0.00
-          FROM 
-          [AdventureWorks2012].[Person].[StateProvince];
-
-      /* Pass the table variable data to a stored procedure. */
-      EXEC usp_InsertProductionLocation @LocationTVP;
+      declare @i int = 23;
+      while @i > 8 
+      begin
+        set @i -= 1;
+      end;
     </Text>
     <Description>MSDN Sample.</Description>
     <Xml>
       <Statements>
-            <Statement StatementName="DROP" />
-            <Statement StatementName="DROP" />
-            <Statement StatementName="DROP" />
-            <Statement StatementName="GO" />
-            <Statement StatementName="CREATE" />
-            <Statement StatementName="GO" />
-            <Statement StatementName="CREATE" />
-            <Statement StatementName="GO" />
-            <Statement StatementName="CREATE" />
+        <DeclareVariable HasTerminator="true" />
+        <While HasTerminator="true">
+          <BeginEndBlock>
+            <StatementList>
+              <SetVariable HasTerminator="true" />
+            </StatementList>
+          </BeginEndBlock>
+        </While>
       </Statements>
     </Xml>
   </Test>
 
-  <Test>
-    <Text>
-      -- Create these tables:
-      DROP TABLE CourseAttendance
-      DROP TABLE Students
-      DROP TABLE Courses
-      GO
-      CREATE TABLE Students( id varchar(5) primary key, name varchar(30) )
-      GO
-      CREATE TABLE Courses( id varchar(5) primary key, name varchar(30), taughtBy varchar(5) )
-      GO
-      CREATE TABLE CourseAttendance( 
-          id         varchar(5) references Courses(id),
-          attendedBy varchar(5) references Students(id),
-          constraint CourseAttendance_PK primary key (id, attendedBy) )
-
-    </Text>
-    <Description>MSDN Sample.</Description>
-    <Xml>
-      <Statements>
-            <Statement StatementName="DROP" />
-            <Statement StatementName="DROP" />
-            <Statement StatementName="DROP" />
-            <Statement StatementName="GO" />
-            <Statement StatementName="CREATE" />
-            <Statement StatementName="GO" />
-            <Statement StatementName="CREATE" />
-            <Statement StatementName="GO" />
-            <Statement StatementName="CREATE" />
-      </Statements>
-    </Xml>
-  </Test>
-  
   <Test>
     <Text>
       
@@ -160,7 +100,7 @@
             <SetOption HasTerminator="true" />
             <UpdateStatement />
             <If>
-              <BeginEndBlock StatementName="BeginEnd">
+              <BeginEndBlock>
                 <StatementList>
                   <InsertStatement />
                 </StatementList>
@@ -189,12 +129,103 @@
         <SelectStatement HasTerminator="true">
           <SelectSpec />
         </SelectStatement>
-        <Statement StatementName="DELETE" HasTerminator="true" />
+        <DeleteStatement HasTerminator="true" />
         <Statement StatementName="DROP" HasTerminator="true" />
         <Statement StatementName="GO" />
       </Statements>
     </Xml>
   </Test> 
+  
+  <Test>
+    <Text>
+      /* Create a table type. */
+      CREATE TYPE LocationTableType AS TABLE 
+      ( LocationName VARCHAR(50)
+      , CostRate INT );
+      GO
+
+      /* Create a procedure to receive data for the table-valued parameter. */
+      CREATE PROCEDURE usp_InsertProductionLocation
+          @TVP LocationTableType READONLY
+          AS 
+          SET NOCOUNT ON
+          INSERT INTO [AdventureWorks2012].[Production].[Location]
+                 ([Name]
+                 ,[CostRate]
+                 ,[Availability]
+                 ,[ModifiedDate])
+              SELECT *, 0, GETDATE()
+              FROM  @TVP;
+      GO
+
+      /* Declare a variable that references the type. */
+      DECLARE @LocationTVP 
+      AS LocationTableType;
+
+      /* Add data to the table variable. */
+      INSERT INTO @LocationTVP (LocationName, CostRate)
+          SELECT [Name], 0.00
+          FROM 
+          [AdventureWorks2012].[Person].[StateProvince];
+
+      /* Pass the table variable data to a stored procedure. */
+      EXEC usp_InsertProductionLocation @LocationTVP;
+    </Text>
+    <Description>MSDN Sample.</Description>
+    <Xml>
+      <Statements>
+        <Statement StatementName="CREATE" HasTerminator="true" />
+        <Statement StatementName="GO" />
+        <StoredProcedure StatementName="CreateProcedure">
+          <StatementList>
+            <SetOption />
+            <InsertStatement HasTerminator="true">
+              <SelectSpec />
+            </InsertStatement>
+          </StatementList>
+        </StoredProcedure>
+        <Statement StatementName="GO" />
+        <DeclareVariable HasTerminator="true" />
+        <InsertStatement HasTerminator="true">
+          <SelectSpec />
+        </InsertStatement>
+        <ExecuteStatement HasTerminator="true" />
+      </Statements>
+    </Xml>
+  </Test>
+
+  <Test>
+    <Text>
+      -- Create these tables:
+      DROP TABLE CourseAttendance
+      DROP TABLE Students
+      DROP TABLE Courses
+      GO
+      CREATE TABLE Students( id varchar(5) primary key, name varchar(30) )
+      GO
+      CREATE TABLE Courses( id varchar(5) primary key, name varchar(30), taughtBy varchar(5) )
+      GO
+      CREATE TABLE CourseAttendance( 
+          id         varchar(5) references Courses(id),
+          attendedBy varchar(5) references Students(id),
+          constraint CourseAttendance_PK primary key (id, attendedBy) )
+
+    </Text>
+    <Description>MSDN Sample.</Description>
+    <Xml>
+      <Statements>
+            <Statement StatementName="DROP" />
+            <Statement StatementName="DROP" />
+            <Statement StatementName="DROP" />
+            <Statement StatementName="GO" />
+            <Statement StatementName="CREATE" />
+            <Statement StatementName="GO" />
+            <Statement StatementName="CREATE" />
+            <Statement StatementName="GO" />
+            <Statement StatementName="CREATE" />
+      </Statements>
+    </Xml>
+  </Test>
   
   <Test>
     <Text>

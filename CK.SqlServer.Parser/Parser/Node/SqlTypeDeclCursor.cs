@@ -11,7 +11,7 @@ using System.Text;
 namespace CK.SqlServer.Parser
 {
     /// <summary>
-    /// Captures special 'CURSOR VARYING' parameter type. 
+    /// Captures 'CURSOR' or special 'CURSOR VARYING' parameter type. 
     /// </summary>
     public sealed class SqlTypeDeclCursorParameter : SqlNode, ISqlUnifiedTypeDecl
     {
@@ -26,7 +26,7 @@ namespace CK.SqlServer.Parser
         void CheckContent()
         {
             SNode.CheckToken( CursorT, nameof( CursorT ), SqlTokenType.Cursor );
-            SNode.CheckToken( VaryingT, nameof( VaryingT ), SqlTokenType.Varying );
+            SNode.CheckNullableToken( VaryingT, nameof( VaryingT ), SqlTokenType.Varying );
         }
 
         SqlTypeDeclCursorParameter( SqlTypeDeclCursorParameter o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
@@ -47,13 +47,16 @@ namespace CK.SqlServer.Parser
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
 
         /// <summary>
-        /// Gets the <see cref="SqlDbType.Udt"/>. Cursor varyning applies only to parameter declaraction.
-        /// By using Udt here, we avoid the introduction of a new invalid, undefiend <see cref="SqlDbType"/>.
+        /// Gets the <see cref="SqlDbType.Udt"/>. 
+        /// By using Udt here, we avoid the introduction of a new invalid, undefined <see cref="SqlDbType"/>.
         /// </summary>
         public SqlDbType DbType => SqlDbType.Udt;
 
         public SqlTokenIdentifier CursorT => _content.V1;
 
+        /// <summary>
+        /// Gets VARYING identifier (can appear only in a procedure parameter).
+        /// </summary>
         public SqlTokenIdentifier VaryingT => _content.V2;
 
         [DebuggerStepThrough]

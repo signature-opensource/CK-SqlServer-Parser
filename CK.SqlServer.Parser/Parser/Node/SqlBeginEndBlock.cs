@@ -42,7 +42,7 @@ namespace CK.SqlServer.Parser
             return new SqlBeginEndBlock( leading, children, trailing );
         }
 
-        public StatementKnownName StatementKnownName => StatementKnownName.BeginEnd;
+        public StatementKnownName StatementKnownName => StatementKnownName.BeginEndBlock;
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
 

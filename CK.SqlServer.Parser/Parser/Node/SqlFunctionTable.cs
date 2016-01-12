@@ -8,14 +8,15 @@ using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
-    public sealed class SqlFunctionScalar : SqlNode, ISqlNamedStatement
+    public sealed class SqlFunctionTable : SqlNode, ISqlNamedStatement
     {
         readonly SNode<SqlTokenIdentifier,
             SqlTokenIdentifier,
             ISqlIdentifier,
             SqlParameterList,
             SqlTokenIdentifier,
-            ISqlUnifiedTypeDecl,
+            SqlTokenIdentifier,
+            SqlTypeDeclTable,
             SqlWithOptions,
             SqlTokenIdentifier,
             SqlTokenIdentifier,
@@ -23,13 +24,14 @@ namespace CK.SqlServer.Parser
             SqlTokenIdentifier,
             SqlTokenTerminal> _content;
 
-        public SqlFunctionScalar( 
+        public SqlFunctionTable( 
             SqlTokenIdentifier alterOrCreate, 
             SqlTokenIdentifier type,
             ISqlIdentifier name, 
             SqlParameterList parameters,
-            SqlTokenIdentifier returns,
-            ISqlUnifiedTypeDecl returnScalarType,
+            SqlTokenIdentifier returnsT,
+            SqlTokenIdentifier tableVariableNameT,
+            SqlTypeDeclTable returnedTableType,
             SqlWithOptions options,
             SqlTokenIdentifier asToken,
             SqlTokenIdentifier begin,
@@ -38,13 +40,14 @@ namespace CK.SqlServer.Parser
             SqlTokenTerminal term )
             : base( null, null )
         {
-            _content = new SNode<SqlTokenIdentifier, SqlTokenIdentifier, ISqlIdentifier, SqlParameterList, SqlTokenIdentifier, ISqlUnifiedTypeDecl, SqlWithOptions, SqlTokenIdentifier, SqlTokenIdentifier, SqlStatementList, SqlTokenIdentifier, SqlTokenTerminal>(
+            _content = new SNode<SqlTokenIdentifier, SqlTokenIdentifier, ISqlIdentifier, SqlParameterList, SqlTokenIdentifier, SqlTokenIdentifier, SqlTypeDeclTable, SqlWithOptions, SqlTokenIdentifier, SqlTokenIdentifier, SqlStatementList, SqlTokenIdentifier, SqlTokenTerminal>(
                  alterOrCreate,
                  type,
                  name,
                  parameters,
-                 returns,
-                 returnScalarType,
+                 returnsT,
+                 tableVariableNameT,
+                 returnedTableType,
                  options,
                  asToken,
                  begin,
@@ -60,27 +63,28 @@ namespace CK.SqlServer.Parser
             SNode.CheckToken( ObjectTypeT, nameof( ObjectTypeT ), SqlTokenType.Function );
             SNode.CheckNotNull( Parameters, nameof( Parameters ) );
             SNode.CheckToken( ReturnsT, nameof( ReturnsT ), SqlTokenType.Returns );
-            SNode.CheckNotNull( ReturnedType, nameof( ReturnedType ) );
-            SNode.CheckToken( AsT, nameof( AsT ), SqlTokenType.As );
-            SNode.CheckNullableToken( BeginT, nameof( BeginT ), SqlTokenType.Begin );
+            SNode.CheckIsVariable( TableVariableName, nameof( TableVariableName ) );
+            SNode.CheckNotNull( ReturnedTableType, nameof( ReturnedTableType ) );
+            SNode.CheckNullableToken( AsT, nameof( AsT ), SqlTokenType.As );
+            SNode.CheckToken( BeginT, nameof( BeginT ), SqlTokenType.Begin );
             SNode.CheckNotNull( BodyStatements, nameof( BodyStatements ) );
-            SNode.CheckNullableToken( EndT, nameof( EndT ), SqlTokenType.End );
+            SNode.CheckToken( EndT, nameof( EndT ), SqlTokenType.End );
         }
 
-        SqlFunctionScalar( SqlFunctionScalar o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
+        SqlFunctionTable( SqlFunctionTable o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
             : base( leading, trailing )
         {
             if( items == null ) _content = o._content;
             else
             {
-                _content = new SNode<SqlTokenIdentifier, SqlTokenIdentifier, ISqlIdentifier, SqlParameterList, SqlTokenIdentifier, ISqlUnifiedTypeDecl, SqlWithOptions, SqlTokenIdentifier, SqlTokenIdentifier, SqlStatementList, SqlTokenIdentifier, SqlTokenTerminal>( items );
+                _content = new SNode<SqlTokenIdentifier, SqlTokenIdentifier, ISqlIdentifier, SqlParameterList, SqlTokenIdentifier, SqlTokenIdentifier, SqlTypeDeclTable, SqlWithOptions, SqlTokenIdentifier, SqlTokenIdentifier, SqlStatementList, SqlTokenIdentifier, SqlTokenTerminal>( items );
                 CheckContent();
             }
         }
 
         protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
-            return new SqlFunctionScalar( this, leading, children, trailing );
+            return new SqlFunctionTable( this, leading, children, trailing );
         }
 
         public StatementKnownName StatementKnownName => AlterOrCreateT.TokenType == SqlTokenType.Alter
@@ -102,21 +106,23 @@ namespace CK.SqlServer.Parser
 
         public SqlTokenIdentifier ReturnsT => _content.V5;
 
-        public ISqlUnifiedTypeDecl ReturnedType => _content.V6;
+        public SqlTokenIdentifier TableVariableName => _content.V6;
 
-        public bool HasOptions => _content.V7 != null;
+        public ISqlUnifiedTypeDecl ReturnedTableType => _content.V7;
 
-        public SqlWithOptions Options => _content.V7;
+        public bool HasOptions => _content.V8 != null;
 
-        public SqlTokenIdentifier AsT => _content.V8;
+        public SqlWithOptions Options => _content.V8;
 
-        public SqlTokenIdentifier BeginT => _content.V9;
+        public SqlTokenIdentifier AsT => _content.V9;
 
-        public SqlStatementList BodyStatements => _content.V10;
+        public SqlTokenIdentifier BeginT => _content.V10;
 
-        public SqlTokenIdentifier EndT => _content.V11;
+        public SqlStatementList BodyStatements => _content.V11;
 
-        public SqlTokenTerminal StatementTerminator => _content.V12;
+        public SqlTokenIdentifier EndT => _content.V12;
+
+        public SqlTokenTerminal StatementTerminator => _content.V13;
 
         [DebuggerStepThrough]
         internal protected override ISqlNode Accept( SqlItemVisitor visitor ) => visitor.Visit( this );

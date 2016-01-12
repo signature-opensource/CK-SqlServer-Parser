@@ -109,7 +109,7 @@ namespace CK.SqlServer.Parser
 
         /// <summary>
         /// True if the <see cref="SqlToken"/> is the end of the input, a comma, a closing parenthesis 
-        /// or a semicolon (this ends an element in an extended expression).
+        /// a Go or a semicolon (this ends an element in an extended expression).
         /// </summary>
         /// <param name="t">Potential end of input, comma, closing parenthesis or semicolon.</param>
         /// <returns>Whether the token ends an extended expression.</returns>
@@ -118,6 +118,7 @@ namespace CK.SqlServer.Parser
             if( t == null ) throw new ArgumentNullException( "t" );
             return t.TokenType == SqlTokenType.EndOfInput
                         || t.TokenType == SqlTokenType.SemiColon
+                        || t.TokenType == SqlTokenType.Go
                         || t.TokenType == SqlTokenType.Comma
                         || t.TokenType == SqlTokenType.ClosePar;
         }

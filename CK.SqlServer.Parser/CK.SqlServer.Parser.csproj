@@ -72,12 +72,15 @@
     <Compile Include="Parser\CUD\SqlMergeStatement.cs" />
     <Compile Include="Parser\CUD\SqlOutputClause.cs" />
     <Compile Include="Parser\Node\SqlBasicValue.cs" />
+    <Compile Include="Parser\Node\SqlFunctionTable.cs" />
+    <Compile Include="Parser\Node\SqlGoto.cs" />
+    <Compile Include="Parser\Node\SqlRaiserror.cs" />
     <Compile Include="Parser\Node\SqlOpenXml.cs" />
     <Compile Include="Parser\Node\SqlOpenJSON.cs" />
     <Compile Include="Parser\Node\SqlExecuteStringStatement.cs" />
     <Compile Include="Parser\Node\SqlCommaList.cs" />
     <Compile Include="Parser\Node\SqlOpenDataSource.cs" />
-    <Compile Include="Parser\Node\SqlTypeDeclCursorParameter.cs" />
+    <Compile Include="Parser\Node\SqlTypeDeclCursor.cs" />
     <Compile Include="Parser\Node\SqlWithOptions.cs" />
     <Compile Include="Parser\Node\SqlOptionParOptions.cs" />
     <Compile Include="Parser\Node\SqlWithParOptions.cs" />
@@ -125,7 +128,7 @@
     <Compile Include="Parser\Node\SqlVariableDeclarationList.cs" />
     <Compile Include="Parser\Node\SqlFunctionInlineTable.cs" />
     <Compile Include="Parser\Node\SqlFunctionScalar.cs" />
-    <Compile Include="Parser\Node\SqlGoto.cs" />
+    <Compile Include="Parser\Node\SqlWhile.cs" />
     <Compile Include="Parser\Node\SqlSetOption.cs" />
     <Compile Include="Parser\Node\SqlDeclareVariable.cs" />
     <Compile Include="Parser\Node\SqlDeclareCursor.cs" />

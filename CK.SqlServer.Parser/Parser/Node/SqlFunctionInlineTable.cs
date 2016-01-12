@@ -17,7 +17,7 @@ namespace CK.SqlServer.Parser
             SqlParameterList,
             SqlTokenIdentifier,
             SqlTokenIdentifier,
-            SqlNodeList,
+            SqlWithOptions,
             SqlTokenIdentifier,
             SqlTokenIdentifier,
             ISqlNode,
@@ -30,14 +30,14 @@ namespace CK.SqlServer.Parser
             SqlParameterList parameters,
             SqlTokenIdentifier returns,
             SqlTokenIdentifier table,
-            SqlNodeList options,
+            SqlWithOptions options,
             SqlTokenIdentifier asToken,
             SqlTokenIdentifier returnToken,
             ISqlNode select, 
             SqlTokenTerminal term )
             : base( null, null ) 
         {
-            _content = new SNode<SqlTokenIdentifier, SqlTokenIdentifier, ISqlIdentifier, SqlParameterList, SqlTokenIdentifier, SqlTokenIdentifier, SqlNodeList, SqlTokenIdentifier, SqlTokenIdentifier, ISqlNode, SqlTokenTerminal>(
+            _content = new SNode<SqlTokenIdentifier, SqlTokenIdentifier, ISqlIdentifier, SqlParameterList, SqlTokenIdentifier, SqlTokenIdentifier, SqlWithOptions, SqlTokenIdentifier, SqlTokenIdentifier, ISqlNode, SqlTokenTerminal>(
                 alterOrCreate, 
                 type, 
                 name, 
@@ -69,7 +69,7 @@ namespace CK.SqlServer.Parser
             if( items == null ) _content = o._content;
             else
             {
-                _content = new SNode<SqlTokenIdentifier, SqlTokenIdentifier, ISqlIdentifier, SqlParameterList, SqlTokenIdentifier, SqlTokenIdentifier, SqlNodeList, SqlTokenIdentifier, SqlTokenIdentifier, ISqlNode, SqlTokenTerminal>( items );
+                _content = new SNode<SqlTokenIdentifier, SqlTokenIdentifier, ISqlIdentifier, SqlParameterList, SqlTokenIdentifier, SqlTokenIdentifier, SqlWithOptions, SqlTokenIdentifier, SqlTokenIdentifier, ISqlNode, SqlTokenTerminal>( items );
                 CheckContent();
             }
         }
@@ -100,7 +100,9 @@ namespace CK.SqlServer.Parser
 
         public SqlTokenIdentifier TableT => _content.V6;
 
-        public SqlNodeList Options => _content.V7;
+        public bool HasOptions => _content.V7 != null;
+
+        public SqlWithOptions Options => _content.V7;
 
         public SqlTokenIdentifier AsT => _content.V8;
 

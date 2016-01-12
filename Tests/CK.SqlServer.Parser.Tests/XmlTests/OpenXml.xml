@@ -212,38 +212,38 @@
           @to         varchar(50),
           @idtable    varchar(100)
       AS
-      DECLARE @t varchar(500)
-      DECLARE @id varchar(5)
+        DECLARE @t varchar(500)
+        DECLARE @id varchar(5)
 
-      /* Temporary Edge table */
-      SELECT * 
-      INTO #TempEdge 
-      FROM OPENXML(@xmldoc, @xpath)
+        /* Temporary Edge table */
+        SELECT * 
+        INTO #TempEdge 
+        FROM OPENXML(@xmldoc, @xpath)
 
-      DECLARE fillidrefs_cursor CURSOR FOR
-          SELECT CAST(iv.text AS nvarchar(200)) AS id,
-                 CAST(av.text AS nvarchar(4000)) AS refs
-          FROM   #TempEdge c, #TempEdge i,
-                 #TempEdge iv, #TempEdge a, #TempEdge av
-          WHERE  c.id = i.parentid
-          AND    UPPER(i.localname) = UPPER(@from)
-          AND    i.id = iv.parentid
-          AND    c.id = a.parentid
-          AND    UPPER(a.localname) = UPPER(@to)
-          AND    a.id = av.parentid
+        DECLARE fillidrefs_cursor CURSOR FOR
+            SELECT CAST(iv.text AS nvarchar(200)) AS id,
+                   CAST(av.text AS nvarchar(4000)) AS refs
+            FROM   #TempEdge c, #TempEdge i,
+                   #TempEdge iv, #TempEdge a, #TempEdge av
+            WHERE  c.id = i.parentid
+            AND    UPPER(i.localname) = UPPER(@from)
+            AND    i.id = iv.parentid
+            AND    c.id = a.parentid
+            AND    UPPER(a.localname) = UPPER(@to)
+            AND    a.id = av.parentid
 
-      OPEN fillidrefs_cursor
-      FETCH NEXT FROM fillidrefs_cursor INTO @id, @t
-      WHILE (@@FETCH_STATUS <> -1)
-      BEGIN
-          IF (@@FETCH_STATUS <> -2)
-          BEGIN
-              execute f_idrefs @t, @idtable, @id
-          END
-          FETCH NEXT FROM fillidrefs_cursor INTO @id, @t
-      END
-      CLOSE fillidrefs_cursor
-      DEALLOCATE fillidrefs_cursor
+        OPEN fillidrefs_cursor
+        FETCH NEXT FROM fillidrefs_cursor INTO @id, @t
+        WHILE (@@FETCH_STATUS <> -1)
+        BEGIN
+            IF (@@FETCH_STATUS <> -2)
+            BEGIN
+                execute f_idrefs @t, @idtable, @id
+            END
+            FETCH NEXT FROM fillidrefs_cursor INTO @id, @t
+        END
+        CLOSE fillidrefs_cursor
+        DEALLOCATE fillidrefs_cursor
       Go
       -- This is the sample document that is shredded and the data is stored in the preceding tables.
       DECLARE @h int
@@ -284,26 +284,25 @@
     <Description>Big sample from MSDN.</Description>
     <Xml>
       <Statements>
-          <Statement StatementName="DROP" />
-          <Statement StatementName="DROP" />
-          <Statement StatementName="DROP" />
-          <Statement StatementName="GO" />
-          <Statement StatementName="CREATE" />
-          <Statement StatementName="GO" />
-          <Statement StatementName="CREATE" />
-          <Statement StatementName="GO" />
-          <Statement StatementName="CREATE" />
-          <Statement StatementName="go" />
-          <Statement StatementName="DROP" />
-          <Statement StatementName="GO" />
-          <StoredProcedure StatementName="CreateProcedure">
-            <StatementList>
-              <DeclareVariable />
-              <DeclareVariable />
-              <SetVariable />
-              <Statement StatementName="WHILE" />
-              <UnnamedStatement />
-              <BeginEndBlock StatementName="BeginEnd">
+        <Statement StatementName="DROP" />
+        <Statement StatementName="DROP" />
+        <Statement StatementName="DROP" />
+        <Statement StatementName="GO" />
+        <Statement StatementName="CREATE" />
+        <Statement StatementName="GO" />
+        <Statement StatementName="CREATE" />
+        <Statement StatementName="GO" />
+        <Statement StatementName="CREATE" />
+        <Statement StatementName="go" />
+        <Statement StatementName="DROP" />
+        <Statement StatementName="GO" />
+        <StoredProcedure StatementName="CreateProcedure">
+          <StatementList>
+            <DeclareVariable />
+            <DeclareVariable />
+            <SetVariable />
+            <While>
+              <BeginEndBlock>
                 <StatementList>
                   <SetVariable />
                   <SetVariable />
@@ -311,61 +310,62 @@
                   <SetVariable />
                 </StatementList>
               </BeginEndBlock>
-              <Statement StatementName="Go" />
-              <Statement StatementName="DROP" />
-              <Statement StatementName="GO" />
-              <StoredProcedure StatementName="CreateProcedure">
+            </While>
+          </StatementList>
+        </StoredProcedure>
+        <Statement StatementName="Go" />
+        <Statement StatementName="DROP" />
+        <Statement StatementName="GO" />
+        <StoredProcedure StatementName="CreateProcedure">
+          <StatementList>
+            <DeclareVariable />
+            <DeclareVariable />
+            <SelectStatement>
+              <SelectSpec />
+            </SelectStatement>
+            <DeclareCursor>
+              <SelectSpec />
+            </DeclareCursor>
+            <Statement StatementName="OPEN" />
+            <Statement StatementName="FETCH" />
+            <While>
+              <BeginEndBlock>
                 <StatementList>
-                  <DeclareVariable />
-                  <DeclareVariable />
-                  <SelectStatement>
-                    <SelectSpec />
-                  </SelectStatement>
-                  <DeclareCursor>
-                    <SelectSpec />
-                  </DeclareCursor>
-                  <Statement StatementName="OPEN" />
+                  <If>
+                    <BeginEndBlock>
+                      <StatementList>
+                        <ExecuteStatement />
+                      </StatementList>
+                    </BeginEndBlock>
+                  </If>
                   <Statement StatementName="FETCH" />
-                  <Statement StatementName="WHILE" />
-                  <UnnamedStatement />
-                  <BeginEndBlock StatementName="BeginEnd">
-                    <StatementList>
-                      <If>
-                        <BeginEndBlock StatementName="BeginEnd">
-                          <StatementList>
-                            <ExecuteStatement />
-                          </StatementList>
-                        </BeginEndBlock>
-                      </If>
-                      <Statement StatementName="FETCH" />
-                    </StatementList>
-                  </BeginEndBlock>
-                  <Statement StatementName="CLOSE" />
-                  <Statement StatementName="DEALLOCATE" />
-                  <Statement StatementName="Go" />
-                  <DeclareVariable />
-                  <ExecuteStatement />
-                  <InsertStatement>
-                    <SelectSpec />
-                  </InsertStatement>
-                  <InsertStatement>
-                    <SelectSpec />
-                  </InsertStatement>
-                  <ExecuteStatement />
-                  <SelectStatement>
-                    <SelectSpec />
-                  </SelectStatement>
-                  <SelectStatement>
-                    <SelectSpec />
-                  </SelectStatement>
-                  <SelectStatement>
-                    <SelectSpec />
-                  </SelectStatement>
-                  <ExecuteStatement />
                 </StatementList>
-              </StoredProcedure>
-            </StatementList>
-          </StoredProcedure>
+              </BeginEndBlock>
+            </While>
+            <Statement StatementName="CLOSE" />
+            <Statement StatementName="DEALLOCATE" />
+          </StatementList>
+        </StoredProcedure>
+        <Statement StatementName="Go" />
+        <DeclareVariable />
+        <ExecuteStatement />
+        <InsertStatement>
+          <SelectSpec />
+        </InsertStatement>
+        <InsertStatement>
+          <SelectSpec />
+        </InsertStatement>
+        <ExecuteStatement />
+        <SelectStatement>
+          <SelectSpec />
+        </SelectStatement>
+        <SelectStatement>
+          <SelectSpec />
+        </SelectStatement>
+        <SelectStatement>
+          <SelectSpec />
+        </SelectStatement>
+        <ExecuteStatement />
       </Statements>
     </Xml>
   </Test> 

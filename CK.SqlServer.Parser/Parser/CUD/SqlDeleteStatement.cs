@@ -16,6 +16,7 @@ namespace CK.SqlServer.Parser
     {
         readonly SNode<
             MIUDHeader,
+            SqlTokenIdentifier,
             IUDTarget,
             SqlOutputClause,
             SelectFrom,
@@ -26,6 +27,7 @@ namespace CK.SqlServer.Parser
 
         public SqlDeleteStatement( 
             MIUDHeader header,
+            SqlTokenIdentifier fromTargetT,
             IUDTarget target,
             SqlOutputClause outputClause,
             SelectFrom from,
@@ -35,8 +37,9 @@ namespace CK.SqlServer.Parser
             SqlTokenTerminal terminator )
             : base( null, null )
         {
-            _content = new SNode<MIUDHeader, IUDTarget, SqlOutputClause, SelectFrom, SqlTokenIdentifier, ISqlNode, SqlOptionParOptions, SqlTokenTerminal>( 
-                header, 
+            _content = new SNode<MIUDHeader, SqlTokenIdentifier, IUDTarget, SqlOutputClause, SelectFrom, SqlTokenIdentifier, ISqlNode, SqlOptionParOptions, SqlTokenTerminal>( 
+                header,
+                fromTargetT,
                 target,
                 outputClause,
                 from,
@@ -50,6 +53,7 @@ namespace CK.SqlServer.Parser
         void CheckContent()
         {
             SNode.CheckNotNull( Header, nameof( Header ) );
+            SNode.CheckNullableToken( FromTargetT, nameof( FromTargetT ), SqlTokenType.From );
             SNode.CheckNotNull( Target, nameof( Target ) );
             SNode.CheckNullableToken( WhereT, nameof( WhereT ), SqlTokenType.Where );
             SNode.CheckBothNullOrNot( WhereT, nameof( WhereT ), WhereExpression, nameof( WhereExpression ) );
@@ -61,7 +65,7 @@ namespace CK.SqlServer.Parser
             if( items == null ) _content = o._content;
             else
             {
-                _content = new SNode<MIUDHeader, IUDTarget, SqlOutputClause, SelectFrom, SqlTokenIdentifier, ISqlNode, SqlOptionParOptions, SqlTokenTerminal>( items );
+                _content = new SNode<MIUDHeader, SqlTokenIdentifier, IUDTarget, SqlOutputClause, SelectFrom, SqlTokenIdentifier, ISqlNode, SqlOptionParOptions, SqlTokenTerminal>( items );
                 CheckContent();
             }
         }
@@ -77,27 +81,29 @@ namespace CK.SqlServer.Parser
 
         public MIUDHeader Header => _content.V1;
 
-        public IUDTarget Target => _content.V2;
+        public SqlTokenIdentifier FromTargetT => _content.V2;
 
-        public bool HasOutputClause => _content.V3 != null;
+        public IUDTarget Target => _content.V3;
 
-        public SqlOutputClause OutputClause => _content.V3;
+        public bool HasOutputClause => _content.V4 != null;
 
-        public bool HasFrom => _content.V4 != null;
+        public SqlOutputClause OutputClause => _content.V4;
 
-        public SelectFrom From => _content.V4;
+        public bool HasFrom => _content.V5 != null;
 
-        public bool HasWhere => _content.V5 != null;
+        public SelectFrom From => _content.V5;
 
-        public SqlTokenIdentifier WhereT => _content.V5;
+        public bool HasWhere => _content.V6 != null;
 
-        public ISqlNode WhereExpression => _content.V6;
+        public SqlTokenIdentifier WhereT => _content.V6;
 
-        public bool HasOptions => _content.V7 != null;
+        public ISqlNode WhereExpression => _content.V7;
 
-        public SqlOptionParOptions Options => _content.V7;
+        public bool HasOptions => _content.V8 != null;
 
-        public SqlTokenTerminal StatementTerminator => _content.V8;
+        public SqlOptionParOptions Options => _content.V8;
+
+        public SqlTokenTerminal StatementTerminator => _content.V9;
 
         [DebuggerStepThrough]
         internal protected override ISqlNode Accept( SqlItemVisitor visitor ) => visitor.Visit( this );

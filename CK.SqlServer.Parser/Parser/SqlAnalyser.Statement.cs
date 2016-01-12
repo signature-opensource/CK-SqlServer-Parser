@@ -11,6 +11,8 @@ namespace CK.SqlServer.Parser
 {
     public partial class SqlAnalyser
     {
+        int _statementLevel;
+
         /// <summary>
         /// A named statement or any expression considered as a <see cref="SqlUnnamedStatement"/>.
         /// </summary>
@@ -20,7 +22,7 @@ namespace CK.SqlServer.Parser
         {
             ISqlStatement e = IsNamedStatement( false );
             if( e != null || R.IsErrorOrEndOfInput ) return e;
-            if( R.Current.TokenType == SqlTokenType.End ) return null;
+            if( R.Current.TokenType == SqlTokenType.End || R.Current.TokenType == SqlTokenType.Go ) return null;
             ISqlNode n = IsAnyExpression( expected );
             if( n == null ) return null;
             return n.UnPar is ISelectSpecification 
@@ -35,15 +37,14 @@ namespace CK.SqlServer.Parser
                 return new SqlEmptyStatement( R.Read<SqlTokenTerminal>() );
             }
             SqlTokenIdentifier id = R.Current as SqlTokenIdentifier;
-            // A statement starts with an identifier that must be non quoted and not a variable.
-            if( id == null || id.IsQuoted || id.IsVariable )
-            {
-                if( expected ) R.SetCurrentError( "Statement expected." );
-                return null;
-            }
-            // End Conversation ... is a statement.
-            // Otherwise, we handle it: this is the end of a block above.
-            if( id.TokenType == SqlTokenType.End && R.RawLookup.TokenType != SqlTokenType.Conversation )
+            
+            if( // A statement starts with an identifier that must be non quoted and not a variable.
+                (id == null || id.IsQuoted || id.IsVariable)
+                // End Conversation ... is a statement.
+                // We do not handle End alone: this is the end of a block above.
+                || (id.TokenType == SqlTokenType.End && R.RawLookup.TokenType != SqlTokenType.Conversation)
+                // GO must be considered a statement only if we are not nested in a block.
+                || (id.TokenType == SqlTokenType.Go && _statementLevel > 0) )
             {
                 if( expected ) R.SetCurrentError( "Statement expected." );
                 return null;
@@ -53,7 +54,9 @@ namespace CK.SqlServer.Parser
             // - Begin transaction
             // - Begin Try ... End Catch block
             // - or a Begin ... End block.
-            if( id.TokenType == SqlTokenType.Begin && R.RawLookup.TokenType != SqlTokenType.Conversation && R.RawLookup.TokenType != SqlTokenType.Dialog )
+            if( id.TokenType == SqlTokenType.Begin 
+                && R.RawLookup.TokenType != SqlTokenType.Conversation 
+                && R.RawLookup.TokenType != SqlTokenType.Dialog )
             {
                 R.MoveNext();
                 SqlTokenIdentifier tranOrTry;
@@ -75,7 +78,7 @@ namespace CK.SqlServer.Parser
                     return new SqlBeginTransaction( id, tranOrTry, tranNameOrVariable, withToken, markToken, description, GetOptionalTerminator() );
                 }
                 R.IsToken( out tranOrTry, SqlTokenType.Try, false );
-                SqlStatementList body = IsList( false, IsExtendedStatement, i => new SqlStatementList( i ) );
+                SqlStatementList body = IsStatementList( true );
                 if( body == null ) return null;
                 SqlTokenIdentifier end;
                 if( !R.IsToken( out end, SqlTokenType.End, true ) ) return null;
@@ -88,7 +91,7 @@ namespace CK.SqlServer.Parser
                 if( !R.IsToken( out endTry, SqlTokenType.Try, true ) ) return null;
                 SqlTokenIdentifier begCatch, begCatchToken;
                 if( !R.IsToken( out begCatch, SqlTokenType.Begin, true ) || !R.IsToken( out begCatchToken, SqlTokenType.Catch, true ) ) return null;
-                SqlStatementList bodyCatch = IsList( true, IsExtendedStatement, i => new SqlStatementList( i ) );
+                SqlStatementList bodyCatch = IsStatementList( true );
                 if( bodyCatch == null ) return null;
                 SqlTokenIdentifier endCatch, endCatchToken;
                 if( !R.IsToken( out endCatch, SqlTokenType.End, true ) || !R.IsToken( out endCatchToken, SqlTokenType.Catch, true ) ) return null;
@@ -137,6 +140,14 @@ namespace CK.SqlServer.Parser
                 R.MoveNext();
                 ISqlNode value = IsOneExpression( false );
                 return R.IsError ? null : new SqlReturnStatement( id, value, GetOptionalTerminator() );
+            }
+            if( id.TokenType == SqlTokenType.Raiserror )
+            {
+                R.MoveNext();
+                SqlEnclosedCommaList arguments = IsEnclosedCommaList( true );
+                if( arguments == null ) return null;
+                SqlWithOptions options = IsIdentifierPrefixedCommaList( false, SqlTokenType.With, 1, IsExecuteOption, ( p, i ) => new SqlWithOptions( p, i ) );
+                return R.IsError ? null : new SqlRaiserror( id, arguments, options, GetOptionalTerminator() );
             }
             if( id.TokenType == SqlTokenType.Execute )
             {
@@ -187,6 +198,15 @@ namespace CK.SqlServer.Parser
             {
                 R.MoveNext();
                 return MatchInsertStatement( id );
+            }
+            if( id.TokenType == SqlTokenType.While )
+            {
+                R.MoveNext();
+                ISqlNode cond = IsOneExpression( true );
+                if( cond == null ) return null;
+                ISqlStatement statement = IsExtendedStatement( true );
+                if( statement == null ) return null;
+                return new SqlWhile( id, cond, statement, GetOptionalTerminator() );
             }
             if( id.TokenType == SqlTokenType.Merge )
             {
@@ -248,7 +268,7 @@ namespace CK.SqlServer.Parser
                 }
                 return new SqlCTEStatement( id, names, s );
             }
-            if( id.IsStartStatement || id.TokenType == SqlTokenType.With )
+            if( id.IsStartStatement )
             {
                 R.MoveNext();
                 return IsStatementStartedByIdentifier( id );
@@ -267,6 +287,34 @@ namespace CK.SqlServer.Parser
             R.MoveNext();
             R.MoveNext();
             return new SqlLabelDefinition( id, colon );
+        }
+
+        /// <summary>
+        /// Reads the 'begin' token if it is not followed by transaction, conversation, dialog or try.
+        /// </summary>
+        /// <param name="expected">True if it is expected.</param>
+        /// <returns>The begin token or null.</returns>
+        SqlTokenIdentifier IsBeginOfBlock( bool expected )
+        {
+            if( R.Current.TokenType == SqlTokenType.Begin
+                       && !(R.RawLookup.TokenType == SqlTokenType.Transaction
+                            || R.RawLookup.TokenType == SqlTokenType.Conversation
+                            || R.RawLookup.TokenType == SqlTokenType.Dialog
+                            || R.RawLookup.TokenType == SqlTokenType.Try 
+                            || R.RawLookup.TokenType == SqlTokenType.Catch ) )
+            {
+                return R.Read<SqlTokenIdentifier>();
+            }
+            if( expected ) R.SetCurrentError( "Expected Begin/End block." );
+            return null;
+        }
+
+        SqlStatementList IsStatementList( bool expected )
+        {
+            ++_statementLevel;
+            SqlStatementList body = IsList( expected, IsExtendedStatement, i => new SqlStatementList( i ) );
+            --_statementLevel;
+            return body;
         }
 
         SqlInsertStatement MatchInsertStatement( SqlTokenIdentifier id )
@@ -329,9 +377,16 @@ namespace CK.SqlServer.Parser
 
         ISqlNamedStatement MatchUpdateOrDeleteStatement( SqlTokenIdentifier id )
         {
+            Debug.Assert( id.TokenType == SqlTokenType.Update || id.TokenType == SqlTokenType.Delete );
+
             MIUDHeader header = MatchCUDHeader( id );
             if( header == null ) return null;
 
+            SqlTokenIdentifier delOptionalFromT = null;
+            if( id.TokenType == SqlTokenType.Delete )
+            {
+                R.IsToken( out delOptionalFromT, SqlTokenType.From, false );
+            }
             IUDTarget target = MatchCUDTarget();
             if( target == null ) return null;
 
@@ -377,7 +432,7 @@ namespace CK.SqlServer.Parser
             {
                 return new SqlUpdateStatement( header, target, setT, assigns, outputClause, from, whereT, whereExpression, options, GetOptionalTerminator() );
             }
-            return new SqlDeleteStatement( header, target, outputClause, from, whereT, whereExpression, options, GetOptionalTerminator() );
+            return new SqlDeleteStatement( header, delOptionalFromT, target, outputClause, from, whereT, whereExpression, options, GetOptionalTerminator() );
         }
 
         SelectFrom IsFrom( bool expected )
@@ -657,11 +712,10 @@ namespace CK.SqlServer.Parser
             SqlParameterList parameters = IsParameterList( Parenthesis.Required );
             if( parameters == null ) return null;
 
-            SqlTokenIdentifier returns;
-            if( !R.IsToken( out returns, SqlTokenType.Returns, true ) ) return null;
+            SqlTokenIdentifier returnsT;
+            if( !R.IsToken( out returnsT, SqlTokenType.Returns, true ) ) return null;
 
             SqlTokenIdentifier table;
-            SqlTokenIdentifier tableVariableNameToken;
             if( R.IsToken( out table, SqlTokenType.TableDbType, false ) )
             {
                 // Inline Table-Valued Function Syntax
@@ -676,11 +730,11 @@ namespace CK.SqlServer.Parser
                 //    [ AS ]
                 //    RETURN [ ( ] select_stmt [ ) ]
                 // [ ; ]
-                SqlNodeList options;
-                SqlTokenIdentifier endOptionToken;
-                SqlTokenIdentifier asToken;
-                SqlTokenIdentifier returnToken;
-                if( !IsFunctionOptionsAsAndBeginOrReturn( out options, out endOptionToken, out asToken, out returnToken, isBegin: false ) ) return null;
+                SqlWithOptions options = IsIdentifierPrefixedCommaList( false, SqlTokenType.With, 1, IsFunctionOrProcedureOption, ( p, i ) => new SqlWithOptions( p, i ) );
+                SqlTokenIdentifier asT;
+                R.IsToken( out asT, SqlTokenType.As, false );
+                SqlTokenIdentifier returnT;
+                if( !R.IsToken( out returnT, SqlTokenType.Return, true ) ) return null;
                 ISqlStatement st = IsExtendedStatement( true );
                 if( st == null ) return null;
 
@@ -689,76 +743,93 @@ namespace CK.SqlServer.Parser
                                 type,
                                 name,
                                 parameters,
-                                returns,
+                                returnsT,
                                 table,
                                 options,
-                                asToken,
-                                returnToken,
+                                asT,
+                                returnT,
                                 st,
                                 GetOptionalTerminator() );
             }
-            else if( R.IsToken( out tableVariableNameToken, t => t.IsVariable, false ) )
-            {
-                // Multistatement Table-valued Function Syntax
-                // CREATE FUNCTION [ schema_name. ] function_name 
-                //   ( [ { @parameter_name [ AS ] [ type_schema_name. ] parameter_data_type 
-                //         [ = default ] [READONLY] } 
-                //       [ ,...n ]
-                //     ]
-                //   )
-                // RETURNS @return_variable TABLE <table_type_definition>
-                //    [ WITH <function_option> [ ,...n ] ]
-                //    [ AS ]
-                //    BEGIN 
-                //        function_body 
-                //        RETURN
-                //    END
-                // [ ; ]
-                throw new NotSupportedException( "Multistatement Table-valued Function Syntax" );
-            }
             else
             {
+                // Multistatement Table-valued Function Syntax
+                // 
+                //       RETURNS @return_variable TABLE <table_type_definition>
+                //          [ WITH <function_option> [ ,...n ] ]
+                //          [ AS ]
+                //          BEGIN 
+                //              function_body 
+                //              RETURN
+                //          END
+                //       [ ; ]
+                //
                 // Scalar Function Syntax
-                // CREATE FUNCTION [ schema_name. ] function_name 
-                //   ( [ { @parameter_name [ AS ][ type_schema_name. ] parameter_data_type 
-                //       [ = default ] [ READONLY ] } 
-                //       [ ,...n ]
-                //     ]
-                //   )
-                //   RETURNS return_data_type
-                //       [ WITH <function_option> [ ,...n ] ]
-                //       [ AS ]
-                //       BEGIN 
-                //           function_body 
-                //           RETURN scalar_expression
-                //       END
-                //  [ ; ]
-                ISqlUnifiedTypeDecl returnScalarType = IsTypeDecl( true );
-                if( returnScalarType == null ) return null;
-                // Scalar Function Syntax
-                SqlNodeList options;
-                SqlTokenIdentifier endOptionToken;
-                SqlTokenIdentifier asToken;
-                SqlTokenIdentifier begin;
-                if( !IsFunctionOptionsAsAndBeginOrReturn( out options, out endOptionToken, out asToken, out begin ) ) return null;
-                if( begin == null ) R.IsToken( out begin, SqlTokenType.Begin, false );
-                SqlStatementList bodyStatements = IsList( true, IsExtendedStatement, i => new SqlStatementList( i ) );
+                //
+                //       RETURNS return_data_type
+                //           [ WITH <function_option> [ ,...n ] ]
+                //           [ AS ]
+                //           BEGIN 
+                //               function_body 
+                //               RETURN scalar_expression
+                //           END
+                //      [ ; ]
+                //
+                SqlTokenIdentifier tableVariableNameT;
+                SqlTypeDeclTable tableReturnedType = null;
+                ISqlUnifiedTypeDecl returnScalarType = null;
+                if( R.IsToken( out tableVariableNameT, t => t.IsVariable, false ) )
+                {
+                    tableReturnedType = IsTypeDeclTable( true );
+                    if( tableReturnedType == null ) return null;
+                }
+                else
+                {
+                    returnScalarType = IsTypeDecl( true );
+                    if( returnScalarType == null ) return null;
+                }
+                SqlWithOptions options = IsIdentifierPrefixedCommaList( false, SqlTokenType.With, 1, IsFunctionOrProcedureOption, ( p, i ) => new SqlWithOptions( p, i ) );
+                SqlTokenIdentifier asT;
+                R.IsToken( out asT, SqlTokenType.As, false );
+                SqlTokenIdentifier beginT = IsBeginOfBlock( true );
+                if( beginT == null ) return null;
+                SqlStatementList bodyStatements = IsStatementList( true );
                 if( bodyStatements == null ) return null;
-                SqlTokenIdentifier end = null;
-                if( begin != null && !R.IsToken( out end, SqlTokenType.End, true ) ) return null;
-                return new SqlFunctionScalar(
-                                alterOrCreate,
-                                type,
-                                name,
-                                parameters,
-                                returns,
-                                returnScalarType,
-                                options,
-                                asToken,
-                                begin,
-                                bodyStatements,
-                                end,
-                                GetOptionalTerminator() );
+                SqlTokenIdentifier endT;
+                if( !R.IsToken( out endT, SqlTokenType.End, true ) ) return null;
+                if( tableVariableNameT != null )
+                {
+                    return new SqlFunctionTable(
+                                    alterOrCreate,
+                                    type,
+                                    name,
+                                    parameters, 
+                                    returnsT,
+                                    tableVariableNameT,
+                                    tableReturnedType, 
+                                    options, 
+                                    asT, 
+                                    beginT, 
+                                    bodyStatements, 
+                                    endT, 
+                                    GetOptionalTerminator() );
+                }
+                else
+                {
+                    return new SqlFunctionScalar(
+                                    alterOrCreate,
+                                    type,
+                                    name,
+                                    parameters,
+                                    returnsT,
+                                    returnScalarType,
+                                    options,
+                                    asT,
+                                    beginT,
+                                    bodyStatements,
+                                    endT,
+                                    GetOptionalTerminator() );
+                }
             }
         }
 
@@ -797,13 +868,54 @@ namespace CK.SqlServer.Parser
             if( options == null ) return null;
             if( options.IsEmpty ) options = null;
 
-            SqlTokenIdentifier begin;
-            R.IsToken( out begin, SqlTokenType.Begin, false );
-            SqlStatementList bodyStatements = IsList( true, IsExtendedStatement, i => new SqlStatementList( i ) );
+            SqlTokenIdentifier begin = IsBeginOfBlock( false );
+            SqlStatementList bodyStatements = IsStatementList( true );
             if( bodyStatements == null ) return null;
             SqlTokenIdentifier end = null;
             if( begin != null && !R.IsToken( out end, SqlTokenType.End, true ) ) return null;
             return new SqlStoredProcedure( alterOrCreate, type, name, parameters, options, asToken, begin, bodyStatements, end, GetOptionalTerminator() );
+        }
+
+        ISqlNode IsFunctionOrProcedureOption( bool expected )
+        {
+            SqlToken t1, t2, t3, t4 = null, t5 = null;
+            if( R.IsToken( out t1, SqlTokenType.Recompile, false )
+                || R.IsToken( out t1, SqlTokenType.Encryption, false )
+                || R.IsToken( out t1, SqlTokenType.SchemaBinding, false ) ) return t1;
+
+            if( R.Current.TokenType == SqlTokenType.Returns
+                && R.RawLookup.TokenType == SqlTokenType.Null )
+            {
+                t1 = R.Read<SqlToken>();
+                t2 = R.Read<SqlToken>();
+                if( !R.IsToken( out t3, SqlTokenType.On, true )
+                    || !R.IsToken( out t4, SqlTokenType.Null, true )
+                    || !R.IsToken( out t5, SqlTokenType.Input, true ) )
+                    return null;
+                return new SqlNodeList( t1, t2, t3, t4, t5 );
+            }
+
+            if( R.Current.TokenType == SqlTokenType.Called
+                && R.RawLookup.TokenType == SqlTokenType.On )
+            {
+                t1 = R.Read<SqlToken>();
+                t2 = R.Read<SqlToken>();
+                if( !R.IsToken( out t3, SqlTokenType.Null, true )
+                    || !R.IsToken( out t4, SqlTokenType.Input, true ) )
+                    return null;
+                return new SqlNodeList( t1, t2, t3, t4 );
+            }
+
+            if( R.Current.TokenType == SqlTokenType.Execute
+                && R.RawLookup.TokenType == SqlTokenType.As )
+            {
+                t1 = R.Read<SqlToken>();
+                t2 = R.Read<SqlToken>();
+                if( !R.IsToken( out t3, true ) ) return null;
+                return new SqlNodeList( t1, t2, t3 );
+            }
+            if( expected ) R.SetCurrentError( "Expected option." );
+            return null;
         }
 
         SqlParameterList IsParameterList( Parenthesis parenthesis )
@@ -931,6 +1043,9 @@ namespace CK.SqlServer.Parser
         /// <returns></returns>
         ISqlUnifiedTypeDecl IsTypeDecl( bool expected )
         {
+            SqlTypeDeclTable tableDecl = IsTypeDeclTable( false );
+            if( tableDecl != null ) return tableDecl;
+
             SqlTokenIdentifier id;
             if( R.IsToken( out id, t => t.IsDbType, false ) )
             {
@@ -938,6 +1053,7 @@ namespace CK.SqlServer.Parser
 
                 #region Type mapped to SqlDbType.
                 SqlDbType dbType = SqlKeyword.FromSqlTokenTypeToSqlDbType( id.TokenType ).Value;
+                Debug.Assert( dbType != SqlDbType.Structured, "TABLE has been handled by IsTypeDeclTable." );
                 switch( dbType )
                 {
                     case SqlDbType.Date:
@@ -1020,16 +1136,6 @@ namespace CK.SqlServer.Parser
                             }
                             return new SqlTypeDeclWithSize( dbType, id );
                         }
-                    case SqlDbType.Structured:
-                        {
-                            SqlTokenOpenPar opener;
-                            if( !R.IsToken( out opener, true ) ) return null;
-                            ISqlNode content = IsAnyExpression( true );
-                            if( content == null ) return null;
-                            SqlTokenClosePar closer;
-                            if( !R.IsToken( out closer, true ) ) return null;
-                            return new SqlTypeDeclTable( id, opener, content, closer );
-                        }
                     default:
                         {
                             return new SqlTypeDeclSimple( dbType, id );
@@ -1041,7 +1147,7 @@ namespace CK.SqlServer.Parser
             {
                 SqlTokenIdentifier cursorT = R.Read<SqlTokenIdentifier>();
                 SqlTokenIdentifier varyingT;
-                if( !R.IsToken( out varyingT, SqlTokenType.Varying, true ) ) return null;
+                R.IsToken( out varyingT, SqlTokenType.Varying, false );
                 return new SqlTypeDeclCursorParameter( cursorT, varyingT );
             }
             else if( R.Current.TokenType.IsReservedKeyword() 
@@ -1059,6 +1165,19 @@ namespace CK.SqlServer.Parser
                 SqlTokenIdentifier tId = identifier as SqlTokenIdentifier;
                 return new SqlTypeDeclUserDefined( identifier );
             }
+        }
+
+        SqlTypeDeclTable IsTypeDeclTable( bool expected )
+        {
+            SqlTokenIdentifier tableT;
+            if( !R.IsToken( out tableT, SqlTokenType.TableDbType, expected ) ) return null;
+            SqlTokenOpenPar opener;
+            if( !R.IsToken( out opener, true ) ) return null;
+            ISqlNode content = IsAnyExpression( true );
+            if( content == null ) return null;
+            SqlTokenClosePar closer;
+            if( !R.IsToken( out closer, true ) ) return null;
+            return new SqlTypeDeclTable( tableT, opener, content, closer );
         }
 
         SqlExecuteAs IsExecuteAs( bool expected )

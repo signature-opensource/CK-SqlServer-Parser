@@ -475,6 +475,50 @@
     </Xml>
   </Test>
 
+  <Test Mode="OneExpression">
+    <Text>
+      select @hid = hierarchyid::GetRoot(), @i = 87/7
+    </Text>
+    <Description>Select a hierarchical identifier.</Description>
+    <Xml>
+      <Sql>
+         <SelectSpec>
+           <Columns>
+             <SelectColumnList>
+               <Item>
+                 <SelectColumn ColumnName="@hid">
+                   <Definition>
+                     <KoCall FunName="hierarchyid::GetRoot">
+                       <Parameters>
+                         <EnclosedCommaList />
+                       </Parameters>
+                     </KoCall>
+                   </Definition>
+                 </SelectColumn>
+               </Item>
+               <Item>
+                 <SelectColumn ColumnName="@i">
+                   <Definition>
+                     <BinaryOperator>
+                       <Left>
+                         <LiteralInteger>87</LiteralInteger>
+                       </Left>
+                       <Operator>
+                         <Terminal>/</Terminal>
+                       </Operator>
+                       <Right>
+                         <LiteralInteger>7</LiteralInteger>
+                       </Right>
+                     </BinaryOperator>
+                   </Definition>
+                 </SelectColumn>
+               </Item>
+             </SelectColumnList>
+           </Columns>
+         </SelectSpec>
+      </Sql>
+    </Xml>
+  </Test>
 
   <Test Mode="OneExpression">
     <Text>
@@ -795,6 +839,64 @@
             </Columns>
           </Right>
         </Right>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test Mode="OneExpression">
+    <Text>
+      SELECT p.BusinessEntityID, FirstName, LastName, PhoneNumber AS Phone
+        FROM Person.Person AS p
+        JOIN Person.PersonPhone AS pph ON p.BusinessEntityID  = pph.BusinessEntityID
+        WHERE LastName LIKE 'G%'
+        ORDER BY LastName, FirstName
+        FOR XML AUTO, TYPE, XMLSCHEMA, ELEMENTS XSINIL
+    </Text>
+    <Description>For xml with format.</Description>
+    <Xml Shorten="Columns, From, WhereExpression, OrderBy">
+      <Sql>
+        <SelectDecorator>
+          <Select>
+            <SelectSpec>
+              <Columns>p.BusinessEntityID, FirstName, LastName, PhoneNumber AS Phone</Columns>
+              <From>FROM Person.Person AS p JOIN Person.PersonPhone AS pph ON p.BusinessEntityID = pph.BusinessEntityID</From>
+              <WhereExpression>LastName LIKE 'G%'</WhereExpression>
+            </SelectSpec>
+          </Select>
+          <OrderBy>ORDER BY LastName, FirstName</OrderBy>
+          <For>
+            <SelectFor TargetType="XML">
+              <Format>
+                <NodeList>
+                  <Item>
+                    <Identifier>AUTO</Identifier>
+                  </Item>
+                  <Item>
+                    <Comma>,</Comma>
+                  </Item>
+                  <Item>
+                    <Identifier>TYPE</Identifier>
+                  </Item>
+                  <Item>
+                    <Comma>,</Comma>
+                  </Item>
+                  <Item>
+                    <Identifier>XMLSCHEMA</Identifier>
+                  </Item>
+                  <Item>
+                    <Comma>,</Comma>
+                  </Item>
+                  <Item>
+                    <Identifier>ELEMENTS</Identifier>
+                  </Item>
+                  <Item>
+                    <Identifier>XSINIL</Identifier>
+                  </Item>
+                </NodeList>
+              </Format>
+            </SelectFor>
+          </For>
+        </SelectDecorator>
       </Sql>
     </Xml>
   </Test>

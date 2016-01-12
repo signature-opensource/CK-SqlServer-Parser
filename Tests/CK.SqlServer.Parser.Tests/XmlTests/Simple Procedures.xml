@@ -3,6 +3,31 @@
   
   <Test>
     <Text>
+      create procedure sWithOptions
+	      with recompile, execute as owner
+      as
+	      -- there are options.
+	      select * from sys.tables;
+	      return 0;
+    </Text>
+    <Description>With options.</Description>
+    <Xml>
+      <Statements>
+         <StoredProcedure StatementName="CreateProcedure">
+           <StatementList>
+             <SelectStatement HasTerminator="true">
+               <SelectSpec />
+             </SelectStatement>
+             <ReturnStatement HasTerminator="true" />
+           </StatementList>
+         </StoredProcedure>
+      </Statements>
+    </Xml>
+  </Test>
+
+  
+  <Test>
+    <Text>
       alter procedure sStrange -- funny one
       as
       begin
@@ -34,7 +59,7 @@
       </Statements>
     </Xml>
   </Test>
-
+  
   <Test>
     <Text>
       -- Version = 1.0.0, Package = TestMe

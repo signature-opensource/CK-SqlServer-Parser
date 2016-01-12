@@ -311,8 +311,12 @@ namespace CK.SqlServer.Parser
             _keywords.Add( "at", SqlTokenType.At );
             _keywords.Add( "using", SqlTokenType.Using );
             _keywords.Add( "global", SqlTokenType.Global );
-            // 
             _keywords.Add( "openjson", SqlTokenType.OpenJSON );
+
+            _keywords.Add( "encryption", SqlTokenType.Encryption);
+            _keywords.Add( "schemabinding", SqlTokenType.SchemaBinding );
+            _keywords.Add( "input", SqlTokenType.Input );
+            _keywords.Add( "called", SqlTokenType.Called );
 
             // LogicalOperator (they are reserved keywords).
             _keywords.Add( "or", SqlTokenType.Or );

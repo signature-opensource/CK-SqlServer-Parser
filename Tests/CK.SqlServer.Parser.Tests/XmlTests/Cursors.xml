@@ -107,14 +107,15 @@
         </DeclareCursor>
         <Statement StatementName="OPEN" />
         <Statement StatementName="FETCH" />
-        <Statement StatementName="WHILE" />
-        <BeginEndBlock StatementName="BeginEnd">
-          <StatementList>
-            <SetVariable />
-            <Statement StatementName="BACKUP" />
-            <Statement StatementName="FETCH" />
-          </StatementList>
-        </BeginEndBlock>
+        <While>
+          <BeginEndBlock>
+            <StatementList>
+              <SetVariable />
+              <Statement StatementName="BACKUP" />
+              <Statement StatementName="FETCH" />
+            </StatementList>
+          </BeginEndBlock>
+        </While>
         <Statement StatementName="CLOSE" />
         <Statement StatementName="DEALLOCATE" />
       </Statements>

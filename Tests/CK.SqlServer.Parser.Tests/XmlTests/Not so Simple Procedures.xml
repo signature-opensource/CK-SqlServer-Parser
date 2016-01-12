@@ -1,5 +1,173 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <Tests>
+  
+    <Test>
+      <Text>
+        create procedure CKCore.sErrorRethrow
+        (
+	        @ProcId int
+        )
+        as
+        begin
+	        declare @EM nvarchar(2048) = ERROR_MESSAGE();
+
+	        if @EM is not null
+	        begin
+		        declare @ON sysname;
+		        if @EM like 'ck:%-{%}-[[]%]%' 
+		        begin
+			        set @ON = OBJECT_NAME(@ProcId);
+			        if @ON is null set @ON = N'(dynamic)';
+			        else set @ON = OBJECT_SCHEMA_NAME(@ProcId)+'.'+@ON;
+			        set @EM = @EM+'&lt;-'+@ON;
+			        raiserror( @EM, 16, 1 );
+		        end
+		        else
+		        begin
+			        set @ON = ERROR_PROCEDURE();
+			        if @ON is null set @ON = N'(dynamic)';
+			        declare @LN int = ERROR_LINE();
+			        raiserror( N'ck:%s-{%d}-[%s]', 16, 1, @ON, @LN, @EM );
+		        end			
+	        end
+        end  
+      </Text>
+      <Description>Lovely stored procedure.</Description>
+      <Xml>
+        <Statements>
+          <StoredProcedure StatementName="CreateProcedure">
+            <StatementList>
+              <DeclareVariable HasTerminator="true" />
+              <If>
+                <BeginEndBlock>
+                  <StatementList>
+                    <DeclareVariable HasTerminator="true" />
+                    <If>
+                      <BeginEndBlock>
+                        <StatementList>
+                          <SetVariable HasTerminator="true" />
+                          <If>
+                            <SetVariable HasTerminator="true" />
+                            <SetVariable HasTerminator="true" />
+                          </If>
+                          <SetVariable HasTerminator="true" />
+                          <Raiserror HasTerminator="true" />
+                        </StatementList>
+                      </BeginEndBlock>
+                      <BeginEndBlock>
+                        <StatementList>
+                          <SetVariable HasTerminator="true" />
+                          <If>
+                            <SetVariable HasTerminator="true" />
+                          </If>
+                          <DeclareVariable HasTerminator="true" />
+                          <Raiserror HasTerminator="true" />
+                        </StatementList>
+                      </BeginEndBlock>
+                    </If>
+                  </StatementList>
+                </BeginEndBlock>
+              </If>
+            </StatementList>
+          </StoredProcedure>
+        </Statements>
+      </Xml>
+    </Test>
+ 
+    <Test>
+      <Text>
+        create procedure CK.sResDataStringSet -- Merge inside!
+        (
+	        @ResId int, 
+	        @Val nvarchar(400)
+        )
+        as begin
+	        set nocount on;
+	        merge CK.tResDataString as t 
+		        using (select ResId = @ResId, Val = @Val) as s
+		        on t.ResId = s.ResId
+		        when matched then update set Val = @Val
+		        when not matched then insert(ResId,Val) values (@ResId, @Val);
+	        return 0;
+        end
+      </Text>
+      <Description>Lovely stored procedure.</Description>
+      <Xml>
+        <Statements>
+           <StoredProcedure StatementName="CreateProcedure">
+             <StatementList>
+               <SetOption HasTerminator="true" />
+               <MergeStatement HasTerminator="true" />
+               <ReturnStatement HasTerminator="true" />
+             </StatementList>
+           </StoredProcedure>
+        </Statements>
+      </Xml>
+    </Test>
+    
+    <Test>
+      <Text>
+        create procedure CK.sGroupRemoveAllUsers
+        (
+            @ActorId int,
+            @GroupId int
+        )
+        as begin
+          if @ActorId &lt;= 0 raiserror( 'Security.AnonymousNotAllowed', 16, 1 );
+          if @GroupId &lt;= 0 raiserror( 'Group.InvalidGroup', 16, 1 );
+
+          --[beginsp]
+
+          declare @UserId int;
+          declare @CUser cursor;
+          set @CUser = cursor local fast_forward for
+                  select ActorId from CK.tActorProfile where GroupId = @GroupId and ActorId &lt;&gt; @GroupId;
+          open @CUser;
+
+          fetch from @CUser into @UserId;
+          while @@FETCH_STATUS = 0
+          begin
+            exec CK.sGroupUserRemove @ActorId, @GroupId, @UserId;
+            fetch next from @CUser into @UserId;
+          end
+          deallocate @CUser;
+
+          --[endsp]
+        end
+      </Text>
+      <Description>Lovely stored procedure.</Description>
+      <Xml>
+        <Statements>
+          <StoredProcedure StatementName="CreateProcedure">
+            <StatementList>
+              <If>
+                <Raiserror HasTerminator="true" />
+              </If>
+              <If>
+                <Raiserror HasTerminator="true" />
+              </If>
+              <DeclareVariable HasTerminator="true" />
+              <DeclareVariable HasTerminator="true" />
+              <SetVariable HasTerminator="true">
+                <SelectSpec />
+              </SetVariable>
+              <Statement StatementName="open" HasTerminator="true" />
+              <Statement StatementName="fetch" HasTerminator="true" />
+              <While>
+                <BeginEndBlock>
+                  <StatementList>
+                    <ExecuteStatement HasTerminator="true" />
+                    <Statement StatementName="fetch" HasTerminator="true" />
+                  </StatementList>
+                </BeginEndBlock>
+              </While>
+              <Statement StatementName="deallocate" HasTerminator="true" />
+            </StatementList>
+          </StoredProcedure>
+        </Statements>
+      </Xml>
+    </Test>
+    
   <Test>
     <Text>
 create procedure cursor_usage
@@ -78,37 +246,39 @@ end</Text>
             </DeclareCursor>
             <Statement StatementName="OPEN" />
             <Statement StatementName="FETCH" />
-            <Statement StatementName="WHILE" />
-            <BeginEndBlock StatementName="BeginEnd">
-              <StatementList>
-                <Statement StatementName="PRINT" />
-                <SelectStatement>
-                  <SelectSpec />
-                </SelectStatement>
-                <Statement StatementName="PRINT" />
-                <DeclareCursor>
-                  <SelectSpec />
-                </DeclareCursor>
-                <Statement StatementName="OPEN" />
-                <Statement StatementName="FETCH" />
-                <If>
+            <While>
+              <BeginEndBlock>
+                <StatementList>
                   <Statement StatementName="PRINT" />
-                </If>
-                <Statement StatementName="WHILE" />
-                <BeginEndBlock StatementName="BeginEnd">
-                  <StatementList>
-                    <SelectStatement>
-                      <SelectSpec />
-                    </SelectStatement>
+                  <SelectStatement>
+                    <SelectSpec />
+                  </SelectStatement>
+                  <Statement StatementName="PRINT" />
+                  <DeclareCursor>
+                    <SelectSpec />
+                  </DeclareCursor>
+                  <Statement StatementName="OPEN" />
+                  <Statement StatementName="FETCH" />
+                  <If>
                     <Statement StatementName="PRINT" />
-                    <Statement StatementName="FETCH" />
-                  </StatementList>
-                </BeginEndBlock>
-                <Statement StatementName="CLOSE" />
-                <Statement StatementName="DEALLOCATE" />
-                <Statement StatementName="FETCH" />
-              </StatementList>
-            </BeginEndBlock>
+                  </If>
+                  <While>
+                    <BeginEndBlock>
+                      <StatementList>
+                        <SelectStatement>
+                          <SelectSpec />
+                        </SelectStatement>
+                        <Statement StatementName="PRINT" />
+                        <Statement StatementName="FETCH" />
+                      </StatementList>
+                    </BeginEndBlock>
+                  </While>
+                  <Statement StatementName="CLOSE" />
+                  <Statement StatementName="DEALLOCATE" />
+                  <Statement StatementName="FETCH" />
+                </StatementList>
+              </BeginEndBlock>
+            </While>
             <Statement StatementName="CLOSE" HasTerminator="true" />
             <Statement StatementName="DEALLOCATE" HasTerminator="true" />
           </StatementList>
