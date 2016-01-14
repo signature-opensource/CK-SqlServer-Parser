@@ -54,6 +54,10 @@
       <HintPath>..\..\packages\NUnit.2.6.4\lib\nunit.framework.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Collections.Immutable, Version=1.1.37.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\System.Collections.Immutable.1.1.37\lib\dotnet\System.Collections.Immutable.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data" />
@@ -66,15 +70,19 @@
     <Compile Include="..\..\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="Parsing\ExplainWriter.cs" />
-    <Compile Include="Parsing\RewritingTests.cs" />
+    <Compile Include="ConsoleTests.cs" />
     <Compile Include="Parsing\SqlAnalyserTest.cs" />
     <Compile Include="Parsing\SqlTokenizerTest.cs" />
     <Compile Include="Parsing\SqlTokenReaderTests.cs" />
     <Compile Include="SetStatementTests.cs" />
+    <Compile Include="SqlNodeExtension.cs" />
+    <Compile Include="SqlNodeTests.cs" />
+    <Compile Include="SqlToXmlStatementVisitor.cs" />
+    <Compile Include="SqlToXmlVisitor.cs" />
     <Compile Include="StringNormalizationExtension.cs" />
     <Compile Include="TestHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="XmlTests\XmlTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\CK.SqlServer.Parser\CK.SqlServer.Parser.csproj">
@@ -83,20 +91,34 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Parsing\Scripts\CLASSEMENT.sql" />
-    <Content Include="Parsing\Scripts\CLASSEMENT_POSTE.sql" />
-    <Content Include="Parsing\Scripts\fReadThings.sql" />
-    <Content Include="Parsing\Scripts\fAclGrantLevel.sql" />
-    <Content Include="Parsing\Scripts\cursor_usage.sql" />
-    <Content Include="Parsing\Scripts\sGroupRemoveAllUsers.sql" />
-    <Content Include="Parsing\Scripts\sStoredProcedure03.sql" />
-    <Content Include="Parsing\Scripts\sWithOptions.sql" />
-    <Content Include="Parsing\Scripts\sStoredProcedure02.sql" />
-    <Content Include="Parsing\Scripts\sStrange.sql" />
-    <Content Include="Parsing\Scripts\sProcWithoutTerminator.sql" />
     <Content Include="Parsing\Scripts\sStoredProcedureInputOutput.sql" />
-    <Content Include="Parsing\Scripts\sStoredProcedure01.sql" />
     <Content Include="Parsing\Scripts\AdventureWorks2012-FullSchema.sql" />
+    <Content Include="XmlTests\Big procedures.xml" />
+    <Content Include="XmlTests\Functions.xml" />
+    <Content Include="XmlTests\Trigger.xml" />
+    <Content Include="XmlTests\TryCatch.xml" />
+    <Content Include="XmlTests\Merge.xml" />
+    <Content Include="XmlTests\Update.xml" />
+    <Content Include="XmlTests\OpenXml.xml" />
+    <Content Include="XmlTests\Insert.xml" />
+    <Content Include="XmlTests\Multi Statements.xml" />
+    <Content Include="XmlTests\CTE.xml" />
+    <Content Include="XmlTests\Sequence.xml" />
+    <Content Include="XmlTests\IsNull.xml" />
+    <Content Include="XmlTests\Not so Simple Procedures.xml" />
+    <Content Include="XmlTests\Simple Selects.xml" />
+    <Content Include="XmlTests\Simple Procedures.xml" />
+    <Content Include="XmlTests\If.xml" />
+    <Content Include="XmlTests\Cursors.xml" />
+    <Content Include="XmlTests\Unmodeled stuff.xml" />
+    <Content Include="XmlTests\Simple expressions.xml" />
+    <Content Include="XmlTests\Logical operators.xml" />
+    <Content Include="XmlTests\Between expressions.xml" />
+    <Content Include="XmlTests\Comma lists.xml" />
+    <Content Include="XmlTests\LiteralTokens.xml" />
+    <Content Include="XmlTests\Identifiers.xml">
+      <SubType>Designer</SubType>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

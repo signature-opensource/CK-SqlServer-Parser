@@ -4,12 +4,13 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using CK.Core;
+using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
     /// <summary>
     /// An <see cref="IEnumerator{T}"/> of <see cref="SqlToken"/> decorator that acts as a reading head
-    /// on a raw tokens stream. It adds useful behavior such as one token lookup and = (Assign vs. Compare) operator
+    /// on a raw tokens stream. It adds useful behavior such as one token lookup and '=' (Assign vs. Compare) operator
     /// adaptation based on a toggle <see cref="AssignmentContext"/> flag.
     /// </summary>
     internal class SqlTokenReader : IEnumerator<SqlToken> 
@@ -20,6 +21,7 @@ namespace CK.SqlServer.Parser
         IEnumerator<SqlToken> _e;
         SqlToken _c;
         SqlToken _rawLookup;
+        int _parenthesisDepth;
         bool _assignmentContext;
 
         public SqlTokenReader( IEnumerable<SqlToken> tokens, Func<string> currentAnalyzedText, Func<SourcePosition> currentTokenPosition )
@@ -31,9 +33,21 @@ namespace CK.SqlServer.Parser
             Reset();
         }
 
-        public bool AssignmentContext
+        public bool AssignmentContext => _assignmentContext;
+
+        public int ParenthesisDepth => _parenthesisDepth;
+
+        public IDisposable OpenParenthesis()
         {
-            get { return _assignmentContext; }
+            ++_parenthesisDepth;
+            return Util.CreateDisposableAction( () => --_parenthesisDepth );
+        }
+
+        public Predicate<SqlToken> GetDepthBasedStopper()
+        {
+            int curDepth = _parenthesisDepth;
+            if( curDepth == 0 ) return SqlToken.IsTerminator;
+            return t => _parenthesisDepth == curDepth ? t.TokenType == SqlTokenType.ClosePar : false;
         }
 
         public IDisposable SetAssignmentContext( bool assignment )
@@ -123,21 +137,6 @@ namespace CK.SqlServer.Parser
         }
 
         /// <summary>
-        /// Gets the current precedence with a provision of 1 bit.
-        /// </summary>
-        /// <remarks>
-        /// This uses <see cref="SqlTokenType.OpLevelMask"/> and <see cref="SqlTokenType.OpLevelShift"/>.
-        /// </remarks>
-        public int CurrentPrecedenceLevel
-        {
-            get 
-            {
-                CheckPosition();
-                return SqlTokenizer.PrecedenceLevel( _c.TokenType ); 
-            }
-        }
-
-        /// <summary>
         /// True if an error or the end of the stream is reached (<see cref="TokenType"/> is negative).
         /// </summary>
         /// <returns>True on error or end of input.</returns>
@@ -185,7 +184,7 @@ namespace CK.SqlServer.Parser
         /// <returns>Always false in order to easily write return SetCurrentError("..."); that returns false.</returns>
         public bool SetCurrentError( string error, params object[] parameters )
         {
-            return SetCurrentError( String.Format( error, parameters ) );
+            return SetCurrentError( string.Format( error, parameters ) );
         }
 
         /// <summary>
@@ -292,72 +291,155 @@ namespace CK.SqlServer.Parser
             return false;
         }
 
-        public bool IsUnquotedIdentifier( out SqlTokenIdentifier identifier, string name, bool expected )
+        public SqlTokenIdentifier IsQuotedDbTypeWithUselessComments( bool expected )
         {
-            if( Current.IsUnquotedIdentifier( name ) )
+            if( Current.TokenType.IsQuotedIdentifier() )
             {
-                identifier = Read<SqlTokenIdentifier>();
-                return true;
+                SqlTokenIdentifier c = (SqlTokenIdentifier)_c;
+                SqlTokenType newType = SqlKeyword.MapKeyword( c.Name );
+                if( newType.IsDbType() && newType != SqlTokenType.TableDbType )
+                {
+                    ImmutableList<SqlTrivia> leading, trailing;
+                    if( c.TokenType == SqlTokenType.IdentifierQuotedBracket )
+                    {
+                        leading = c.LeadingTrivias.Add( SqlTrivia.OpenBracketUselessComment );
+                        trailing = c.TrailingTrivias.Insert( 0, SqlTrivia.CloseBracketUselessComment );
+                    }
+                    else
+                    {
+                        leading = c.LeadingTrivias.Add( SqlTrivia.QuoteUselessComment );
+                        trailing = c.TrailingTrivias.Insert( 0, SqlTrivia.QuoteUselessComment );
+                    }
+                    MoveNext();
+                    return new SqlTokenIdentifier( newType, c.Name, leading, trailing );
+                }
             }
-            if( expected ) SetCurrentError( "Expected '{0}' identifier.", name );
-            identifier = null;
-            return false;
+            if( expected ) SetCurrentError( "Expected quoted type identifier." );
+            return null;
         }
 
         /// <summary>
-        /// Reads a list of tokens until a <paramref name="stopper"/> or the end of input or 
-        /// an error is encountered (in such case, stopper is set to null).
+        /// collects a list of nodes until a <paramref name="stopperDefinition"/> matches or the end of input or 
+        /// an error is encountered.
         /// </summary>
-        /// <typeparam name="T">Type of tokens.</typeparam>
-        /// <param name="items">List of tokens or null if no tokens have been collected.</param>
-        /// <param name="stopper">The stopper. Null if an error occurred or the end of the input was reached.</param>
-        /// <param name="stopperDefinition">Lambda that defines what the stopper should be.</param>
-        /// <param name="atLeastOne">True if at least one item should appear in the list.</param>
-        /// <param name="matchers">
-        /// Optional functions that can transform the <see cref="Current"/> token (and its followers) to any item. 
-        /// Matchers are called up to the first one that returns an item different than the Current token.
-        /// When a matcher returns null, the current token is ignored.
-        /// </param>
+        /// <typeparam name="T">Type of stopper.</typeparam>
+        /// <param name="items">List of collected nodes.</param>
+        /// <param name="matcher">IsXXX function (trasforms the current token - and its following ones - into any kind of node).</param>
+        /// <param name="stopperDefinition">Lambda that defines what the stopper should be. When null, the type of token is used.</param>
         /// <returns>True if no error occurred.</returns>
-        internal bool IsItemList<T>( out List<ISqlItem> items, out T stopper, Predicate<T> stopperDefinition, bool atLeastOne, params Func<ISqlItem>[] matchers ) where T : SqlToken
+        internal bool CollectUntil<T>( List<ISqlNode> items, Func<bool, ISqlNode> matcher = null, Predicate<T> stopperDefinition = null ) where T : SqlToken
         {
-            Debug.Assert( stopperDefinition != null );
-            items = null;
-            stopper = null;
-            while( !IsErrorOrEndOfInput && !IsToken( out stopper, stopperDefinition, false ) )
+            Debug.Assert( items != null && !IsError );
+            while( !(Current is T && (stopperDefinition == null || stopperDefinition( (T)Current ))) )
             {
-                if( items == null ) items = new List<ISqlItem>();
-                if( matchers == null || matchers.Length == 0 )
+                if( IsEndOfInput ) return SetCurrentError( "Expected stopper for node list: {0} {1}.", typeof( T ).Name, stopperDefinition != null ? stopperDefinition.Method.Name : null );
+                if( matcher != null )
+                {
+                    ISqlNode item = matcher( false );
+                    if( item != null ) items.Add( item );
+                    else
+                    {
+                        if( IsError ) return false;
+                        items.Add( Current );
+                        MoveNext();
+                    }
+                }
+                else
                 {
                     items.Add( Current );
                     MoveNext();
                 }
-                else
+            }
+            Debug.Assert( !IsError );
+            return true;
+        }
+
+        /// <summary>
+        /// collects a list of nodes until a <paramref name="stopper"/> is found or the end of input or 
+        /// an error is encountered (in such case, stopper is set to null).
+        /// </summary>
+        /// <typeparam name="T">Type of tokens.</typeparam>
+        /// <param name="items">List of collected nodes.</param>
+        /// <param name="matcher">Function that can trasform the current token (and its following ones) into any kind of node.</param>
+        /// <param name="stopper">The stopper. Null if an error occurred or the end of the input was reached.</param>
+        /// <param name="stopperDefinition">Lambda that defines what the stopper should be. When null, the type of token is used.</param>
+        /// <returns>True if no error occurred.</returns>
+        internal bool CollectUntil<T>( List<ISqlNode> items, out T stopper, Func<bool, ISqlNode> matcher = null, Predicate<T> stopperDefinition = null ) where T : SqlToken
+        {
+            stopper = null;
+            if( !CollectUntil( items, matcher, stopperDefinition ) ) return false;
+            stopper = (T)Current;
+            MoveNext();
+            return true;
+        }
+
+        /// <summary>
+        /// Collects a list of comma separated typed nodes with or without optional enclosing parenthesis.
+        /// </summary>
+        /// <typeparam name="T">Type of the expressions to match.</typeparam>
+        /// <param name="items">Collector for itemsthat will be filled with <typeparamref name="T"/> and comma tokens. Can be empty if no expression have been matched.</param>
+        /// <param name="openPar">Optional opening parenthesis.</param>
+        /// <param name="closePar">Closing parenthesis. Not null if and only if an opening parenthesis exists.</param>
+        /// <param name="matcher">Function that knows how to match an item.</param>
+        /// <param name="minCount">Minimum number of expected items.</param>
+        /// <param name="parenthesis">Defines the parenthesis, null to ignore them. Use <see cref="Parenthesis.Rejected"/> to set an error if the current token is not an opening parenthesis.</param>
+        /// <returns>True on success. Can be false only because of <paramref name="minCount"/> or <paramref name="parenthesis"/>.</returns>
+        internal bool CollectCommaList<T>( List<ISqlNode> items, out SqlTokenOpenPar openPar, out SqlTokenClosePar closePar, Func<bool, T> matcher, int minCount = 0, Parenthesis? parenthesis = Parenthesis.Optional ) where T : class, ISqlNode
+        {
+            int collectedCount = 0;
+            openPar = null;
+            closePar = null;
+            bool hasPar = false;
+            if( parenthesis.HasValue )
+            {
+                hasPar = IsToken( out openPar, parenthesis == Parenthesis.Required );
+                if( IsError ) return false;
+                if( hasPar && parenthesis == Parenthesis.Rejected ) return SetCurrentError( "Unexpected parenthesis." );
+            }
+            T item;
+            if( !IsEndOfInput && (item = matcher( false )) != null )
+            {
+                ++collectedCount;
+                items.Add( item );
+                SqlTokenComma comma;
+                while( IsToken( out comma, false ) )
                 {
-                    ISqlItem item = Current;
-                    foreach( var m in matchers )
+                    items.Add( comma );
+                    if( (item = matcher( true )) == null )
                     {
-                        item = m();
-                        if( IsError ) return false;
-                        if( item != Current ) break;
-                        MoveNext();
+                        if( !IsError ) SetCurrentError( "Expected: '{0}'.", typeof( T ).Name );
+                        break;
                     }
-                    if( item != null ) items.Add( item );
+                    ++collectedCount;
+                    items.Add( item );
                 }
             }
-            if( IsError ) return false;
-            if( (items == null || items.Count == 0) && atLeastOne ) return SetCurrentError( "Expected at least one token." );
-            return true;
+            if( IsError || (hasPar && !IsToken( out closePar, true )) ) return false;
+            return collectedCount < minCount 
+                    ? SetCurrentError( "Expected at least {1} '{0}'.", typeof( T ).Name, minCount )
+                    : true;
+        }
+
+        /// <summary>
+        /// Collects a non enclosed list of comma separated typed nodes.
+        /// </summary>
+        /// <typeparam name="T">Type of the expressions to match.</typeparam>
+        /// <param name="items">Collector for items that will be filled with <typeparamref name="T"/> and comma tokens. Can be empty if no expression have been matched.</param>
+        /// <param name="matcher">Function that knows how to match an item.</param>
+        /// <param name="minCount">Minimum number of expected items.</param>
+        /// <returns>True on success. Can be false only because of <paramref name="minCount"/>.</returns>
+        internal bool CollectCommaList<T>( List<ISqlNode> items, Func<bool, T> matcher, int minCount = 0 ) where T : class, ISqlNode
+        {
+            SqlTokenOpenPar openPar;
+            SqlTokenClosePar closePar;
+            return CollectCommaList( items, out openPar, out closePar, matcher, minCount, null );
         }
 
         /// <summary>
         /// Gets the next token to be read.
         /// This token is not normalized: it is the token directly emitted by the inner token stream.
         /// </summary>
-        public SqlToken RawLookup
-        {
-            get { return _rawLookup; }
-        }
+        public SqlToken RawLookup => _rawLookup;
 
         /// <summary>
         /// Moves <see cref="Current"/> to the next token except if we are at the end of the input.
@@ -368,13 +450,25 @@ namespace CK.SqlServer.Parser
         {
             if( _e == null ) throw new ObjectDisposedException( "TokenReader" );
             if( _c == SqlTokenError.EndOfInput ) return false;
+            if( _c != null )
+            {
+                if( _c.TokenType == SqlTokenType.OpenPar )
+                {
+                    ++_parenthesisDepth;
+                }
+                else if( _c.TokenType == SqlTokenType.ClosePar )
+                {
+                    --_parenthesisDepth;
+                }
+
+            }
             _c = _rawLookup;
             if( _c.TokenType > 0 )
             {
                 var h = TokenRead;
                 if( h != null ) h( _c );
             }
-            if( _c.TokenType == SqlTokenType.Equal && _assignmentContext ) _c = new SqlTokenTerminal( SqlTokenType.Assign, _c.LeadingTrivia, _c.TrailingTrivia );
+            if( _c.TokenType == SqlTokenType.Equal && _assignmentContext ) _c = SqlTokenTerminal.Create( SqlTokenType.Assign, _c.LeadingTrivias, _c.TrailingTrivias );
             _rawLookup = _e.MoveNext() ? _e.Current : SqlTokenError.EndOfInput;
             return true;
         }
@@ -412,7 +506,7 @@ namespace CK.SqlServer.Parser
         {
             string shortToken = Current.ToString();
             if( shortToken.Length > 50 ) shortToken = shortToken.Substring( 0, 50 ) + "...";
-            string msg = String.Format( "{0}: '{1}'", Current.GetType().Name.Replace( "SqlToken", String.Empty ), shortToken );
+            string msg = string.Format( "{0}: '{1}'", Current.GetType().Name.Replace( "SqlToken", String.Empty ), shortToken );
             if( _currentAnalyzedText != null ) msg += " - Text:" + _currentAnalyzedText();
             return msg;
         }

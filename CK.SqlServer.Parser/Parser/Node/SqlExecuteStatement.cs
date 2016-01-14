@@ -1,0 +1,87 @@
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using System.Linq;
+using System.Text;
+using CK.Core;
+using System.Collections.Immutable;
+
+namespace CK.SqlServer.Parser
+{
+
+    public sealed class SqlExecuteStatement : SqlNode, ISqlNamedStatement
+    {
+        readonly SNode<SqlTokenIdentifier, ISqlIdentifier, SqlTokenTerminal, ISqlIdentifier, SqlCallParameterList, SqlWithOptions, SqlTokenTerminal> _content;
+
+        public SqlExecuteStatement( 
+            SqlTokenIdentifier execT, 
+            ISqlIdentifier returnVar,
+            SqlTokenTerminal returnVarAssign, 
+            ISqlIdentifier  name, 
+            SqlCallParameterList parameters, 
+            SqlWithOptions options,
+            SqlTokenTerminal term )
+            : base( null, null )
+        {
+            _content = new SNode<SqlTokenIdentifier, ISqlIdentifier, SqlTokenTerminal, ISqlIdentifier, SqlCallParameterList, SqlWithOptions, SqlTokenTerminal>(
+                execT,
+                returnVar,
+                returnVarAssign,
+                name,
+                parameters,
+                options,
+                term );
+            CheckContent();
+        }
+
+        void CheckContent()
+        {
+            SNode.CheckToken( ExecT, nameof( ExecT ), SqlTokenType.Execute );
+            SNode.CheckNullableToken( ReturnVarAssignT, nameof( ReturnVarAssignT ), SqlTokenType.Assign );
+            SNode.CheckBothNullOrNot( ReturnVar, nameof( ReturnVar ), ReturnVarAssignT, nameof( ReturnVarAssignT ) );
+            SNode.CheckNotNull( Name, nameof( Name ) );
+            SNode.CheckNotNull( Parameters, nameof( Parameters ) );
+        }
+
+        SqlExecuteStatement( SqlExecuteStatement o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
+            : base( leading, trailing )
+        {
+            if( items == null ) _content = o._content;
+            else
+            {
+                _content = new SNode<SqlTokenIdentifier, ISqlIdentifier, SqlTokenTerminal, ISqlIdentifier, SqlCallParameterList, SqlWithOptions, SqlTokenTerminal>( items );
+                CheckContent();
+            }
+        }
+
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
+        {
+            return new SqlExecuteStatement( this, leading, children, trailing );
+        }
+
+        public StatementKnownName StatementKnownName => StatementKnownName.Execute;
+
+        public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
+
+        public SqlTokenIdentifier ExecT => _content.V1;
+
+        public ISqlIdentifier ReturnVar => _content.V2;
+
+        public SqlTokenTerminal ReturnVarAssignT => _content.V3;
+
+        public ISqlIdentifier Name => _content.V4;
+
+        public SqlCallParameterList Parameters => _content.V5;
+
+        public SqlWithOptions Options => _content.V6;
+
+        public SqlTokenTerminal StatementTerminator => _content.V7;
+
+        [DebuggerStepThrough]
+        internal protected override ISqlNode Accept( SqlItemVisitor visitor ) => visitor.Visit( this );
+
+    }
+
+
+}

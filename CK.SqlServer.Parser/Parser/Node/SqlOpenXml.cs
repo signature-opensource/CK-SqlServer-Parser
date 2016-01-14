@@ -1,0 +1,69 @@
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using System.Linq;
+using System.Text;
+using CK.Core;
+using System.Collections.Immutable;
+
+namespace CK.SqlServer.Parser
+{
+
+    public sealed class SqlOpenXml : SqlNode
+    {
+        readonly SNode<SqlTokenIdentifier, SqlEnclosedCommaList, SqlTokenIdentifier, SqlEnclosedCommaList, ISqlIdentifier> _content;
+
+        public SqlOpenXml( SqlTokenIdentifier openXmlT, SqlEnclosedCommaList parameters, SqlTokenIdentifier withT, SqlEnclosedCommaList schemaDefinition, ISqlIdentifier schemaTable, ImmutableList<SqlTrivia> leading = null, ImmutableList<SqlTrivia> trailing = null )
+            : base( leading, trailing )
+        {
+            _content = new SNode<SqlTokenIdentifier, SqlEnclosedCommaList, SqlTokenIdentifier, SqlEnclosedCommaList, ISqlIdentifier>( openXmlT, parameters, withT, schemaDefinition, schemaTable );
+            CheckContent();
+        }
+
+        void CheckContent()
+        {
+            SNode.CheckToken( FunName, nameof( FunName ), SqlTokenType.OpenXml );
+        }
+
+        SqlOpenXml( SqlOpenXml o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
+            : base( leading, trailing )
+        {
+            if( items == null ) _content = o._content;
+            else
+            {
+                _content = new SNode<SqlTokenIdentifier, SqlEnclosedCommaList, SqlTokenIdentifier, SqlEnclosedCommaList, ISqlIdentifier>( items );
+                CheckContent();
+            }
+        }
+
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
+        {
+            return new SqlOpenXml( this, leading, children, trailing );
+        }
+
+        public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
+
+        public SqlTokenIdentifier FunName => _content.V1;
+
+        public SqlEnclosedCommaList Parameters => _content.V2;
+
+        public bool HasSchema => _content.V3 != null;
+
+        public SqlTokenIdentifier WithT => _content.V3;
+
+        public bool HasSchemaDefinition => _content.V4 != null;
+
+        public SqlEnclosedCommaList SchemaDefinition => _content.V4;
+
+        public bool HasSchemaTable => _content.V5 != null;
+
+        public ISqlIdentifier SchemaTable => _content.V5;
+
+        [DebuggerStepThrough]
+        internal protected override ISqlNode Accept( SqlItemVisitor visitor ) => visitor.Visit( this );
+
+    }
+
+
+}

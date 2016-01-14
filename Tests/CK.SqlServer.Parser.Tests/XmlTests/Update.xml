@@ -1,0 +1,752 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Tests>
+
+  <Test>
+    <Text>
+      UPDATE HumanResources.Employee
+      SET VacationHours = VacationHours + 8
+      FROM (SELECT TOP 10 BusinessEntityID FROM HumanResources.Employee
+      ORDER BY HireDate ASC) AS th
+      WHERE HumanResources.Employee.BusinessEntityID = th.BusinessEntityID
+    </Text>
+    <Description>
+      B. Using the TOP clause
+    </Description>
+    <Xml Shorten="From,WhereExpression,Assigns">
+      <Sql>
+        <UpdateStatement>
+          <Target>
+            <MultiIdentifier>HumanResources.Employee</MultiIdentifier>
+          </Target>
+          <Assigns>VacationHours = VacationHours + 8</Assigns>
+          <From>FROM(SELECT TOP 10 BusinessEntityID FROM HumanResources.Employee ORDER BY HireDate ASC) AS th</From>
+          <WhereExpression>HumanResources.Employee.BusinessEntityID = th.BusinessEntityID</WhereExpression>
+        </UpdateStatement>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test>
+    <Text>
+      UPDATE Sales.SalesPerson
+      SET Bonus = 6000, 
+          CommissionPct = 0.10, 
+          SalesQuota = NULL
+    </Text>
+    <Description>
+      B. Updating multiple columns
+    </Description>
+    <Xml Shorten="Assigns">
+      <Sql>
+        <UpdateStatement>
+          <Target>
+            <MultiIdentifier>Sales.SalesPerson</MultiIdentifier>
+          </Target>
+          <Assigns>Bonus = 6000, CommissionPct = 0.10, SalesQuota = NULL</Assigns>
+        </UpdateStatement>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test>
+    <Text>
+      UPDATE dbo.Table1
+      SET c2 = c2 + d2
+      FROM dbo.Table2
+      WHERE CURRENT OF abc
+    </Text>
+    <Description>Current of a cursor.</Description>
+    <Xml Shorten="From">
+      <Sql>
+        <UpdateStatement>
+          <Target>
+            <MultiIdentifier>dbo.Table1</MultiIdentifier>
+          </Target>
+          <Assigns>
+            <CommaList>
+              <Item>
+                <Assign>
+                  <Left>
+                    <Identifier>c2</Identifier>
+                  </Left>
+                  <Operator>
+                    <Terminal>=</Terminal>
+                  </Operator>
+                  <Right>
+                    <BinaryOperator>
+                      <Left>
+                        <Identifier>c2</Identifier>
+                      </Left>
+                      <Operator>
+                        <Terminal>+</Terminal>
+                      </Operator>
+                      <Right>
+                        <Identifier>d2</Identifier>
+                      </Right>
+                    </BinaryOperator>
+                  </Right>
+                </Assign>
+              </Item>
+            </CommaList>
+          </Assigns>
+          <From>FROM dbo.Table2</From>
+          <WhereExpression>
+            <NodeList>
+              <Item>
+                <Identifier IsReservedKeyword="true">CURRENT</Identifier>
+              </Item>
+              <Item>
+                <Identifier IsReservedKeyword="true">OF</Identifier>
+              </Item>
+              <Item>
+                <Identifier>abc</Identifier>
+              </Item>
+            </NodeList>
+          </WhereExpression>
+        </UpdateStatement>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test>
+    <Text>
+      WITH Parts(AssemblyID, ComponentID, PerAssemblyQty, EndDate, ComponentLevel) AS
+      (
+          SELECT b.ProductAssemblyID, b.ComponentID, b.PerAssemblyQty,
+              b.EndDate, 0 AS ComponentLevel
+          FROM Production.BillOfMaterials AS b
+          WHERE b.ProductAssemblyID = 800
+                AND b.EndDate IS NULL
+          UNION ALL
+          SELECT bom.ProductAssemblyID, bom.ComponentID, p.PerAssemblyQty,
+              bom.EndDate, ComponentLevel + 1
+          FROM Production.BillOfMaterials AS bom 
+              INNER JOIN Parts AS p
+              ON bom.ProductAssemblyID = p.ComponentID
+              AND bom.EndDate IS NULL
+      )
+      UPDATE Production.BillOfMaterials
+      SET PerAssemblyQty = c.PerAssemblyQty * 2
+      FROM Production.BillOfMaterials AS c
+      JOIN Parts AS d ON c.ProductAssemblyID = d.AssemblyID
+      WHERE d.ComponentLevel = 0
+</Text>
+    <Description>
+      C. Using the WITH common_table_expression clause
+    </Description>
+    <Xml>
+    </Xml>
+  </Test>
+
+  <Test>
+    <Text>
+    DECLARE complex_cursor CURSOR FOR
+        SELECT a.BusinessEntityID
+        FROM HumanResources.EmployeePayHistory AS a
+        WHERE RateChangeDate &lt;&gt; 
+             (SELECT MAX(RateChangeDate)
+              FROM HumanResources.EmployeePayHistory AS b
+              WHERE a.BusinessEntityID = b.BusinessEntityID) ;
+    OPEN complex_cursor;
+    FETCH FROM complex_cursor;
+    UPDATE HumanResources.EmployeePayHistory
+    SET PayFrequency = 2 
+    WHERE CURRENT OF complex_cursor;
+    CLOSE complex_cursor;
+    DEALLOCATE complex_cursor;
+</Text>
+    <Description>
+      D. Using the WHERE CURRENT OF clause
+    </Description>
+    <Xml>
+    </Xml>
+  </Test>
+
+  <Test>
+    <Text>
+      UPDATE Production.Product
+      SET Price *= 1.1, Name += ' - tool'
+    </Text>
+    <Description>
+      Specifying compound operators
+    </Description>
+    <Xml>
+    </Xml>
+  </Test>
+
+  <Test>
+    <Text>
+      UPDATE Sales.SalesPerson
+      SET SalesYTD = SalesYTD + 
+          (SELECT SUM(so.SubTotal) 
+           FROM Sales.SalesOrderHeader AS so
+           WHERE so.OrderDate = (SELECT MAX(OrderDate)
+                                 FROM Sales.SalesOrderHeader AS so2
+                                 WHERE so2.SalesPersonID = so.SalesPersonID)
+           AND Sales.SalesPerson.BusinessEntityID = so.SalesPersonID
+           GROUP BY so.SalesPersonID)
+   </Text>
+    <Description>
+      Specifying a subquery in the SET clause
+    </Description>
+    <Xml>
+    </Xml>
+  </Test>
+
+  <Test>
+    <Text>
+      UPDATE Production.Location
+      SET CostRate = DEFAULT
+      WHERE CostRate > 20.00
+    </Text>
+    <Description>
+      Updating rows using DEFAULT values
+    </Description>
+    <Xml Shorten="WhereExpression">
+      <Sql>
+          <UpdateStatement>
+            <Target>
+              <MultiIdentifier>Production.Location</MultiIdentifier>
+            </Target>
+            <Assigns>
+              <CommaList>
+                <Item>
+                  <Assign>
+                    <Left>
+                      <Identifier>CostRate</Identifier>
+                    </Left>
+                    <Operator>
+                      <Terminal>=</Terminal>
+                    </Operator>
+                    <Right>
+                      <Identifier IsReservedKeyword="true">DEFAULT</Identifier>
+                    </Right>
+                  </Assign>
+                </Item>
+              </CommaList>
+            </Assigns>
+            <WhereExpression>CostRate &gt; 20.00</WhereExpression>
+          </UpdateStatement>
+
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test>
+    <Text>
+      UPDATE sr
+      SET sr.Name += ' - tool'
+      FROM Production.ScrapReason AS sr
+      JOIN Production.WorkOrder AS wo 
+           ON sr.ScrapReasonID = wo.ScrapReasonID
+           AND wo.ScrappedQty > 300
+   </Text>
+    <Description>
+       Specifying a table alias as the target object
+    </Description>
+    <Xml>
+    </Xml>
+  </Test>
+
+  <Test>
+    <Text>
+      UPDATE @MyTableVar
+      SET NewVacationHours = e.VacationHours + 20,
+          ModifiedDate = GETDATE()
+      FROM HumanResources.Employee AS e 
+      WHERE e.BusinessEntityID = EmpID
+    </Text>
+    <Description>
+       Specifying a table variable as the target object
+    </Description>
+    <Xml>
+    </Xml>
+  </Test>
+
+  <Test>
+    <Text>
+      UPDATE Sales.SalesPerson
+      SET SalesYTD = SalesYTD + 
+          (SELECT SUM(so.SubTotal) 
+           FROM Sales.SalesOrderHeader AS so
+           WHERE so.OrderDate = (SELECT MAX(OrderDate)
+                                 FROM Sales.SalesOrderHeader AS so2
+                                 WHERE so2.SalesPersonID = so.SalesPersonID)
+           AND Sales.SalesPerson.BusinessEntityID = so.SalesPersonID
+           GROUP BY so.SalesPersonID)
+   </Text>
+    <Description>
+      Using the UPDATE statement with information from another table
+    </Description>
+    <Xml>
+    </Xml>
+  </Test>
+
+  <Test>
+    <Text>
+      UPDATE MyLinkServer.AdventureWorks2012.HumanResources.Department
+      SET GroupName = N'Public Relations'
+      WHERE DepartmentID = 4
+    </Text>
+    <Description>
+      Updating data in a remote table by using a linked server
+    </Description>
+    <Xml Shorten="Assigns,WhereExpression">
+      <Sql>
+          <UpdateStatement>
+            <Target>
+              <MultiIdentifier>MyLinkServer.AdventureWorks2012.HumanResources.Department</MultiIdentifier>
+            </Target>
+            <Assigns>GroupName = N'Public Relations'</Assigns>
+            <WhereExpression>DepartmentID = 4</WhereExpression>
+          </UpdateStatement>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test>
+    <Text>
+      UPDATE OPENQUERY (MyLinkServer, 'SELECT GroupName FROM HumanResources.Department WHERE DepartmentID = 4')
+      SET GroupName = 'Sales and Marketing'
+    </Text>
+    <Description>
+      Updating data in a remote table by using the OPENQUERY function
+    </Description>
+    <Xml Shorten="Assigns">
+      <Sql>
+        <UpdateStatement>
+          <Target>
+            <KoCall FunName="OPENQUERY">
+              <Parameters>
+                <EnclosedCommaList>
+                  <Item>
+                    <Identifier>MyLinkServer</Identifier>
+                  </Item>
+                  <Item>
+                    <LiteralString>'SELECT GroupName FROM HumanResources.Department WHERE DepartmentID = 4'</LiteralString>
+                  </Item>
+                </EnclosedCommaList>
+              </Parameters>
+            </KoCall>
+          </Target>
+          <Assigns>GroupName = 'Sales and Marketing'</Assigns>
+        </UpdateStatement>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test>
+    <Text>
+      UPDATE Production.Document
+      SET DocumentSummary .WRITE (N'features',28,10)
+      OUTPUT deleted.DocumentSummary, 
+             inserted.DocumentSummary 
+          INTO @MyTableVar
+      WHERE Title = N'Front Reflector Bracket Installation'
+      
+      UPDATE Production.Document
+        SET DocumentSummary .WRITE (N' Appending data to the end of the column.', NULL, 0)
+        WHERE Title = N'Crank Arm and Tire Maintenance';
+
+      -- Removing all data from @Offset to the end of the existing value by 
+      -- setting expression to NULL. 
+      UPDATE Production.Document
+        SET DocumentSummary .WRITE (NULL, 56, 0)
+        WHERE Title = N'Crank Arm and Tire Maintenance'
+        
+        -- Removing partial data beginning at position 9 and ending at 
+        -- position 21.
+        UPDATE Production.Document
+            SET DocumentSummary .WRITE ('',9, 12)
+            WHERE Title = N'Crank Arm and Tire Maintenance';
+
+    </Text>
+    <Description>
+      Using UPDATE with .WRITE to modify data in an nvarchar(max) column
+    </Description>
+    <Xml Shorten="OutputClause,WhereExpression">
+      <Sql>
+        <NodeList>
+          <Item>
+            <UpdateStatement>
+              <Target>
+                <MultiIdentifier>Production.Document</MultiIdentifier>
+              </Target>
+              <Assigns>
+                <CommaList>
+                  <Item>
+                    <KoCall FunName="DocumentSummary.WRITE">
+                      <Parameters>
+                        <EnclosedCommaList>
+                          <Item>
+                            <LiteralString IsUnicode="true">N'features'</LiteralString>
+                          </Item>
+                          <Item>
+                            <LiteralInteger>28</LiteralInteger>
+                          </Item>
+                          <Item>
+                            <LiteralInteger>10</LiteralInteger>
+                          </Item>
+                        </EnclosedCommaList>
+                      </Parameters>
+                    </KoCall>
+                  </Item>
+                </CommaList>
+              </Assigns>
+              <OutputClause>OUTPUT deleted.DocumentSummary, inserted.DocumentSummary INTO @MyTableVar</OutputClause>
+              <WhereExpression>Title = N'Front Reflector Bracket Installation'</WhereExpression>
+            </UpdateStatement>
+          </Item>
+          <Item>
+            <UpdateStatement HasTerminator="true">
+              <Target>
+                <MultiIdentifier>Production.Document</MultiIdentifier>
+              </Target>
+              <Assigns>
+                <CommaList>
+                  <Item>
+                    <KoCall FunName="DocumentSummary.WRITE">
+                      <Parameters>
+                        <EnclosedCommaList>
+                          <Item>
+                            <LiteralString IsUnicode="true">N' Appending data to the end of the column.'</LiteralString>
+                          </Item>
+                          <Item>
+                            <Identifier IsReservedKeyword="true">NULL</Identifier>
+                          </Item>
+                          <Item>
+                            <LiteralInteger>0</LiteralInteger>
+                          </Item>
+                        </EnclosedCommaList>
+                      </Parameters>
+                    </KoCall>
+                  </Item>
+                </CommaList>
+              </Assigns>
+              <WhereExpression>Title = N'Crank Arm and Tire Maintenance'</WhereExpression>
+            </UpdateStatement>
+          </Item>
+          <Item>
+            <UpdateStatement>
+              <Target>
+                <MultiIdentifier>Production.Document</MultiIdentifier>
+              </Target>
+              <Assigns>
+                <CommaList>
+                  <Item>
+                    <KoCall FunName="DocumentSummary.WRITE">
+                      <Parameters>
+                        <EnclosedCommaList>
+                          <Item>
+                            <Identifier IsReservedKeyword="true">NULL</Identifier>
+                          </Item>
+                          <Item>
+                            <LiteralInteger>56</LiteralInteger>
+                          </Item>
+                          <Item>
+                            <LiteralInteger>0</LiteralInteger>
+                          </Item>
+                        </EnclosedCommaList>
+                      </Parameters>
+                    </KoCall>
+                  </Item>
+                </CommaList>
+              </Assigns>
+              <WhereExpression>Title = N'Crank Arm and Tire Maintenance'</WhereExpression>
+            </UpdateStatement>
+          </Item>
+          <Item>
+            <UpdateStatement HasTerminator="true">
+              <Target>
+                <MultiIdentifier>Production.Document</MultiIdentifier>
+              </Target>
+              <Assigns>
+                <CommaList>
+                  <Item>
+                    <KoCall FunName="DocumentSummary.WRITE">
+                      <Parameters>
+                        <EnclosedCommaList>
+                          <Item>
+                            <LiteralString>''</LiteralString>
+                          </Item>
+                          <Item>
+                            <LiteralInteger>9</LiteralInteger>
+                          </Item>
+                          <Item>
+                            <LiteralInteger>12</LiteralInteger>
+                          </Item>
+                        </EnclosedCommaList>
+                      </Parameters>
+                    </KoCall>
+                  </Item>
+                </CommaList>
+              </Assigns>
+              <WhereExpression>Title = N'Crank Arm and Tire Maintenance'</WhereExpression>
+            </UpdateStatement>
+          </Item>
+        </NodeList>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test>
+    <Text>
+      UPDATE Production.ProductPhoto
+      SET ThumbNailPhoto = (
+          SELECT *
+          FROM OPENROWSET(BULK 'c:\Tires.jpg', SINGLE_BLOB) AS x )
+      WHERE ProductPhotoID = 1
+    </Text>
+    <Description>
+      Using UPDATE with OPENROWSET to modify a varbinary(max) column
+    </Description>
+    <Xml>
+    </Xml>
+  </Test>
+
+  <Test>
+    <Text>
+      UPDATE dbo.Cities
+      SET Location.SetXY(23.5, 23.5)
+      WHERE Name = 'Anchorage'
+    </Text>
+    <Description>
+      Invoking a method
+    </Description>
+    <Xml Shorten="WhereExpression">
+      <Sql>
+             <UpdateStatement>
+               <Target>
+                 <MultiIdentifier>dbo.Cities</MultiIdentifier>
+               </Target>
+               <Assigns>
+                 <CommaList>
+                   <Item>
+                     <KoCall FunName="Location.SetXY">
+                       <Parameters>
+                         <EnclosedCommaList>
+                           <Item>
+                             <LiteralDecimal>23.5</LiteralDecimal>
+                           </Item>
+                           <Item>
+                             <LiteralDecimal>23.5</LiteralDecimal>
+                           </Item>
+                         </EnclosedCommaList>
+                       </Parameters>
+                     </KoCall>
+                   </Item>
+                 </CommaList>
+               </Assigns>
+               <WhereExpression>Name = 'Anchorage'</WhereExpression>
+             </UpdateStatement>
+
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test>
+    <Text>
+      UPDATE Production.Product
+      WITH (TABLOCK)
+      SET ListPrice *= 1.10
+      WHERE ProductNumber LIKE 'BK-%'
+    </Text>
+    <Description>
+      Specifying a table hint
+    </Description>
+    <Xml Shorten="Assigns,WhereExpression">
+      <Sql>
+        <UpdateStatement>
+          <Target>
+            <MultiIdentifier>Production.Product</MultiIdentifier>
+          </Target>
+          <WithTableHints>
+            <WithParOptions>
+              <Item>
+                <Identifier>TABLOCK</Identifier>
+              </Item>
+            </WithParOptions>
+          </WithTableHints>
+          <Assigns>ListPrice *= 1.10</Assigns>
+          <WhereExpression>ProductNumber LIKE 'BK-%'</WhereExpression>
+        </UpdateStatement>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test>
+    <Text>
+      UPDATE Production.Product
+      SET ListPrice = ListPrice * 1.10
+      WHERE ProductNumber LIKE @Product
+      OPTION (OPTIMIZE FOR (@Product = 'BK-%') )
+    </Text>
+    <Description>
+      Specifying a query hint
+    </Description>
+    <Xml Shorten="Assigns,WhereExpression">
+      <Sql>
+          <UpdateStatement>
+            <Target>
+              <MultiIdentifier>Production.Product</MultiIdentifier>
+            </Target>
+            <Assigns>ListPrice = ListPrice * 1.10</Assigns>
+            <WhereExpression>ProductNumber LIKE @Product</WhereExpression>
+            <Options>
+              <OptionParOptions>
+                <Item>
+                  <NodeList>
+                    <Item>
+                      <Identifier>OPTIMIZE</Identifier>
+                    </Item>
+                    <Item>
+                      <KoCall FunName="FOR">
+                        <Parameters>
+                          <EnclosedCommaList>
+                            <Item>
+                              <BinaryOperator>
+                                <Left>
+                                  <Identifier IsVariable="true">@Product</Identifier>
+                                </Left>
+                                <Operator>
+                                  <Terminal>=</Terminal>
+                                </Operator>
+                                <Right>
+                                  <LiteralString>'BK-%'</LiteralString>
+                                </Right>
+                              </BinaryOperator>
+                            </Item>
+                          </EnclosedCommaList>
+                        </Parameters>
+                      </KoCall>
+                    </Item>
+                  </NodeList>
+                </Item>
+              </OptionParOptions>
+            </Options>
+          </UpdateStatement>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test>
+    <Text>
+      UPDATE TOP (10) HumanResources.Employee
+      SET VacationHours = VacationHours * 1.25,
+          ModifiedDate = GETDATE() 
+      OUTPUT inserted.BusinessEntityID "COL",
+             deleted.VacationHours as First,
+             'other' = inserted.VacationHours,
+             [another] = inserted.ModifiedDate
+      INTO @MyTableVar;
+    </Text>
+    <Description>
+      Update top with output.
+    </Description>
+    <Xml Shorten="Assigns,Item">
+      <Sql>
+        <UpdateStatement HasTerminator="true">
+          <Top>
+            <Par>
+              <Content>
+                <LiteralInteger>10</LiteralInteger>
+              </Content>
+            </Par>
+          </Top>
+          <Target>
+            <MultiIdentifier>HumanResources.Employee</MultiIdentifier>
+          </Target>
+          <Assigns>VacationHours = VacationHours * 1.25, ModifiedDate = GETDATE()</Assigns>
+          <OutputClause>
+            <OutputClause TargetTable="@MyTableVar">
+              <Columns>
+                <SelectColumnList>
+                  <Item>inserted.BusinessEntityID "COL"</Item>
+                  <Item>deleted.VacationHours as First</Item>
+                  <Item>'other' = inserted.VacationHours</Item>
+                  <Item>[another] = inserted.ModifiedDate</Item>
+                </SelectColumnList>
+              </Columns>
+            </OutputClause>
+          </OutputClause>
+        </UpdateStatement>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test>
+    <Text>
+      UPDATE HumanResources.Employee
+      SET VacationHours = 
+          ( CASE
+               WHEN SalariedFlag = 0 THEN VacationHours + @NewHours
+               ELSE @NewHours
+             END
+          )
+    </Text>
+    <Description>
+      Update with case
+    </Description>
+    <Xml Shorten="Operator">
+      <Sql>
+        <UpdateStatement>
+          <Target>
+            <MultiIdentifier>HumanResources.Employee</MultiIdentifier>
+          </Target>
+          <Assigns>
+            <CommaList>
+              <Item>
+                <Assign>
+                  <Left>
+                    <Identifier>VacationHours</Identifier>
+                  </Left>
+                  <Operator>=</Operator>
+                  <Right>
+                    <Par>
+                      <Content>
+                        <Case>
+                          <WhenList>
+                            <CaseWhenList>
+                              <Item>
+                                <CaseWhenSelector>
+                                  <Expression>
+                                    <BinaryOperator>
+                                      <Left>
+                                        <Identifier>SalariedFlag</Identifier>
+                                      </Left>
+                                      <Operator>=</Operator>
+                                      <Right>
+                                        <LiteralInteger>0</LiteralInteger>
+                                      </Right>
+                                    </BinaryOperator>
+                                  </Expression>
+                                  <Value>
+                                    <BinaryOperator>
+                                      <Left>
+                                        <Identifier>VacationHours</Identifier>
+                                      </Left>
+                                      <Operator>+</Operator>
+                                      <Right>
+                                        <Identifier IsVariable="true">@NewHours</Identifier>
+                                      </Right>
+                                    </BinaryOperator>
+                                  </Value>
+                                </CaseWhenSelector>
+                              </Item>
+                            </CaseWhenList>
+                          </WhenList>
+                        </Case>
+                      </Content>
+                    </Par>
+                  </Right>
+                </Assign>
+              </Item>
+            </CommaList>
+          </Assigns>
+        </UpdateStatement>
+      </Sql>
+    </Xml>
+  </Test>
+
+
+</Tests>

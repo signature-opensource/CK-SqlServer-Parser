@@ -1,0 +1,130 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Tests>
+
+  <Test Mode="AnyExpression">
+    <Text>(@a, @2, end)</Text>
+    <Description>Inside parenthesis, statement are ignored.</Description>
+    <Xml>
+      <Sql>
+        <CommaList IsEnclosed="true">
+          <Item>
+            <Identifier IsVariable="true">@a</Identifier>
+          </Item>
+          <Item>
+            <Identifier IsVariable="true">@2</Identifier>
+          </Item>
+          <Item>
+            <Identifier IsReservedKeyword="true" >end</Identifier>
+          </Item>
+        </CommaList>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test Mode="AnyExpression">
+    <Text>1, 2, 3</Text>
+    <Description>Simple list of integers.</Description>
+    <Xml>
+      <Sql>
+        <CommaList>
+          <Item>
+            <LiteralInteger>1</LiteralInteger>
+          </Item>
+          <Item>
+            <LiteralInteger>2</LiteralInteger>
+          </Item>
+          <Item>
+            <LiteralInteger>3</LiteralInteger>
+          </Item>
+        </CommaList>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test Mode="AnyExpression">
+    <Text>@a, @multi.identifier.[ variable ], [end]</Text>
+    <Description>List of identifiers (there must not be a statement - like 'end' in it).</Description>
+    <Xml>
+      <Sql>
+        <CommaList>
+          <Item>
+            <Identifier IsVariable="true">@a</Identifier>
+          </Item>
+          <Item>
+            <MultiIdentifier IsVariable="true">@multi.identifier.[ variable ]</MultiIdentifier>
+          </Item>
+          <Item>
+            <Identifier IsQuoted="true">[end]</Identifier>
+          </Item>
+        </CommaList>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test Mode="AnyExpression">
+    <Text>@a+1, -2*1/3, start/count</Text>
+    <Description>List with expressions.</Description>
+    <Xml>
+      <Sql>
+        <CommaList>
+          <Item>
+            <BinaryOperator>
+              <Left>
+                <Identifier IsVariable="true">@a</Identifier>
+              </Left>
+              <Operator><Terminal>+</Terminal></Operator>
+              <Right>
+                <LiteralInteger>1</LiteralInteger>
+              </Right>
+            </BinaryOperator>
+          </Item>
+          <Item>
+            <UnaryOperator>
+              <Operator>
+                <Terminal>-</Terminal>
+              </Operator>
+              <Right>
+                <BinaryOperator>
+                  <Left>
+                    <BinaryOperator>
+                      <Left>
+                        <LiteralInteger>2</LiteralInteger>
+                      </Left>
+                      <Operator>
+                        <Terminal>*</Terminal>
+                      </Operator>
+                      <Right>
+                        <LiteralInteger>1</LiteralInteger>
+                      </Right>
+                    </BinaryOperator>
+                  </Left>
+                  <Operator>
+                    <Terminal>/</Terminal>
+                  </Operator>
+                  <Right>
+                    <LiteralInteger>3</LiteralInteger>
+                  </Right>
+                </BinaryOperator>
+              </Right>
+            </UnaryOperator>
+          </Item>
+          <Item>
+            <BinaryOperator>
+              <Left>
+                <Identifier>start</Identifier>
+              </Left>
+              <Operator>
+                <Terminal>/</Terminal>
+              </Operator>
+              <Right>
+                <Identifier>count</Identifier>
+              </Right>
+            </BinaryOperator>
+          </Item>
+        </CommaList>
+      </Sql>
+    </Xml>
+  </Test>
+  
+  
+</Tests>

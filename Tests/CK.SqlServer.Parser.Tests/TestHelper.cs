@@ -10,7 +10,6 @@ namespace CK.SqlServer.Parser.Tests
     static class TestHelper
     {
         static string _projectFolder;
-        static string _scriptFolder;
 
         static IActivityMonitor _monitor;
         static ActivityMonitorConsoleClient _console;
@@ -32,19 +31,20 @@ namespace CK.SqlServer.Parser.Tests
             get { return _monitor.Output.Clients.Contains( _console ); }
             set
             {
-                if( value ) _monitor.Output.RegisterUniqueClient( c => c == _console, () => _console );
-                else _monitor.Output.UnregisterClient( _console );
+                if( value != LogsToConsole )
+                {
+                    if( value )
+                    {
+                        _monitor.Output.RegisterUniqueClient( c => c == _console, () => _console );
+                        _monitor.Info().Send( "Enabled Logs to console." );
+                    }
+                    else
+                    {
+                        _monitor.Info().Send( "Disabled Logs to console." );
+                        _monitor.Output.UnregisterClient( _console );
+                    }
+                }
             }
-        }
-
-        public static string FolderScript
-        {
-            get { if( _scriptFolder == null ) InitalizePaths(); return _scriptFolder; }
-        }
-
-        public static string GetScriptsFolder( string testName )
-        {
-            return Path.Combine( FolderScript, testName );
         }
 
         public static string GetFolder( params string[] subNames )
@@ -62,16 +62,17 @@ namespace CK.SqlServer.Parser.Tests
         }
 
         [DebuggerStepThrough]
-        public static T ParseOneStatementAndCheckString<T>( string text, bool addSemiColon = false ) where T : SqlExprBaseSt
+        public static T ParseOneStatementAndCheckString<T>( string text, bool addSemiColon = false ) where T : ISqlStatement
         {
             text = text.NormalizeEOL();
             if( addSemiColon ) text += ';';
-            SqlExprBaseSt statement;
+            ISqlStatement statement;
             SqlAnalyser.ErrorResult r = SqlAnalyser.ParseStatement( out statement, text );
             Assert.That( !r.IsError, r.ToString() );
             Assert.That( statement, Is.InstanceOf<T>() );
             T s = (T)statement;
-            Assert.That( statement.ToString().NormalizeEOL(), Is.EqualTo( text ) );
+            Assert.That( statement.ToString( true ).NormalizeEOL(), Is.EqualTo( text ) );
+            if( TestHelper.LogsToConsole ) Console.WriteLine( statement.ToXml() );
             return s;
         }
 
@@ -82,10 +83,10 @@ namespace CK.SqlServer.Parser.Tests
         /// <param name="text">Text to parse.</param>
         /// <returns>Statement.</returns>
         [DebuggerStepThrough]
-        public static T ParseOneStatement<T>( string text ) where T : SqlExprBaseSt
+        public static T ParseOneStatement<T>( string text ) where T : ISqlStatement
         {
             text = text.NormalizeEOL();
-            SqlExprBaseSt statement;
+            ISqlStatement statement;
             SqlAnalyser.ErrorResult r = SqlAnalyser.ParseStatement( out statement, text );
             Assert.That( !r.IsError, r.ToString() );
             Assert.That( statement, Is.InstanceOf<T>() );
@@ -102,7 +103,6 @@ namespace CK.SqlServer.Parser.Tests
             // => CK.XXX.Tests/
             p = Path.GetDirectoryName( p );
             _projectFolder = p;
-            _scriptFolder = Path.Combine( _projectFolder, "Scripts" );
         }
 
     }

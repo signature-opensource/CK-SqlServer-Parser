@@ -1,0 +1,904 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Tests>
+
+  <Test Mode="OneExpression">
+    <Text>
+      select 1 order by 1 desc
+    </Text>
+    <Description>Order is an operator for the decorator.</Description>
+    <Xml>
+      <SelectDecorator>
+        <Select>
+          <SelectSpec>
+            <Columns>
+              <SelectColumnList>
+                <Item>
+                  <SelectColumn>
+                    <Definition>
+                      <LiteralInteger>1</LiteralInteger>
+                    </Definition>
+                  </SelectColumn>
+                </Item>
+              </SelectColumnList>
+            </Columns>
+          </SelectSpec>
+        </Select>
+        <OrderByColumns>
+          <OrderByList>
+            <Item>
+              <OrderByItem Desc="true">
+                <Definition>
+                  <LiteralInteger>1</LiteralInteger>
+                </Definition>
+              </OrderByItem>
+            </Item>
+          </OrderByList>
+        </OrderByColumns>
+      </SelectDecorator>
+    </Xml>
+  </Test>
+
+  <Test Mode="OneExpression">
+    <Text>select 1</Text>
+    <Description>Simplest select.</Description>
+    <Xml>
+      <Sql>
+        <SelectSpec>
+          <Columns>
+            <SelectColumnList>
+              <Item>
+                <SelectColumn>
+                  <Definition>
+                    <LiteralInteger>1</LiteralInteger>
+                  </Definition>
+                </SelectColumn>
+              </Item>
+            </SelectColumnList>
+          </Columns>
+        </SelectSpec>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test>
+    <Text>
+      SELECT 2015 as year, 12 as month, 15 as day
+      FOR JSON PATH, WITHOUT_ARRAY_WRAPPER
+      OPTION( an_option, another = 2 )
+    </Text>
+    <Description>For and option are handled by the SelectDecorator.</Description>
+    <Xml>
+      <Sql>
+          <SelectStatement>
+            <Select>
+              <SelectDecorator>
+                <Select>
+                  <SelectSpec>
+                    <Columns>
+                      <SelectColumnList>
+                        <Item>
+                          <SelectColumn ColumnName="year">
+                            <Definition>
+                              <LiteralInteger>2015</LiteralInteger>
+                            </Definition>
+                          </SelectColumn>
+                        </Item>
+                        <Item>
+                          <SelectColumn ColumnName="month">
+                            <Definition>
+                              <LiteralInteger>12</LiteralInteger>
+                            </Definition>
+                          </SelectColumn>
+                        </Item>
+                        <Item>
+                          <SelectColumn ColumnName="day">
+                            <Definition>
+                              <LiteralInteger>15</LiteralInteger>
+                            </Definition>
+                          </SelectColumn>
+                        </Item>
+                      </SelectColumnList>
+                    </Columns>
+                  </SelectSpec>
+                </Select>
+                <For>
+                  <SelectFor TargetType="JSON">
+                    <Format>
+                      <NodeList>
+                        <Item>
+                          <Identifier>PATH</Identifier>
+                        </Item>
+                        <Item>
+                          <Comma>,</Comma>
+                        </Item>
+                        <Item>
+                          <Identifier>WITHOUT_ARRAY_WRAPPER</Identifier>
+                        </Item>
+                      </NodeList>
+                    </Format>
+                  </SelectFor>
+                </For>
+                <Option>
+                  <OptionParOptions>
+                    <Item>
+                      <Identifier>an_option</Identifier>
+                    </Item>
+                    <Item>
+                      <BinaryOperator>
+                        <Left>
+                          <Identifier>another</Identifier>
+                        </Left>
+                        <Operator>
+                          <Terminal>=</Terminal>
+                        </Operator>
+                        <Right>
+                          <LiteralInteger>2</LiteralInteger>
+                        </Right>
+                      </BinaryOperator>
+                    </Item>
+                  </OptionParOptions>
+                </Option>
+              </SelectDecorator>
+            </Select>
+          </SelectStatement>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test Mode="OneExpression">
+    <Text>
+      select top (15) percent with ties DepartmentID Id, Name as Nom, Groupe = GroupName
+        from HumanResources.Department
+        order by DepartmentID DESC, Shmurtz
+        offset @StartingRowNumber - 1 rows
+          fetch next @EndingRowNumber - @StartingRowNumber + 1 rows only</Text>
+    <Description>SelectDecorator captures OrderBy, For (browse, xml, json, system_time) and Option.</Description>
+    <Xml Shorten="From">
+      <Sql>
+          <SelectDecorator>
+            <Select>
+              <SelectSpec>
+                <Top Percent="true" WithTies="true">
+                  <TopExpression>
+                    <Par>
+                      <Content>
+                        <LiteralInteger>15</LiteralInteger>
+                      </Content>
+                    </Par>
+                  </TopExpression>
+                </Top>
+                <Columns>
+                  <SelectColumnList>
+                    <Item>
+                      <SelectColumn ColumnName="Id">
+                        <Definition>
+                          <Identifier>DepartmentID</Identifier>
+                        </Definition>
+                      </SelectColumn>
+                    </Item>
+                    <Item>
+                      <SelectColumn ColumnName="Nom">
+                        <Definition>
+                          <Identifier>Name</Identifier>
+                        </Definition>
+                      </SelectColumn>
+                    </Item>
+                    <Item>
+                      <SelectColumn ColumnName="Groupe">
+                        <Definition>
+                          <Identifier>GroupName</Identifier>
+                        </Definition>
+                      </SelectColumn>
+                    </Item>
+                  </SelectColumnList>
+                </Columns>
+                <From>from HumanResources.Department</From>
+              </SelectSpec>
+            </Select>
+            <OrderBy>
+              <SelectOrderBy>
+                <OrderByColumns>
+                  <OrderByList>
+                    <Item>
+                      <OrderByItem Desc="true">
+                        <Definition>
+                          <Identifier>DepartmentID</Identifier>
+                        </Definition>
+                      </OrderByItem>
+                    </Item>
+                    <Item>
+                      <OrderByItem>
+                        <Definition>
+                          <Identifier>Shmurtz</Identifier>
+                        </Definition>
+                      </OrderByItem>
+                    </Item>
+                  </OrderByList>
+                </OrderByColumns>
+                <OffsetExpression>
+                  <BinaryOperator>
+                    <Left>
+                      <Identifier IsVariable="true">@StartingRowNumber</Identifier>
+                    </Left>
+                    <Operator>
+                      <Terminal>-</Terminal>
+                    </Operator>
+                    <Right>
+                      <LiteralInteger>1</LiteralInteger>
+                    </Right>
+                  </BinaryOperator>
+                </OffsetExpression>
+                <FetchExpression>
+                  <BinaryOperator>
+                    <Left>
+                      <BinaryOperator>
+                        <Left>
+                          <Identifier IsVariable="true">@EndingRowNumber</Identifier>
+                        </Left>
+                        <Operator>
+                          <Terminal>-</Terminal>
+                        </Operator>
+                        <Right>
+                          <Identifier IsVariable="true">@StartingRowNumber</Identifier>
+                        </Right>
+                      </BinaryOperator>
+                    </Left>
+                    <Operator>
+                      <Terminal>+</Terminal>
+                    </Operator>
+                    <Right>
+                      <LiteralInteger>1</LiteralInteger>
+                    </Right>
+                  </BinaryOperator>
+                </FetchExpression>
+              </SelectOrderBy>
+            </OrderBy>
+          </SelectDecorator>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test Mode="OneExpression">
+    <Text>
+      (((select D = GETUTCDATE())))
+    </Text>
+    <Description>Select in parenthesis.</Description>
+    <Xml>
+      <Sql>
+        <Par>
+          <Content>
+            <Par>
+              <Content>
+                <Par>
+                  <Content>
+                    <SelectSpec>
+                      <Columns>
+                        <SelectColumnList>
+                          <Item>
+                            <SelectColumn ColumnName="D">
+                              <Definition>
+                                <KoCall FunName="GETUTCDATE">
+                                  <Parameters>
+                                    <EnclosedCommaList />
+                                  </Parameters>
+                                </KoCall>
+                              </Definition>
+                            </SelectColumn>
+                          </Item>
+                        </SelectColumnList>
+                      </Columns>
+                    </SelectSpec>
+                  </Content>
+                </Par>
+              </Content>
+            </Par>
+          </Content>
+        </Par>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test>
+    <Text>
+      SELECT Number, Customer, Date, Quantity
+      FROM OPENJSON (@JSalestOrderDetails, '$.OrdersArray')
+            WITH (
+              Number varchar(200),
+              Date datetime,
+              Customer varchar(200),
+              Quantity int
+            ) AS OrdersArray
+    </Text>
+    <Description>Select in parenthesis.</Description>
+    <Xml Shorten="Columns">
+      <Sql>
+       <SelectStatement>
+         <Select>
+           <SelectSpec>
+             <Columns>Number, Customer, Date, Quantity</Columns>
+             <From>
+               <SelectFrom>
+                 <FromT>
+                   <Identifier IsReservedKeyword="true">FROM</Identifier>
+                 </FromT>
+                 <Content>
+                   <NodeList>
+                     <Item>
+                       <OpenJSON>
+                         <Parameters>
+                           <EnclosedCommaList>
+                             <Item>
+                               <Identifier IsVariable="true">@JSalestOrderDetails</Identifier>
+                             </Item>
+                             <Item>
+                               <LiteralString>'$.OrdersArray'</LiteralString>
+                             </Item>
+                           </EnclosedCommaList>
+                         </Parameters>
+                         <Schema>
+                           <WithParOptions>
+                             <Item>
+                               <NodeList>
+                                 <Item>
+                                   <Identifier>Number</Identifier>
+                                 </Item>
+                                 <Item>
+                                   <KoCall FunName="varchar">
+                                     <Parameters>
+                                       <EnclosedCommaList>
+                                         <Item>
+                                           <LiteralInteger>200</LiteralInteger>
+                                         </Item>
+                                       </EnclosedCommaList>
+                                     </Parameters>
+                                   </KoCall>
+                                 </Item>
+                               </NodeList>
+                             </Item>
+                             <Item>
+                               <NodeList>
+                                 <Item>
+                                   <Identifier IsDbType="true">Date</Identifier>
+                                 </Item>
+                                 <Item>
+                                   <Identifier IsDbType="true">datetime</Identifier>
+                                 </Item>
+                               </NodeList>
+                             </Item>
+                             <Item>
+                               <NodeList>
+                                 <Item>
+                                   <Identifier>Customer</Identifier>
+                                 </Item>
+                                 <Item>
+                                   <KoCall FunName="varchar">
+                                     <Parameters>
+                                       <EnclosedCommaList>
+                                         <Item>
+                                           <LiteralInteger>200</LiteralInteger>
+                                         </Item>
+                                       </EnclosedCommaList>
+                                     </Parameters>
+                                   </KoCall>
+                                 </Item>
+                               </NodeList>
+                             </Item>
+                             <Item>
+                               <NodeList>
+                                 <Item>
+                                   <Identifier>Quantity</Identifier>
+                                 </Item>
+                                 <Item>
+                                   <Identifier IsDbType="true">int</Identifier>
+                                 </Item>
+                               </NodeList>
+                             </Item>
+                           </WithParOptions>
+                         </Schema>
+                       </OpenJSON>
+                     </Item>
+                     <Item>
+                       <Identifier IsReservedKeyword="true">AS</Identifier>
+                     </Item>
+                     <Item>
+                       <Identifier>OrdersArray</Identifier>
+                     </Item>
+                   </NodeList>
+                 </Content>
+               </SelectFrom>
+             </From>
+           </SelectSpec>
+         </Select>
+       </SelectStatement>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test Mode="OneExpression">
+    <Text>
+      SELECT ROW_NUMBER() OVER(PARTITION BY PostalCode ORDER BY SalesYTD DESC) AS RowNumber from table
+    </Text>
+    <Description>Select in parenthesis.</Description>
+    <Xml Shorten="From">
+      <Sql>
+        <SelectSpec>
+          <Columns>
+            <SelectColumnList>
+              <Item>
+                <SelectColumn ColumnName="RowNumber">
+                  <Definition>
+                    <KoCall FunName="ROW_NUMBER">
+                      <Parameters>
+                        <EnclosedCommaList />
+                      </Parameters>
+                      <OverClause>
+                        <OverClause>
+                          <OverT>
+                            <Identifier IsReservedKeyword="true">OVER</Identifier>
+                          </OverT>
+                          <OverContent>
+                            <NodeList>
+                              <Item>
+                                <Identifier>PARTITION</Identifier>
+                              </Item>
+                              <Item>
+                                <Identifier IsReservedKeyword="true">BY</Identifier>
+                              </Item>
+                              <Item>
+                                <Identifier>PostalCode</Identifier>
+                              </Item>
+                              <Item>
+                                <Identifier IsReservedKeyword="true">ORDER</Identifier>
+                              </Item>
+                              <Item>
+                                <Identifier IsReservedKeyword="true">BY</Identifier>
+                              </Item>
+                              <Item>
+                                <Identifier>SalesYTD</Identifier>
+                              </Item>
+                              <Item>
+                                <Identifier IsReservedKeyword="true">DESC</Identifier>
+                              </Item>
+                            </NodeList>
+                          </OverContent>
+                        </OverClause>
+                      </OverClause>
+                    </KoCall>
+                  </Definition>
+                </SelectColumn>
+              </Item>
+            </SelectColumnList>
+          </Columns>
+          <From>from table</From>
+        </SelectSpec>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test Mode="OneExpression">
+    <Text>
+      select @hid = hierarchyid::GetRoot(), @i = 87/7
+    </Text>
+    <Description>Select a hierarchical identifier.</Description>
+    <Xml>
+      <Sql>
+         <SelectSpec>
+           <Columns>
+             <SelectColumnList>
+               <Item>
+                 <SelectColumn ColumnName="@hid">
+                   <Definition>
+                     <KoCall FunName="hierarchyid::GetRoot">
+                       <Parameters>
+                         <EnclosedCommaList />
+                       </Parameters>
+                     </KoCall>
+                   </Definition>
+                 </SelectColumn>
+               </Item>
+               <Item>
+                 <SelectColumn ColumnName="@i">
+                   <Definition>
+                     <BinaryOperator>
+                       <Left>
+                         <LiteralInteger>87</LiteralInteger>
+                       </Left>
+                       <Operator>
+                         <Terminal>/</Terminal>
+                       </Operator>
+                       <Right>
+                         <LiteralInteger>7</LiteralInteger>
+                       </Right>
+                     </BinaryOperator>
+                   </Definition>
+                 </SelectColumn>
+               </Item>
+             </SelectColumnList>
+           </Columns>
+         </SelectSpec>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test Mode="OneExpression">
+    <Text>
+      SELECT ProductID,
+             'Qty' = OrderQty,
+             Kilo + 'gramme' AS Total,
+             "Percent by Product" = 3712 + 1234,
+             [The total] = SUM( Cost )
+      FROM Sales.SalesOrderDetail
+      WHERE SalesOrderID IN(43659,43664)
+    </Text>
+    <Description>All kind of column names.</Description>
+    <Xml Shorten="From">
+      <Sql>
+        <SelectSpec>
+          <Columns>
+            <SelectColumnList>
+              <Item>
+                <SelectColumn>
+                  <Definition>
+                    <Identifier>ProductID</Identifier>
+                  </Definition>
+                </SelectColumn>
+              </Item>
+              <Item>
+                <SelectColumn ColumnName="'Qty'">
+                  <Definition>
+                    <Identifier>OrderQty</Identifier>
+                  </Definition>
+                </SelectColumn>
+              </Item>
+              <Item>
+                <SelectColumn ColumnName="Total">
+                  <Definition>
+                    <BinaryOperator>
+                      <Left>
+                        <Identifier>Kilo</Identifier>
+                      </Left>
+                      <Operator>
+                        <Terminal>+</Terminal>
+                      </Operator>
+                      <Right>
+                        <LiteralString>'gramme'</LiteralString>
+                      </Right>
+                    </BinaryOperator>
+                  </Definition>
+                </SelectColumn>
+              </Item>
+              <Item>
+                <SelectColumn ColumnName="&quot;Percent by Product&quot;">
+                  <Definition>
+                    <BinaryOperator>
+                      <Left>
+                        <LiteralInteger>3712</LiteralInteger>
+                      </Left>
+                      <Operator>
+                        <Terminal>+</Terminal>
+                      </Operator>
+                      <Right>
+                        <LiteralInteger>1234</LiteralInteger>
+                      </Right>
+                    </BinaryOperator>
+                  </Definition>
+                </SelectColumn>
+              </Item>
+              <Item>
+                <SelectColumn ColumnName="[The total]">
+                  <Definition>
+                    <KoCall FunName="SUM">
+                      <Parameters>
+                        <EnclosedCommaList>
+                          <Item>
+                            <Identifier>Cost</Identifier>
+                          </Item>
+                        </EnclosedCommaList>
+                      </Parameters>
+                    </KoCall>
+                  </Definition>
+                </SelectColumn>
+              </Item>
+            </SelectColumnList>
+          </Columns>
+          <From>FROM Sales.SalesOrderDetail</From>
+          <WhereExpression>
+            <InValues>
+              <Left>
+                <Identifier>SalesOrderID</Identifier>
+              </Left>
+              <InT>
+                <Identifier IsReservedKeyword="true">IN</Identifier>
+              </InT>
+              <Values>
+                <EnclosedCommaList>
+                  <Item>
+                    <LiteralInteger>43659</LiteralInteger>
+                  </Item>
+                  <Item>
+                    <LiteralInteger>43664</LiteralInteger>
+                  </Item>
+                </EnclosedCommaList>
+              </Values>
+            </InValues>
+          </WhereExpression>
+        </SelectSpec>
+      </Sql>
+    </Xml>
+  </Test>
+  
+  <Test Mode="OneExpression">
+    <Text>
+     Select id as ID,
+            GreekCol COLLATE latin1_general_ci_as as T11,
+            LatinCol COLLATE greek_ci_as as [collate]
+            from TestTab11
+    UNION
+	   Select id as ID,
+			  T11 = GreekCol COLLATE latin1_general_ci_as,
+			  LatinCol
+			  from TestTab12
+	  UNION
+       Select id as ID,
+              GreekCol COLLATE latin1_general_ci_as + LatinCol,
+              LatinCol + GreekCol COLLATE greek_ci_as
+              from TestTab12
+	  UNION
+       Select id as ID,
+              GreekCol + LatinCol COLLATE latin1_general_ci_as,
+              LatinCol COLLATE greek_ci_as + GreekCol COLLATE greek_ci_as
+              from TestTab12
+	  UNION
+       Select id as ID,
+              GreekCol + LatinCol COLLATE latin1_general_ci_as,
+              Fake
+              from TestTab12
+    </Text>
+    <Description>Multiple select combination.</Description>
+    <Xml CombineElementType="true" Shorten="From">
+      <Sql EType="SelectCombine" SelectType="UnionDistinct">
+        <Left EType="SelectCombine" SelectType="UnionDistinct">
+          <Left EType="SelectCombine" SelectType="UnionDistinct">
+            <Left EType="SelectCombine" SelectType="UnionDistinct">
+              <Left EType="SelectSpec">
+                <Columns EType="SelectColumnList">
+                  <Item EType="SelectColumn" ColumnName="ID">
+                    <Definition EType="Identifier">id</Definition>
+                  </Item>
+                  <Item EType="SelectColumn" ColumnName="T11">
+                    <Definition EType="Collate" CollationName="latin1_general_ci_as">
+                      <Left EType="Identifier">GreekCol</Left>
+                    </Definition>
+                  </Item>
+                  <Item EType="SelectColumn" ColumnName="[collate]">
+                    <Definition EType="Collate" CollationName="greek_ci_as">
+                      <Left EType="Identifier">LatinCol</Left>
+                    </Definition>
+                  </Item>
+                </Columns>
+                <From>from TestTab11</From>
+              </Left>
+              <Right EType="SelectSpec">
+                <Columns EType="SelectColumnList">
+                  <Item EType="SelectColumn" ColumnName="ID">
+                    <Definition EType="Identifier">id</Definition>
+                  </Item>
+                  <Item EType="SelectColumn" ColumnName="T11">
+                    <Definition EType="Collate" CollationName="latin1_general_ci_as">
+                      <Left EType="Identifier">GreekCol</Left>
+                    </Definition>
+                  </Item>
+                  <Item EType="SelectColumn">
+                    <Definition EType="Identifier">LatinCol</Definition>
+                  </Item>
+                </Columns>
+                <From>from TestTab12</From>
+              </Right>
+            </Left>
+            <Right EType="SelectSpec">
+              <Columns EType="SelectColumnList">
+                <Item EType="SelectColumn" ColumnName="ID">
+                  <Definition EType="Identifier">id</Definition>
+                </Item>
+                <Item EType="SelectColumn">
+                  <Definition EType="BinaryOperator">
+                    <Left EType="Collate" CollationName="latin1_general_ci_as">
+                      <Left EType="Identifier">GreekCol</Left>
+                    </Left>
+                    <Operator EType="Terminal">+</Operator>
+                    <Right EType="Identifier">LatinCol</Right>
+                  </Definition>
+                </Item>
+                <Item EType="SelectColumn">
+                  <Definition EType="BinaryOperator">
+                    <Left EType="Identifier">LatinCol</Left>
+                    <Operator EType="Terminal">+</Operator>
+                    <Right EType="Collate" CollationName="greek_ci_as">
+                      <Left EType="Identifier">GreekCol</Left>
+                    </Right>
+                  </Definition>
+                </Item>
+              </Columns>
+              <From>from TestTab12</From>
+            </Right>
+          </Left>
+          <Right EType="SelectSpec">
+            <Columns EType="SelectColumnList">
+              <Item EType="SelectColumn" ColumnName="ID">
+                <Definition EType="Identifier">id</Definition>
+              </Item>
+              <Item EType="SelectColumn">
+                <Definition EType="BinaryOperator">
+                  <Left EType="Identifier">GreekCol</Left>
+                  <Operator EType="Terminal">+</Operator>
+                  <Right EType="Collate" CollationName="latin1_general_ci_as">
+                    <Left EType="Identifier">LatinCol</Left>
+                  </Right>
+                </Definition>
+              </Item>
+              <Item EType="SelectColumn">
+                <Definition EType="BinaryOperator">
+                  <Left EType="Collate" CollationName="greek_ci_as">
+                    <Left EType="Identifier">LatinCol</Left>
+                  </Left>
+                  <Operator EType="Terminal">+</Operator>
+                  <Right EType="Collate" CollationName="greek_ci_as">
+                    <Left EType="Identifier">GreekCol</Left>
+                  </Right>
+                </Definition>
+              </Item>
+            </Columns>
+            <From>from TestTab12</From>
+          </Right>
+        </Left>
+        <Right EType="SelectSpec">
+          <Columns EType="SelectColumnList">
+            <Item EType="SelectColumn" ColumnName="ID">
+              <Definition EType="Identifier">id</Definition>
+            </Item>
+            <Item EType="SelectColumn">
+              <Definition EType="BinaryOperator">
+                <Left EType="Identifier">GreekCol</Left>
+                <Operator EType="Terminal">+</Operator>
+                <Right EType="Collate" CollationName="latin1_general_ci_as">
+                  <Left EType="Identifier">LatinCol</Left>
+                </Right>
+              </Definition>
+            </Item>
+            <Item EType="SelectColumn">
+              <Definition EType="Identifier">Fake</Definition>
+            </Item>
+          </Columns>
+          <From>from TestTab12</From>
+        </Right>
+      </Sql>
+    </Xml>
+  </Test>
+  
+  <Test Mode="OneExpression">
+    <Text>
+      select 1 union select 2 intersect select 0
+    </Text>
+    <Description>intersect is stronger than union.</Description>
+    <Xml CombineElementType="true" Shorten="From">
+      <Sql EType="SelectCombine" SelectType="UnionDistinct">
+        <Left EType="SelectSpec">
+          <Columns EType="SelectColumnList">
+            <Item EType="SelectColumn">
+              <Definition EType="LiteralInteger">1</Definition>
+            </Item>
+          </Columns>
+        </Left>
+        <Right EType="SelectCombine" SelectType="Intersect">
+          <Left EType="SelectSpec">
+            <Columns EType="SelectColumnList">
+              <Item EType="SelectColumn">
+                <Definition EType="LiteralInteger">2</Definition>
+              </Item>
+            </Columns>
+          </Left>
+          <Right EType="SelectSpec">
+            <Columns EType="SelectColumnList">
+              <Item EType="SelectColumn">
+                <Definition EType="LiteralInteger">0</Definition>
+              </Item>
+            </Columns>
+          </Right>
+        </Right>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test Mode="OneExpression">
+    <Text>
+      select 1 except select 2 intersect select 0
+    </Text>
+    <Description>intersect is stronger than except.</Description>
+    <Xml CombineElementType="true" Shorten="From">
+      <Sql EType="SelectCombine" SelectType="Except">
+        <Left EType="SelectSpec">
+          <Columns EType="SelectColumnList">
+            <Item EType="SelectColumn">
+              <Definition EType="LiteralInteger">1</Definition>
+            </Item>
+          </Columns>
+        </Left>
+        <Right EType="SelectCombine" SelectType="Intersect">
+          <Left EType="SelectSpec">
+            <Columns EType="SelectColumnList">
+              <Item EType="SelectColumn">
+                <Definition EType="LiteralInteger">2</Definition>
+              </Item>
+            </Columns>
+          </Left>
+          <Right EType="SelectSpec">
+            <Columns EType="SelectColumnList">
+              <Item EType="SelectColumn">
+                <Definition EType="LiteralInteger">0</Definition>
+              </Item>
+            </Columns>
+          </Right>
+        </Right>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test Mode="OneExpression">
+    <Text>
+      SELECT p.BusinessEntityID, FirstName, LastName, PhoneNumber AS Phone
+        FROM Person.Person AS p
+        JOIN Person.PersonPhone AS pph ON p.BusinessEntityID  = pph.BusinessEntityID
+        WHERE LastName LIKE 'G%'
+        ORDER BY LastName, FirstName
+        FOR XML AUTO, TYPE, XMLSCHEMA, ELEMENTS XSINIL
+    </Text>
+    <Description>For xml with format.</Description>
+    <Xml Shorten="Columns, From, WhereExpression, OrderBy">
+      <Sql>
+        <SelectDecorator>
+          <Select>
+            <SelectSpec>
+              <Columns>p.BusinessEntityID, FirstName, LastName, PhoneNumber AS Phone</Columns>
+              <From>FROM Person.Person AS p JOIN Person.PersonPhone AS pph ON p.BusinessEntityID = pph.BusinessEntityID</From>
+              <WhereExpression>LastName LIKE 'G%'</WhereExpression>
+            </SelectSpec>
+          </Select>
+          <OrderBy>ORDER BY LastName, FirstName</OrderBy>
+          <For>
+            <SelectFor TargetType="XML">
+              <Format>
+                <NodeList>
+                  <Item>
+                    <Identifier>AUTO</Identifier>
+                  </Item>
+                  <Item>
+                    <Comma>,</Comma>
+                  </Item>
+                  <Item>
+                    <Identifier>TYPE</Identifier>
+                  </Item>
+                  <Item>
+                    <Comma>,</Comma>
+                  </Item>
+                  <Item>
+                    <Identifier>XMLSCHEMA</Identifier>
+                  </Item>
+                  <Item>
+                    <Comma>,</Comma>
+                  </Item>
+                  <Item>
+                    <Identifier>ELEMENTS</Identifier>
+                  </Item>
+                  <Item>
+                    <Identifier>XSINIL</Identifier>
+                  </Item>
+                </NodeList>
+              </Format>
+            </SelectFor>
+          </For>
+        </SelectDecorator>
+      </Sql>
+    </Xml>
+  </Test>
+
+</Tests>

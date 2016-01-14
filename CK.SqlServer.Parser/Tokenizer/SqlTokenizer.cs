@@ -6,6 +6,7 @@ using CK.Core;
 using System.Globalization;
 using System.Collections.Generic;
 using System.Data;
+using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
@@ -26,23 +27,23 @@ namespace CK.SqlServer.Parser
 
         // Lookup characters (because of comment detection 
         // in trivias, 2 characters are required).
-        int			_curC0;
-        int			_curC1;
+        int _curC0;
+        int _curC1;
 
-        List<SqlTrivia> _leadingTrivias;
-        List<SqlTrivia> _trailingTrivias;
+        ImmutableList<SqlTrivia>.Builder _leadingTrivias;
+        ImmutableList<SqlTrivia>.Builder _trailingTrivias;
 
-        StringBuilder	_buffer;
-        string	        _bufferString;
+        StringBuilder _buffer;
+        string _bufferString;
 
-        string          _identifierValue;
-        int             _integerValue;
-        double          _doubleValue;
+        string _identifierValue;
+        int _integerValue;
+        double _doubleValue;
 
-        int		 _tokenType;
+        int _tokenType;
         SqlToken _token;
 
-        Dictionary<string,string> _stringPool = new Dictionary<string, string>();
+        Dictionary<string, string> _stringPool = new Dictionary<string, string>();
 
         static char[] _moneyPrefix = new char[] { '\u0024', '\u00A2', '\u00A3', '\u00A4', '\u00A5', '\u09F2', '\u09F3', '\u0E3F', '\u17DB', '\u20A0', '\u20A1', '\u20A2', '\u20A3', '\u20A4', '\u20A5', '\u20A6', '\u20A7', '\u20A8', '\u20A9', '\u20AA', '\u20AB', '\u20AC', '\u20AD', '\u20AE', '\u20AF', '\u20B0', '\u20B1', '\u20B9', '\uFDFC', '\uFE69', '\uFF04', '\uFFE0', '\uFFE1', '\uFFE5', '\uFFE6' };
 
@@ -52,8 +53,8 @@ namespace CK.SqlServer.Parser
         public SqlTokenizer()
         {
             Debug.Assert( _moneyPrefix.IsSortedStrict(), "So that BinaryFind works." );
-            _leadingTrivias = new List<SqlTrivia>();
-            _trailingTrivias = new List<SqlTrivia>();
+            _leadingTrivias = ImmutableList.CreateBuilder<SqlTrivia>();
+            _trailingTrivias = ImmutableList.CreateBuilder<SqlTrivia>();
             _buffer = new StringBuilder( 512 );
             _stringPool = new Dictionary<string, string>();
             _stringPool.Add( " ", " " );
@@ -84,13 +85,13 @@ namespace CK.SqlServer.Parser
             int idx = _headPos;
             if( idx > _input.Length ) idx = _input.Length;
             if( _input.Length <= spanText ) return _input.Insert( idx, "[[HEAD]]" );
-            else 
+            else
             {
                 int start = idx - spanText;
-                if( start > 0 ) 
+                if( start > 0 )
                 {
-                    int lenAfter = (start+spanText)-idx;
-                    if( idx + lenAfter >= _input.Length ) 
+                    int lenAfter = (start + spanText) - idx;
+                    if( idx + lenAfter >= _input.Length )
                     {
                         return "..." + _input.Substring( start, idx - start ) + "[[HEAD]]" + _input.Substring( idx );
                     }
@@ -164,7 +165,7 @@ namespace CK.SqlServer.Parser
         {
             Reset( input );
             yield return _token;
-            for( ; ; )
+            for( ;;)
             {
                 if( IsErrorOrEndOfInput ) break;
                 Forward();
@@ -180,7 +181,7 @@ namespace CK.SqlServer.Parser
         public IEnumerable<SqlToken> ParseWithoutError( string input )
         {
             Reset( input );
-            for( ; ; )
+            for( ;;)
             {
                 if( IsErrorOrEndOfInput ) break;
                 yield return _token;
@@ -189,86 +190,17 @@ namespace CK.SqlServer.Parser
         }
 
         /// <summary>
-        /// Computes the precedence with a provision of 1 bit to ease the handling of right associative infix operators.
+        /// Extracts the operator precedence from a token type.
         /// </summary>
-        /// <returns>An even precedence level between 30 and 2. 
-        /// It is 0 if the token has <see cref="SqlTokenTypeError.IsErrorOrEndOfInput"/> bit set.</returns>
+        /// <returns>The precedence level between 30 and 0. 
         /// <remarks>
         /// This uses <see cref="SqlTokenType.OpLevelMask"/> and <see cref="SqlTokenType.OpLevelShift"/>.
         /// </remarks>
         public static int PrecedenceLevel( SqlTokenType t )
         {
-            return t > 0 ? (((int)(t & SqlTokenType.OpLevelMask)) >> (int)SqlTokenType.OpLevelShift) << 1 : 0;
+            return t > 0 ? (((int)(t & SqlTokenType.OpLevelMask)) >> (int)SqlTokenType.OpLevelShift) : 0;
         }
-
-        #region Explain Token
-
-        static string[] _assignOperator = { "=", "|=", "&=", "^=", "+=", "-=", "/=", "*=", "%=" };
-        static string[] _basicOperator = { "|", "^", "&", "+", "-", "*", "/", "%", "~" };
-        static string[] _compareOperator = { "=", ">", "<", ">=", "<=", "<>", "!=", "!>", "!<" };
-        static string[] _punctuations = { ".", ",", ";", ":", "::" };
-
-        public static string Explain( SqlTokenType t )
-        {
-            Debug.Assert( _assignOperator.Length == (int)SqlTokenType.AssignOperatorCount );
-            Debug.Assert( _basicOperator.Length == (int)SqlTokenType.BasicOperatorCount );
-            Debug.Assert( _compareOperator.Length == (int)SqlTokenType.CompareOperatorCount );
-            Debug.Assert( _punctuations.Length == (int)SqlTokenType.PunctuationCount );
-            if( t < 0 )
-            {
-                return ((SqlTokenTypeError)t).ToString();
-            }
-            if( (t & SqlTokenType.IsAssignOperator) != 0 ) return _assignOperator[((int)t & 15) - 1];
-            if( (t & SqlTokenType.IsBasicOperator) != 0 ) return _basicOperator[((int)t & 15) - 1];
-            if( (t & SqlTokenType.IsCompareOperator) != 0 ) return _compareOperator[((int)t & 15) - 1];
-            if( (t & SqlTokenType.IsPunctuation) != 0 ) return _punctuations[((int)t & 15) - 1];
-
-            if( t == SqlTokenType.String ) return "'string'";
-            if( t == SqlTokenType.UnicodeString ) return "N'unicode string'";
-
-            if( t == SqlTokenType.Integer ) return "42";
-            if( t == SqlTokenType.Float ) return "6.02214129e+23";
-            if( t == SqlTokenType.Binary ) return "0x00CF12A4";
-            if( t == SqlTokenType.Decimal ) return "124.587";
-            if( t == SqlTokenType.Money ) return "$548.7";
-
-            if( t == SqlTokenType.StarComment ) return "/* ... */";
-            if( t == SqlTokenType.LineComment ) return "-- ..." + Environment.NewLine;
-
-            if( t == SqlTokenType.OpenPar ) return "(";
-            if( t == SqlTokenType.ClosePar ) return ")";
-            if( t == SqlTokenType.OpenBracket ) return "[";
-            if( t == SqlTokenType.CloseBracket ) return "]";
-            if( t == SqlTokenType.OpenCurly ) return "{";
-            if( t == SqlTokenType.CloseCurly ) return "}";
-            
-            if( (t & SqlTokenType.IsIdentifier) != 0 )
-            {
-                switch( t&SqlTokenType.IdentifierTypeMask )
-                {
-                    case SqlTokenType.IdentifierStandard: return "identifier";
-                    case SqlTokenType.IdentifierReserved: return "reserved";
-                    case SqlTokenType.IdentifierStandardStatement:
-                    case SqlTokenType.IdentifierReservedStatement: return "statement";
-                    case SqlTokenType.IdentifierQuoted: return "\"quoted identifier\"";
-                    case SqlTokenType.IdentifierQuotedBracket: return "[quoted identifier]";
-                    case SqlTokenType.IdentifierSpecial:
-                        {
-                            if( t == SqlTokenType.IdentifierStar ) return "*";
-                            return "identifier-special";
-                        }
-                    case SqlTokenType.IdentifierDbType:
-                        {
-                            return SqlKeyword.FromSqlTokenTypeToSqlDbType( t ).Value.ToString();
-                        }
-                    case SqlTokenType.IdentifierVariable: return "@var";
-                }
-            }
-            return SqlTokenType.None.ToString();
-        }
-
-        #endregion
-
+    
         #region Implementation
 
         #region Basic input
@@ -413,7 +345,7 @@ namespace CK.SqlServer.Parser
                 }
                 if( _tokenType < 0 )
                 {
-                    _token = new SqlTokenError( (SqlTokenTypeError)_tokenType, _leadingTrivias.ToReadOnlyList(), null, String.Format( "Unexpected {0} {1}.", _tokenType, GetTokenPosition() ) );
+                    _token = new SqlTokenError( (SqlTokenTypeError)_tokenType, _leadingTrivias.ToImmutableList(), null, String.Format( "Unexpected {0} {1}.", _tokenType, GetTokenPosition() ) );
                 }
                 else
                 {
@@ -421,8 +353,8 @@ namespace CK.SqlServer.Parser
                     // Captures buffer (if not already done) before reading trailing trivias.
                     var bufferString = _bufferString ?? _buffer.ToString();
                     CollectTrailingTrivias();
-                    var lead = _leadingTrivias.ToReadOnlyList();
-                    var tail = _trailingTrivias.ToReadOnlyList();
+                    var lead = _leadingTrivias.ToImmutableList();
+                    var tail = _trailingTrivias.ToImmutableList();
                     if( (_tokenType & (int)SqlTokenType.IsIdentifier) != 0 )
                     {
                         _token = new SqlTokenIdentifier( (SqlTokenType)_tokenType, _identifierValue, lead, tail );
@@ -444,10 +376,7 @@ namespace CK.SqlServer.Parser
                     }
                     else
                     {
-                        Debug.Assert( (_tokenType & (int)SqlTokenType.TerminalMask) != 0 );
-                        if( _tokenType == (int)SqlTokenType.OpenPar ) _token = new SqlTokenOpenPar( lead, tail );
-                        else if( _tokenType == (int)SqlTokenType.ClosePar ) _token = new SqlTokenClosePar( lead, tail );
-                        else _token = new SqlTokenTerminal( (SqlTokenType)_tokenType, lead, tail );
+                        _token = SqlTokenTerminal.Create( (SqlTokenType)_tokenType, lead, tail );
                     }
                     Debug.Assert( _token != null );
                 }
@@ -524,6 +453,12 @@ namespace CK.SqlServer.Parser
                     return (int)SqlTokenType.Modulo;
                 case '~':
                     return (int)SqlTokenType.BitwiseNot;
+                case '$':
+                    if( SqlToken.IsIdentifierStartChar( Peek() ) )
+                    {
+                        return ReadIdentifier( ic );
+                    }
+                    return ReadMoney( ic );
                 default:
                     {
                         if( ic == 'N' )
@@ -767,6 +702,7 @@ namespace CK.SqlServer.Parser
         {
             Debug.Assert( SqlToken.IsIdentifierStartChar( ic ) );
             bool isVar = ic == '@';
+            bool isSpecial = ic == '$';
             ClearBuffer();
             for( ; ; )
             {
@@ -779,7 +715,7 @@ namespace CK.SqlServer.Parser
 
             // Not a variable.
             SqlTokenType mapped = SqlKeyword.MapKeyword( _identifierValue );
-            if( mapped == SqlTokenType.None ) mapped = SqlTokenType.IdentifierStandard;
+            if( mapped == SqlTokenType.None ) mapped = isSpecial ? SqlTokenType.IdentifierSpecial : SqlTokenType.IdentifierStandard;
             return (int)mapped;
         }
 

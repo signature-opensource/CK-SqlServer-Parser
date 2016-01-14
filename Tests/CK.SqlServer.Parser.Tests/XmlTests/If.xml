@@ -1,0 +1,97 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Tests>
+
+  <Test>
+    <Text>
+      if @i is null print '1';
+      else print 2, 9, 'toto';</Text>
+    <Description>Simple if statement.</Description>
+    <Xml>
+      <Sql>
+        <If>
+          <Condition>
+            <IsNull>
+              <Left>
+                <Identifier IsVariable="true">@i</Identifier>
+              </Left>
+            </IsNull>
+          </Condition>
+          <Then>
+            <Statement StatementName="print" HasTerminator="true">
+              <Content>
+                <LiteralString>'1'</LiteralString>
+              </Content>
+            </Statement>
+          </Then>
+          <Else>
+            <Statement StatementName="print" HasTerminator="true">
+              <Content>
+                <CommaList>
+                  <Item>
+                    <LiteralInteger>2</LiteralInteger>
+                  </Item>
+                  <Item>
+                    <LiteralInteger>9</LiteralInteger>
+                  </Item>
+                  <Item>
+                    <LiteralString>'toto'</LiteralString>
+                  </Item>
+                </CommaList>
+              </Content>
+            </Statement>
+          </Else>
+        </If>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test>
+    <Text>break; continue 3+5 ; A, B</Text>
+    <Description>Two statements and .</Description>
+    <Xml>
+      <Sql>
+        <NodeList>
+          <Item>
+            <Statement StatementName="break" HasTerminator="true">
+              <Content>
+                <NodeList />
+              </Content>
+            </Statement>
+          </Item>
+          <Item>
+            <Statement StatementName="continue" HasTerminator="true">
+              <Content>
+                  <BinaryOperator>
+                    <Left>
+                      <LiteralInteger>3</LiteralInteger>
+                    </Left>
+                    <Operator>
+                      <Terminal>+</Terminal>
+                    </Operator>
+                    <Right>
+                      <LiteralInteger>5</LiteralInteger>
+                    </Right>
+                  </BinaryOperator>
+              </Content>
+            </Statement>
+          </Item>
+          <Item>
+            <UnnamedStatement>
+              <Content>
+                <CommaList>
+                  <Item>
+                    <Identifier>A</Identifier>
+                  </Item>
+                  <Item>
+                    <Identifier>B</Identifier>
+                  </Item>
+                </CommaList>
+              </Content>
+            </UnnamedStatement>
+          </Item>
+        </NodeList>
+      </Sql>
+    </Xml>
+  </Test>
+
+</Tests>

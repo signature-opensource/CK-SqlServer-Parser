@@ -1,10 +1,3 @@
-#region Proprietary License
-/*----------------------------------------------------------------------------
-* This file (CK.SqlServer.Parser\Tokenizer\SqlToken.cs) is part of CK-Database. 
-* Copyright © 2007-2014, Invenietis <http://www.invenietis.com>. All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,33 +6,23 @@ using System.Linq.Expressions;
 using CK.Core;
 using System.Diagnostics;
 using System.Globalization;
+using System.Collections.Immutable;
+using System.Collections;
 
 namespace CK.SqlServer.Parser
 {
     /// <summary>
-    /// Base class for (non comment) tokens. This is an immutable object that carries its optional leading and trailing <see cref="SqlTrivia"/>.
+    /// Base class for (non comment) tokens. 
     /// </summary>
-    public abstract class SqlToken : ISqlItem
+    public abstract class SqlToken : SqlNode, IEnumerable<SqlToken>
     {
-        class EmptyToken : SqlToken
-        {
-            internal EmptyToken() : base() { }
-            protected override void DoWrite( StringBuilder b ) { }
-            public override string ToString() { return String.Empty; }
-        }
-
         /// <summary>
-        /// Empty token has a <see cref="SqlToken.TokenType"/> of <see cref="SqlTokenType.None"/> and empty leading and trailing trivias.
+        /// Private empty ctor for the EmptyToken.
         /// </summary>
-        public static readonly SqlToken Empty = new EmptyToken();
-
-        /// <summary>
-        /// Private empty ctor for the EmptyToken singleton.
-        /// </summary>
-        SqlToken()
+        SqlToken( ImmutableList<SqlTrivia> leading, ImmutableList<SqlTrivia> trailing )
+            : base( leading, trailing )
         {
-            TokenType = SqlTokenType.None;
-            LeadingTrivia = TrailingTrivia = CKReadOnlyListEmpty<SqlTrivia>.Empty;
+            Debug.Assert( TokenType == SqlTokenType.None );
         }
 
         /// <summary>
@@ -47,15 +30,14 @@ namespace CK.SqlServer.Parser
         /// When null, trivias are safely sets to an empty readonly list of <see cref="SqlTrivia"/>.
         /// </summary>
         /// <param name="tokenType">Type of the token.</param>
-        /// <param name="leadingTrivia">Leading trivias if any.</param>
-        /// <param name="trailingTrivia">Trailing trivias if any.</param>
-        public SqlToken( SqlTokenType tokenType, IReadOnlyList<SqlTrivia> leadingTrivia = null, IReadOnlyList<SqlTrivia> trailingTrivia = null )
+        /// <param name="leading">Leading trivias if any.</param>
+        /// <param name="trailing">Trailing trivias if any.</param>
+        public SqlToken( SqlTokenType tokenType, ImmutableList<SqlTrivia> leading = null, ImmutableList<SqlTrivia> trailing = null )
+            : base( leading, trailing )
         {
             if( tokenType > 0 && ((tokenType & SqlTokenType.TokenDiscriminatorMask) == 0 || (tokenType&SqlTokenType.IsComment) !=0) ) throw new ArgumentException( "Invalid token type." );
-            
             TokenType = tokenType;
-            LeadingTrivia = leadingTrivia ?? CKReadOnlyListEmpty<SqlTrivia>.Empty;
-            TrailingTrivia = trailingTrivia ?? CKReadOnlyListEmpty<SqlTrivia>.Empty;
+            SqlKeyword.CheckTokenTypeStringMapping( tokenType );
         }
 
         /// <summary>
@@ -63,85 +45,85 @@ namespace CK.SqlServer.Parser
         /// </summary>
         public readonly SqlTokenType TokenType;
 
-        /// <summary>
-        /// Leading <see cref="SqlTrivia"/>. Never null but can be empty.
-        /// </summary>
-        public readonly IReadOnlyList<SqlTrivia> LeadingTrivia;
+        public override sealed IEnumerable<SqlTrivia> FullLeadingTrivias => LeadingTrivias;
+
+        public override sealed IEnumerable<SqlTrivia> FullTrailingTrivias => TrailingTrivias;
 
         /// <summary>
-        /// Trailing <see cref="SqlTrivia"/>. Never null but can be empty.
+        /// Gets an empty node list.
         /// </summary>
-        public readonly IReadOnlyList<SqlTrivia> TrailingTrivia;
+        public override IReadOnlyList<ISqlNode> ChildrenNodes => Util.EmptyArray<SqlNode>.Empty;
 
-        /// <summary>
-        /// Writes the token with its <see cref="LeadingTrivia"/> and <see cref="TrailingTrivia"/>.
-        /// </summary>
-        /// <param name="b">The <see cref="StringBuilder"/> to write to.</param>
-        public void Write( StringBuilder b )
+        public override bool IsToken( SqlTokenType t ) => TokenType == t;
+
+        #region IEnumerable<SqlToken> AllTokens auto implementation
+        public override IEnumerable<SqlToken> AllTokens => this;
+
+        IEnumerator<SqlToken> IEnumerable<SqlToken>.GetEnumerator()
         {
-            foreach( var t in LeadingTrivia ) t.Write( b );
-            DoWrite( b );
-            foreach( var t in TrailingTrivia ) t.Write( b );
+            return new CKEnumeratorMono<SqlToken>( this );
         }
 
-        /// <summary>
-        /// Writes the token without its leading nor traling trivias.
-        /// </summary>
-        /// <param name="b">The <see cref="StringBuilder"/> to write to.</param>
-        public void WriteWithoutTrivias( StringBuilder b )
+        IEnumerator IEnumerable.GetEnumerator()
         {
-            DoWrite( b );
+            return new CKEnumeratorMono<SqlToken>( this );
         }
+        #endregion
+
 
         /// <summary>
-        /// When implemented by concrete specialization, this must write the token itself.
-        /// </summary>
-        /// <param name="b">The <see cref="StringBuilder"/> to write to.</param>
-        abstract protected void DoWrite( StringBuilder b );
-
-        /// <summary>
-        /// Overriden to return the result of <see cref="WriteWithoutTrivias"/>.
-        /// This should not be overriden anymore.
-        /// </summary>
-        /// <returns>The mere token.</returns>
-        public override string ToString()
-        {
-            StringBuilder b = new StringBuilder();
-            DoWrite( b );
-            return b.ToString();
-        }
-
-        IEnumerable<SqlToken> ISqlItem.Tokens
-        {
-            get { return new CKReadOnlyListMono<SqlToken>( this ); }
-        }
-
-        SqlToken ISqlItem.LastOrEmptyT { get { return this; } }
-
-        SqlToken ISqlItem.FirstOrEmptyT { get { return this; } }
-
-        /// <summary>
-        /// Empty parenthesis opener.
-        /// </summary>
-        static public readonly SqlExprMultiToken<SqlTokenOpenPar> EmptyOpenPar = SqlExprMultiToken<SqlTokenOpenPar>.Empty;
-
-        /// <summary>
-        /// Empty parenthesis closer.
-        /// </summary>
-        static public readonly SqlExprMultiToken<SqlTokenClosePar> EmptyClosePar = SqlExprMultiToken<SqlTokenClosePar>.Empty;
-
-        /// <summary>
-        /// True if the <see cref="SqlToken"/> is the terminator ; token or a <see cref="SqlTokenType.IdentifierReservedStatement"/>.
+        /// True if the <see cref="SqlToken"/> is the terminator statement ';'.
         /// </summary>
         /// <param name="t">Token to test.</param>
-        /// <returns>Whether the token is the statement terminator or the possible start of a new statement.</returns>
-        static public bool IsTerminatorOrPossibleStartStatement( SqlToken t )
+        /// <returns>Whether the token is the statement terminator.</returns>
+        static public bool IsTerminator( SqlToken t )
+        {
+            Debug.Assert( t != null );
+            return t.TokenType == SqlTokenType.SemiColon;
+        }
+
+        /// <summary>
+        /// True if the <see cref="SqlToken"/> is an open parenthesis or an 
+        /// identifier that starts a statement (<see cref="SqlTokenTypeExtension.IsStartStatement(SqlTokenType)"/>.
+        /// </summary>
+        /// <param name="t">Token to test.</param>
+        /// <returns>Whether the token is a possible start of a new statement.</returns>
+        static public bool IsStatementStopper( SqlToken t )
         {
             if( t == null ) throw new ArgumentNullException( "t" );
-            return t.TokenType == SqlTokenType.SemiColon
-                    || (t.TokenType & SqlTokenType.IdentifierTypeMask) == SqlTokenType.IdentifierStandardStatement
-                    || (t.TokenType & SqlTokenType.IdentifierTypeMask) == SqlTokenType.IdentifierReservedStatement;
+            return t.TokenType == SqlTokenType.OpenPar
+                    || t.TokenType.IsStartStatement();
         }
+
+        /// <summary>
+        /// True if the <see cref="SqlToken"/> is a closing parenthesis, a terminator ; token or a <see cref="SqlTokenType.IdentifierReservedStatement"/>.
+        /// </summary>
+        /// <param name="t">Token to test.</param>
+        /// <returns>Whether the token is closing parenthesis or the statement terminator.</returns>
+        static public bool IsCloseParenthesisOrTerminatorOrPossibleStartStatement( SqlToken t )
+        {
+            if( t == null ) throw new ArgumentNullException( "t" );
+            return t.TokenType == SqlTokenType.ClosePar
+                    || t.TokenType == SqlTokenType.SemiColon
+                    || t.TokenType.IsStartStatement();
+        }
+
+        /// <summary>
+        /// True if the <see cref="SqlToken"/> is the end of the input, a comma, a closing parenthesis 
+        /// a Go or a semicolon (this ends an element in an extended expression).
+        /// </summary>
+        /// <param name="t">Potential end of input, comma, closing parenthesis or semicolon.</param>
+        /// <returns>Whether the token ends an extended expression.</returns>
+        static public bool IsEndOfExtendedExpression( SqlToken t )
+        {
+            if( t == null ) throw new ArgumentNullException( "t" );
+            return t.TokenType == SqlTokenType.EndOfInput
+                        || t.TokenType == SqlTokenType.SemiColon
+                        || t.TokenType == SqlTokenType.Go
+                        || t.TokenType == SqlTokenType.Comma
+                        || t.TokenType == SqlTokenType.ClosePar;
+        }
+
 
         internal static bool IsIdentifierStartChar( int c )
         {

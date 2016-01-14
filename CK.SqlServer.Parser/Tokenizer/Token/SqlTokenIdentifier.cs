@@ -1,10 +1,3 @@
-#region Proprietary License
-/*----------------------------------------------------------------------------
-* This file (CK.SqlServer.Parser\Tokenizer\Token\SqlTokenIdentifier.cs) is part of CK-Database. 
-* Copyright © 2007-2014, Invenietis <http://www.invenietis.com>. All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -12,89 +5,101 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using CK.Core;
+using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
     /// <summary>
-    /// Token for identifiers. An identifier can be <see cref="IsQuoted"/>, be <see cref="IsVariable"/>, be <see cref="IsKeywordName"/>.
+    /// Token for identifiers.
     /// </summary>
-    public sealed class SqlTokenIdentifier : SqlToken
+    public sealed class SqlTokenIdentifier : SqlToken, ISqlIdentifier, IReadOnlyList<ISqlIdentifier>
     {
         readonly string _name;
 
-        public SqlTokenIdentifier( SqlTokenType t, string name, IReadOnlyList<SqlTrivia> leadingTrivia = null, IReadOnlyList<SqlTrivia> trailingTrivia = null )
+        public SqlTokenIdentifier( SqlTokenType t, string name, ImmutableList<SqlTrivia> leadingTrivia = null, ImmutableList<SqlTrivia> trailingTrivia = null )
             : base( t, leadingTrivia, trailingTrivia )
         {
             if( (t&SqlTokenType.IsIdentifier) == 0 ) throw new ArgumentException( "Invalid token type.", "t" );
-            if( String.IsNullOrWhiteSpace( name ) ) throw new ArgumentNullException( "name" );
+            if( string.IsNullOrWhiteSpace( name ) ) throw new ArgumentNullException( "name" );
             if( IsVariable && name[0] != '@' ) throw new ArgumentException( "Invalid variable name.", "name" );
             _name = name;
         }
 
         /// <summary>
-        /// True for star (*) identifier. 
-        /// </summary>
-        public bool IsStar { get { return TokenType == SqlTokenType.IdentifierStar; } }
-
-        /// <summary>
-        /// True for type names like int or sql_variant. 
-        /// </summary>
-        public bool IsDbType { get { return (TokenType&SqlTokenType.IdentifierTypeMask) == SqlTokenType.IdentifierDbType; } }
-
-        /// <summary>
-        /// True if this <see cref="SqlTokenIdentifier"/> is [quoted] or "quoted".
-        /// </summary>
-        public bool IsQuoted { get { return TokenType == SqlTokenType.IdentifierQuoted || TokenType == SqlTokenType.IdentifierQuotedBracket; } }
-
-        /// <summary>
         /// True if this <see cref="SqlTokenIdentifier"/> is a @Variable or a @@SystemFunction.
         /// </summary>
-        public bool IsVariable { get { return TokenType == SqlTokenType.IdentifierVariable; } }
+        public bool IsVariable => TokenType.IsVariable();
 
-        /// <summary>
-        /// True if this <see cref="SqlTokenIdentifier"/> is a reserved keyword that starts a statement (select, create, declare, etc.)
-        /// or a standard identifer that also can start a statement (throw, get, move, etc.).
-        /// </summary>
-        public bool IsStartStatement 
+        bool ISqlIdentifier.IsOpenDataSouce => false;
+
+        IReadOnlyList<ISqlIdentifier> ISqlIdentifier.Identifiers => this;
+
+        int IReadOnlyCollection<ISqlIdentifier>.Count => 1;
+
+        ISqlIdentifier IReadOnlyList<ISqlIdentifier>.this[int index]
         {
-            get { return TokenType.IsStartStatement(); } 
+            get
+            {
+                if( index != 0 ) throw new IndexOutOfRangeException();
+                return this;
+            }
+        }
+
+        IEnumerator<ISqlIdentifier> IEnumerable<ISqlIdentifier>.GetEnumerator()
+        {
+            return new CKEnumeratorMono<SqlTokenIdentifier>( this );
         }
 
         public SqlTokenIdentifier RemoveQuoteIfPossible( bool keepIfReservedKeyword )
         {
-            // Already quote free.
-            if( !IsQuoted ) return this;
+            // Already quotes free.
+            if( !TokenType.IsQuotedIdentifier() ) return this;
             
             // Quotes exist.
             
             // Are quotes required? If yes, don't do it.
-            if( SqlToken.IsQuoteRequired( Name ) ) return this;
+            if( SqlToken.IsQuoteRequired( _name ) ) return this;
 
             // If it is a known (reserved) keyword and it must be preserved, do not do anything.
             SqlTokenType typeWithoutQuote;
-            bool isReservedKeyWord = SqlKeyword.IsReservedKeyword( Name, out typeWithoutQuote );
+            bool isReservedKeyWord = SqlKeyword.IsReservedKeyword( _name, out typeWithoutQuote );
             if( keepIfReservedKeyword && isReservedKeyWord ) return this;
             if( typeWithoutQuote == SqlTokenType.None ) typeWithoutQuote = SqlTokenType.IdentifierStandard;
 
-            return new SqlTokenIdentifier( typeWithoutQuote, Name, LeadingTrivia, TrailingTrivia );
+            return new SqlTokenIdentifier( typeWithoutQuote, _name, LeadingTrivias, TrailingTrivias );
         }
 
-        public string Name { get { return _name; } }
+        /// <summary>
+        /// Gets the identifier string (without quotes or brackets if this is quoted).
+        /// </summary>
+        public string Name => _name; 
 
         public bool NameEquals( string name )
         { 
             return String.Compare( _name, name, StringComparison.OrdinalIgnoreCase ) == 0; 
         }
 
-        protected override void DoWrite( StringBuilder b )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
+        {
+            return new SqlTokenIdentifier( TokenType, _name, leading, trailing );
+        }
+
+        public override string ToString()
         {
             switch( TokenType )
             {
-                case SqlTokenType.IdentifierQuoted: b.Append( "\"" ).Append( Name.Replace( "\"", "\"\"" ) ).Append( "\"" ); break;
-                case SqlTokenType.IdentifierQuotedBracket: b.Append( "[" ).Append( Name.Replace( "]", "]]" ) ).Append( "]" ); break;
-                default: b.Append( Name ); break;
+                case SqlTokenType.IdentifierQuoted:
+                    return "\"" + _name.Replace( "\"", "\"\"" ) + "\"";
+                case SqlTokenType.IdentifierQuotedBracket:
+                    return "[" + _name.Replace( "]", "]]" ) + "]";
+                default: return _name;
             }
         }
+
+        public override void WriteWithoutTrivias( ISqlTextWriter w ) => w.Write( ToString() );
+
+        [DebuggerStepThrough]
+        internal protected override ISqlNode Accept( SqlItemVisitor visitor ) => visitor.Visit( this );
 
     }
 

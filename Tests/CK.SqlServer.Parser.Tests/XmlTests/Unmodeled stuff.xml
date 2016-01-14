@@ -1,0 +1,152 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Tests>
+
+  <Test>
+    <Text>A B</Text>
+    <Description>UnnamedStatement is the "catch all" structure when parsing in "All" mode.</Description>
+    <Xml>
+      <Sql>
+        <UnnamedStatement>
+          <Content>
+            <NodeList>
+              <Item>
+                <Identifier>A</Identifier>
+              </Item>
+              <Item>
+                <Identifier>B</Identifier>
+              </Item>
+            </NodeList>
+          </Content>
+        </UnnamedStatement>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test>
+    <Text>A, B</Text>
+    <Description>Content .</Description>
+    <Xml>
+      <Sql>
+        <UnnamedStatement>
+          <Content>
+            <CommaList>
+              <Item>
+                <Identifier>A</Identifier>
+              </Item>
+              <Item>
+                <Identifier>B</Identifier>
+              </Item>
+            </CommaList>
+          </Content>
+        </UnnamedStatement>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test>
+    <Text>break; continue 3+5 ; A, B</Text>
+    <Description>Two statements and an UnnamedStatement one.</Description>
+    <Xml>
+      <Sql>
+        <NodeList>
+          <Item>
+            <Statement StatementName="break" HasTerminator="true">
+              <Content>
+                <NodeList/>
+              </Content>
+            </Statement>
+          </Item>
+          <Item>
+            <Statement StatementName="continue" HasTerminator="true">
+              <Content>
+                <BinaryOperator>
+                  <Left>
+                    <LiteralInteger>3</LiteralInteger>
+                  </Left>
+                  <Operator>
+                    <Terminal>+</Terminal>
+                  </Operator>
+                  <Right>
+                    <LiteralInteger>5</LiteralInteger>
+                  </Right>
+                </BinaryOperator>
+              </Content>
+            </Statement>
+          </Item>
+          <Item>
+            <UnnamedStatement>
+              <Content>
+                <CommaList>
+                  <Item>
+                    <Identifier>A</Identifier>
+                  </Item>
+                  <Item>
+                    <Identifier>B</Identifier>
+                  </Item>
+                </CommaList>
+              </Content>
+            </UnnamedStatement>
+          </Item>
+        </NodeList>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test>
+    <Text></Text>
+    <Description>An empty content is an empty node list.</Description>
+    <Xml>
+      <Sql>
+          <NodeList/>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test>
+    <Text>A B; C, D print</Text>
+    <Description>Since print is a known statement name, it is detected (with an empty list as its content).</Description>
+    <Xml>
+      <Sql>
+        <NodeList>
+          <Item>
+            <UnnamedStatement HasTerminator="true">
+              <Content>
+                <NodeList>
+                  <Item>
+                    <Identifier>A</Identifier>
+                  </Item>
+                  <Item>
+                    <Identifier>B</Identifier>
+                  </Item>
+                </NodeList>
+              </Content>
+            </UnnamedStatement>
+          </Item>
+          <Item>
+            <UnnamedStatement>
+              <Content>
+                <CommaList>
+                  <Item>
+                    <Identifier>C</Identifier>
+                  </Item>
+                  <Item>
+                    <Identifier>D</Identifier>
+                  </Item>
+                </CommaList>
+              </Content>
+            </UnnamedStatement>
+          </Item>
+          <Item>
+            <Statement StatementName="print">
+              <Content>
+                <NodeList/>
+              </Content>
+            </Statement>
+          </Item>
+        </NodeList>
+      </Sql>
+    </Xml>
+  </Test>
+
+
+</Tests>

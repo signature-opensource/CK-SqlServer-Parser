@@ -1,0 +1,125 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Tests>
+
+  <Test>
+    <Text>
+      USE AdventureWorks2012;
+
+      -- Execute the SELECT statement alone to show the
+      -- full result set that is used by the cursor.
+      SELECT LastName, FirstName FROM Person.Person
+      ORDER BY LastName, FirstName;
+
+      -- Declare the cursor.
+      DECLARE contact_cursor SCROLL CURSOR FOR
+      SELECT LastName, FirstName FROM Person.Person
+      ORDER BY LastName, FirstName;
+
+      OPEN contact_cursor;
+
+      -- Fetch the last row in the cursor.
+      FETCH LAST FROM contact_cursor;
+
+      -- Fetch the row immediately prior to the current row in the cursor.
+      FETCH PRIOR FROM contact_cursor;
+
+      -- Fetch the second row in the cursor.
+      FETCH ABSOLUTE 2 FROM contact_cursor;
+
+      -- Fetch the row that is three rows after the current row.
+      FETCH RELATIVE 3 FROM contact_cursor;
+
+      -- Fetch the row that is two rows prior to the current row.
+      FETCH RELATIVE -2 FROM contact_cursor;
+
+      CLOSE contact_cursor;
+      DEALLOCATE contact_cursor;
+    </Text>
+    <Description>Cursor sample from MSDN.</Description>
+    <Xml>
+      <Statements>
+        <Statement StatementName="USE" HasTerminator="true" />
+        <SelectStatement HasTerminator="true">
+          <SelectDecorator>
+            <SelectSpec />
+          </SelectDecorator>
+        </SelectStatement>
+        <DeclareCursor HasTerminator="true">
+          <SelectDecorator>
+            <SelectSpec />
+          </SelectDecorator>
+        </DeclareCursor>
+        <Statement StatementName="OPEN" HasTerminator="true" />
+        <Statement StatementName="FETCH" HasTerminator="true" />
+        <Statement StatementName="FETCH" HasTerminator="true" />
+        <Statement StatementName="FETCH" HasTerminator="true" />
+        <Statement StatementName="FETCH" HasTerminator="true" />
+        <Statement StatementName="FETCH" HasTerminator="true" />
+        <Statement StatementName="CLOSE" HasTerminator="true" />
+        <Statement StatementName="DEALLOCATE" HasTerminator="true" />
+      </Statements>
+    </Xml>
+  </Test>
+
+  <Test>
+    <Text>
+      DECLARE @name VARCHAR(50) -- database name
+      DECLARE @path VARCHAR(256) -- path for backup files
+      DECLARE @fileName VARCHAR(256) -- filename for backup
+      DECLARE @fileDate VARCHAR(20) -- used for file name
+
+      SET @path = 'C:\Backup\'
+
+      SELECT @fileDate = CONVERT(VARCHAR(20),GETDATE(),112)
+
+      DECLARE db_cursor CURSOR FOR
+      SELECT name
+      FROM MASTER.dbo.sysdatabases
+      WHERE name NOT IN ('master','model','msdb','tempdb')
+
+      OPEN db_cursor
+      FETCH NEXT FROM db_cursor INTO @name
+
+      WHILE @@FETCH_STATUS = 0
+      BEGIN
+      SET @fileName = @path + @name + '_' + @fileDate + '.BAK'
+      BACKUP DATABASE @name TO DISK = @fileName
+
+      FETCH NEXT FROM db_cursor INTO @name
+      END
+
+      CLOSE db_cursor
+      DEALLOCATE db_cursor
+    </Text>
+    <Description>Cursor sample from https://www.mssqltips.com/sqlservertip/1599/sql-server-cursor-example/. </Description>
+    <Xml>
+      <Statements>
+        <DeclareVariable />
+        <DeclareVariable />
+        <DeclareVariable />
+        <DeclareVariable  />
+        <SetVariable />
+        <SelectStatement>
+          <SelectSpec/>
+        </SelectStatement>
+        <DeclareCursor>
+          <SelectSpec/>
+        </DeclareCursor>
+        <Statement StatementName="OPEN" />
+        <Statement StatementName="FETCH" />
+        <While>
+          <BeginEndBlock>
+            <StatementList>
+              <SetVariable />
+              <Statement StatementName="BACKUP" />
+              <Statement StatementName="FETCH" />
+            </StatementList>
+          </BeginEndBlock>
+        </While>
+        <Statement StatementName="CLOSE" />
+        <Statement StatementName="DEALLOCATE" />
+      </Statements>
+    </Xml>
+  </Test>
+
+</Tests>

@@ -1,15 +1,9 @@
-#region Proprietary License
-/*----------------------------------------------------------------------------
-* This file (CK.SqlServer.Parser\Tokenizer\Token\SqlTokenBaseLiteral.cs) is part of CK-Database. 
-* Copyright © 2007-2014, Invenietis <http://www.invenietis.com>. All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using CK.Core;
+using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
@@ -20,7 +14,7 @@ namespace CK.SqlServer.Parser
     /// </summary>
     public abstract class SqlTokenBaseLiteral : SqlToken
     {
-        public SqlTokenBaseLiteral( SqlTokenType t, IReadOnlyList<SqlTrivia> leadingTrivia = null, IReadOnlyList<SqlTrivia> trailingTrivia = null )
+        public SqlTokenBaseLiteral( SqlTokenType t, ImmutableList<SqlTrivia> leadingTrivia = null, ImmutableList<SqlTrivia> trailingTrivia = null )
             : base( t, leadingTrivia, trailingTrivia )
         {
             if( (t & (SqlTokenType.IsString|SqlTokenType.IsNumber)) == 0 ) throw new ArgumentException( "Invalid literal token.", "t" );
@@ -36,19 +30,14 @@ namespace CK.SqlServer.Parser
         /// By default, the string is the <see cref="LiteralValue"/>.
         /// </summary>
         /// <returns></returns>
-        public override string ToString()
-        {
-            return LiteralValue;
-        }
+        public override string ToString() => LiteralValue;
 
         /// <summary>
         /// Simply appends the <see cref="LiteralValue"/>.
         /// </summary>
-        /// <param name="b">The builder to use.</param>
-        protected override void DoWrite( StringBuilder b )
-        {
-            b.Append( LiteralValue );
-        }
+        /// <param name="w">The builder to use.</param>
+        public override void WriteWithoutTrivias( ISqlTextWriter w ) => w.Write( LiteralValue );
+
     }
 
 }

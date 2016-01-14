@@ -1,0 +1,245 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Tests>
+
+  <Test>
+    <Text>
+        IF OBJECT_ID (N'Production.usp_UpdateInventory', N'P') IS NOT NULL DROP PROCEDURE Production.usp_UpdateInventory;
+        GO
+        CREATE PROCEDURE Production.usp_UpdateInventory
+            @OrderDate datetime
+        AS
+        MERGE Production.ProductInventory AS target
+        USING (SELECT ProductID, SUM(OrderQty) FROM Sales.SalesOrderDetail AS sod
+            JOIN Sales.SalesOrderHeader AS soh
+            ON sod.SalesOrderID = soh.SalesOrderID
+            AND soh.OrderDate = @OrderDate
+            GROUP BY ProductID) AS source (ProductID, OrderQty)
+        ON (target.ProductID = source.ProductID)
+        WHEN MATCHED AND target.Quantity - source.OrderQty &lt;= 0
+            THEN DELETE
+        WHEN MATCHED 
+            THEN UPDATE SET target.Quantity = target.Quantity - source.OrderQty, 
+                            target.ModifiedDate = GETDATE()
+        OUTPUT $action, Inserted.ProductID, Inserted.Quantity, Inserted.ModifiedDate, Deleted.ProductID,
+            Deleted.Quantity, Deleted.ModifiedDate;
+        GO
+
+        EXECUTE Production.usp_UpdateInventory '20030501'    
+</Text>
+    <Description></Description>
+    <Xml>
+      <Statements>
+        <If>
+          <Statement StatementName="DROP" HasTerminator="true" />
+        </If>
+        <Statement StatementName="GO" />
+        <StoredProcedure StatementName="CreateProcedure">
+          <StatementList>
+            <MergeStatement HasTerminator="true" />
+          </StatementList>
+        </StoredProcedure>
+        <Statement StatementName="GO" />
+        <ExecuteStatement />
+      </Statements>
+    </Xml>
+  </Test>
+
+  <Test>
+    <Text>
+      -- Create a temporary table variable to hold the output actions.
+      DECLARE @SummaryOfChanges TABLE(Change VARCHAR(20));
+
+      MERGE INTO Sales.SalesReason AS Target
+        USING (VALUES ('Recommendation','Other'), ('Review', 'Marketing'), ('Internet', 'Promotion'))
+               AS Source (NewName, NewReasonType)
+        ON Target.Name = Source.NewName
+        WHEN MATCHED THEN
+          UPDATE SET ReasonType = Source.NewReasonType
+        WHEN NOT MATCHED BY TARGET THEN
+          INSERT (Name, ReasonType) VALUES (NewName, NewReasonType)
+        OUTPUT $action INTO @SummaryOfChanges
+        OPTION (LOOP JOIN);
+
+      -- Query the results of the table variable.
+      SELECT Change, COUNT(*) AS CountPerChange
+        FROM @SummaryOfChanges
+        GROUP BY Change;
+</Text>
+    <Description></Description>
+    <Xml>
+      <Statements>
+         <DeclareVariable HasTerminator="true" />
+         <MergeStatement HasTerminator="true" />
+         <SelectStatement HasTerminator="true">
+           <SelectSpec />
+         </SelectStatement>
+      </Statements>
+    </Xml>
+  </Test>
+
+  <Test>
+    <Text>
+      CREATE TABLE Production.UpdatedInventory
+          (ProductID INT NOT NULL, LocationID int, NewQty int, PreviousQty int,
+           CONSTRAINT PK_Inventory PRIMARY KEY CLUSTERED (ProductID, LocationID));
+      GO
+      INSERT INTO Production.UpdatedInventory
+      SELECT ProductID, LocationID, NewQty, PreviousQty 
+      FROM
+      (    MERGE Production.ProductInventory AS pi
+           USING (SELECT ProductID, SUM(OrderQty) 
+                  FROM Sales.SalesOrderDetail AS sod
+                  JOIN Sales.SalesOrderHeader AS soh
+                  ON sod.SalesOrderID = soh.SalesOrderID
+                  AND soh.OrderDate BETWEEN '20030701' AND '20030731'
+                  GROUP BY ProductID) AS src (ProductID, OrderQty)
+           ON pi.ProductID = src.ProductID
+          WHEN MATCHED AND pi.Quantity - src.OrderQty &gt;= 0 
+              THEN UPDATE SET pi.Quantity = pi.Quantity - src.OrderQty
+          WHEN MATCHED AND pi.Quantity - src.OrderQty &lt;= 0 
+              THEN DELETE
+          OUTPUT $action, Inserted.ProductID, Inserted.LocationID, Inserted.Quantity AS NewQty, Deleted.Quantity AS PreviousQty)
+       AS Changes (Action, ProductID, LocationID, NewQty, PreviousQty) WHERE Action = 'UPDATE';
+      GO
+</Text>
+    <Description></Description>
+    <Xml>
+      <Statements>
+         <Statement StatementName="CREATE" HasTerminator="true" />
+         <Statement StatementName="GO" />
+         <InsertStatement HasTerminator="true">
+           <SelectSpec>
+             <MergeStatement />
+           </SelectSpec>
+         </InsertStatement>
+         <Statement StatementName="GO" />
+      </Statements>
+    </Xml>
+  </Test>
+
+  <Test>
+    <Text>
+      IF OBJECT_ID( 'tempdb..#CustomerChanges') IS NOT NULL DROP TABLE #CustomerChanges;
+ 
+      CREATE TABLE #CustomerChanges(
+        ChangeType         NVARCHAR(10)
+       ,CustomerNum        TINYINT NOT NULL
+       ,NewCustomerName    VARCHAR(25) NULL
+       ,PrevCustomerName   VARCHAR(25) NULL
+       ,NewPlanet          VARCHAR(25) NULL
+       ,PrevPlanet         VARCHAR(25) NULL
+       ,UserName           NVARCHAR(100) NOT NULL
+       ,DateTimeChanged    DateTime NOT NULL);
+ 
+      MERGE  #Customer_New AS Target
+       USING #Customer_Orig AS Source
+          ON Target.CustomerNum = Source.CustomerNum
+      WHEN MATCHED AND EXISTS
+                          (SELECT Source.CustomerName, Source.Planet
+                           EXCEPT
+                           SELECT Target.CustomerName, Target.Planet)
+      THEN
+         UPDATE SET
+            Target.CustomerName = Source.CustomerName,
+            Target.Planet = Source.Planet
+      WHEN NOT MATCHED BY TARGET
+      THEN
+         INSERT (CustomerNum, CustomerName, Planet)
+         VALUES (Source.CustomerNum, Source.CustomerName, Source.Planet)
+      WHEN NOT MATCHED BY SOURCE THEN DELETE
+      -------------------------------------
+      OUTPUT
+         $ACTION ChangeType,
+         coalesce (inserted.CustomerNum, deleted.CustomerNum) CustomerNum,
+         inserted.CustomerName NewCustomerName,
+         deleted.CustomerName PrevCustomerName,
+         inserted.Planet NewPlanet,
+         deleted.Planet PrevPlanet,
+         SUSER_SNAME() UserName,
+         Getdate () DateTimeChanged
+          INTO #CustomerChanges
+      -------------------------------------
+      ;
+ 
+      SELECT * FROM #CustomerChanges;
+    </Text>
+    <Description></Description>
+    <Xml>
+      <Statements>
+        <If>
+          <Statement StatementName="DROP" HasTerminator="true" />
+        </If>
+        <Statement StatementName="CREATE" HasTerminator="true" />
+        <MergeStatement HasTerminator="true" />
+        <SelectStatement HasTerminator="true">
+          <SelectSpec />
+        </SelectStatement>
+      </Statements>
+    </Xml>
+  </Test>
+
+  <Test>
+    <Text>
+      USE AdventureWorks2008R2;
+      GO
+      BEGIN TRAN;
+      MERGE Production.ProductInventory AS pi
+      USING (SELECT ProductID, SUM(OrderQty) 
+             FROM Sales.SalesOrderDetail AS sod
+             JOIN Sales.SalesOrderHeader AS soh
+               ON sod.SalesOrderID = soh.SalesOrderID
+               AND soh.OrderDate BETWEEN '20030701' AND '20030731'
+             GROUP BY ProductID) AS src(ProductID, OrderQty)
+      ON (pi.ProductID = src.ProductID)
+      WHEN MATCHED AND pi.Quantity - src.OrderQty &gt;= 0 
+          THEN UPDATE SET pi.Quantity = pi.Quantity - src.OrderQty
+      WHEN MATCHED AND pi.Quantity - src.OrderQty &lt;= 0 
+          THEN DELETE
+      OUTPUT $action, Inserted.*, Deleted.*
+      OPTION (LOOP JOIN);
+      ROLLBACK TRAN;
+    </Text>
+    <Description></Description>
+    <Xml>
+      <Statements>
+        <Statement StatementName="USE" HasTerminator="true" />
+        <Statement StatementName="GO" />
+        <BeginTransaction HasTerminator="true" />
+        <MergeStatement HasTerminator="true" />
+        <Statement StatementName="ROLLBACK" HasTerminator="true" />
+      </Statements>
+    </Xml>
+  </Test>
+
+  <Test>
+    <Text>
+      USE AdventureWorks2008R2;
+      GO
+      CREATE TABLE dbo.Stock (StockName nvarchar(50) PRIMARY KEY, Qty int CHECK (Qty > 0));
+      GO
+      MERGE dbo.Stock AS s
+      USING OPENROWSET (
+          BULK 'C:\SQLFiles\StockData.txt',
+          FORMATFILE = 'C:\SQLFiles\BulkloadFormatFile.xml',
+          ROWS_PER_BATCH = 15000,
+          ORDER (Stock) UNIQUE) AS b
+      ON s.StockName = b.Stock
+      WHEN MATCHED AND (Qty + Delta = 0) THEN DELETE
+      WHEN MATCHED THEN UPDATE SET Qty += Delta
+      WHEN NOT MATCHED THEN INSERT VALUES (Stock, Delta);
+      print 'done'
+</Text>
+    <Description></Description>
+    <Xml>
+      <Statements>
+        <Statement StatementName="USE" HasTerminator="true" />
+        <Statement StatementName="GO" />
+        <Statement StatementName="CREATE" HasTerminator="true" />
+        <Statement StatementName="GO" />
+        <MergeStatement HasTerminator="true" />
+        <Statement StatementName="print" />
+      </Statements>
+    </Xml>
+  </Test>
+
+</Tests>

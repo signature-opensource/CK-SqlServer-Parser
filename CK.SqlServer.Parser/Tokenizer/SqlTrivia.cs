@@ -1,10 +1,3 @@
-#region Proprietary License
-/*----------------------------------------------------------------------------
-* This file (CK.SqlServer.Parser\Tokenizer\SqlTrivia.cs) is part of CK-Database. 
-* Copyright © 2007-2014, Invenietis <http://www.invenietis.com>. All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,15 +6,35 @@ using System.Linq.Expressions;
 using CK.Core;
 using System.Diagnostics;
 using System.Globalization;
+using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
     public struct SqlTrivia
     {
+        readonly SqlTokenType _tokenType;
+        readonly string _text;
+
         /// <summary>
         /// A single space.
         /// </summary>
-        public static readonly IReadOnlyList<SqlTrivia> OneSpace = new CKReadOnlyListMono<SqlTrivia>( new SqlTrivia( SqlTokenType.None, " " ) );
+        public static readonly ImmutableList<SqlTrivia> OneSpace = ImmutableList.Create( new SqlTrivia( SqlTokenType.None, " " ) );
+
+        /// <summary>
+        /// The /*[ - Useless (By CK)*/ special comment.
+        /// </summary>
+        public static readonly SqlTrivia OpenBracketUselessComment = new SqlTrivia( SqlTokenType.StarComment, "[ - Useless (By CK)" );
+
+        /// <summary>
+        /// The /*] - Useless (By CK)*/ special comment.
+        /// </summary>
+        public static readonly SqlTrivia CloseBracketUselessComment = new SqlTrivia( SqlTokenType.StarComment, "] - Useless (By CK)" );
+
+        /// <summary>
+        /// The /*" - Useless (By CK)*/ special comment.
+        /// </summary>
+        public static readonly SqlTrivia QuoteUselessComment = new SqlTrivia( SqlTokenType.StarComment, "\" - Useless (By CK)" );
+
 
         public SqlTrivia( SqlTokenType tokenType, string text )
         {
@@ -29,27 +42,32 @@ namespace CK.SqlServer.Parser
             {
                 throw new ArgumentException( "Must be none, star or line comment.", "tokenType" );
             }
-            if( text == null ) throw new ArgumentNullException( "text" );
-            
-            TokenType = tokenType;
-            Text = text;
+            if( text == null ) text = String.Empty;
+            _tokenType = tokenType;
+            _text = text ?? String.Empty;
         }
 
         /// <summary>
         /// Gets a token type that can be <see cref="SqlTokenType.None"/> for white space
         /// or <see cref="SqlTokenType.LineComment"/> or <see cref="SqlTokenType.StarComment"/>. 
         /// </summary>
-        readonly public SqlTokenType TokenType;
-        
+        public SqlTokenType TokenType { get { return _tokenType; } }
+
         /// <summary>
-        /// Gets the text of this trivia. When it is a <see cref="SqlTokenType.LineComment"/> or <see cref="SqlTokenType.StarComment"/>,
+        /// Gets whether this trivia is empty.
+        /// </summary>
+        public bool IsEmpty => _tokenType == SqlTokenType.None && (_text == null || _text.Length == 0);
+
+        /// <summary>
+        /// Gets the text of this trivia. Never null. 
+        /// When it is a <see cref="SqlTokenType.LineComment"/> or <see cref="SqlTokenType.StarComment"/>,
         /// the -- or /* */ characters do not appear.
         /// </summary>
-        readonly public string Text;
+        public string Text { get { return _text ?? String.Empty; } }
 
         public override int GetHashCode()
         {
-            return Util.Hash.Combine( (long)TokenType, Text.GetHashCode()  ).GetHashCode();
+            return Util.Hash.Combine( (long)TokenType, Text.GetHashCode() ).GetHashCode();
         }
 
         public override bool Equals( object obj )
@@ -72,15 +90,6 @@ namespace CK.SqlServer.Parser
             return Text;
         }
 
-        public void Write( StringBuilder b )
-        {
-            switch( TokenType )
-            {
-                case SqlTokenType.LineComment: b.Append( "--" ).Append( Text ).Append( Environment.NewLine ); break;
-                case SqlTokenType.StarComment: b.Append( "/*" ).Append( Text ).Append( "*/" ); break;
-                default: b.Append( Text ); break;
-            }
-        }
     }
 
 }
