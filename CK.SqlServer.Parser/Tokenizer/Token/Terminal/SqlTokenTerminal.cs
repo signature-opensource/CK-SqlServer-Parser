@@ -63,7 +63,7 @@ namespace CK.SqlServer.Parser
             {
                 whiteSpaceAfter = false;
             }
-            w.Write( SqlTokenizer.Explain( TokenType ), whiteSpaceBefore, whiteSpaceAfter );
+            w.Write( SqlKeyword.ToString( TokenType ), whiteSpaceBefore, whiteSpaceAfter );
         }
 
         [DebuggerStepThrough]

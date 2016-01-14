@@ -120,7 +120,7 @@ namespace CK.SqlServer.Parser.Tests
         }
 
         [Test]
-        public void TokenExplainBasic()
+        public void SqlTokenType_are_mapped_to_explicit_strings()
         {
             Assert.That( SqlKeyword.ToString( SqlTokenType.IdentifierStandard ), Is.EqualTo( "¤IdentifierStandard" ) );
             Assert.That( SqlKeyword.ToString( SqlTokenType.IdentifierQuoted ), Is.EqualTo( "¤IdentifierQuoted" ) );
@@ -154,7 +154,7 @@ namespace CK.SqlServer.Parser.Tests
         }
 
         [Test]
-        public void TokenExplain()
+        public void Parsing_to_token_types()
         {
             string s = @"
 create table [a.b].tC( 
@@ -194,7 +194,7 @@ end
         }
 
         [Test]
-        public void Rewriting()
+        public void Float_and_Decimal_with_leading_dot_are_transformed_with_a_leading_Zero_Dot()
         {
             SqlTokenizer p = new SqlTokenizer();
             string s = @"create table [a.b] . tC ( TheName nvarchar ( 1254 ) ) ;
@@ -217,7 +217,7 @@ end".NormalizeEOL();
         }
 
         [Test]
-        public void IdentifiersAndTerminal()
+        public void removing_quotes_around_identifier_takes_care_of_the_SQL_reserved_keywords()
         {
             SqlTokenizer p = new SqlTokenizer();
             SqlToken t;
@@ -308,7 +308,7 @@ end".NormalizeEOL();
         }
 
         [Test]
-        public void Numbers()
+        public void parsing_numbers_and_money()
         {
             SqlTokenizer p = new SqlTokenizer();
 
@@ -337,7 +337,7 @@ end".NormalizeEOL();
         }
 
         [Test]
-        public void CommentsAreTrivias()
+        public void Comments_are_Trivias()
         {
             string s = @"'' -- CancelDate";
             SqlTokenizer p = new SqlTokenizer();
@@ -353,7 +353,7 @@ end".NormalizeEOL();
         }
         
         [Test]
-        public void LineCommentsEatsItsPrefixAndLineTermination()
+        public void LineComment_eats_its_prefix_and_LineTermination()
         {
             string s = @"'' -- CancelDate
 TOKEN";
@@ -365,7 +365,7 @@ TOKEN";
             Assert.That( tokens[0].TrailingTrivias[0].TokenType == SqlTokenType.None );
             Assert.That( tokens[0].TrailingTrivias[0].Text == " " );
             Assert.That( tokens[0].TrailingTrivias[1].TokenType == SqlTokenType.LineComment );
-            Assert.That( tokens[0].TrailingTrivias[1].Text == " CancelDate", "No line endings into it." );
+            Assert.That( tokens[0].TrailingTrivias[1].Text == " CancelDate", "No line endings in Text." );
             Assert.That( tokens[1].TokenType == SqlTokenType.IdentifierStandard );
             Assert.That( tokens[1].LeadingTrivias.Count == 0 );
             Assert.That( tokens[1].TrailingTrivias.Count == 0 );

@@ -22,7 +22,7 @@ namespace CK.SqlServer.Parser
 
         public override void WriteWithoutTrivias( ISqlTextWriter w )
         {
-            Debug.Assert( SqlTokenizer.Explain( SqlTokenType.ClosePar ) == ")" );
+            Debug.Assert( SqlKeyword.ToString( SqlTokenType.ClosePar ) == ")" );
             w.Write( ")", whiteSpaceBefore: false, whiteSpaceAfter : null );
         }
 

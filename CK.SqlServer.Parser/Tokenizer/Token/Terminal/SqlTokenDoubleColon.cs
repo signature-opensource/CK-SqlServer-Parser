@@ -22,7 +22,7 @@ namespace CK.SqlServer.Parser
 
         public override void WriteWithoutTrivias( ISqlTextWriter w )
         {
-            Debug.Assert( SqlTokenizer.Explain( SqlTokenType.DoubleColons ) == "::" );
+            Debug.Assert( SqlKeyword.ToString( SqlTokenType.DoubleColons ) == "::" );
             w.Write( "::", whiteSpaceBefore: false, whiteSpaceAfter: false );
         }
 

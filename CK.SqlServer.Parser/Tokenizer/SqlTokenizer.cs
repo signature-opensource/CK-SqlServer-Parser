@@ -200,11 +200,6 @@ namespace CK.SqlServer.Parser
         {
             return t > 0 ? (((int)(t & SqlTokenType.OpLevelMask)) >> (int)SqlTokenType.OpLevelShift) : 0;
         }
-
-        public static string Explain( SqlTokenType t )
-        {
-            return SqlKeyword.ToString( t );
-        }
     
         #region Implementation
 

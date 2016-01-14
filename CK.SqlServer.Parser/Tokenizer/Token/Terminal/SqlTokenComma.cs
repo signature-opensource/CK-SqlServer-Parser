@@ -22,7 +22,7 @@ namespace CK.SqlServer.Parser
 
         public override void WriteWithoutTrivias( ISqlTextWriter w )
         {
-            Debug.Assert( SqlTokenizer.Explain( SqlTokenType.Comma ) == "," );
+            Debug.Assert( SqlKeyword.ToString( SqlTokenType.Comma ) == "," );
             w.Write( ",", whiteSpaceBefore: false, whiteSpaceAfter: null );
         }
 

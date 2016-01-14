@@ -33,7 +33,7 @@ namespace CK.SqlServer.Parser
             {
                 throw new ArgumentException( string.Format( "{0} must be {1}, not {2}.",
                                                             name,
-                                                            SqlTokenizer.Explain( tokenType ),
+                                                            SqlKeyword.ToString( tokenType ),
                                                             token.ToString() ), name );
             }
         }
@@ -54,8 +54,8 @@ namespace CK.SqlServer.Parser
             {
                 throw new ArgumentException( string.Format( "Optional {0} must be {1}, not {2}.",
                                                             name,
-                                                            SqlTokenizer.Explain( tokenType ),
-                                                            SqlTokenizer.Explain( token.TokenType ) ), name );
+                                                            SqlKeyword.ToString( tokenType ),
+                                                            SqlKeyword.ToString( token.TokenType ) ), name );
             }
         }
 
@@ -65,9 +65,9 @@ namespace CK.SqlServer.Parser
             {
                 throw new ArgumentException( string.Format( "Optional {0} must be {1} or {2}, not {3}.",
                                                             name,
-                                                            SqlTokenizer.Explain( t1 ),
-                                                            SqlTokenizer.Explain( t2 ),
-                                                            SqlTokenizer.Explain( token.TokenType ) ), name );
+                                                            SqlKeyword.ToString( t1 ),
+                                                            SqlKeyword.ToString( t2 ),
+                                                            SqlKeyword.ToString( token.TokenType ) ), name );
             }
         }
 
@@ -77,11 +77,11 @@ namespace CK.SqlServer.Parser
             {
                 throw new ArgumentException( string.Format( "{0} must be {1}, {2}, {3} or {4}, not {5}.",
                                                             name,
-                                                            SqlTokenizer.Explain( t1 ),
-                                                            SqlTokenizer.Explain( t2 ),
-                                                            SqlTokenizer.Explain( t3 ),
-                                                            SqlTokenizer.Explain( t4 ),
-                                                            SqlTokenizer.Explain( token.TokenType ) ), name );
+                                                            SqlKeyword.ToString( t1 ),
+                                                            SqlKeyword.ToString( t2 ),
+                                                            SqlKeyword.ToString( t3 ),
+                                                            SqlKeyword.ToString( t4 ),
+                                                            SqlKeyword.ToString( token.TokenType ) ), name );
             }
         }
 
@@ -118,9 +118,9 @@ namespace CK.SqlServer.Parser
             {
                 throw new ArgumentException( string.Format( "{0} must be {1} or {2}, not {3}.",
                                                             name,
-                                                            SqlTokenizer.Explain( t1 ),
-                                                            SqlTokenizer.Explain( t2 ),
-                                                            SqlTokenizer.Explain( token.TokenType ) ), name );
+                                                            SqlKeyword.ToString( t1 ),
+                                                            SqlKeyword.ToString( t2 ),
+                                                            SqlKeyword.ToString( token.TokenType ) ), name );
             }
         }
 
@@ -131,10 +131,10 @@ namespace CK.SqlServer.Parser
             {
                 throw new ArgumentException( string.Format( "{0} must be {1}, {2} or {3}, not {4}.",
                                                             name,
-                                                            SqlTokenizer.Explain( t1 ),
-                                                            SqlTokenizer.Explain( t2 ),
-                                                            SqlTokenizer.Explain( t3 ),
-                                                            SqlTokenizer.Explain( token.TokenType ) ), name );
+                                                            SqlKeyword.ToString( t1 ),
+                                                            SqlKeyword.ToString( t2 ),
+                                                            SqlKeyword.ToString( t3 ),
+                                                            SqlKeyword.ToString( token.TokenType ) ), name );
             }
         }
 
@@ -145,11 +145,11 @@ namespace CK.SqlServer.Parser
             {
                 throw new ArgumentException( string.Format( "{0} must be {1}, {2}, {3} or {4}, not {5}.",
                                                             name,
-                                                            SqlTokenizer.Explain( t1 ),
-                                                            SqlTokenizer.Explain( t2 ),
-                                                            SqlTokenizer.Explain( t3 ),
-                                                            SqlTokenizer.Explain( t4 ),
-                                                            SqlTokenizer.Explain( token.TokenType ) ), name );
+                                                            SqlKeyword.ToString( t1 ),
+                                                            SqlKeyword.ToString( t2 ),
+                                                            SqlKeyword.ToString( t3 ),
+                                                            SqlKeyword.ToString( t4 ),
+                                                            SqlKeyword.ToString( token.TokenType ) ), name );
             }
         }
 
