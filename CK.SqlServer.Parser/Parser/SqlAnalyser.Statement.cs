@@ -39,7 +39,7 @@ namespace CK.SqlServer.Parser
             SqlTokenIdentifier id = R.Current as SqlTokenIdentifier;
             
             if( // A statement starts with an identifier that must be non quoted and not a variable.
-                (id == null || id.IsQuoted || id.IsVariable)
+                (id == null || id.TokenType.IsQuotedIdentifier() || id.TokenType.IsVariable() )
                 // End Conversation ... is a statement.
                 // We do not handle End alone: this is the end of a block above.
                 || (id.TokenType == SqlTokenType.End && R.RawLookup.TokenType != SqlTokenType.Conversation)
@@ -117,6 +117,10 @@ namespace CK.SqlServer.Parser
                 {
                     return MatchFunction( id );
                 }
+                if( R.Current.TokenType == SqlTokenType.Trigger )
+                {
+                    return MatchTrigger( id );
+                }
                 return IsStatementStartedByIdentifier( id );
             }
             if( id.TokenType == SqlTokenType.If )
@@ -138,7 +142,7 @@ namespace CK.SqlServer.Parser
             if( id.TokenType == SqlTokenType.Return )
             {
                 R.MoveNext();
-                ISqlNode value = IsOneExpression( false );
+                ISqlNode value = IsAnyExpression( false, false );
                 return R.IsError ? null : new SqlReturnStatement( id, value, GetOptionalTerminator() );
             }
             if( id.TokenType == SqlTokenType.Raiserror )
@@ -268,7 +272,7 @@ namespace CK.SqlServer.Parser
                 }
                 return new SqlCTEStatement( id, names, s );
             }
-            if( id.IsStartStatement )
+            if( id.TokenType.IsStartStatement() )
             {
                 R.MoveNext();
                 return IsStatementStartedByIdentifier( id );
@@ -730,7 +734,7 @@ namespace CK.SqlServer.Parser
                 //    [ AS ]
                 //    RETURN [ ( ] select_stmt [ ) ]
                 // [ ; ]
-                SqlWithOptions options = IsIdentifierPrefixedCommaList( false, SqlTokenType.With, 1, IsFunctionOrProcedureOption, ( p, i ) => new SqlWithOptions( p, i ) );
+                SqlWithOptions options = IsIdentifierPrefixedCommaList( false, SqlTokenType.With, 1, IsFunctionOrProcedureOrTriggerOption, ( p, i ) => new SqlWithOptions( p, i ) );
                 SqlTokenIdentifier asT;
                 R.IsToken( out asT, SqlTokenType.As, false );
                 SqlTokenIdentifier returnT;
@@ -788,7 +792,7 @@ namespace CK.SqlServer.Parser
                     returnScalarType = IsTypeDecl( true );
                     if( returnScalarType == null ) return null;
                 }
-                SqlWithOptions options = IsIdentifierPrefixedCommaList( false, SqlTokenType.With, 1, IsFunctionOrProcedureOption, ( p, i ) => new SqlWithOptions( p, i ) );
+                SqlWithOptions options = IsIdentifierPrefixedCommaList( false, SqlTokenType.With, 1, IsFunctionOrProcedureOrTriggerOption, ( p, i ) => new SqlWithOptions( p, i ) );
                 SqlTokenIdentifier asT;
                 R.IsToken( out asT, SqlTokenType.As, false );
                 SqlTokenIdentifier beginT = IsBeginOfBlock( true );
@@ -863,10 +867,9 @@ namespace CK.SqlServer.Parser
             SqlParameterList parameters = IsParameterList( Parenthesis.Optional );
             if( parameters == null ) return null;
 
+            SqlWithOptions options = IsIdentifierPrefixedCommaList( false, SqlTokenType.With, 1, IsFunctionOrProcedureOrTriggerOption, ( p, i ) => new SqlWithOptions( p, i ) );
             SqlTokenIdentifier asToken;
-            SqlNodeList options = IsSqlNodeList( out asToken, t => t.TokenType == SqlTokenType.As, IsExecuteAs );
-            if( options == null ) return null;
-            if( options.IsEmpty ) options = null;
+            if( !R.IsToken( out asToken, SqlTokenType.As, true ) ) return null;
 
             SqlTokenIdentifier begin = IsBeginOfBlock( false );
             SqlStatementList bodyStatements = IsStatementList( true );
@@ -876,10 +879,47 @@ namespace CK.SqlServer.Parser
             return new SqlStoredProcedure( alterOrCreate, type, name, parameters, options, asToken, begin, bodyStatements, end, GetOptionalTerminator() );
         }
 
-        ISqlNode IsFunctionOrProcedureOption( bool expected )
+        SqlTrigger MatchTrigger( SqlTokenIdentifier alterOrCreate )
+        {
+            SqlTokenIdentifier type = R.Read<SqlTokenIdentifier>();
+            Debug.Assert( type.TokenType == SqlTokenType.Trigger );
+            ISqlIdentifier name = IsIdentifier( true );
+            if( name == null ) return null;
+
+            SqlTokenIdentifier onT;
+            if( !R.IsToken( out onT, SqlTokenType.On, true ) ) return null;
+
+            ISqlNode target;
+            SqlTokenIdentifier allT, serverT = null;
+            if( R.IsToken( out allT, SqlTokenType.All, false )
+                && !R.IsToken( out serverT, SqlTokenType.Server, true ) ) return null;
+            if( allT != null )
+            {
+                target = new SqlNodeList( allT, serverT );
+            }
+            else if( (target = IsIdentifier( true )) == null ) return null;
+
+            SqlWithOptions options = IsIdentifierPrefixedCommaList( false, SqlTokenType.With, 1, IsFunctionOrProcedureOrTriggerOption, ( p, i ) => new SqlWithOptions( p, i ) );
+
+            // { FOR | AFTER | INSTEAD OF } { [INSERT] [,] [UPDATE] [,] [DELETE] }
+            // [WITH APPEND]
+            // [NOT FOR REPLICATION]
+            // or 
+            // { FOR | AFTER } { event_type | event_group } [ ,...n ]
+
+            SqlTokenIdentifier asT;
+            SqlNodeList configuration = IsSqlNodeList( out asT, t => t.TokenType == SqlTokenType.As );
+            if( R.IsError ) return null;
+            SqlStatementList bodyStatements = IsStatementList( true );
+            if( bodyStatements == null ) return null;
+            return new SqlTrigger( alterOrCreate, type, name, onT, target, options, configuration, asT, bodyStatements, GetOptionalTerminator() );
+        }
+
+        ISqlNode IsFunctionOrProcedureOrTriggerOption( bool expected )
         {
             SqlToken t1, t2, t3, t4 = null, t5 = null;
             if( R.IsToken( out t1, SqlTokenType.Recompile, false )
+                || R.IsToken( out t1, SqlTokenType.NativeCompilation, false )
                 || R.IsToken( out t1, SqlTokenType.Encryption, false )
                 || R.IsToken( out t1, SqlTokenType.SchemaBinding, false ) ) return t1;
 
@@ -1047,7 +1087,8 @@ namespace CK.SqlServer.Parser
             if( tableDecl != null ) return tableDecl;
 
             SqlTokenIdentifier id;
-            if( R.IsToken( out id, t => t.IsDbType, false ) )
+            if( R.IsToken( out id, t => t.TokenType.IsDbType(), false )
+                || (id = R.IsQuotedDbTypeWithUselessComments( false )) != null )
             {
                 Debug.Assert( SqlKeyword.FromSqlTokenTypeToSqlDbType( id.TokenType ).HasValue, "TokenType has been mapped to a SqlDbType." );
 
@@ -1179,21 +1220,6 @@ namespace CK.SqlServer.Parser
             if( !R.IsToken( out closer, true ) ) return null;
             return new SqlTypeDeclTable( tableT, opener, content, closer );
         }
-
-        SqlExecuteAs IsExecuteAs( bool expected )
-        {
-            SqlTokenIdentifier execToken;
-            if( !R.IsToken( out execToken, SqlTokenType.Execute, expected ) ) return null;
-
-            SqlTokenIdentifier asToken;
-            if( !R.IsToken( out asToken, SqlTokenType.As, true ) ) return null;
-
-            SqlToken right;
-            if( !R.IsToken( out right, true ) ) return null;
-
-            return new SqlExecuteAs( execToken, asToken, right );
-        }
-
 
     }
 

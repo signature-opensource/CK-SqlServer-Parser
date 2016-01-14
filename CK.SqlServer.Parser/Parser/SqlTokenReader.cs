@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using CK.Core;
+using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
@@ -290,17 +291,31 @@ namespace CK.SqlServer.Parser
             return false;
         }
 
-        public bool IsUnquotedIdentifier( out SqlTokenIdentifier identifier, string name, bool expected )
+        public SqlTokenIdentifier IsQuotedDbTypeWithUselessComments( bool expected )
         {
-            identifier = Current as SqlTokenIdentifier;
-            if( identifier != null && !identifier.IsQuoted && identifier.NameEquals( name ) )
+            if( Current.TokenType.IsQuotedIdentifier() )
             {
-                MoveNext();
-                return true;
+                SqlTokenIdentifier c = (SqlTokenIdentifier)_c;
+                SqlTokenType newType = SqlKeyword.MapKeyword( c.Name );
+                if( newType.IsDbType() && newType != SqlTokenType.TableDbType )
+                {
+                    ImmutableList<SqlTrivia> leading, trailing;
+                    if( c.TokenType == SqlTokenType.IdentifierQuotedBracket )
+                    {
+                        leading = c.LeadingTrivias.Add( SqlTrivia.OpenBracketUselessComment );
+                        trailing = c.TrailingTrivias.Insert( 0, SqlTrivia.CloseBracketUselessComment );
+                    }
+                    else
+                    {
+                        leading = c.LeadingTrivias.Add( SqlTrivia.QuoteUselessComment );
+                        trailing = c.TrailingTrivias.Insert( 0, SqlTrivia.QuoteUselessComment );
+                    }
+                    MoveNext();
+                    return new SqlTokenIdentifier( newType, c.Name, leading, trailing );
+                }
             }
-            if( expected ) SetCurrentError( "Expected '{0}' identifier.", name );
-            identifier = null;
-            return false;
+            if( expected ) SetCurrentError( "Expected quoted type identifier." );
+            return null;
         }
 
         /// <summary>

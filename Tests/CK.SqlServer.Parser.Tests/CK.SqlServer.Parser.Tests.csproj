@@ -95,6 +95,7 @@
     <Content Include="Parsing\Scripts\AdventureWorks2012-FullSchema.sql" />
     <Content Include="XmlTests\Big procedures.xml" />
     <Content Include="XmlTests\Functions.xml" />
+    <Content Include="XmlTests\Trigger.xml" />
     <Content Include="XmlTests\TryCatch.xml" />
     <Content Include="XmlTests\Merge.xml" />
     <Content Include="XmlTests\Update.xml" />

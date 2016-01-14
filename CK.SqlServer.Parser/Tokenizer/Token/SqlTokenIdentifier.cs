@@ -26,37 +26,9 @@ namespace CK.SqlServer.Parser
         }
 
         /// <summary>
-        /// True for type names like 'int', 'sql_variant' or 'table' (since it is mapped to <see cref="SqlDbType.Structured"/>). 
-        /// </summary>
-        public bool IsDbType => (TokenType&SqlTokenType.IdentifierTypeMask) == SqlTokenType.IdentifierDbType
-                                || (TokenType&SqlTokenType.IdentifierTypeMask) == SqlTokenType.IdentifierReservedDbType; 
-
-        /// <summary>
-        /// True if this <see cref="SqlTokenIdentifier"/> is [quoted] or "quoted".
-        /// </summary>
-        public bool IsQuoted => TokenType == SqlTokenType.IdentifierQuoted || TokenType == SqlTokenType.IdentifierQuotedBracket;
-
-        /// <summary>
         /// True if this <see cref="SqlTokenIdentifier"/> is a @Variable or a @@SystemFunction.
         /// </summary>
-        public bool IsVariable => TokenType == SqlTokenType.IdentifierVariable;
-
-        /// <summary>
-        /// True if this <see cref="SqlTokenIdentifier"/> is a special identifiers like 
-        /// star (in “select t.* from t)”, $identity, $Partition, $action etc. .
-        /// </summary>
-        public bool IsSpecial => TokenType == SqlTokenType.IdentifierSpecial;
-
-        /// <summary>
-        /// True if this <see cref="SqlTokenIdentifier"/> denotes a reserved keyword (select, create, declare, etc.)
-        /// or a standard identifer that starts a statement (throw, get, move, etc.).
-        /// </summary>
-        public bool IsStartStatement => TokenType.IsStartStatement();
-
-        /// <summary>
-        /// True if this <see cref="SqlTokenIdentifier"/> is a reserved keyword.
-        /// </summary>
-        public bool IsReservedKeyword => TokenType.IsReservedKeyword();
+        public bool IsVariable => TokenType.IsVariable();
 
         bool ISqlIdentifier.IsOpenDataSouce => false;
 
@@ -80,23 +52,26 @@ namespace CK.SqlServer.Parser
 
         public SqlTokenIdentifier RemoveQuoteIfPossible( bool keepIfReservedKeyword )
         {
-            // Already quote free.
-            if( !IsQuoted ) return this;
+            // Already quotes free.
+            if( !TokenType.IsQuotedIdentifier() ) return this;
             
             // Quotes exist.
             
             // Are quotes required? If yes, don't do it.
-            if( SqlToken.IsQuoteRequired( Name ) ) return this;
+            if( SqlToken.IsQuoteRequired( _name ) ) return this;
 
             // If it is a known (reserved) keyword and it must be preserved, do not do anything.
             SqlTokenType typeWithoutQuote;
-            bool isReservedKeyWord = SqlKeyword.IsReservedKeyword( Name, out typeWithoutQuote );
+            bool isReservedKeyWord = SqlKeyword.IsReservedKeyword( _name, out typeWithoutQuote );
             if( keepIfReservedKeyword && isReservedKeyWord ) return this;
             if( typeWithoutQuote == SqlTokenType.None ) typeWithoutQuote = SqlTokenType.IdentifierStandard;
 
-            return new SqlTokenIdentifier( typeWithoutQuote, Name, LeadingTrivias, TrailingTrivias );
+            return new SqlTokenIdentifier( typeWithoutQuote, _name, LeadingTrivias, TrailingTrivias );
         }
 
+        /// <summary>
+        /// Gets the identifier string (without quotes or brackets if this is quoted).
+        /// </summary>
         public string Name => _name; 
 
         public bool NameEquals( string name )
@@ -114,10 +89,10 @@ namespace CK.SqlServer.Parser
             switch( TokenType )
             {
                 case SqlTokenType.IdentifierQuoted:
-                    return "\"" + Name.Replace( "\"", "\"\"" ) + "\"";
+                    return "\"" + _name.Replace( "\"", "\"\"" ) + "\"";
                 case SqlTokenType.IdentifierQuotedBracket:
-                    return "[" + Name.Replace( "]", "]]" ) + "]";
-                default: return Name;
+                    return "[" + _name.Replace( "]", "]]" ) + "]";
+                default: return _name;
             }
         }
 

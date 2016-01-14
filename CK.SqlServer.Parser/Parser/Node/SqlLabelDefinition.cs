@@ -26,7 +26,7 @@ namespace CK.SqlServer.Parser
         void CheckContent()
         {
             if( IdentifierT == null
-                || IdentifierT.IsQuoted
+                || IdentifierT.TokenType.IsQuotedIdentifier()
                 || SqlKeyword.IsReservedKeyword( IdentifierT.Name )
                 || IdentifierT.TrailingTrivias.Count > 0
                 || Colon == null

@@ -9,159 +9,15 @@ namespace CK.SqlServer.Parser
 {
     public static class SqlKeyword
     {
-        #region Arrays of keywords
+        static Dictionary<string, SqlTokenType> _keywords;
+        static Dictionary<SqlTokenType, string> _typeToString;
 
-        /// <summary>
-        /// Mapped to SqlTokenType.IdentifierReserved.
-        /// </summary>
-        static string[] _sqlServerReserved = new string[] 
+        static void RegKeyword( string name, SqlTokenType t )
         {
-            "freetext",
-            "freetexttable",
-            "reconfigure",
-            "references",
-            "full",
-            "replication",
-            "bulk",
-            "check",
-            "holdlock",
-            "right",
-            "checkpoint",
-            "identity",
-            "identity_insert",
-            "rowcount",
-            "save",
-            "column",
-            "index",
-            "schema",
-            "inner",
-            "securityaudit",
-            "compute",
-            "constraint",
-            "session_user",
-            "setuser",
-            "join",
-            "shutdown",
-            "convert",
-            "key",
-            "statistics",
-            "system_user",
-            "current_date",
-            "lineno",
-            "tablesample",
-            "current_time",
-            "load",
-            "textsize",
-            "current_timestamp",
-            "current_user",
-            "national",
-            "nullif",
-            "tsequal",
-            "off",
-            "offsets",
-            "unique",
-            "unpivot",
-            "disk",
-            "dump",
-            "errlvl",
-
-            "restrict",
-            "cascade",
-            "revert",
-            "revoke",
-            "any",
-            "some",
-            "precision",
-            "exit",
-            "primary",
-            "plan",
-            "file",
-            "fillfactor",
-            "public",
-            "authorization",
-            "distributed",
-            "coalesce",
-            "rule",
-            "identitycol",
-            "rowguidcol",
-            "contains",
-            "containstable",
-            "nocheck",
-            "nonclustered",
-            "double",
-            "outer",
-
-            // These keywords are explicitly associated to a SqlTokenType (OpLevelXX | IdentifierReserved | YY).
-            // "or",
-            // "and",
-            // "not",
-            // "between",
-            // "in",
-            // "is",
-            // "like",
-            // "union",
-            // "intersect",
-            // "except",
-            // "order",
-            // "for",
-            // "over",
-
-            // These keywords are explicitly associated to a SqlTokenType (IdentifierStandard | YY).
-            // "case",
-            // "when",
-            // "null",
-            // "when",
-            // "by",
-            // "all",
-            // "then",
-            // "else",
-            // "tran", "transaction",   // Both map to SqlTokenType.Transaction.
-            // "with",                  // Considered as a normal reserved keyword (not a IdentifierReservedStart) since it is mandatory to put a ; before it.
-            // "proc", "procedure",
-            // "function",
-            // "view",
-            // "table",
-            // "database",
-            // "trigger",
-            // "as",
-            // "asc",
-            // "desc",
-            // "exists",
-            // "on",
-            // "to",
-            // "of",
-            // "top",
-            // "escape",
-            // "into", 
-            // "from", 
-            // "where",
-            // "group",
-            // "option",
-            // "add",
-            // "max",
-            // "output",
-            // "readonly",
-            // "cross",
-            // "foreign",
-            // "clustered",
-            // "left",
-            // "percent",
-            // "values",
-            // "distinct",
-            // "cursor",
-            // "scroll",
-            // "insensitive",
-            // "read",
-            // "pivot",
-            // "current",
-            // "varying",
-
-
-        };
-
-        #endregion
-
-        static Dictionary<string,SqlTokenType> _keywords;
+            _keywords.Add( name, t );
+            if( _typeToString.ContainsKey( t ) ) Debugger.Break();
+            _typeToString.Add( t, name );
+        }
 
         static SqlDbType[] _sqlDbTypesMapped = new SqlDbType[]
             {
@@ -231,216 +87,365 @@ namespace CK.SqlServer.Parser
             Debug.Assert( _sqlDbTypesMapped[(int)(SqlTokenType.TableDbType              & SqlTokenType.IdentifierValueMask)] == SqlDbType.Structured );
 
             _keywords = new Dictionary<string, SqlTokenType>( StringComparer.InvariantCultureIgnoreCase );
+            _typeToString = new Dictionary<SqlTokenType, string>();
 
             // Identifiers mapped to SqlTokenType.
-            
+
             // SqlDbType mapping.
-            _keywords.Add( "sql_variant", SqlTokenType.VariantDbType );
-            _keywords.Add( "xml", SqlTokenType.XmlDbType );
-            _keywords.Add( "datetimeoffset", SqlTokenType.DateTimeOffsetDbType );
-            _keywords.Add( "datetime2", SqlTokenType.DateTime2DbType );
-            _keywords.Add( "datetime", SqlTokenType.DateTimeDbType );
-            _keywords.Add( "smalldatetime", SqlTokenType.SmallDateTimeDbType );
-            _keywords.Add( "date", SqlTokenType.DateDbType );
-            _keywords.Add( "time", SqlTokenType.TimeDbType );
-            _keywords.Add( "float", SqlTokenType.FloatDbType );
-            _keywords.Add( "real", SqlTokenType.RealDbType );
-            _keywords.Add( "decimal", SqlTokenType.DecimalDbType );
+            RegKeyword( "sql_variant", SqlTokenType.VariantDbType );
+            RegKeyword( "xml", SqlTokenType.XmlDbType );
+            RegKeyword( "datetimeoffset", SqlTokenType.DateTimeOffsetDbType );
+            RegKeyword( "datetime2", SqlTokenType.DateTime2DbType );
+            RegKeyword( "datetime", SqlTokenType.DateTimeDbType );
+            RegKeyword( "smalldatetime", SqlTokenType.SmallDateTimeDbType );
+            RegKeyword( "date", SqlTokenType.DateDbType );
+            RegKeyword( "time", SqlTokenType.TimeDbType );
+            RegKeyword( "float", SqlTokenType.FloatDbType );
+            RegKeyword( "real", SqlTokenType.RealDbType );
+            RegKeyword( "decimal", SqlTokenType.DecimalDbType );
             _keywords.Add( "numeric", SqlTokenType.DecimalDbType );
-            _keywords.Add( "money", SqlTokenType.MoneyDbType );
-            _keywords.Add( "smallmoney", SqlTokenType.SmallMoneyDbType );
-            _keywords.Add( "bigint", SqlTokenType.BigIntDbType );
-            _keywords.Add( "int", SqlTokenType.IntDbType );
-            _keywords.Add( "smallint", SqlTokenType.SmallIntDbType );
-            _keywords.Add( "tinyint", SqlTokenType.TinyIntDbType );
-            _keywords.Add( "bit", SqlTokenType.BitDbType );
-            _keywords.Add( "ntext", SqlTokenType.NTextDbType );
-            _keywords.Add( "text", SqlTokenType.TextDbType );
-            _keywords.Add( "image", SqlTokenType.ImageDbType );
-            _keywords.Add( "timestamp", SqlTokenType.TimestampDbType );
-            _keywords.Add( "uniqueidentifier", SqlTokenType.UniqueIdentifierDbType );
-            _keywords.Add( "nvarchar", SqlTokenType.NVarCharDbType );
-            _keywords.Add( "nchar", SqlTokenType.NCharDbType );
-            _keywords.Add( "varchar", SqlTokenType.VarCharDbType );
-            _keywords.Add( "char", SqlTokenType.CharDbType );
-            _keywords.Add( "varbinary", SqlTokenType.VarBinaryDbType );
-            _keywords.Add( "binary", SqlTokenType.BinaryDbType );
-            _keywords.Add( "table", SqlTokenType.TableDbType );
+            RegKeyword( "money", SqlTokenType.MoneyDbType );
+            RegKeyword( "smallmoney", SqlTokenType.SmallMoneyDbType );
+            RegKeyword( "bigint", SqlTokenType.BigIntDbType );
+            RegKeyword( "int", SqlTokenType.IntDbType );
+            RegKeyword( "smallint", SqlTokenType.SmallIntDbType );
+            RegKeyword( "tinyint", SqlTokenType.TinyIntDbType );
+            RegKeyword( "bit", SqlTokenType.BitDbType );
+            RegKeyword( "ntext", SqlTokenType.NTextDbType );
+            RegKeyword( "text", SqlTokenType.TextDbType );
+            RegKeyword( "image", SqlTokenType.ImageDbType );
+            RegKeyword( "timestamp", SqlTokenType.TimestampDbType );
+            RegKeyword( "uniqueidentifier", SqlTokenType.UniqueIdentifierDbType );
+            RegKeyword( "nvarchar", SqlTokenType.NVarCharDbType );
+            RegKeyword( "nchar", SqlTokenType.NCharDbType );
+            RegKeyword( "varchar", SqlTokenType.VarCharDbType );
+            RegKeyword( "char", SqlTokenType.CharDbType );
+            RegKeyword( "varbinary", SqlTokenType.VarBinaryDbType );
+            RegKeyword( "binary", SqlTokenType.BinaryDbType );
+            RegKeyword( "table", SqlTokenType.TableDbType );
 
             Debug.Assert( _keywords.Values.All( t => !t.IsReservedKeyword()
                                                     || t == SqlTokenType.TableDbType ), 
                                             "Sql database type names are not reserved keyworkds except 'table'." );
 
             // SqlTokenType.IdentifierStandardStatement values: these are not reserved keywords but they can start a statement.
-            _keywords.Add( "throw", SqlTokenType.Throw );
-            _keywords.Add( "get", SqlTokenType.Get );
-            _keywords.Add( "move", SqlTokenType.Move );
-            _keywords.Add( "receive", SqlTokenType.Receive );
-            _keywords.Add( "send", SqlTokenType.Send );
+            RegKeyword( "throw", SqlTokenType.Throw );
+            RegKeyword( "get", SqlTokenType.Get );
+            RegKeyword( "move", SqlTokenType.Move );
+            RegKeyword( "receive", SqlTokenType.Receive );
+            RegKeyword( "send", SqlTokenType.Send );
 
             // SqlTokenType.IdentifierStandard values: these are not reserved keywords.
-            _keywords.Add( "try", SqlTokenType.Try );
-            _keywords.Add( "catch", SqlTokenType.Catch );
-            _keywords.Add( "dialog", SqlTokenType.Dialog );
-            _keywords.Add( "conversation", SqlTokenType.Conversation );
-            _keywords.Add( "returns", SqlTokenType.Returns );
-            _keywords.Add( "max", SqlTokenType.Max );
-            _keywords.Add( "insensitive", SqlTokenType.Insensitive );
-            _keywords.Add( "scroll", SqlTokenType.Scroll );
-            _keywords.Add( "mark", SqlTokenType.Mark );
-            _keywords.Add( "json", SqlTokenType.Json );
-            _keywords.Add( "system_time", SqlTokenType.SystemTime );
-            _keywords.Add( "ties", SqlTokenType.Ties );
-            _keywords.Add( "readonly", SqlTokenType.Readonly );
+            RegKeyword( "try", SqlTokenType.Try );
+            RegKeyword( "catch", SqlTokenType.Catch );
+            RegKeyword( "dialog", SqlTokenType.Dialog );
+            RegKeyword( "conversation", SqlTokenType.Conversation );
+            RegKeyword( "returns", SqlTokenType.Returns );
+            RegKeyword( "max", SqlTokenType.Max );
+            RegKeyword( "insensitive", SqlTokenType.Insensitive );
+            RegKeyword( "scroll", SqlTokenType.Scroll );
+            RegKeyword( "mark", SqlTokenType.Mark );
+            RegKeyword( "json", SqlTokenType.Json );
+            RegKeyword( "system_time", SqlTokenType.SystemTime );
+            RegKeyword( "ties", SqlTokenType.Ties );
+            RegKeyword( "readonly", SqlTokenType.Readonly );
+            RegKeyword( "output", SqlTokenType.Output );
             _keywords.Add( "out", SqlTokenType.Output );
-            _keywords.Add( "output", SqlTokenType.Output );
+            RegKeyword( "rows", SqlTokenType.Rows );
             _keywords.Add( "row", SqlTokenType.Rows );
-            _keywords.Add( "rows", SqlTokenType.Rows );
-            _keywords.Add( "offset", SqlTokenType.Offset );
-            _keywords.Add( "first", SqlTokenType.First );
-            _keywords.Add( "next", SqlTokenType.Next );
-            _keywords.Add( "only", SqlTokenType.Only );
-            _keywords.Add( "cast", SqlTokenType.Cast );
-            _keywords.Add( "value", SqlTokenType.Value );
-            _keywords.Add( "matched", SqlTokenType.Matched );
-            _keywords.Add( "recompile", SqlTokenType.Recompile );
-            _keywords.Add( "result", SqlTokenType.Result );
-            _keywords.Add( "sets", SqlTokenType.Sets );
-            _keywords.Add( "undefined", SqlTokenType.Undefined );
-            _keywords.Add( "login", SqlTokenType.Login );
-            _keywords.Add( "at", SqlTokenType.At );
-            _keywords.Add( "using", SqlTokenType.Using );
-            _keywords.Add( "global", SqlTokenType.Global );
-            _keywords.Add( "openjson", SqlTokenType.OpenJSON );
+            RegKeyword( "offset", SqlTokenType.Offset );
+            RegKeyword( "first", SqlTokenType.First );
+            RegKeyword( "next", SqlTokenType.Next );
+            RegKeyword( "only", SqlTokenType.Only );
+            RegKeyword( "cast", SqlTokenType.Cast );
+            RegKeyword( "value", SqlTokenType.Value );
+            RegKeyword( "matched", SqlTokenType.Matched );
+            RegKeyword( "recompile", SqlTokenType.Recompile );
+            RegKeyword( "result", SqlTokenType.Result );
+            RegKeyword( "sets", SqlTokenType.Sets );
+            RegKeyword( "undefined", SqlTokenType.Undefined );
+            RegKeyword( "login", SqlTokenType.Login );
+            RegKeyword( "at", SqlTokenType.At );
+            RegKeyword( "using", SqlTokenType.Using );
+            RegKeyword( "global", SqlTokenType.Global );
+            RegKeyword( "openjson", SqlTokenType.OpenJSON );
 
-            _keywords.Add( "encryption", SqlTokenType.Encryption);
-            _keywords.Add( "schemabinding", SqlTokenType.SchemaBinding );
-            _keywords.Add( "input", SqlTokenType.Input );
-            _keywords.Add( "called", SqlTokenType.Called );
+            RegKeyword( "encryption", SqlTokenType.Encryption);
+            RegKeyword( "schemabinding", SqlTokenType.SchemaBinding );
+            RegKeyword( "input", SqlTokenType.Input );
+            RegKeyword( "called", SqlTokenType.Called );
+            RegKeyword( "native_compilation", SqlTokenType.NativeCompilation );
+            RegKeyword( "server", SqlTokenType.Server );
 
             // LogicalOperator (they are reserved keywords).
-            _keywords.Add( "or", SqlTokenType.Or );
-            _keywords.Add( "and", SqlTokenType.And );
-            _keywords.Add( "not", SqlTokenType.Not );
+            RegKeyword( "or", SqlTokenType.Or );
+            RegKeyword( "and", SqlTokenType.And );
+            RegKeyword( "not", SqlTokenType.Not );
             // CompareOperator (they are reserved keywords).
-            _keywords.Add( "between", SqlTokenType.Between );
-            _keywords.Add( "in", SqlTokenType.In );
-            _keywords.Add( "is", SqlTokenType.Is );
-            _keywords.Add( "like", SqlTokenType.Like );
+            RegKeyword( "between", SqlTokenType.Between );
+            RegKeyword( "in", SqlTokenType.In );
+            RegKeyword( "is", SqlTokenType.Is );
+            RegKeyword( "like", SqlTokenType.Like );
             // Select operators (they are reserved keywords).
-            _keywords.Add( "union", SqlTokenType.Union );
-            _keywords.Add( "intersect", SqlTokenType.Intersect );
-            _keywords.Add( "except", SqlTokenType.Except );
-            _keywords.Add( "order", SqlTokenType.Order );
-            _keywords.Add( "for", SqlTokenType.For );
+            RegKeyword( "union", SqlTokenType.Union );
+            RegKeyword( "intersect", SqlTokenType.Intersect );
+            RegKeyword( "except", SqlTokenType.Except );
+            RegKeyword( "order", SqlTokenType.Order );
+            RegKeyword( "for", SqlTokenType.For );
 
             // SqlTokenType.IdentifierReserved values.
-            _keywords.Add( "case", SqlTokenType.Case );
-            _keywords.Add( "null", SqlTokenType.Null );
-            _keywords.Add( "when", SqlTokenType.When );
-            _keywords.Add( "by", SqlTokenType.By );
-            _keywords.Add( "all", SqlTokenType.All );
-            _keywords.Add( "then", SqlTokenType.Then );
-            _keywords.Add( "else", SqlTokenType.Else );
+            RegKeyword( "case", SqlTokenType.Case );
+            RegKeyword( "null", SqlTokenType.Null );
+            RegKeyword( "when", SqlTokenType.When );
+            RegKeyword( "by", SqlTokenType.By );
+            RegKeyword( "all", SqlTokenType.All );
+            RegKeyword( "then", SqlTokenType.Then );
+            RegKeyword( "else", SqlTokenType.Else );
+            RegKeyword( "transaction", SqlTokenType.Transaction );
             _keywords.Add( "tran", SqlTokenType.Transaction );
-            _keywords.Add( "transaction", SqlTokenType.Transaction );
-            _keywords.Add( "with", SqlTokenType.With );
+            RegKeyword( "with", SqlTokenType.With );
+            RegKeyword( "procedure", SqlTokenType.Procedure );
             _keywords.Add( "proc", SqlTokenType.Procedure );
-            _keywords.Add( "procedure", SqlTokenType.Procedure );
-            _keywords.Add( "function", SqlTokenType.Function );
-            _keywords.Add( "view", SqlTokenType.View );
-            _keywords.Add( "trigger", SqlTokenType.Trigger );
-            _keywords.Add( "as", SqlTokenType.As );
-            _keywords.Add( "asc", SqlTokenType.Asc );
-            _keywords.Add( "desc", SqlTokenType.Desc );
-            _keywords.Add( "exists", SqlTokenType.Exists );
-            _keywords.Add( "on", SqlTokenType.On );
-            _keywords.Add( "to", SqlTokenType.To );
-            _keywords.Add( "of", SqlTokenType.Of );
-            _keywords.Add( "top", SqlTokenType.Top );
-            _keywords.Add( "escape", SqlTokenType.Escape );
-            _keywords.Add( "into",  SqlTokenType.Into );
-            _keywords.Add( "from",  SqlTokenType.From );
-            _keywords.Add( "where", SqlTokenType.Where );
-            _keywords.Add( "group", SqlTokenType.Group );
-            _keywords.Add( "option", SqlTokenType.Option );
-            _keywords.Add( "add", SqlTokenType.Add );
-            _keywords.Add( "database", SqlTokenType.Database );
-            _keywords.Add( "external", SqlTokenType.External );
-            _keywords.Add( "over", SqlTokenType.Over );
-            _keywords.Add( "cross", SqlTokenType.Cross );
-            _keywords.Add( "foreign", SqlTokenType.Foreign );
-            _keywords.Add( "clustered", SqlTokenType.Clustered );
-            _keywords.Add( "left", SqlTokenType.Left );
-            _keywords.Add( "percent", SqlTokenType.Percent );
-            _keywords.Add( "values", SqlTokenType.Values );
-            _keywords.Add( "distinct", SqlTokenType.Distinct );
-            _keywords.Add( "pivot", SqlTokenType.Pivot );
-            _keywords.Add( "having", SqlTokenType.Having );
-            _keywords.Add( "cursor", SqlTokenType.Cursor );
-            _keywords.Add( "read", SqlTokenType.Read );
-            _keywords.Add( "browse", SqlTokenType.Browse );
-            _keywords.Add( "collate", SqlTokenType.Collate );
-            _keywords.Add( "opendatasource", SqlTokenType.OpenDataSource );
-            _keywords.Add( "openrowset", SqlTokenType.OpenRowSet );
-            _keywords.Add( "openxml", SqlTokenType.OpenXml );
-            _keywords.Add( "openquery", SqlTokenType.OpenQuery );
-            _keywords.Add( "default", SqlTokenType.Default );
-            _keywords.Add( "user", SqlTokenType.User );
-            _keywords.Add( "current", SqlTokenType.Current );
-            _keywords.Add( "varying", SqlTokenType.Varying );
+            RegKeyword( "function", SqlTokenType.Function );
+            RegKeyword( "view", SqlTokenType.View );
+            RegKeyword( "trigger", SqlTokenType.Trigger );
+            RegKeyword( "as", SqlTokenType.As );
+            RegKeyword( "asc", SqlTokenType.Asc );
+            RegKeyword( "desc", SqlTokenType.Desc );
+            RegKeyword( "exists", SqlTokenType.Exists );
+            RegKeyword( "on", SqlTokenType.On );
+            RegKeyword( "to", SqlTokenType.To );
+            RegKeyword( "of", SqlTokenType.Of );
+            RegKeyword( "top", SqlTokenType.Top );
+            RegKeyword( "escape", SqlTokenType.Escape );
+            RegKeyword( "into",  SqlTokenType.Into );
+            RegKeyword( "from",  SqlTokenType.From );
+            RegKeyword( "where", SqlTokenType.Where );
+            RegKeyword( "group", SqlTokenType.Group );
+            RegKeyword( "option", SqlTokenType.Option );
+            RegKeyword( "add", SqlTokenType.Add );
+            RegKeyword( "database", SqlTokenType.Database );
+            RegKeyword( "external", SqlTokenType.External );
+            RegKeyword( "over", SqlTokenType.Over );
+            RegKeyword( "cross", SqlTokenType.Cross );
+            RegKeyword( "foreign", SqlTokenType.Foreign );
+            RegKeyword( "clustered", SqlTokenType.Clustered );
+            RegKeyword( "left", SqlTokenType.Left );
+            RegKeyword( "percent", SqlTokenType.Percent );
+            RegKeyword( "values", SqlTokenType.Values );
+            RegKeyword( "distinct", SqlTokenType.Distinct );
+            RegKeyword( "pivot", SqlTokenType.Pivot );
+            RegKeyword( "having", SqlTokenType.Having );
+            RegKeyword( "cursor", SqlTokenType.Cursor );
+            RegKeyword( "read", SqlTokenType.Read );
+            RegKeyword( "browse", SqlTokenType.Browse );
+            RegKeyword( "collate", SqlTokenType.Collate );
+            RegKeyword( "opendatasource", SqlTokenType.OpenDataSource );
+            RegKeyword( "openrowset", SqlTokenType.OpenRowSet );
+            RegKeyword( "openxml", SqlTokenType.OpenXml );
+            RegKeyword( "openquery", SqlTokenType.OpenQuery );
+            RegKeyword( "default", SqlTokenType.Default );
+            RegKeyword( "user", SqlTokenType.User );
+            RegKeyword( "current", SqlTokenType.Current );
+            RegKeyword( "varying", SqlTokenType.Varying );
+
+            RegKeyword( "freetext", SqlTokenType.FreeText );
+            RegKeyword( "freetexttable", SqlTokenType.FreeTextTable );
+            RegKeyword( "reconfigure", SqlTokenType.Reconfigure );
+            RegKeyword( "references", SqlTokenType.References );
+            RegKeyword( "full", SqlTokenType.Full );
+            RegKeyword( "replication", SqlTokenType.Replication );
+            RegKeyword( "bulk", SqlTokenType.Bulk );
+            RegKeyword( "check", SqlTokenType.Check );
+            RegKeyword( "holdlock", SqlTokenType.HoldLock );
+            RegKeyword( "right", SqlTokenType.Right );
+            RegKeyword( "checkpoint", SqlTokenType.Checkpoint );
+            RegKeyword( "identity", SqlTokenType.Identity );
+            RegKeyword( "identity_insert", SqlTokenType.IdentityInsert );
+            RegKeyword( "rowcount", SqlTokenType.RowCount );
+            RegKeyword( "save", SqlTokenType.Save );
+            RegKeyword( "column", SqlTokenType.Column );
+            RegKeyword( "index", SqlTokenType.Index );
+            RegKeyword( "schema", SqlTokenType.Schema );
+            RegKeyword( "inner", SqlTokenType.Inner );
+            RegKeyword( "securityaudit", SqlTokenType.SecurityAudit );
+            RegKeyword( "compute", SqlTokenType.Compute );
+            RegKeyword( "constraint", SqlTokenType.Constraint );
+            RegKeyword( "session_user", SqlTokenType.SessionUser );
+            RegKeyword( "setuser", SqlTokenType.SetUser );
+            RegKeyword( "join", SqlTokenType.Join );
+            RegKeyword( "shutdown", SqlTokenType.Shutdown );
+            RegKeyword( "convert", SqlTokenType.Convert );
+            RegKeyword( "key", SqlTokenType.Key );
+            RegKeyword( "statistics", SqlTokenType.Statistics );
+            RegKeyword( "system_user", SqlTokenType.SystemUser );
+            RegKeyword( "current_date", SqlTokenType.CurrentDate );
+            RegKeyword( "lineno", SqlTokenType.LineNo );
+            RegKeyword( "tablesample", SqlTokenType.TableSample );
+            RegKeyword( "current_time", SqlTokenType.CurrentTime );
+            RegKeyword( "load", SqlTokenType.Load );
+            RegKeyword( "textsize", SqlTokenType.TextSize );
+            RegKeyword( "current_timestamp", SqlTokenType.CurrentTimestamp );
+            RegKeyword( "current_user", SqlTokenType.CurrentUser );
+            RegKeyword( "national", SqlTokenType.National );
+            RegKeyword( "nullif", SqlTokenType.NullIf );
+            RegKeyword( "tsequal", SqlTokenType.TSEqual );
+            RegKeyword( "off", SqlTokenType.Off );
+            RegKeyword( "offsets", SqlTokenType.Offsets );
+            RegKeyword( "unique", SqlTokenType.Unique );
+            RegKeyword( "unpivot", SqlTokenType.Unpivot );
+            RegKeyword( "disk", SqlTokenType.Disk );
+            RegKeyword( "dump", SqlTokenType.Dump );
+            RegKeyword( "errlvl", SqlTokenType.ErrLvl );
+            RegKeyword( "restrict", SqlTokenType.Restrict );
+            RegKeyword( "cascade", SqlTokenType.Cascade );
+            RegKeyword( "revert", SqlTokenType.Revert );
+            RegKeyword( "revoke", SqlTokenType.Revoke );
+            RegKeyword( "any", SqlTokenType.Any );
+            RegKeyword( "some", SqlTokenType.Some );
+            RegKeyword( "precision", SqlTokenType.Precision );
+            RegKeyword( "exit", SqlTokenType.Exit );
+            RegKeyword( "primary", SqlTokenType.Primary );
+            RegKeyword( "plan", SqlTokenType.Plan );
+            RegKeyword( "file", SqlTokenType.File );
+            RegKeyword( "fillfactor", SqlTokenType.FillFactor );
+            RegKeyword( "public", SqlTokenType.Public );
+            RegKeyword( "authorization", SqlTokenType.Authorization );
+            RegKeyword( "distributed", SqlTokenType.Distributed );
+            RegKeyword( "coalesce", SqlTokenType.Coalesce );
+            RegKeyword( "rule", SqlTokenType.Rule );
+            RegKeyword( "identitycol", SqlTokenType.IdentityCol );
+            RegKeyword( "rowguidcol", SqlTokenType.RowguidCol );
+            RegKeyword( "contains", SqlTokenType.Contains );
+            RegKeyword( "containstable", SqlTokenType.ContainsTable );
+            RegKeyword( "nocheck", SqlTokenType.NoCheck );
+            RegKeyword( "nonclustered", SqlTokenType.NonClustered );
+            RegKeyword( "double", SqlTokenType.Double );
+            RegKeyword( "outer", SqlTokenType.Outer );
 
             // SqlTokenType.IdentifierReservedStatement values.
-            _keywords.Add( "select", SqlTokenType.Select );
-            _keywords.Add( "begin", SqlTokenType.Begin );
-            _keywords.Add( "end", SqlTokenType.End );
-            _keywords.Add( "create", SqlTokenType.Create );
-            _keywords.Add( "drop", SqlTokenType.Drop );
-            _keywords.Add( "alter", SqlTokenType.Alter );
-            _keywords.Add( "declare", SqlTokenType.Declare );
-            _keywords.Add( "break", SqlTokenType.Break );
-            _keywords.Add( "continue", SqlTokenType.Continue );
-            _keywords.Add( "goto", SqlTokenType.Goto );
-            _keywords.Add( "while", SqlTokenType.While );
-            _keywords.Add( "if", SqlTokenType.If );
-            _keywords.Add( "deallocate", SqlTokenType.Deallocate );
-            _keywords.Add( "close", SqlTokenType.Close );
-            _keywords.Add( "fetch", SqlTokenType.Fetch );
-            _keywords.Add( "open", SqlTokenType.Open );
-            _keywords.Add( "return", SqlTokenType.Return );
+            RegKeyword( "select", SqlTokenType.Select );
+            RegKeyword( "begin", SqlTokenType.Begin );
+            RegKeyword( "end", SqlTokenType.End );
+            RegKeyword( "create", SqlTokenType.Create );
+            RegKeyword( "drop", SqlTokenType.Drop );
+            RegKeyword( "alter", SqlTokenType.Alter );
+            RegKeyword( "declare", SqlTokenType.Declare );
+            RegKeyword( "break", SqlTokenType.Break );
+            RegKeyword( "continue", SqlTokenType.Continue );
+            RegKeyword( "goto", SqlTokenType.Goto );
+            RegKeyword( "while", SqlTokenType.While );
+            RegKeyword( "if", SqlTokenType.If );
+            RegKeyword( "deallocate", SqlTokenType.Deallocate );
+            RegKeyword( "close", SqlTokenType.Close );
+            RegKeyword( "fetch", SqlTokenType.Fetch );
+            RegKeyword( "open", SqlTokenType.Open );
+            RegKeyword( "return", SqlTokenType.Return );
+            RegKeyword( "execute", SqlTokenType.Execute );
             _keywords.Add( "exec", SqlTokenType.Execute );
-            _keywords.Add( "execute", SqlTokenType.Execute );
-            _keywords.Add( "set", SqlTokenType.Set );
-            _keywords.Add( "update", SqlTokenType.Update );
-            _keywords.Add( "insert", SqlTokenType.Insert );
-            _keywords.Add( "raiserror", SqlTokenType.Raiserror );
-            _keywords.Add( "waitfor", SqlTokenType.WaitFor );
-            _keywords.Add( "use", SqlTokenType.Use );
-            _keywords.Add( "truncate", SqlTokenType.Truncate );
-            _keywords.Add( "print", SqlTokenType.Print );
-            _keywords.Add( "commit", SqlTokenType.Commit );
-            _keywords.Add( "rollback", SqlTokenType.Rollback );
-            _keywords.Add( "delete", SqlTokenType.Delete );
-            _keywords.Add( "updatetext", SqlTokenType.Updatetext );
-            _keywords.Add( "merge", SqlTokenType.Merge );
-            _keywords.Add( "kill", SqlTokenType.Kill );
-            _keywords.Add( "readtext", SqlTokenType.Readtext );
-            _keywords.Add( "writetext", SqlTokenType.Writetext );
-            _keywords.Add( "dbcc", SqlTokenType.Dbcc );
-            _keywords.Add( "go", SqlTokenType.Go );
-            _keywords.Add( "backup", SqlTokenType.Backup );
-            _keywords.Add( "restore", SqlTokenType.Restore );
-            _keywords.Add( "grant", SqlTokenType.Grant );
-            _keywords.Add( "deny", SqlTokenType.Deny );
+            RegKeyword( "set", SqlTokenType.Set );
+            RegKeyword( "update", SqlTokenType.Update );
+            RegKeyword( "insert", SqlTokenType.Insert );
+            RegKeyword( "raiserror", SqlTokenType.Raiserror );
+            RegKeyword( "waitfor", SqlTokenType.WaitFor );
+            RegKeyword( "use", SqlTokenType.Use );
+            RegKeyword( "truncate", SqlTokenType.Truncate );
+            RegKeyword( "print", SqlTokenType.Print );
+            RegKeyword( "commit", SqlTokenType.Commit );
+            RegKeyword( "rollback", SqlTokenType.Rollback );
+            RegKeyword( "delete", SqlTokenType.Delete );
+            RegKeyword( "updatetext", SqlTokenType.Updatetext );
+            RegKeyword( "merge", SqlTokenType.Merge );
+            RegKeyword( "kill", SqlTokenType.Kill );
+            RegKeyword( "readtext", SqlTokenType.Readtext );
+            RegKeyword( "writetext", SqlTokenType.Writetext );
+            RegKeyword( "dbcc", SqlTokenType.Dbcc );
+            RegKeyword( "go", SqlTokenType.Go );
+            RegKeyword( "backup", SqlTokenType.Backup );
+            RegKeyword( "restore", SqlTokenType.Restore );
+            RegKeyword( "grant", SqlTokenType.Grant );
+            RegKeyword( "deny", SqlTokenType.Deny );
 
-            // Reserved keywords.
-            foreach( string s in _sqlServerReserved )
-            {
-                #if DEBUG
-                if( _keywords.ContainsKey( s ) ) Debugger.Break();
-                #endif
-                _keywords.Add( s, SqlTokenType.IdentifierReserved );
-            }
+            Debug.Assert( (int)SqlTokenType.AssignOperatorCount == 9 );
+            _typeToString.Add( SqlTokenType.Assign, "=" );
+            _typeToString.Add( SqlTokenType.BitwiseOrAssign, "|=" );
+            _typeToString.Add( SqlTokenType.BitwiseAndAssign, "&=" );
+            _typeToString.Add( SqlTokenType.BitwiseXOrAssign, "^=" );
+            _typeToString.Add( SqlTokenType.PlusAssign, "+=" );
+            _typeToString.Add( SqlTokenType.MinusAssign, "-=" );
+            _typeToString.Add( SqlTokenType.DivideAssign, "/=" );
+            _typeToString.Add( SqlTokenType.MultAssign, "*=" );
+            _typeToString.Add( SqlTokenType.ModuloAssign, "%=" );
+
+            Debug.Assert( (int)SqlTokenType.BasicOperatorCount == 9 );
+            _typeToString.Add( SqlTokenType.BitwiseOr, "|" );
+            _typeToString.Add( SqlTokenType.BitwiseXOr, "^" );
+            _typeToString.Add( SqlTokenType.BitwiseAnd, "&" );
+            _typeToString.Add( SqlTokenType.Plus, "+" );
+            _typeToString.Add( SqlTokenType.Minus, "-" );
+            _typeToString.Add( SqlTokenType.Mult, "*" );
+            _typeToString.Add( SqlTokenType.Divide, "/" );
+            _typeToString.Add( SqlTokenType.Modulo, "%" );
+            _typeToString.Add( SqlTokenType.BitwiseNot, "~" );
+
+            Debug.Assert( (int)SqlTokenType.CompareOperatorCount == 9 );
+            _typeToString.Add( SqlTokenType.Equal, "=" );
+            _typeToString.Add( SqlTokenType.Greater, ">" );
+            _typeToString.Add( SqlTokenType.Less, "<" );
+            _typeToString.Add( SqlTokenType.GreaterOrEqual, ">=" );
+            _typeToString.Add( SqlTokenType.LessOrEqual, "<=" );
+            _typeToString.Add( SqlTokenType.NotEqualTo, "<>" );
+            _typeToString.Add( SqlTokenType.Different, "!=" );
+            _typeToString.Add( SqlTokenType.NotGreaterThan, "!>" );
+            _typeToString.Add( SqlTokenType.NotLessThan, "!<" );
+
+            Debug.Assert( (int)SqlTokenType.PunctuationCount == 5 );
+            _typeToString.Add( SqlTokenType.Dot, "." );
+            _typeToString.Add( SqlTokenType.Comma, "," );
+            _typeToString.Add( SqlTokenType.SemiColon, ";" );
+            _typeToString.Add( SqlTokenType.Colon, ":" );
+            _typeToString.Add( SqlTokenType.DoubleColons, "::" );
+
+            _typeToString.Add( SqlTokenType.OpenPar, "(" );
+            _typeToString.Add( SqlTokenType.ClosePar, ")" );
+            _typeToString.Add( SqlTokenType.OpenBracket, "[" );
+            _typeToString.Add( SqlTokenType.CloseBracket, "]" );
+            _typeToString.Add( SqlTokenType.OpenCurly, "{" );
+            _typeToString.Add( SqlTokenType.CloseCurly, "}" );
+
+            _typeToString.Add( SqlTokenType.IdentifierStar, "*" );
+
+            _typeToString.Add( SqlTokenType.None, "刁one" );
+            _typeToString.Add( SqlTokenType.ErrorMask, "九rrorMask" );
+            _typeToString.Add( SqlTokenType.EndOfInput, "九ndOfInput" );
+            _typeToString.Add( SqlTokenType.ErrorInvalidChar, "九rrorInvalidChar" );
+            _typeToString.Add( SqlTokenType.ErrorStringUnterminated, "九rrorStringUnterminated" );
+            _typeToString.Add( SqlTokenType.ErrorIdentifierUnterminated, "九rrorIdentifierUnterminated" );
+            _typeToString.Add( SqlTokenType.ErrorNumberUnterminatedValue, "九rrorNumberUnterminatedValue" );
+            _typeToString.Add( SqlTokenType.ErrorNumberValue, "九rrorNumberValue" );
+            _typeToString.Add( SqlTokenType.ErrorNumberIdentifierStartsImmediately, "九rrorNumberIdentifierStartsImmediately" );
+
+            _typeToString.Add( SqlTokenType.String, "又tring" );
+            _typeToString.Add( SqlTokenType.UnicodeString, "下nicodeString" );
+            _typeToString.Add( SqlTokenType.Integer, "儿nteger" );
+            _typeToString.Add( SqlTokenType.Binary, "丁inary" );
+            _typeToString.Add( SqlTokenType.Float, "了loat" );
+            _typeToString.Add( SqlTokenType.Decimal, "乃ecimal" );
+            _typeToString.Add( SqlTokenType.Money, "刀oney" );
+            _typeToString.Add( SqlTokenType.StarComment, "又tarComment" );
+            _typeToString.Add( SqlTokenType.LineComment, "几ineComment" );
+
+            _typeToString.Add( SqlTokenType.IdentifierStandard, "儿dentifierStandard" );
+            _typeToString.Add( SqlTokenType.IdentifierQuoted, "儿dentifierQuoted" );
+            _typeToString.Add( SqlTokenType.IdentifierQuotedBracket, "儿dentifierQuotedBracket" );
+            _typeToString.Add( SqlTokenType.IdentifierVariable, "儿dentifierVariable" );
+            _typeToString.Add( SqlTokenType.IdentifierSpecial, "儿dentifierSpecial" );
+        }
+
+        [Conditional("DEBUG")]
+        internal static void CheckTokenTypeStringMapping( SqlTokenType t )
+        {
+            Debug.Assert( _typeToString.ContainsKey( t ), "SqlTokenType not mapped: " + t.ToString() );
         }
 
         public static SqlDbType? FromSqlTokenTypeToSqlDbType( SqlTokenType t )
@@ -457,6 +462,11 @@ namespace CK.SqlServer.Parser
         {
             SqlTokenType tokenType;
             return IsReservedKeyword( s, out tokenType );
+        }
+
+        public static string ToString( SqlTokenType t )
+        {
+            return _typeToString[t];
         }
 
         public static bool IsReservedKeyword( string s, out SqlTokenType tokenType )

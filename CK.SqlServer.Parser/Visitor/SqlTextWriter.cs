@@ -13,10 +13,14 @@ namespace CK.SqlServer.Parser
         /// Creates a default writer that writes everything.
         /// </summary>
         /// <param name="b">An optional existing String builder.</param>
+        /// <param name="restoreUselessComments">
+        /// True to restore injected comments (<see cref="SqlTrivia.QuoteUselessComment"/> and others)
+        /// to their original text.
+        /// </param>
         /// <returns>The text writer.</returns>
-        public static ISqlTextWriter CreateDefault( StringBuilder b = null )
+        public static ISqlTextWriter CreateDefault( StringBuilder b = null, bool restoreUselessComments = false )
         {
-            return new Full( b ?? new StringBuilder() );
+            return new Full( b ?? new StringBuilder(), restoreUselessComments );
         }
 
         /// <summary>
@@ -32,8 +36,13 @@ namespace CK.SqlServer.Parser
         class Full : ISqlTextWriter
         {
             readonly StringBuilder _b;
+            readonly bool _restoreUselessComments;
 
-            public Full( StringBuilder b ) { _b = b; }
+            public Full( StringBuilder b, bool restoreUselessComments )
+            {
+                _b = b;
+                _restoreUselessComments = restoreUselessComments;
+            }
 
             public bool SkipLineComment => false;
 
@@ -44,7 +53,29 @@ namespace CK.SqlServer.Parser
                 switch( t.TokenType )
                 {
                     case SqlTokenType.LineComment: _b.Append( "--" ).Append( t.Text ).AppendLine(); break;
-                    case SqlTokenType.StarComment: _b.Append( "/*" ).Append( t.Text ).Append( "*/" ); break;
+                    case SqlTokenType.StarComment:
+                        {
+                            if( _restoreUselessComments )
+                            {
+                                if( ReferenceEquals( t.Text, SqlTrivia.OpenBracketUselessComment.Text ) )
+                                {
+                                    _b.Append( '[' );
+                                    return;
+                                }
+                                if( ReferenceEquals( t.Text, SqlTrivia.CloseBracketUselessComment.Text ) )
+                                {
+                                    _b.Append( ']' );
+                                    return;
+                                }
+                                if( ReferenceEquals( t.Text, SqlTrivia.QuoteUselessComment.Text ) )
+                                {
+                                    _b.Append( '*' );
+                                    return;
+                                }
+                            }
+                            _b.Append( "/*" ).Append( t.Text ).Append( "*/" );
+                            break;
+                        }
                     default: _b.Append( t.Text ); break;
                 }
             }

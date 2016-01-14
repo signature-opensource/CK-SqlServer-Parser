@@ -339,11 +339,11 @@ namespace CK.SqlServer.Parser
             StartNode( e, x =>
             {
                 x.Add( e.ToString() );
-                if( e.IsVariable ) x.Add( new XAttribute( "IsVariable", "true" ) );
-                if( e.IsQuoted ) x.Add( new XAttribute( "IsQuoted", "true" ) );
-                if( e.IsDbType ) x.Add( new XAttribute( "IsDbType", "true" ) );
-                if( e.IsSpecial ) x.Add( new XAttribute( "IsSpecial", "true" ) );
-                if( e.IsReservedKeyword ) x.Add( new XAttribute( "IsReservedKeyword", "true" ) );
+                if( e.TokenType.IsVariable() ) x.Add( new XAttribute( "IsVariable", "true" ) );
+                if( e.TokenType.IsQuotedIdentifier() ) x.Add( new XAttribute( "IsQuoted", "true" ) );
+                if( e.TokenType.IsDbType() ) x.Add( new XAttribute( "IsDbType", "true" ) );
+                if( e.TokenType.IsIdentifierSpecial() ) x.Add( new XAttribute( "IsSpecial", "true" ) );
+                if( e.TokenType.IsReservedKeyword() ) x.Add( new XAttribute( "IsReservedKeyword", "true" ) );
             } );
             return e;
         }

@@ -177,9 +177,9 @@ namespace CK.SqlServer.Parser
 
         public virtual ISqlNode Visit( SqlStoredProcedure e ) => VisitStandard( e );
 
-        public virtual ISqlNode Visit( SqlEnclosedIdentifierCommaList e ) => VisitStandard( e );
+        public virtual ISqlNode Visit( SqlTrigger e ) => VisitStandard( e );
 
-        public virtual ISqlNode Visit( SqlExecuteAs e ) => VisitStandard( e );
+        public virtual ISqlNode Visit( SqlEnclosedIdentifierCommaList e ) => VisitStandard( e );
 
         public virtual ISqlNode Visit( SqlDeclareVariable e ) => VisitStandard( e );
 

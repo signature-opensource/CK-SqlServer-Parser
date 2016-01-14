@@ -36,7 +36,7 @@ namespace CK.SqlServer.Parser.Tests.XmlTests
                 ISqlNode e;
                 SqlAnalyser.ErrorResult r = SqlAnalyser.Parse( out e, mode, text );
                 Assert.That( r.IsError, Is.False, r.ToString() );
-                Assert.That( e.ToString( true ).NormalizeEOL(), Is.EqualTo( text ) );
+                Assert.That( e.ToString( true, true ).NormalizeEOL(), Is.EqualTo( text ) );
                 if( Expected != null )
                 {
                     using( TestHelper.ConsoleMonitor.OpenInfo().Send( "Checking detailed Xml." ) )
@@ -94,6 +94,7 @@ namespace CK.SqlServer.Parser.Tests.XmlTests
         [TestCase( "Simple expressions.xml" )]
         [TestCase( "Simple Procedures.xml" )]
         [TestCase( "Simple Selects.xml" )]
+        [TestCase( "Trigger.xml" )]
         [TestCase( "TryCatch.xml" )]
         [TestCase( "Unmodeled stuff.xml" )]
         [TestCase( "Update.xml" )]

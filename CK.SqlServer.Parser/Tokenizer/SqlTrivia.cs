@@ -20,6 +20,22 @@ namespace CK.SqlServer.Parser
         /// </summary>
         public static readonly ImmutableList<SqlTrivia> OneSpace = ImmutableList.Create( new SqlTrivia( SqlTokenType.None, " " ) );
 
+        /// <summary>
+        /// The /*[ - Useless (By CK)*/ special comment.
+        /// </summary>
+        public static readonly SqlTrivia OpenBracketUselessComment = new SqlTrivia( SqlTokenType.StarComment, "[ - Useless (By CK)" );
+
+        /// <summary>
+        /// The /*] - Useless (By CK)*/ special comment.
+        /// </summary>
+        public static readonly SqlTrivia CloseBracketUselessComment = new SqlTrivia( SqlTokenType.StarComment, "] - Useless (By CK)" );
+
+        /// <summary>
+        /// The /*" - Useless (By CK)*/ special comment.
+        /// </summary>
+        public static readonly SqlTrivia QuoteUselessComment = new SqlTrivia( SqlTokenType.StarComment, "\" - Useless (By CK)" );
+
+
         public SqlTrivia( SqlTokenType tokenType, string text )
         {
             if( tokenType != SqlTokenType.None && tokenType != SqlTokenType.LineComment && tokenType != SqlTokenType.StarComment )

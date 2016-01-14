@@ -21,13 +21,13 @@ namespace CK.SqlServer.Parser
             : base( (SqlTokenType)t, leadingTrivia, trailingTrivia )
         {
             if( t >= 0 ) throw new ArgumentException( "Invalid error token type." );
-            ErrorMessage = message ?? t.ToString();
+            ErrorMessage = message ?? SqlKeyword.ToString( (SqlTokenType)t );
         }
 
         public SqlTokenError( string message )
             : base( SqlTokenType.ErrorMask, null, null )
         {
-            if( String.IsNullOrWhiteSpace( message ) ) throw new ArgumentNullException( "message" );
+            if( string.IsNullOrWhiteSpace( message ) ) throw new ArgumentNullException( "message" );
             ErrorMessage = message;
         }
 
@@ -40,19 +40,17 @@ namespace CK.SqlServer.Parser
             return new SqlTokenError( TokenType, leading, trailing, ErrorMessage );
         }
 
-        public bool IsEndOfInput { get { return base.TokenType == SqlTokenType.EndOfInput; } }
+        public bool IsEndOfInput => base.TokenType == SqlTokenType.EndOfInput;
 
         public override void WriteWithoutTrivias( ISqlTextWriter w )
         {
-            w.Write( String.Format( "[Error: {0}]", ErrorMessage ) ); 
+            w.Write( string.Format( "[Error: {0}]", ErrorMessage ) ); 
         }
 
 
         [DebuggerStepThrough]
-        internal protected override ISqlNode Accept( SqlItemVisitor visitor )
-        {
-            return visitor.Visit( this );
-        }
+        internal protected override ISqlNode Accept( SqlItemVisitor visitor ) => visitor.Visit( this );
+
     }
 
 }

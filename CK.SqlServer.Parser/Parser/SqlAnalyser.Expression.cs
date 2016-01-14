@@ -92,8 +92,14 @@ namespace CK.SqlServer.Parser
                 {
                     return MatchMergeStatement( id );
                 }
-                if( id.TokenType == SqlTokenType.Update || id.TokenType == SqlTokenType.Update )
+                if( id.TokenType == SqlTokenType.Delete )
                 {
+                    return MatchUpdateOrDeleteStatement( id );
+                }
+                if( id.TokenType == SqlTokenType.Update )
+                {
+                    // This handles the "if Update()" in triggers: this will be a KoCall.
+                    if( R.Current.TokenType == SqlTokenType.OpenPar ) return id;
                     return MatchUpdateOrDeleteStatement( id );
                 }
                 if( id.TokenType == SqlTokenType.Case )

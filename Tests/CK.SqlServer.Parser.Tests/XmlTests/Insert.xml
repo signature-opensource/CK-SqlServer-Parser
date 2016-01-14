@@ -310,7 +310,7 @@
                   <Item>
                     <SelectColumn>
                       <Definition>
-                        <Identifier>*</Identifier>
+                        <Identifier IsSpecial="true">*</Identifier>
                       </Definition>
                     </SelectColumn>
                   </Item>

@@ -32,6 +32,8 @@ namespace CK.SqlServer.Parser
         AlterFunction,
         CreateProcedure,
         AlterProcedure,
+        CreateTrigger,
+        AlterTrigger,
         SetVariable,
         SetOption,
         DeclareVariable,

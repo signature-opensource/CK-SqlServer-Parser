@@ -80,6 +80,7 @@
     <Compile Include="Parser\Node\SqlExecuteStringStatement.cs" />
     <Compile Include="Parser\Node\SqlCommaList.cs" />
     <Compile Include="Parser\Node\SqlOpenDataSource.cs" />
+    <Compile Include="Parser\Node\SqlTrigger.cs" />
     <Compile Include="Parser\Node\SqlTypeDeclCursor.cs" />
     <Compile Include="Parser\Node\SqlWithOptions.cs" />
     <Compile Include="Parser\Node\SqlOptionParOptions.cs" />
@@ -184,7 +185,6 @@
     <Compile Include="Parser\Node\SqlTypeDeclWithSize.cs" />
     <Compile Include="Parser\Node\SqlTypedIdentifier.cs" />
     <Compile Include="Parser\Node\SqlUnaryOperator.cs" />
-    <Compile Include="Parser\Node\SqlExecuteAs.cs" />
     <Compile Include="Parser\SqlAnalyser.cs" />
     <Compile Include="Parser\SqlAnalyser.Expression.cs" />
     <Compile Include="Parser\SqlAnalyser.Expression.Select.cs" />

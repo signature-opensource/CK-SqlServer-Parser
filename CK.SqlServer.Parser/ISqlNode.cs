@@ -88,8 +88,15 @@ namespace CK.SqlServer.Parser
         /// Returns the result of <see cref="Write"/> or <see cref="WriteWithoutTrivias"/> with 
         /// a default writer (<see cref="SqlTextWriter.CreateDefault"/>): all internal trivias appear.
         /// </summary>
+        /// <param name="withThisTrivia">
+        /// True to include this <see cref="LeadingTrivias"/> and <see cref="TrailingTrivias"/>, false otherwise.
+        /// </param>
+        /// <param name="restoreUselessComments">
+        /// True to restore injected comments (<see cref="SqlTrivia.QuoteUselessComment"/> and others)
+        /// to their original text.
+        /// </param>
         /// <returns>This node text representation.</returns>
-        string ToString( bool withThisTrivia );
+        string ToString( bool withThisTrivia, bool restoreUselessComments = false );
 
         /// <summary>
         /// Writes the node with its <see cref="LeadingTrivia"/> and <see cref="TrailingTrivia"/>.

@@ -157,14 +157,10 @@ namespace CK.SqlServer.Parser
         SpecificationPart ToSpecificationPart( SqlToken t )
         {
             SpecificationPart c = SpecificationPart.None;
-            SqlTokenIdentifier id = t as SqlTokenIdentifier;
-            if( id != null && !id.IsQuoted )
-            {
-                if( id.TokenType == SqlTokenType.Into ) c = SpecificationPart.Into;
-                else if( id.TokenType == SqlTokenType.From ) c = SpecificationPart.From;
-                else if( id.TokenType == SqlTokenType.Where ) c = SpecificationPart.Where;
-                else if( id.TokenType == SqlTokenType.Group ) c = SpecificationPart.Group;
-            }
+            if( t.TokenType == SqlTokenType.Into ) c = SpecificationPart.Into;
+            else if( t.TokenType == SqlTokenType.From ) c = SpecificationPart.From;
+            else if( t.TokenType == SqlTokenType.Where ) c = SpecificationPart.Where;
+            else if( t.TokenType == SqlTokenType.Group ) c = SpecificationPart.Group;
             return c;
         }
 

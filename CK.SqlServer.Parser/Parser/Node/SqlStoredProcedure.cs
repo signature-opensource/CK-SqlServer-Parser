@@ -15,7 +15,7 @@ namespace CK.SqlServer.Parser
             SqlTokenIdentifier,
             ISqlIdentifier,
             SqlParameterList,
-            SqlNodeList,
+            SqlWithOptions,
             SqlTokenIdentifier,
             SqlTokenIdentifier,
             SqlStatementList,
@@ -26,8 +26,8 @@ namespace CK.SqlServer.Parser
             SqlTokenIdentifier alterOrCreate, 
             SqlTokenIdentifier type,
             ISqlIdentifier name, 
-            SqlParameterList parameters, 
-            SqlNodeList options, 
+            SqlParameterList parameters,
+            SqlWithOptions options, 
             SqlTokenIdentifier asToken, 
             SqlTokenIdentifier begin, 
             SqlStatementList bodyStatements, 
@@ -35,7 +35,7 @@ namespace CK.SqlServer.Parser
             SqlTokenTerminal term )
             : base( null, null )
         {
-            _content = new SNode<SqlTokenIdentifier, SqlTokenIdentifier, ISqlIdentifier, SqlParameterList, SqlNodeList, SqlTokenIdentifier, SqlTokenIdentifier, SqlStatementList, SqlTokenIdentifier, SqlTokenTerminal>(
+            _content = new SNode<SqlTokenIdentifier, SqlTokenIdentifier, ISqlIdentifier, SqlParameterList, SqlWithOptions, SqlTokenIdentifier, SqlTokenIdentifier, SqlStatementList, SqlTokenIdentifier, SqlTokenTerminal>(
                 alterOrCreate,
                 type,
                 name,
@@ -55,7 +55,7 @@ namespace CK.SqlServer.Parser
             if( items == null ) _content = o._content;
             else
             {
-                _content = new SNode<SqlTokenIdentifier, SqlTokenIdentifier, ISqlIdentifier, SqlParameterList, SqlNodeList, SqlTokenIdentifier, SqlTokenIdentifier, SqlStatementList, SqlTokenIdentifier, SqlTokenTerminal>( items );
+                _content = new SNode<SqlTokenIdentifier, SqlTokenIdentifier, ISqlIdentifier, SqlParameterList, SqlWithOptions, SqlTokenIdentifier, SqlTokenIdentifier, SqlStatementList, SqlTokenIdentifier, SqlTokenTerminal>( items );
                 CheckContent();
             }
         }
@@ -114,7 +114,7 @@ namespace CK.SqlServer.Parser
 
         public bool HasOptions => _content.V5 != null;
 
-        public SqlNodeList Options => _content.V5;
+        public SqlWithOptions Options => _content.V5;
 
         public IEnumerable<ISqlNode> Header => _content.Skip( 1 ).Take( HasOptions ? 4 : 3 );
 

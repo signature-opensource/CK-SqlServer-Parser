@@ -11,9 +11,9 @@ namespace CK.SqlServer.Parser
     {
 
         /// <summary>
-        /// True if this is xml, browse, json or system_time.
+        /// True True if this <see cref="SqlTokenType"/> is xml, browse, json or system_time.
         /// </summary>
-        /// <param name="type">Token type.</param>
+        /// <param name="token">Token type.</param>
         /// <returns>Whether the token is a valid target for 'select for'.</returns>
         static public bool IsSelectForTargetType( this SqlTokenType token )
         {
@@ -24,7 +24,17 @@ namespace CK.SqlServer.Parser
         }
 
         /// <summary>
-        /// True if this is a select operator: <see cref="SqlTokenType.Union"/>, <see cref="SqlTokenType.Except"/>, 
+        /// True if this <see cref="SqlTokenType"/> is <see cref="SqlTokenType.IdentifierQuoted"/> or <see cref="SqlTokenType.IdentifierQuotedBracket"/>.
+        /// </summary>
+        /// <param name="token">Token type.</param>
+        /// <returns>True for a quoted identifier.</returns>
+        static public bool IsQuotedIdentifier( this SqlTokenType token )
+        {
+            return token == SqlTokenType.IdentifierQuoted || token == SqlTokenType.IdentifierQuotedBracket;
+        }
+
+        /// <summary>
+        /// True if this <see cref="SqlTokenType"/> is a select operator: <see cref="SqlTokenType.Union"/>, <see cref="SqlTokenType.Except"/>, 
         /// <see cref="SqlTokenType.Intersect"/>, <see cref="SqlTokenType.Order"/>, <see cref="SqlTokenType.For"/>
         /// and <see cref="SqlTokenType.Option"/>.
         /// </summary>
@@ -41,7 +51,7 @@ namespace CK.SqlServer.Parser
         }
 
         /// <summary>
-        /// True if the token is valid as an alias for column name:
+        /// True if this <see cref="SqlTokenType"/> is valid as an alias for column name:
         /// it is a string, a unicode string or an identifier that is not reserved 
         /// nor special but can be a variable name to support @var = definition 
         /// syntax in select.
@@ -62,7 +72,7 @@ namespace CK.SqlServer.Parser
         }
 
         /// <summary>
-        /// True if the token is valid as an alias for column name:
+        /// True if this <see cref="SqlTokenType"/> is valid as an alias for column name:
         /// it is a string, a unicode string or an identifier that is not reserved 
         /// nor special nor is a variable name.
         /// </summary>
@@ -82,7 +92,7 @@ namespace CK.SqlServer.Parser
         }
 
         /// <summary>
-        /// True if the token is a @variable (or @@SystemFunction like @@RowCount) or a 
+        /// True if this <see cref="SqlTokenType"/> is a @variable (or @@SystemFunction like @@RowCount) or a 
         /// literal value ('string' or 0x5454 number for instance).
         /// </summary>
         /// <param name="type">Token type to test.</param>
@@ -94,23 +104,34 @@ namespace CK.SqlServer.Parser
         }
 
         /// <summary>
-        /// True if the token is a @variable (or @@SystemFunction like @@RowCount) or a 
+        /// True if this <see cref="SqlTokenType"/> is a @variable (or @@SystemFunction like @@RowCount) or a 
         /// literal value ('string' or 0x5454 number for instance) or null.
         /// </summary>
-        /// <param name="type">Token to test.</param>
+        /// <param name="type">Token type to test.</param>
         /// <returns>True for a variable, a literal or null.</returns>
         static public bool IsVariableNameOrLiteralOrNull( SqlTokenType type )
         {
-            return type == SqlTokenType.IdentifierVariable 
-                    || type == SqlTokenType.Null 
+            return type == SqlTokenType.IdentifierVariable
+                    || type == SqlTokenType.Null
                     || (type > 0 && (type & SqlTokenType.LitteralMask) != 0);
+        }
+
+        /// <summary>
+        /// True if this <see cref="SqlTokenType"/> is a @variable (or @@SystemFunction like @@RowCount).
+        /// </summary>
+        /// <param name="type">Token type to test.</param>
+        /// <returns>True for a variable.</returns>
+        static public bool IsVariable( this SqlTokenType type )
+        {
+            return type == SqlTokenType.IdentifierVariable;
         }
 
         /// <summary>
         /// True if this <see cref="SqlTokenType"/> denotes a reserved keyword (select, create, declare, etc.)
         /// or a standard identifer that starts a statement (throw, get, move, etc.).
         /// </summary>
-        /// <param name="this">Token to test.</param>
+        /// <param name="type">Token type to test.</param>
+        /// <returns>True for a start statement.</returns>
         static public bool IsStartStatement( this SqlTokenType type )
         {
             return type > 0
@@ -121,7 +142,8 @@ namespace CK.SqlServer.Parser
         /// <summary>
         /// True if this <see cref="SqlTokenType"/> denotes a special identifier ($action, * in select * from..., etc).
         /// </summary>
-        /// <param name="this">Token to test.</param>
+        /// <param name="type">Token type to test.</param>
+        /// <returns>True for a special identifier.</returns>
         static public bool IsIdentifierSpecial( this SqlTokenType type )
         {
             return type > 0
@@ -129,14 +151,29 @@ namespace CK.SqlServer.Parser
         }
 
         /// <summary>
+        /// True for type names like 'int', 'sql_variant' or 'table' (table is 
+        /// mapped to <see cref="SqlDbType.Structured"/>). 
+        /// </summary>
+        /// <param name="type">Token type to test.</param>
+        /// <returns>True for a type.</returns>
+        static public bool IsDbType( this SqlTokenType type )
+        {
+            return type > 0 
+                    && ((type & SqlTokenType.IdentifierTypeMask) == SqlTokenType.IdentifierDbType
+                        || (type & SqlTokenType.IdentifierTypeMask) == SqlTokenType.IdentifierReservedDbType);
+        }
+
+        /// <summary>
         /// True if this <see cref="SqlTokenType"/> denotes a reserved keyword.
         /// </summary>
-        /// <param name="this">Token to test.</param>
+        /// <param name="type">Token type to test.</param>
+        /// <returns>True for a reserved keyword.</returns>
         static public bool IsReservedKeyword( this SqlTokenType type )
         {
             return type > 0 
                     && (type & SqlTokenType.IdentifierTypeMask) == SqlTokenType.IdentifierReserved
-                        || (type & SqlTokenType.IdentifierTypeMask) == SqlTokenType.IdentifierReservedStatement;
+                        || (type & SqlTokenType.IdentifierTypeMask) == SqlTokenType.IdentifierReservedStatement 
+                        || (type & SqlTokenType.IdentifierTypeMask) == SqlTokenType.IdentifierReservedDbType;
         }
 
     }

@@ -21,7 +21,7 @@ namespace CK.SqlServer.Parser.Tests
             ISqlNode e;
             SqlAnalyser.ErrorResult r = SqlAnalyser.Parse( out e, ParseMode.AllStatements, text );
             Assert.That( r.IsError, Is.False, r.ToString() );
-            Assert.That( e.ToString( true ).NormalizeEOL(), Is.EqualTo( text ) );
+            Assert.That( e.ToString( true, true ).NormalizeEOL(), Is.EqualTo( text ) );
         }
 
         [Test]

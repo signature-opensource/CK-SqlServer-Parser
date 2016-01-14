@@ -37,6 +37,7 @@ namespace CK.SqlServer.Parser
         {
             if( tokenType > 0 && ((tokenType & SqlTokenType.TokenDiscriminatorMask) == 0 || (tokenType&SqlTokenType.IsComment) !=0) ) throw new ArgumentException( "Invalid token type." );
             TokenType = tokenType;
+            SqlKeyword.CheckTokenTypeStringMapping( tokenType );
         }
 
         /// <summary>

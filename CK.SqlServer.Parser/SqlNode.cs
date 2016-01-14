@@ -219,9 +219,9 @@ namespace CK.SqlServer.Parser
             return w.ToString();
         }
 
-        public string ToString( bool withThisTrivia )
+        public string ToString( bool withThisTrivia, bool restoreUselessComments = false )
         {
-            ISqlTextWriter w = SqlTextWriter.CreateDefault();
+            ISqlTextWriter w = SqlTextWriter.CreateDefault( new StringBuilder(), restoreUselessComments );
             if( withThisTrivia ) Write( w );
             else WriteWithoutTrivias( w );
             return w.ToString();
