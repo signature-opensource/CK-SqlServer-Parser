@@ -38,6 +38,70 @@
     </Xml>
   </Test>
 
+
+  <Test Mode="OneExpression">
+    <Text>
+      SELECT myid, i = COUNT(*) OVER ( ) FROM dbo.mytable AS m2
+    </Text>
+    <Description>OVER does not require PARTITION BY or ORDER BY.</Description>
+    <Xml>
+      <Sql>
+        <SelectSpec>
+          <Columns>
+            <SelectColumnList>
+              <Item>
+                <SelectColumn>
+                  <Definition>
+                    <Identifier>myid</Identifier>
+                  </Definition>
+                </SelectColumn>
+              </Item>
+              <Item>
+                <SelectColumn ColumnName="i">
+                  <Definition>
+                    <KoCall FunName="COUNT">
+                      <Parameters>
+                        <EnclosedCommaList>
+                          <Item>
+                            <Identifier IsSpecial="true">*</Identifier>
+                          </Item>
+                        </EnclosedCommaList>
+                      </Parameters>
+                      <OverClause>
+                        <OverClause>
+                          <OverContent>
+                            <NodeList />
+                          </OverContent>
+                        </OverClause>
+                      </OverClause>
+                    </KoCall>
+                  </Definition>
+                </SelectColumn>
+              </Item>
+            </SelectColumnList>
+          </Columns>
+          <From>
+            <SelectFrom>
+              <Content>
+                <NodeList>
+                  <Item>
+                    <MultiIdentifier>dbo.mytable</MultiIdentifier>
+                  </Item>
+                  <Item>
+                    <Identifier IsReservedKeyword="true">AS</Identifier>
+                  </Item>
+                  <Item>
+                    <Identifier>m2</Identifier>
+                  </Item>
+                </NodeList>
+              </Content>
+            </SelectFrom>
+          </From>
+        </SelectSpec>
+      </Sql>
+    </Xml>
+  </Test>
+
   <Test Mode="OneExpression">
     <Text>select 1</Text>
     <Description>Simplest select.</Description>
@@ -318,9 +382,6 @@
              <Columns>Number, Customer, Date, Quantity</Columns>
              <From>
                <SelectFrom>
-                 <FromT>
-                   <Identifier IsReservedKeyword="true">FROM</Identifier>
-                 </FromT>
                  <Content>
                    <NodeList>
                      <Item>
@@ -433,9 +494,6 @@
                       </Parameters>
                       <OverClause>
                         <OverClause>
-                          <OverT>
-                            <Identifier IsReservedKeyword="true">OVER</Identifier>
-                          </OverT>
                           <OverContent>
                             <NodeList>
                               <Item>

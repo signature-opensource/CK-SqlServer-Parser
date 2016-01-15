@@ -95,6 +95,8 @@ namespace CK.SqlServer.Parser
                 var props = e.GetType().GetProperties()
                     .Where( p => p.Name != "UnPar"
                                  && p.Name != "WithT"
+                                 && p.Name != "OverT"
+                                 && p.Name != "FromT"
                                  && p.Name != "OptionT"
                                  && p.Name != "SetT"
                                  && p.Name != "StatementTerminator"
