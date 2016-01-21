@@ -60,7 +60,7 @@ namespace CK.SqlServer.Parser.Tests
             Assert.That( p.ToString( 1 ), Is.EqualTo( "a[[HEAD]]" ) );
             p.Forward();
             Assert.That( p.ToString( 20 ), Is.EqualTo( "a[[HEAD]]" ) );
-            
+
             p.Reset( "aa bb cc dd" );
             Assert.That( p.ToString( 1 ), Is.EqualTo( "... [[HEAD]]..." ) );
             Assert.That( p.ToString( 2 ), Is.EqualTo( "...a [[HEAD]]..." ) );
@@ -88,7 +88,7 @@ namespace CK.SqlServer.Parser.Tests
             Assert.That( p.ToString( 4 ), Is.EqualTo( "...c dd[[HEAD]]" ) );
             Assert.That( p.ToString( 11 ), Is.EqualTo( "aa bb cc dd[[HEAD]]" ) );
         }
-        
+
         [Test]
         public void EmptyInputAndComments()
         {
@@ -131,7 +131,7 @@ namespace CK.SqlServer.Parser.Tests
             Assert.Throws<KeyNotFoundException>( () => SqlKeyword.ToString( SqlTokenType.IdentifierReserved ) );
             Assert.Throws<KeyNotFoundException>( () => SqlKeyword.ToString( SqlTokenType.IdentifierReservedStatement ) );
             Assert.Throws<KeyNotFoundException>( () => SqlKeyword.ToString( SqlTokenType.IdentifierStandardStatement ) );
-        
+
             Assert.That( SqlKeyword.ToString( SqlTokenType.IdentifierStar ), Is.EqualTo( "*" ) );
 
             Assert.That( SqlKeyword.ToString( SqlTokenType.XmlDbType ), Is.EqualTo( "xml" ) );
@@ -208,7 +208,7 @@ begin
   declare @x1 decimal = .34;
   declare @x2 float = .45e12;
 end".NormalizeEOL();
-            ISqlTextWriter b  = SqlTextWriter.CreateDefault();
+            ISqlTextWriter b = SqlTextWriter.CreateDefault();
             foreach( var t in p.ParseWithoutError( s ) ) t.Write( b );
             string s2 = b.ToString().NormalizeEOL();
 
@@ -351,7 +351,7 @@ end".NormalizeEOL();
             Assert.That( tokens[0].TrailingTrivias[1].Text == " CancelDate" );
             Assert.That( tokens[1].TokenType == SqlTokenType.EndOfInput );
         }
-        
+
         [Test]
         public void LineComment_eats_its_prefix_and_LineTermination()
         {
@@ -371,6 +371,40 @@ TOKEN";
             Assert.That( tokens[1].TrailingTrivias.Count == 0 );
             Assert.That( tokens[2].TokenType == SqlTokenType.EndOfInput );
         }
-    }
 
+        [Test]
+        public void empty_LineComments_are_kept()
+        {
+            string s = @"
+insert -- Comment1
+--
+-- Comment2
+--
+-- Comment3 X   
+identifer2";
+            SqlTokenizer p = new SqlTokenizer();
+            var tokens = p.Parse( s ).ToArray();
+
+            Assert.That( tokens.Length == 3 );
+
+            Assert.That( tokens[0].LeadingTrivias.Count, Is.EqualTo( 1 ) );
+            Assert.That( tokens[0].LeadingTrivias[0].Text, Is.EqualTo( Environment.NewLine ) );
+            Assert.That( tokens[0].IsToken( SqlTokenType.Insert ) );
+            Assert.That( tokens[0].TrailingTrivias.Count, Is.EqualTo( 2 ) );
+            Assert.That( tokens[0].TrailingTrivias[0].Text, Is.EqualTo( " " ) );
+            Assert.That( tokens[0].TrailingTrivias[1].Text, Is.EqualTo( " Comment1" ) );
+
+            Assert.That( tokens[1].LeadingTrivias.Count, Is.EqualTo( 4 ) );
+            Assert.That( tokens[1].LeadingTrivias[0].Text, Is.EqualTo( string.Empty ) );
+            Assert.That( tokens[1].LeadingTrivias[1].Text, Is.EqualTo( " Comment2" ) );
+            Assert.That( tokens[1].LeadingTrivias[2].Text, Is.EqualTo( string.Empty ) );
+            Assert.That( tokens[1].LeadingTrivias[3].Text, Is.EqualTo( " Comment3 X   " ) );
+
+            Assert.That( tokens[1].IsToken( SqlTokenType.IdentifierStandard ) );
+            Assert.That( tokens[1].TrailingTrivias.Count, Is.EqualTo( 0 ) );
+
+            Assert.That( tokens[2].TokenType, Is.EqualTo( SqlTokenType.EndOfInput ) );
+
+        }
+    }
 }

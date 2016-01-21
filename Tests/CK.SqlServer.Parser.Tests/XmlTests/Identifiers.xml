@@ -46,6 +46,15 @@
   </Test>
 
   <Test Mode="OneExpression">
+    <Text>##MS_SQLResourceSigningCertificate##</Text>
+    <Xml>
+      <Sql>
+        <Identifier>##MS_SQLResourceSigningCertificate##</Identifier>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test Mode="OneExpression">
     <Text>int</Text>
     <Xml>
       <Sql>

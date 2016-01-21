@@ -42,7 +42,6 @@ namespace CK.SqlServer.Parser
             {
                 throw new ArgumentException( "Must be none, star or line comment.", "tokenType" );
             }
-            if( text == null ) text = String.Empty;
             _tokenType = tokenType;
             _text = text ?? String.Empty;
         }
@@ -51,7 +50,7 @@ namespace CK.SqlServer.Parser
         /// Gets a token type that can be <see cref="SqlTokenType.None"/> for white space
         /// or <see cref="SqlTokenType.LineComment"/> or <see cref="SqlTokenType.StarComment"/>. 
         /// </summary>
-        public SqlTokenType TokenType { get { return _tokenType; } }
+        public SqlTokenType TokenType => _tokenType;
 
         /// <summary>
         /// Gets whether this trivia is empty.

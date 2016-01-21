@@ -405,7 +405,7 @@ namespace CK.SqlServer.Parser
             List<ISqlNode> items = new List<ISqlNode>();
             while( !R.IsErrorOrEndOfInput 
                 && !SqlToken.IsEndOfExtendedExpression( R.Current )
-                && !(stopOnStatement && SqlToken.IsStatementStopper( R.Current )) )
+                && !(stopOnStatement && SqlToken.IsLimitedStatementStopper( R.Current )) )
             {
                 ISqlNode item = IsOneExpression( expected );
                 stopOnStatement = R.ParenthesisDepth == 0;

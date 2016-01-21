@@ -46,7 +46,7 @@ namespace CK.SqlServer.Parser.Tests.XmlTests
                         TestHelper.ConsoleMonitor.Trace().Send( visitedString );
                         if( !XNode.DeepEquals( visited, Expected ) )
                         {
-                            AssertOnXmlString( visitedString, Expected );
+                            TestHelper.AssertXmlStringEqual( visitedString, Expected );
                         }
                     }
                 }
@@ -59,19 +59,12 @@ namespace CK.SqlServer.Parser.Tests.XmlTests
                         TestHelper.ConsoleMonitor.Trace().Send( visitedString );
                         if( !XNode.DeepEquals( visited, ExpectedStatements ) )
                         {
-                            AssertOnXmlString( visitedString, ExpectedStatements );
+                            TestHelper.AssertXmlStringEqual( visitedString, ExpectedStatements );
                         }
                     }
                 }
             }
 
-            void AssertOnXmlString( string visitedString, XElement expected )
-            {
-                visitedString = Regex.Replace( visitedString, @"\s+", " ", RegexOptions.CultureInvariant | RegexOptions.Compiled );
-                string es = expected.ToString();
-                es = Regex.Replace( es, @"\s+", " ", RegexOptions.CultureInvariant | RegexOptions.Compiled );
-                Assert.That( visitedString, Is.EqualTo( es ) );
-            }
         }
 
         [TestCase( "Between expressions.xml" )]
@@ -80,6 +73,7 @@ namespace CK.SqlServer.Parser.Tests.XmlTests
         [TestCase( "CTE.xml" )]
         [TestCase( "Cursors.xml" )]
         [TestCase( "Functions.xml" )]
+        [TestCase( "GrantDenyRevoke.xml" )]
         [TestCase( "Identifiers.xml" )]
         [TestCase( "If.xml" )]
         [TestCase( "Insert.xml" )]

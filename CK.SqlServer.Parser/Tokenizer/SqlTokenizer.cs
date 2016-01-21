@@ -286,7 +286,7 @@ namespace CK.SqlServer.Parser
                 {
                     if( _buffer.Length > 0 ) _trailingTrivias.Add( BuildTrivia( SqlTokenType.None, _buffer.ToString() ) );
                     HandleLineComment();
-                    if( _buffer.Length > 0 ) _trailingTrivias.Add( BuildTrivia( SqlTokenType.LineComment, _buffer.ToString() ) );
+                    _trailingTrivias.Add( BuildTrivia( SqlTokenType.LineComment, _buffer.ToString() ) );
                     // Line comment ends the trailing trivias.
                     return;
                 }
@@ -341,11 +341,11 @@ namespace CK.SqlServer.Parser
                 {
                     _tokenType = NextTokenLowLevel();
                     if( (_tokenType & (int)SqlTokenType.IsComment) == 0 ) break;
-                    if( _buffer.Length > 0 ) _leadingTrivias.Add( BuildTrivia( (SqlTokenType)_tokenType, _buffer.ToString() ) );
+                    _leadingTrivias.Add( BuildTrivia( (SqlTokenType)_tokenType, _buffer.ToString() ) );
                 }
                 if( _tokenType < 0 )
                 {
-                    _token = new SqlTokenError( (SqlTokenTypeError)_tokenType, _leadingTrivias.ToImmutableList(), null, String.Format( "Unexpected {0} {1}.", _tokenType, GetTokenPosition() ) );
+                    _token = new SqlTokenError( (SqlTokenTypeError)_tokenType, _leadingTrivias.ToImmutableList(), null );
                 }
                 else
                 {

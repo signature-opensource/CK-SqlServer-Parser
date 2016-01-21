@@ -59,6 +59,8 @@ namespace CK.SqlServer.Parser
 
         public virtual ISqlNode Visit( SqlNodeExternal e ) => VisitStandard( e );
 
+        public virtual ISqlNode Visit( SqlGrant e ) => VisitStandard( e );
+
         public virtual ISqlNode Visit( SqlOpenXml e ) => VisitStandard( e );
 
         public virtual ISqlNode Visit( SqlOpenJSON e ) => VisitStandard( e );

@@ -15,25 +15,31 @@ namespace CK.SqlServer.Parser
     /// </summary>
     public class SqlTokenError : SqlToken
     {
+        readonly string _errorMessage;
+
         public static readonly SqlTokenError EndOfInput = new SqlTokenError( SqlTokenTypeError.EndOfInput, null, null, null );
 
         public SqlTokenError( SqlTokenTypeError t, ImmutableList<SqlTrivia> leadingTrivia = null, ImmutableList<SqlTrivia> trailingTrivia = null, string message = null )
             : base( (SqlTokenType)t, leadingTrivia, trailingTrivia )
         {
             if( t >= 0 ) throw new ArgumentException( "Invalid error token type." );
-            ErrorMessage = message ?? SqlKeyword.ToString( (SqlTokenType)t );
+            _errorMessage = message;
         }
 
         public SqlTokenError( string message )
             : base( SqlTokenType.ErrorMask, null, null )
         {
             if( string.IsNullOrWhiteSpace( message ) ) throw new ArgumentNullException( "message" );
-            ErrorMessage = message;
+            _errorMessage = message;
         }
 
-        public string ErrorMessage { get; private set; }
+        /// <summary>
+        /// Gets the error message.
+        /// </summary>
+        public string ErrorMessage => SqlKeyword.ToString( base.TokenType ) 
+                                        + (_errorMessage == null ? string.Empty : ": " + _errorMessage ); 
 
-        public new SqlTokenTypeError TokenType { get { return (SqlTokenTypeError)base.TokenType; } }
+        public new SqlTokenTypeError TokenType => (SqlTokenTypeError)base.TokenType; 
 
         protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
         {
@@ -44,9 +50,8 @@ namespace CK.SqlServer.Parser
 
         public override void WriteWithoutTrivias( ISqlTextWriter w )
         {
-            w.Write( string.Format( "[Error: {0}]", ErrorMessage ) ); 
+            w.Write( ErrorMessage ); 
         }
-
 
         [DebuggerStepThrough]
         internal protected override ISqlNode Accept( SqlItemVisitor visitor ) => visitor.Visit( this );

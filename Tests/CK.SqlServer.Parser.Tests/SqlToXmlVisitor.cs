@@ -327,7 +327,7 @@ namespace CK.SqlServer.Parser
         public override ISqlNode Visit( SqlStoredProcedure e )
         {
             StartNode( e ).Add(
-                    e.IsAlter ? new XAttribute( "IsAlter", "true" ) : null,
+                    e.IsAlterKeyword ? new XAttribute( "IsAlter", "true" ) : null,
                     new XElement( "Name", e.Name.ToString() ),
                     ToXml( "Parameters", e.Parameters ),
                     e.HasOptions ? ToXml( "Options", e.Options ) : null,

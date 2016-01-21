@@ -1,0 +1,450 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Tests>
+
+  <Test>
+    <Text>
+      GRANT VIEW DEFINITION
+      ON FULLTEXT STOPLIST :: ProductStoplist
+      TO Mary 
+
+      GRANT CONTROL
+      ON FULLTEXT CATALOG :: ProductCatalog
+      TO Ted 
+
+      GRANT EXECUTE ON TestProc TO TesterRole WITH GRANT OPTION
+
+      GRANT CONTROL ON USER::Wanida TO RolandX;
+
+      GRANT IMPERSONATE ON USER::HamithaL TO AccountsPayable17
+
+      GRANT EXECUTE ON OBJECT::HumanResources.uspUpdateEmployeeHireInfo
+          TO Recruiting11
+    
+      GRANT REFERENCES (BusinessEntityID) ON OBJECT::HumanResources.vEmployee 
+        TO Wanida WITH GRANT OPTION
+
+      GRANT SELECT ON Person.Address TO RosaQdM
+
+      GRANT SELECT ON Person.Address TO [AdventureWorks2012\RosaQdM]
+
+      GRANT SELECT, INSERT, DELETE, UPDATE on SCHEMA::SchemaName to Principal
+
+    </Text>
+    <Description></Description>
+    <Xml>
+      <Statements>
+        <Grant />
+        <Grant />
+        <Grant />
+        <Grant HasTerminator="true" />
+        <Grant />
+        <Grant />
+        <Grant />
+        <Grant />
+        <Grant />
+        <Grant />
+      </Statements>
+    </Xml>
+  </Test>
+
+
+  <Test>
+    <Text>
+      declare @i [int] = 23;
+      while @i > 8 
+      begin
+        set @i -= 1;
+      end;
+    </Text>
+    <Description>MSDN Sample.</Description>
+    <Xml>
+      <Statements>
+        <DeclareVariable HasTerminator="true" />
+        <While HasTerminator="true">
+          <BeginEndBlock>
+            <StatementList>
+              <SetVariable HasTerminator="true" />
+            </StatementList>
+          </BeginEndBlock>
+        </While>
+      </Statements>
+    </Xml>
+  </Test>
+
+  <Test>
+    <Text>
+      
+      CREATE PROCEDURE dbo.InsertUnitMeasure
+          @UnitMeasureCode nchar(3),
+          @Name nvarchar(25)
+      AS 
+      BEGIN
+          SET NOCOUNT ON;
+          -- Update the row if it exists.    
+          UPDATE Production.UnitMeasure
+              SET Name = @Name
+              WHERE UnitMeasureCode = @UnitMeasureCode
+          -- Insert the row if the UPDATE statement failed.
+          IF (@@ROWCOUNT = 0 )
+          BEGIN
+              INSERT INTO Production.UnitMeasure (UnitMeasureCode, Name)
+              VALUES (@UnitMeasureCode, @Name)
+          END
+      END;
+      GO
+      -- Test the procedure and return the results.
+      EXEC InsertUnitMeasure @UnitMeasureCode = 'ABC', @Name = 'Test Value';
+      SELECT UnitMeasureCode, Name FROM Production.UnitMeasure
+        WHERE UnitMeasureCode = 'ABC';
+      GO
+
+      -- Rewrite the procedure to perform the same operations using the MERGE statement.
+      -- Create a temporary table to hold the updated or inserted values from the OUTPUT clause.
+      CREATE TABLE #MyTempTable
+          (ExistingCode nchar(3),
+           ExistingName nvarchar(50),
+           ExistingDate datetime,
+           ActionTaken nvarchar(10),
+           NewCode nchar(3),
+           NewName nvarchar(50),
+           NewDate datetime
+          );
+      GO
+      ALTER PROCEDURE dbo.InsertUnitMeasure
+          @UnitMeasureCode nchar(3),
+          @Name nvarchar(25)
+      AS 
+      BEGIN
+        SET NOCOUNT ON;
+
+        MERGE Production.UnitMeasure AS target
+            USING (SELECT @UnitMeasureCode, @Name) AS source (UnitMeasureCode, Name)
+            ON (target.UnitMeasureCode = source.UnitMeasureCode)
+            WHEN MATCHED THEN 
+                UPDATE SET Name = source.Name
+            WHEN NOT MATCHED THEN
+                INSERT (UnitMeasureCode, Name)
+                VALUES (source.UnitMeasureCode, source.Name)
+                OUTPUT deleted.*, $action, inserted.* INTO #MyTempTable;
+      END;
+      GO
+      -- Test the procedure and return the results.
+      EXEC InsertUnitMeasure @UnitMeasureCode = 'ABC', @Name = 'New Test Value';
+      EXEC InsertUnitMeasure @UnitMeasureCode = 'XYZ', @Name = 'Test Value';
+      EXEC InsertUnitMeasure @UnitMeasureCode = 'ABC', @Name = 'Another Test Value';
+
+      SELECT * FROM #MyTempTable;
+      -- Cleanup 
+      DELETE FROM Production.UnitMeasure WHERE UnitMeasureCode IN ('ABC','XYZ');
+      DROP TABLE #MyTempTable;
+      GO
+    </Text>
+    <Xml>
+      <Statements>
+        <StoredProcedure StatementName="CreateProcedure" HasTerminator="true">
+          <StatementList>
+            <SetOption HasTerminator="true" />
+            <UpdateStatement />
+            <If>
+              <BeginEndBlock>
+                <StatementList>
+                  <InsertStatement />
+                </StatementList>
+              </BeginEndBlock>
+            </If>
+          </StatementList>
+        </StoredProcedure>
+        <Statement StatementName="GO" />
+        <ExecuteStatement HasTerminator="true" />
+        <SelectStatement HasTerminator="true">
+          <SelectSpec />
+        </SelectStatement>
+        <Statement StatementName="GO" />
+        <Statement StatementName="CREATE" HasTerminator="true" />
+        <Statement StatementName="GO" />
+        <StoredProcedure StatementName="AlterProcedure" HasTerminator="true">
+          <StatementList>
+            <SetOption HasTerminator="true" />
+            <MergeStatement HasTerminator="true" />
+          </StatementList>
+        </StoredProcedure>
+        <Statement StatementName="GO" />
+        <ExecuteStatement HasTerminator="true" />
+        <ExecuteStatement HasTerminator="true" />
+        <ExecuteStatement HasTerminator="true" />
+        <SelectStatement HasTerminator="true">
+          <SelectSpec />
+        </SelectStatement>
+        <DeleteStatement HasTerminator="true" />
+        <Statement StatementName="DROP" HasTerminator="true" />
+        <Statement StatementName="GO" />
+      </Statements>
+    </Xml>
+  </Test> 
+  
+  <Test>
+    <Text>
+      /* Create a table type. */
+      CREATE TYPE LocationTableType AS TABLE 
+      ( LocationName VARCHAR(50)
+      , CostRate INT );
+      GO
+
+      /* Create a procedure to receive data for the table-valued parameter. */
+      CREATE PROCEDURE usp_InsertProductionLocation
+          @TVP LocationTableType READONLY
+          AS 
+          SET NOCOUNT ON
+          INSERT INTO [AdventureWorks2012].[Production].[Location]
+                 ([Name]
+                 ,[CostRate]
+                 ,[Availability]
+                 ,[ModifiedDate])
+              SELECT *, 0, GETDATE()
+              FROM  @TVP;
+      GO
+
+      /* Declare a variable that references the type. */
+      DECLARE @LocationTVP 
+      AS LocationTableType;
+
+      /* Add data to the table variable. */
+      INSERT INTO @LocationTVP (LocationName, CostRate)
+          SELECT [Name], 0.00
+          FROM 
+          [AdventureWorks2012].[Person].[StateProvince];
+
+      /* Pass the table variable data to a stored procedure. */
+      EXEC usp_InsertProductionLocation @LocationTVP;
+    </Text>
+    <Description>MSDN Sample.</Description>
+    <Xml>
+      <Statements>
+        <Statement StatementName="CREATE" HasTerminator="true" />
+        <Statement StatementName="GO" />
+        <StoredProcedure StatementName="CreateProcedure">
+          <StatementList>
+            <SetOption />
+            <InsertStatement HasTerminator="true">
+              <SelectSpec />
+            </InsertStatement>
+          </StatementList>
+        </StoredProcedure>
+        <Statement StatementName="GO" />
+        <DeclareVariable HasTerminator="true" />
+        <InsertStatement HasTerminator="true">
+          <SelectSpec />
+        </InsertStatement>
+        <ExecuteStatement HasTerminator="true" />
+      </Statements>
+    </Xml>
+  </Test>
+
+  <Test>
+    <Text>
+      -- Create these tables:
+      DROP TABLE CourseAttendance
+      DROP TABLE Students
+      DROP TABLE Courses
+      GO
+      CREATE TABLE Students( id varchar(5) primary key, name varchar(30) )
+      GO
+      CREATE TABLE Courses( id varchar(5) primary key, name varchar(30), taughtBy varchar(5) )
+      GO
+      CREATE TABLE CourseAttendance( 
+          id         varchar(5) references Courses(id),
+          attendedBy varchar(5) references Students(id),
+          constraint CourseAttendance_PK primary key (id, attendedBy) )
+
+    </Text>
+    <Description>MSDN Sample.</Description>
+    <Xml>
+      <Statements>
+            <Statement StatementName="DROP" />
+            <Statement StatementName="DROP" />
+            <Statement StatementName="DROP" />
+            <Statement StatementName="GO" />
+            <Statement StatementName="CREATE" />
+            <Statement StatementName="GO" />
+            <Statement StatementName="CREATE" />
+            <Statement StatementName="GO" />
+            <Statement StatementName="CREATE" />
+      </Statements>
+    </Xml>
+  </Test>
+  
+  <Test>
+    <Text>
+      IF OBJECT_ID (N'Sales.ufn_SalesByStore', N'IF') IS NOT NULL
+        DROP FUNCTION Sales.ufn_SalesByStore;
+      GO
+      CREATE FUNCTION Sales.ufn_SalesByStore (@storeid int) RETURNS TABLE
+      AS
+      RETURN
+      (
+          SELECT P.ProductID, P.Name, SUM(SD.LineTotal) AS 'Total'
+          FROM Production.Product AS P
+          JOIN Sales.SalesOrderDetail AS SD ON SD.ProductID = P.ProductID
+          JOIN Sales.SalesOrderHeader AS SH ON SH.SalesOrderID = SD.SalesOrderID
+          JOIN Sales.Customer AS C ON SH.CustomerID = C.CustomerID
+          WHERE C.StoreID = @storeid
+          GROUP BY P.ProductID, P.Name
+      );
+    </Text>
+    <Description>MSDN Sample.</Description>
+    <Xml>
+      <Statements>
+        <If>
+          <Statement StatementName="DROP" HasTerminator="true" />
+        </If>
+        <Statement StatementName="GO" />
+        <FunctionInlineTable StatementName="CreateFunction">
+          <SelectStatement HasTerminator="true">
+            <SelectSpec />
+          </SelectStatement>
+        </FunctionInlineTable>
+      </Statements>
+    </Xml>
+  </Test>
+  
+  <Test>
+    <Text>
+      DECLARE @MyTableVar table(  EmpID int NOT NULL,
+                                  OldVacationHours int,
+                                  NewVacationHours int,
+                                  ModifiedDate datetime);
+      UPDATE TOP (10) HumanResources.Employee
+          SET VacationHours = VacationHours * 1.25
+            OUTPUT 
+                INSERTED.BusinessEntityID,
+                DELETED.VacationHours,
+                INSERTED.VacationHours,
+                INSERTED.ModifiedDate
+          INTO @MyTableVar;
+
+      --Display the result set of the table variable.
+      SELECT EmpID, OldVacationHours, NewVacationHours, ModifiedDate FROM @MyTableVar;
+
+    --Display the result set of the table.
+      --Note that ModifiedDate reflects the value generated by an
+      --AFTER UPDATE trigger.
+      SELECT TOP (10) BusinessEntityID, VacationHours, ModifiedDate FROM HumanResources.Employee;
+    </Text>
+    <Description>MSDN Sample.</Description>
+    <Xml>
+      <Statements>
+        <DeclareVariable HasTerminator="true" />
+        <UpdateStatement HasTerminator="true" />
+        <SelectStatement HasTerminator="true">
+          <SelectSpec />
+        </SelectStatement>
+        <SelectStatement HasTerminator="true">
+          <SelectSpec />
+        </SelectStatement>
+      </Statements>
+    </Xml>
+  </Test>
+
+  <Test>
+    <Text>
+      <![CDATA[
+      CREATE DATABASE SampleDB;
+      GO
+      USE SampleDB;
+      GO
+      CREATE XML SCHEMA COLLECTION ManuInstructionsSchemaCollection AS
+      N'<?xml version="1.0" encoding="UTF-16"?>
+      <xsd:schema targetNamespace="http://schemas.microsoft.com/sqlserver/2004/07/adventure-works/ProductModelManuInstructions" 
+         xmlns          ="http://schemas.microsoft.com/sqlserver/2004/07/adventure-works/ProductModelManuInstructions" 
+         elementFormDefault="qualified" 
+         attributeFormDefault="unqualified"
+         xmlns:xsd="http://www.w3.org/2001/XMLSchema" >
+
+          <xsd:complexType name="StepType" mixed="true" >
+              <xsd:choice  minOccurs="0" maxOccurs="unbounded" > 
+                  <xsd:element name="tool" type="xsd:string" />
+                  <xsd:element name="material" type="xsd:string" />
+                  <xsd:element name="blueprint" type="xsd:string" />
+                  <xsd:element name="specs" type="xsd:string" />
+                  <xsd:element name="diag" type="xsd:string" />
+              </xsd:choice> 
+          </xsd:complexType>
+
+          <xsd:element  name="root">
+              <xsd:complexType mixed="true">
+                  <xsd:sequence>
+                      <xsd:element name="Location" minOccurs="1" maxOccurs="unbounded">
+                          <xsd:complexType mixed="true">
+                              <xsd:sequence>
+                                  <xsd:element name="step" type="StepType" minOccurs="1" maxOccurs="unbounded" />
+                              </xsd:sequence>
+                              <xsd:attribute name="LocationID" type="xsd:integer" use="required"/>
+                              <xsd:attribute name="SetupHours" type="xsd:decimal" use="optional"/>
+                              <xsd:attribute name="MachineHours" type="xsd:decimal" use="optional"/>
+                              <xsd:attribute name="LaborHours" type="xsd:decimal" use="optional"/>
+                              <xsd:attribute name="LotSize" type="xsd:decimal" use="optional"/>
+                          </xsd:complexType>
+                      </xsd:element>
+                  </xsd:sequence>
+              </xsd:complexType>
+          </xsd:element>
+      </xsd:schema>' ;
+      GO
+      -- Verify - list of collections in the database.
+      SELECT *
+      FROM sys.xml_schema_collections;
+      -- Verify - list of namespaces in the database.
+      SELECT name
+      FROM sys.xml_schema_namespaces;
+
+      -- Use it. Create a typed xml variable. Note collection name specified.
+      DECLARE @x xml (ManuInstructionsSchemaCollection);
+      GO
+      --Or create a typed xml column.
+      CREATE TABLE T (
+              i int primary key, 
+              x xml (ManuInstructionsSchemaCollection));
+      GO
+      -- Clean up
+      DROP TABLE T;
+      GO
+      DROP XML SCHEMA COLLECTION ManuInstructionsSchemaCollection;
+      Go
+      USE master;
+      GO
+      DROP DATABASE SampleDB;
+      ]]>
+    </Text>
+    <Description></Description>
+    <Xml>
+      <Statements>
+        <Statement StatementName="CREATE" HasTerminator="true" />
+        <Statement StatementName="GO" />
+        <Statement StatementName="USE" HasTerminator="true" />
+        <Statement StatementName="GO" />
+        <Statement StatementName="CREATE" HasTerminator="true" />
+        <Statement StatementName="GO" />
+        <SelectStatement HasTerminator="true">
+          <SelectSpec />
+        </SelectStatement>
+        <SelectStatement HasTerminator="true">
+          <SelectSpec />
+        </SelectStatement>
+        <DeclareVariable />
+        <UnnamedStatement HasTerminator="true" />
+        <Statement StatementName="GO" />
+        <Statement StatementName="CREATE" HasTerminator="true" />
+        <Statement StatementName="GO" />
+        <Statement StatementName="DROP" HasTerminator="true" />
+        <Statement StatementName="GO" />
+        <Statement StatementName="DROP" HasTerminator="true" />
+        <Statement StatementName="Go" />
+        <Statement StatementName="USE" HasTerminator="true" />
+        <Statement StatementName="GO" />
+        <Statement StatementName="DROP" HasTerminator="true" />
+      </Statements>
+    </Xml>
+  </Test>
+
+</Tests>
+

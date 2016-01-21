@@ -8,7 +8,7 @@ using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
-    public sealed class SqlFunctionScalar : SqlNode, ISqlNamedStatement
+    public sealed class SqlFunctionScalar : SqlNode, ISqlNamedStatement, ISqlServerFunctionScalar
     {
         readonly SNode<SqlTokenIdentifier,
             SqlTokenIdentifier,
@@ -91,7 +91,14 @@ namespace CK.SqlServer.Parser
 
         public SqlTokenIdentifier AlterOrCreateT => _content.V1;
 
+        public bool IsAlterKeyword => AlterOrCreateT.TokenType == SqlTokenType.Alter;
+
         public SqlTokenIdentifier ObjectTypeT => _content.V2;
+
+        /// <summary>
+        /// Gets the name of the procedure (may start with the Schema).
+        /// </summary>
+        public string ObjectName => Name.ToString();
 
         /// <summary>
         /// Gets the name of the procedure (may start with the Schema).
@@ -108,6 +115,8 @@ namespace CK.SqlServer.Parser
 
         public SqlWithOptions Options => _content.V7;
 
+        public IEnumerable<ISqlNode> Header => _content.Skip( 1 ).Take( HasOptions ? 6 : 5 );
+
         public SqlTokenIdentifier AsT => _content.V8;
 
         public SqlTokenIdentifier BeginT => _content.V9;
@@ -121,6 +130,29 @@ namespace CK.SqlServer.Parser
         [DebuggerStepThrough]
         internal protected override ISqlNode Accept( SqlItemVisitor visitor ) => visitor.Visit( this );
 
+        ISqlServerUnifiedTypeDecl ISqlServerFunctionScalar.ReturnType => _content.V6;
+
+        ISqlServerParameterList ISqlServerCallableObject.Parameters => _content.V4;
+
+        SqlServerObjectType ISqlServerObject.ObjectType => SqlServerObjectType.ScalarFunction;
+
+        string ISqlServerObject.ToStringSignature( bool withOptions )
+        {
+            return withOptions ? Header.ToStringCompact() : _content.Skip( 1 ).Take( 5 ).ToStringCompact();
+        }
+
+        void ISqlServerObject.Write( StringBuilder b )
+        {
+            Write( SqlTextWriter.CreateDefault( b ) );
+        }
+
+        ISqlServerAlterOrCreateStatement ISqlServerAlterOrCreateStatement.ToggleKeyword()
+        {
+            return (ISqlServerAlterOrCreateStatement)ReplaceChildNode( 0,
+                    IsAlterKeyword
+                        ? new SqlTokenIdentifier( SqlTokenType.Create, "create", AlterOrCreateT.LeadingTrivias, AlterOrCreateT.TrailingTrivias )
+                        : new SqlTokenIdentifier( SqlTokenType.Alter, "alter", AlterOrCreateT.LeadingTrivias, AlterOrCreateT.TrailingTrivias ) );
+        }
     }
 }
 

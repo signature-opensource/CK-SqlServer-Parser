@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using NUnit.Framework;
 using System.Xml.Linq;
+using CK.Core;
 
 namespace CK.SqlServer.Parser.Tests
 {
@@ -22,6 +23,22 @@ namespace CK.SqlServer.Parser.Tests
             SqlAnalyser.ErrorResult r = SqlAnalyser.Parse( out e, ParseMode.AllStatements, text );
             Assert.That( r.IsError, Is.False, r.ToString() );
             Assert.That( e.ToString( true, true ).NormalizeEOL(), Is.EqualTo( text ) );
+        }
+
+        [Test]
+        public void The_sp_GetDDL_script_is_correctlty_parsed()
+        {
+            string text = TestHelper.LoadTextFromParsingScripts( "sp_GetDDL.sql" );
+            ISqlNode e;
+            SqlAnalyser.ErrorResult r = SqlAnalyser.Parse( out e, ParseMode.AllStatements, text );
+            Assert.That( r.IsError, Is.False, r.ToString() );
+            Assert.That( e.ToString( true, true ).NormalizeEOL(), Is.EqualTo( text ) );
+
+            XElement visited = new SqlToXmlStatementVisitor().ToXml( "Statements", e );
+            string visitedString = visited.ToString();
+            TestHelper.ConsoleMonitor.Trace().Send( visitedString );
+
+            Assert.That( ((SqlNodeList)e).Count, Is.EqualTo( 7 ) );
         }
 
         [Test]

@@ -87,7 +87,7 @@ namespace CK.SqlServer.Parser
 
         public SqlTokenIdentifier AlterOrCreateT => _content.V1;
 
-        public bool IsAlter => AlterOrCreateT.TokenType == SqlTokenType.Alter;
+        public bool IsAlterKeyword => AlterOrCreateT.TokenType == SqlTokenType.Alter;
 
         public SqlTokenIdentifier ObjectTypeT => _content.V2;
 
@@ -106,11 +106,6 @@ namespace CK.SqlServer.Parser
         ISqlServerParameterList ISqlServerCallableObject.Parameters => _content.V4;
 
         SqlServerObjectType ISqlServerObject.ObjectType => SqlServerObjectType.Procedure;
-
-        string ISqlServerObject.ToStringSignature( bool withOptions )
-        {
-            return withOptions ? Header.ToStringCompact() : _content.Skip( 1 ).Take( 3 ).ToStringCompact();
-        }
 
         public bool HasOptions => _content.V5 != null;
 
@@ -133,5 +128,22 @@ namespace CK.SqlServer.Parser
         [DebuggerStepThrough]
         internal protected override ISqlNode Accept( SqlItemVisitor visitor ) => visitor.Visit( this );
 
+        string ISqlServerObject.ToStringSignature( bool withOptions )
+        {
+            return withOptions ? Header.ToStringCompact() : _content.Skip( 1 ).Take( 3 ).ToStringCompact();
+        }
+
+        void ISqlServerObject.Write( StringBuilder b )
+        {
+            Write( SqlTextWriter.CreateDefault( b ) );
+        }
+
+        ISqlServerAlterOrCreateStatement ISqlServerAlterOrCreateStatement.ToggleKeyword()
+        {
+            return (ISqlServerAlterOrCreateStatement)ReplaceChildNode( 0,
+                    IsAlterKeyword
+                        ? new SqlTokenIdentifier( SqlTokenType.Create, "create", AlterOrCreateT.LeadingTrivias, AlterOrCreateT.TrailingTrivias )
+                        : new SqlTokenIdentifier( SqlTokenType.Alter, "alter", AlterOrCreateT.LeadingTrivias, AlterOrCreateT.TrailingTrivias ) );
+        }
     }
 }

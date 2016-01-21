@@ -23,6 +23,7 @@ namespace CK.SqlServer.Parser
         Update,
         Merge,
         Delete,
+        Grant,
         Raiserror,
         Execute,
         ExecuteString,

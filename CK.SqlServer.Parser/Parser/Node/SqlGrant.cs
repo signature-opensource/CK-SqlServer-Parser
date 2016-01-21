@@ -1,0 +1,70 @@
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using System.Linq;
+using System.Text;
+using CK.Core;
+using System.Collections.Immutable;
+
+namespace CK.SqlServer.Parser
+{
+    /// <summary>
+    /// Handles "GRANT perm TO target" statement. 
+    /// </summary>
+    public sealed class SqlGrant : SqlNode, ISqlNamedStatement
+    {
+        readonly SNode<SqlTokenIdentifier, SqlNodeList, SqlTokenIdentifier, SqlNodeList, SqlTokenTerminal> _content;
+
+        public SqlGrant( SqlTokenIdentifier grantT, SqlNodeList perm, SqlTokenIdentifier toT, SqlNodeList target, SqlTokenTerminal term )
+            : base( null, null )
+        {
+            _content = new SNode<SqlTokenIdentifier, SqlNodeList, SqlTokenIdentifier, SqlNodeList, SqlTokenTerminal>( grantT, perm, toT, target, term );
+            CheckContent();
+        }
+
+        void CheckContent()
+        {
+            SNode.CheckToken( GrantT, nameof( GrantT ), SqlTokenType.Grant );
+            SNode.CheckNotNull( Perm, nameof( Perm ) );
+            SNode.CheckToken( ToT, nameof( ToT ), SqlTokenType.To );
+            SNode.CheckNotNull( Target, nameof( Target ) );
+        }
+
+        SqlGrant( SqlGrant o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
+            : base( leading, trailing )
+        {
+            if( items == null ) _content = o._content;
+            else
+            {
+                _content = new SNode<SqlTokenIdentifier, SqlNodeList, SqlTokenIdentifier, SqlNodeList, SqlTokenTerminal>( items );
+                CheckContent();
+            }
+        }
+
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
+        {
+            return new SqlGrant( this, leading, children, trailing );
+        }
+
+        public StatementKnownName StatementKnownName => StatementKnownName.Grant;
+
+        public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
+
+        public SqlTokenIdentifier GrantT => _content.V1;
+
+        public SqlNodeList Perm => _content.V2;
+
+        public SqlTokenIdentifier ToT => _content.V3;
+
+        public SqlNodeList Target => _content.V4;
+
+        public SqlTokenTerminal StatementTerminator => _content.V5;
+
+        [DebuggerStepThrough]
+        internal protected override ISqlNode Accept( SqlItemVisitor visitor ) => visitor.Visit( this );
+
+    }
+
+
+}

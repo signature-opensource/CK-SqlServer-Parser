@@ -145,6 +145,11 @@ namespace CK.SqlServer.Parser
                 ISqlNode value = IsAnyExpression( false, false );
                 return R.IsError ? null : new SqlReturnStatement( id, value, GetOptionalTerminator() );
             }
+            if( id.TokenType == SqlTokenType.Grant )
+            {
+                R.MoveNext();
+                return MatchGrant( id );
+            }
             if( id.TokenType == SqlTokenType.Raiserror )
             {
                 R.MoveNext();
@@ -291,6 +296,28 @@ namespace CK.SqlServer.Parser
             R.MoveNext();
             R.MoveNext();
             return new SqlLabelDefinition( id, colon );
+        }
+
+        private ISqlNamedStatement MatchGrant( SqlTokenIdentifier id )
+        {
+            SqlTokenIdentifier toT;
+            SqlNodeList perm = IsSqlNodeList( out toT, t => t.TokenType == SqlTokenType.To );
+            if( perm == null ) return null;
+            SqlNodeList target = IsSqlNodeList<SqlToken>( SqlToken.IsStatementStopper, IsWithGrantOption );
+            if( target == null ) return null;
+            return new SqlGrant( id, perm, toT, target, GetOptionalTerminator() );
+        }
+
+        ISqlNode IsWithGrantOption( bool expected )
+        {
+            SqlTokenIdentifier withT, grantT, optionT;
+            if( !R.IsToken( out withT, SqlTokenType.With, expected )
+                || !R.IsToken( out grantT, SqlTokenType.Grant, true )
+                || !R.IsToken( out optionT, SqlTokenType.Option, true ) )
+            {
+                return null;
+            }
+            return new SqlNodeList( withT, grantT, optionT );
         }
 
         /// <summary>
@@ -458,7 +485,7 @@ namespace CK.SqlServer.Parser
                     || R.Current.TokenType == SqlTokenType.Option
                     || R.Current.TokenType == SqlTokenType.Output
                     || R.Current.TokenType == SqlTokenType.SemiColon
-                    || (R.ParenthesisDepth == 0 && SqlToken.IsStatementStopper( R.Current ))
+                    || (R.ParenthesisDepth == 0 && SqlToken.IsLimitedStatementStopper( R.Current ))
                     || (safeExpr = IsOneExpression( false )) == null
                     || !(safeExpr is SqlAssign || safeExpr is SqlKoCall) )
                 {

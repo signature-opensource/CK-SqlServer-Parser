@@ -4,6 +4,8 @@ using CK.Core;
 using System;
 using System.Linq;
 using System.Diagnostics;
+using System.Xml.Linq;
+using System.Text.RegularExpressions;
 
 namespace CK.SqlServer.Parser.Tests
 {
@@ -60,6 +62,15 @@ namespace CK.SqlServer.Parser.Tests
         {
             return File.ReadAllText( TestHelper.GetFolder( "Parsing", "Scripts", fileName ) ).NormalizeEOL();
         }
+
+        public static void AssertXmlStringEqual( string visitedString, XElement expected )
+        {
+            visitedString = Regex.Replace( visitedString, @"\s+", " ", RegexOptions.CultureInvariant );
+            string es = expected.ToString();
+            es = Regex.Replace( es, @"\s+", " ", RegexOptions.CultureInvariant );
+            Assert.That( visitedString, Is.EqualTo( es ) );
+        }
+
 
         [DebuggerStepThrough]
         public static T ParseOneStatementAndCheckString<T>( string text, bool addSemiColon = false ) where T : ISqlStatement

@@ -88,11 +88,22 @@ namespace CK.SqlServer.Parser
         /// </summary>
         /// <param name="t">Token to test.</param>
         /// <returns>Whether the token is a possible start of a new statement.</returns>
-        static public bool IsStatementStopper( SqlToken t )
+        static public bool IsLimitedStatementStopper( SqlToken t )
         {
             if( t == null ) throw new ArgumentNullException( "t" );
             return t.TokenType == SqlTokenType.OpenPar
                     || t.TokenType.IsStartStatement();
+        }
+
+        /// <summary>
+        /// True if the <see cref="SqlToken"/> is a <see cref="IsEndOfExtendedExpression"/>
+        /// or a <see cref="IsLimitedStatementStopper"/>.
+        /// </summary>
+        /// <param name="t">Token to test.</param>
+        /// <returns>Whether the token is a possible start of a new statement.</returns>
+        static public bool IsStatementStopper( SqlToken t )
+        {
+            return IsEndOfExtendedExpression( t ) || IsLimitedStatementStopper( t );
         }
 
         /// <summary>

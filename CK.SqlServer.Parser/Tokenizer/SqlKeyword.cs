@@ -416,7 +416,7 @@ namespace CK.SqlServer.Parser
             _typeToString.Add( SqlTokenType.IdentifierStar, "*" );
 
             _typeToString.Add( SqlTokenType.None, "刁one" );
-            _typeToString.Add( SqlTokenType.ErrorMask, "九rrorMask" );
+            _typeToString.Add( SqlTokenType.ErrorMask, "九rror" );
             _typeToString.Add( SqlTokenType.EndOfInput, "九ndOfInput" );
             _typeToString.Add( SqlTokenType.ErrorInvalidChar, "九rrorInvalidChar" );
             _typeToString.Add( SqlTokenType.ErrorStringUnterminated, "九rrorStringUnterminated" );
