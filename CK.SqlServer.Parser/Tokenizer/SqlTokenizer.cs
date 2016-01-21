@@ -253,7 +253,15 @@ namespace CK.SqlServer.Parser
         {
             int c;
             ClearBuffer();
-            while( (c = Read()) != -1 && Char.IsWhiteSpace( (char)c ) ) _buffer.Append( (char)c );
+            while( (c = Read()) != -1 && Char.IsWhiteSpace( (char)c ) )
+            {
+                if( c == '\r' || c == '\n' || c == '\u2028' || c == '\u2029' )
+                {
+                    if( c == '\r' ) Read( '\n' );
+                    _buffer.Append( Environment.NewLine );
+                }
+                else _buffer.Append( (char)c );
+            }
             if( _buffer.Length > 0 ) _leadingTrivias.Add( BuildTrivia( SqlTokenType.None, _buffer.ToString() ) );
             return c;
         }
