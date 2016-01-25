@@ -46,17 +46,17 @@ namespace CK.SqlServer.Parser
 
         SqlDbType CheckContent()
         {
-            SNode.CheckNotNull( TypeIdentifierT, nameof( TypeIdentifierT ) );
+            Helper.CheckNotNull( TypeIdentifierT, nameof( TypeIdentifierT ) );
             if( _content.Count > 1 )
             {
-                SNode.CheckNotNull( Opener, nameof( Opener ) );
-                SNode.CheckNotNull( Size, nameof( Size ) );
+                Helper.CheckNotNull( Opener, nameof( Opener ) );
+                Helper.CheckNotNull( Size, nameof( Size ) );
                 if( !(Size is SqlTokenLiteralInteger && ((SqlTokenLiteralInteger)Size).Value > 0)
                     && !(Size is SqlTokenIdentifier && ((SqlTokenIdentifier)Size).TokenType == SqlTokenType.Max) )
                 {
                     throw new ArgumentException( "Size must be an integer greater than 0 or max.", nameof( Size ) );
                 }
-                SNode.CheckNotNull( Closer, nameof( Closer ) );
+                Helper.CheckNotNull( Closer, nameof( Closer ) );
             }
             SqlDbType? dbType = SqlKeyword.FromSqlTokenTypeToSqlDbType( TypeIdentifierT.TokenType );
             if( !dbType.HasValue 
@@ -94,6 +94,8 @@ namespace CK.SqlServer.Parser
         }
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
+
+        public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
 
         public SqlTokenIdentifier TypeIdentifierT => _content.V1;
 

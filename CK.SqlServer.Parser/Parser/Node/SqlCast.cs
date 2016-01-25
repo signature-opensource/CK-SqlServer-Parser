@@ -38,11 +38,11 @@ namespace CK.SqlServer.Parser
 
         void CheckContent()
         {
-            SNode.CheckToken( CastT, nameof( CastT ), SqlTokenType.Cast );
-            SNode.CheckNotNull( Opener, nameof( Opener ) );
-            SNode.CheckToken( AsT, nameof( AsT ), SqlTokenType.As );
-            SNode.CheckNotNull( Type, nameof( Type ) );
-            SNode.CheckNotNull( Closer, nameof( Closer ) );
+            Helper.CheckToken( CastT, nameof( CastT ), SqlTokenType.Cast );
+            Helper.CheckNotNull( Opener, nameof( Opener ) );
+            Helper.CheckToken( AsT, nameof( AsT ), SqlTokenType.As );
+            Helper.CheckNotNull( Type, nameof( Type ) );
+            Helper.CheckNotNull( Closer, nameof( Closer ) );
         }
 
         protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
@@ -51,6 +51,8 @@ namespace CK.SqlServer.Parser
         }
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
+
+        public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
 
         public SqlTokenIdentifier CastT => _content.V1;
 

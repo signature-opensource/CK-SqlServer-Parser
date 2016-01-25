@@ -26,7 +26,7 @@ namespace CK.SqlServer.Parser
 
         void CheckContent()
         {
-            SNode.CheckUnPar<ISelectSpecification>( SelectNode, nameof( SelectNode ) );
+            Helper.CheckUnPar<ISelectSpecification>( SelectNode, nameof( SelectNode ) );
         }
 
         SqlSelectStatement( SqlSelectStatement o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
@@ -48,6 +48,8 @@ namespace CK.SqlServer.Parser
         public StatementKnownName StatementKnownName => StatementKnownName.Select;
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
+
+        public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
 
         public ISqlNode SelectNode => _content.V1;
 

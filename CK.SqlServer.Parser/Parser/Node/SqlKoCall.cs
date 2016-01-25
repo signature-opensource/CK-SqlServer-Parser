@@ -21,8 +21,8 @@ namespace CK.SqlServer.Parser
 
         void CheckContent()
         {
-            SNode.CheckNotNull( FunName, nameof( FunName ) );
-            SNode.CheckNotNull( Parameters, nameof( Parameters ) );
+            Helper.CheckNotNull( FunName, nameof( FunName ) );
+            Helper.CheckNotNull( Parameters, nameof( Parameters ) );
         }
 
         SqlKoCall( SqlKoCall o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
@@ -42,6 +42,8 @@ namespace CK.SqlServer.Parser
         }
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
+
+        public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
 
         public ISqlNode FunName => _content.V1;
 

@@ -43,12 +43,12 @@ namespace CK.SqlServer.Parser
 
         void CheckContent()
         {
-            SNode.CheckNotNull( Header, nameof( Header ) );
-            SNode.CheckNullableToken( IntoT, nameof( IntoT ), SqlTokenType.Into );
-            SNode.CheckNotNull( TargetTable, nameof( TargetTable ) );
-            SNode.CheckNullableToken( AsT, nameof( AsT ), SqlTokenType.As );
-            SNode.CheckToken( UsingT, nameof( UsingT ), SqlTokenType.Using );
-            SNode.CheckNotNull( UnmodeledRemaider, nameof( UnmodeledRemaider ) );
+            Helper.CheckNotNull( Header, nameof( Header ) );
+            Helper.CheckNullableToken( IntoT, nameof( IntoT ), SqlTokenType.Into );
+            Helper.CheckNotNull( TargetTable, nameof( TargetTable ) );
+            Helper.CheckNullableToken( AsT, nameof( AsT ), SqlTokenType.As );
+            Helper.CheckToken( UsingT, nameof( UsingT ), SqlTokenType.Using );
+            Helper.CheckNotNull( UnmodeledRemaider, nameof( UnmodeledRemaider ) );
         }
 
         SqlMergeStatement( SqlMergeStatement o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
@@ -70,6 +70,8 @@ namespace CK.SqlServer.Parser
         public StatementKnownName StatementKnownName => StatementKnownName.Merge;
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
+
+        public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
 
         public MIUDHeader Header => _content.V1;
 

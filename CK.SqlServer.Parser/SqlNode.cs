@@ -2,13 +2,14 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace CK.SqlServer.Parser
 {
-    public abstract class SqlNode : ISqlNode
+    public abstract partial class SqlNode : ISqlNode
     {
         protected SqlNode( ImmutableList<SqlTrivia> leading = null, ImmutableList<SqlTrivia> trailing = null )
         {
@@ -17,6 +18,8 @@ namespace CK.SqlServer.Parser
         }
 
         public abstract IReadOnlyList<ISqlNode> ChildrenNodes { get; }
+
+        public abstract IList<ISqlNode> GetRawContent();
 
         public ImmutableList<SqlTrivia> LeadingTrivias { get; }
 
@@ -64,11 +67,11 @@ namespace CK.SqlServer.Parser
             {
                 if( nbC == 1 || hL != null )
                 {
-                    n = n.ReplaceChildNode( 0, DoLift( hL, nbC == 1 ? tL : null, n.ChildrenNodes[0], false ) );
+                    n = n.ReplaceContentNode( 0, DoLift( hL, nbC == 1 ? tL : null, n.ChildrenNodes[0], false ) );
                 }
                 if( nbC > 1 && tL != null )
                 {
-                    n = n.ReplaceChildNode( nbC - 1, DoLift( null, tL, n.ChildrenNodes[nbC - 1], false ) );
+                    n = n.ReplaceContentNode( nbC - 1, DoLift( null, tL, n.ChildrenNodes[nbC - 1], false ) );
                 }
             }
             if( tL != null ) tL.AddRange( n.TrailingTrivias );
@@ -113,29 +116,16 @@ namespace CK.SqlServer.Parser
                     : this;
         }
 
-        /// <summary>
-        /// Sets new children nodes.
-        /// </summary>
-        /// <param name="childrenNodes">Children nodes.</param>
-        /// <returns>A new immutable object or this if no change occurred.</returns>
-        public ISqlNode SetChildrenNodes( IReadOnlyList<ISqlNode> childrenNodes )
+        public ISqlNode SetRawContent( IList<ISqlNode> childrenNodes )
         {
             if( childrenNodes == null ) childrenNodes = Util.EmptyArray<ISqlNode>.Empty;
-            return childrenNodes.Count == ChildrenNodes.Count && childrenNodes.SequenceEqual( ChildrenNodes )
-                    ? this
-                    : DoClone( LeadingTrivias, childrenNodes, TrailingTrivias );
+            return DoClone( LeadingTrivias, childrenNodes, TrailingTrivias );
         }
 
-        /// <summary>
-        /// Sets or removes a child at a given index in <see cref="ChildrenNodes"/>.
-        /// </summary>
-        /// <param name="i">The index.</param>
-        /// <param name="child">Null to remove or the node to replace.</param>
-        /// <returns>A new immutable object or this if no change occurred.</returns>
-        public ISqlNode ReplaceChildNode( int i, ISqlNode child )
+        public ISqlNode ReplaceContentNode( int i, ISqlNode child )
         {
-            var c = ChildrenNodes.ToList();
-            if( child != null )
+            var c = GetRawContent();
+            if( child != null || c is ISqlNode[] )
             {
                 if( c[i] == child ) return this;
                 c[i] = child;
@@ -144,19 +134,25 @@ namespace CK.SqlServer.Parser
             return DoClone( LeadingTrivias, c, TrailingTrivias );
         }
 
-        /// <summary>
-        /// Inserts or replace one or more children at a given index in <see cref="ChildrenNodes"/>.
-        /// </summary>
-        /// <param name="iStart">The index.</param>
-        /// <param name="count">The number of children to replace.</param>
-        /// <param name="child">The children to insert.</param>
-        /// <returns>A new immutable object or this if no change occurred.</returns>
-        public ISqlNode StuffChildren( int iStart, int count, IReadOnlyList<ISqlNode> children )
+        public ISqlNode StuffRawContent( int iStart, int count, IReadOnlyList<ISqlNode> children )
         {
             if( children == null ) throw new ArgumentNullException( nameof( children ) );
-            List<ISqlNode> c = ChildrenNodes.ToList();
-            c.RemoveRange( iStart, count );
-            c.InsertRange( iStart, children );
+            IList<ISqlNode> c = GetRawContent();
+            List<ISqlNode> lC = c as List<ISqlNode>;
+            if( lC == null )
+            {
+                Debug.Assert( c is ISqlNode[] );
+                if( children.Count != count ) throw new InvalidOperationException();
+                for( int i = 0; i < count; ++i )
+                {
+                    c[iStart + i] = children[i];
+                }
+            }
+            else
+            {
+                lC.RemoveRange( iStart, count );
+                lC.InsertRange( iStart, children );
+            }
             return DoClone( LeadingTrivias, c, TrailingTrivias );
         }
 

@@ -26,12 +26,12 @@ namespace CK.SqlServer.Parser
 
         void CheckContent()
         {
-            SNode.CheckNotNull( Left, nameof( Left ) );
-            SNode.CheckNullableToken( NotT, nameof( NotT ), SqlTokenType.Not );
-            SNode.CheckToken( LikeT, nameof( LikeT ), SqlTokenType.Like );
-            SNode.CheckNotNull( Pattern, nameof( Pattern ) );
-            SNode.CheckNullableToken( EscapeT, nameof( EscapeT ), SqlTokenType.Escape );
-            SNode.CheckBothNullOrNot( EscapeT, nameof( EscapeT ), EscapeChar, nameof(EscapeChar) );
+            Helper.CheckNotNull( Left, nameof( Left ) );
+            Helper.CheckNullableToken( NotT, nameof( NotT ), SqlTokenType.Not );
+            Helper.CheckToken( LikeT, nameof( LikeT ), SqlTokenType.Like );
+            Helper.CheckNotNull( Pattern, nameof( Pattern ) );
+            Helper.CheckNullableToken( EscapeT, nameof( EscapeT ), SqlTokenType.Escape );
+            Helper.CheckBothNullOrNot( EscapeT, nameof( EscapeT ), EscapeChar, nameof(EscapeChar) );
         }
 
         SqlLike( SqlLike o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
@@ -51,6 +51,8 @@ namespace CK.SqlServer.Parser
         }
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
+
+        public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
 
         public ISqlNode Left => _content.V1;
 

@@ -45,13 +45,15 @@ namespace CK.SqlServer.Parser
 
         void CheckContent()
         {
-            SNode.CheckToken( StatementT, nameof( StatementT ), SqlTokenType.Insert, SqlTokenType.Update, SqlTokenType.Merge, SqlTokenType.Delete );
-            SNode.CheckNullableToken( TopT, nameof( TopT ), SqlTokenType.Top );
-            SNode.CheckBothNullOrNot( TopT, nameof( TopT ), TopExpression, nameof(TopExpression) );
-            SNode.CheckNullableToken( PercentT, nameof( PercentT ), SqlTokenType.Percent );
+            Helper.CheckToken( StatementT, nameof( StatementT ), SqlTokenType.Insert, SqlTokenType.Update, SqlTokenType.Merge, SqlTokenType.Delete );
+            Helper.CheckNullableToken( TopT, nameof( TopT ), SqlTokenType.Top );
+            Helper.CheckBothNullOrNot( TopT, nameof( TopT ), TopExpression, nameof(TopExpression) );
+            Helper.CheckNullableToken( PercentT, nameof( PercentT ), SqlTokenType.Percent );
         }
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
+
+        public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
 
         public SqlTokenIdentifier StatementT => _content.V1;
 

@@ -37,11 +37,11 @@ namespace CK.SqlServer.Parser
 
         void CheckContent()
         {
-            SNode.CheckToken( ExecT, nameof( ExecT ), SqlTokenType.Execute );
-            SNode.CheckNullableToken( ReturnVarAssignT, nameof( ReturnVarAssignT ), SqlTokenType.Assign );
-            SNode.CheckBothNullOrNot( ReturnVar, nameof( ReturnVar ), ReturnVarAssignT, nameof( ReturnVarAssignT ) );
-            SNode.CheckNotNull( Name, nameof( Name ) );
-            SNode.CheckNotNull( Parameters, nameof( Parameters ) );
+            Helper.CheckToken( ExecT, nameof( ExecT ), SqlTokenType.Execute );
+            Helper.CheckNullableToken( ReturnVarAssignT, nameof( ReturnVarAssignT ), SqlTokenType.Assign );
+            Helper.CheckBothNullOrNot( ReturnVar, nameof( ReturnVar ), ReturnVarAssignT, nameof( ReturnVarAssignT ) );
+            Helper.CheckNotNull( Name, nameof( Name ) );
+            Helper.CheckNotNull( Parameters, nameof( Parameters ) );
         }
 
         SqlExecuteStatement( SqlExecuteStatement o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
@@ -63,6 +63,8 @@ namespace CK.SqlServer.Parser
         public StatementKnownName StatementKnownName => StatementKnownName.Execute;
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
+
+        public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
 
         public SqlTokenIdentifier ExecT => _content.V1;
 

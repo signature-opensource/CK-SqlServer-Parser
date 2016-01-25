@@ -62,29 +62,29 @@ namespace CK.SqlServer.Parser
 
         void CheckContent()
         {
-            SNode.CheckToken( OrderT, nameof( OrderT ), SqlTokenType.Order );
-            SNode.CheckToken( ByT, nameof( ByT ), SqlTokenType.By );
-            SNode.CheckNotNull( OrderByColumns, nameof( OrderByColumns ) );
+            Helper.CheckToken( OrderT, nameof( OrderT ), SqlTokenType.Order );
+            Helper.CheckToken( ByT, nameof( ByT ), SqlTokenType.By );
+            Helper.CheckNotNull( OrderByColumns, nameof( OrderByColumns ) );
 
-            SNode.CheckNullableToken( OffsetT, nameof( OffsetT ), SqlTokenType.Offset );
-            SNode.CheckBothNullOrNot( OffsetT, nameof( OffsetT ), OffsetExpression, nameof( OffsetExpression ) );
-            SNode.CheckNullableToken( RowsT, nameof( RowsT ), SqlTokenType.Rows );
-            SNode.CheckBothNullOrNot( OffsetT, nameof( OffsetT ), RowsT, nameof( RowsT ) );
-            SNode.CheckNullableToken( FetchT, nameof( RowsT ), SqlTokenType.Fetch );
+            Helper.CheckNullableToken( OffsetT, nameof( OffsetT ), SqlTokenType.Offset );
+            Helper.CheckBothNullOrNot( OffsetT, nameof( OffsetT ), OffsetExpression, nameof( OffsetExpression ) );
+            Helper.CheckNullableToken( RowsT, nameof( RowsT ), SqlTokenType.Rows );
+            Helper.CheckBothNullOrNot( OffsetT, nameof( OffsetT ), RowsT, nameof( RowsT ) );
+            Helper.CheckNullableToken( FetchT, nameof( RowsT ), SqlTokenType.Fetch );
             if( FetchT != null )
             {
-                SNode.CheckToken( FetchFirstOrNextT, nameof( FetchFirstOrNextT ), SqlTokenType.First, SqlTokenType.Next );
-                SNode.CheckNotNull( FetchExpression, nameof( FetchExpression ) );
-                SNode.CheckToken( FetchRowsT, nameof( FetchRowsT ), SqlTokenType.Rows );
-                SNode.CheckToken( FetchOnlyT, nameof( FetchOnlyT ), SqlTokenType.Only );
+                Helper.CheckToken( FetchFirstOrNextT, nameof( FetchFirstOrNextT ), SqlTokenType.First, SqlTokenType.Next );
+                Helper.CheckNotNull( FetchExpression, nameof( FetchExpression ) );
+                Helper.CheckToken( FetchRowsT, nameof( FetchRowsT ), SqlTokenType.Rows );
+                Helper.CheckToken( FetchOnlyT, nameof( FetchOnlyT ), SqlTokenType.Only );
 
             }
             else
             {
-                SNode.CheckNull( FetchFirstOrNextT, nameof( FetchFirstOrNextT ) );
-                SNode.CheckNull( FetchExpression, nameof( FetchExpression ) );
-                SNode.CheckNull( FetchRowsT, nameof( FetchRowsT ) );
-                SNode.CheckNull( FetchOnlyT, nameof( FetchOnlyT ) );
+                Helper.CheckNull( FetchFirstOrNextT, nameof( FetchFirstOrNextT ) );
+                Helper.CheckNull( FetchExpression, nameof( FetchExpression ) );
+                Helper.CheckNull( FetchRowsT, nameof( FetchRowsT ) );
+                Helper.CheckNull( FetchOnlyT, nameof( FetchOnlyT ) );
             }
         }
 
@@ -105,6 +105,8 @@ namespace CK.SqlServer.Parser
         }
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
+
+        public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
 
         public SqlTokenIdentifier OrderT => _content.V1;
 

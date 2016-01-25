@@ -47,20 +47,20 @@ namespace CK.SqlServer.Parser
 
         void CheckContent()
         {
-            SNode.CheckToken( BeginT, nameof( BeginT ), SqlTokenType.Begin );
-            SNode.CheckToken( TryT, nameof( TryT ), SqlTokenType.Try );
+            Helper.CheckToken( BeginT, nameof( BeginT ), SqlTokenType.Begin );
+            Helper.CheckToken( TryT, nameof( TryT ), SqlTokenType.Try );
 
-            SNode.CheckNotNull( Body, nameof( Body ) );
+            Helper.CheckNotNull( Body, nameof( Body ) );
 
-            SNode.CheckToken( EndT, nameof( EndT ), SqlTokenType.End );
-            SNode.CheckToken( EndTryT, nameof( EndTryT ), SqlTokenType.Try );
-            SNode.CheckToken( BeginCT, nameof( BeginCT ), SqlTokenType.Begin );
-            SNode.CheckToken( CatchT, nameof( CatchT ), SqlTokenType.Catch );
+            Helper.CheckToken( EndT, nameof( EndT ), SqlTokenType.End );
+            Helper.CheckToken( EndTryT, nameof( EndTryT ), SqlTokenType.Try );
+            Helper.CheckToken( BeginCT, nameof( BeginCT ), SqlTokenType.Begin );
+            Helper.CheckToken( CatchT, nameof( CatchT ), SqlTokenType.Catch );
 
-            SNode.CheckNotNull( BodyCatch, nameof( BodyCatch ) );
+            Helper.CheckNotNull( BodyCatch, nameof( BodyCatch ) );
 
-            SNode.CheckToken( EndCT, nameof( EndCT ), SqlTokenType.End );
-            SNode.CheckToken( EndCatchT, nameof( EndCatchT ), SqlTokenType.Catch );
+            Helper.CheckToken( EndCT, nameof( EndCT ), SqlTokenType.End );
+            Helper.CheckToken( EndCatchT, nameof( EndCatchT ), SqlTokenType.Catch );
         }
 
         protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
@@ -71,6 +71,8 @@ namespace CK.SqlServer.Parser
         public StatementKnownName StatementKnownName => StatementKnownName.TryCatch;
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
+
+        public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
 
         public SqlTokenIdentifier BeginT => _content.V1;
 

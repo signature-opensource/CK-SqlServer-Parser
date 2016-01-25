@@ -25,10 +25,10 @@ namespace CK.SqlServer.Parser
 
         void CheckContent()
         {
-            SNode.CheckToken( WhenT, nameof( WhenT ), SqlTokenType.When );
-            SNode.CheckNotNull( Expression, nameof( Expression ) );
-            SNode.CheckToken( ThenT, nameof( ThenT ), SqlTokenType.Then );
-            SNode.CheckNotNull( Value, nameof( Value ) );
+            Helper.CheckToken( WhenT, nameof( WhenT ), SqlTokenType.When );
+            Helper.CheckNotNull( Expression, nameof( Expression ) );
+            Helper.CheckToken( ThenT, nameof( ThenT ), SqlTokenType.Then );
+            Helper.CheckNotNull( Value, nameof( Value ) );
         }
 
         SqlCaseWhenSelector( SqlCaseWhenSelector o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
@@ -48,6 +48,8 @@ namespace CK.SqlServer.Parser
         }
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
+
+        public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
 
         public SqlTokenIdentifier WhenT => _content.V1;
 

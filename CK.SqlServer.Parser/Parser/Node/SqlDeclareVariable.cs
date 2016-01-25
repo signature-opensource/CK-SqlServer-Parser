@@ -36,8 +36,8 @@ namespace CK.SqlServer.Parser
 
         void CheckContent()
         {
-            SNode.CheckToken( DeclareT, nameof( DeclareT ), SqlTokenType.Declare );
-            SNode.CheckNotNull( Declarations, nameof( Declarations ) );
+            Helper.CheckToken( DeclareT, nameof( DeclareT ), SqlTokenType.Declare );
+            Helper.CheckNotNull( Declarations, nameof( Declarations ) );
         }
 
         protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
@@ -48,6 +48,8 @@ namespace CK.SqlServer.Parser
         public StatementKnownName StatementKnownName => StatementKnownName.DeclareVariable;
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
+
+        public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
 
         public SqlTokenIdentifier DeclareT => _content.V1;
 

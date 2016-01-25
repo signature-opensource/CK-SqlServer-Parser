@@ -43,10 +43,12 @@ namespace CK.SqlServer.Parser
 
         void CheckContent()
         {
-            SNode.CheckNotNull( Target, nameof( Target ) );
+            Helper.CheckNotNull( Target, nameof( Target ) );
         }
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
+
+        public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
 
         public ISqlNode Target => _content.V1;
 

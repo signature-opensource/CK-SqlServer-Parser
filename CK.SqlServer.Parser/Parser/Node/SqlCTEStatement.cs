@@ -28,9 +28,9 @@ namespace CK.SqlServer.Parser
 
         void CheckContent()
         {
-            SNode.CheckToken( WithT, nameof( WithT ), SqlTokenType.With );
-            SNode.CheckNotNull( Names, nameof( Names ) );
-            SNode.CheckNotNull( OuterStatement, nameof( OuterStatement ) );
+            Helper.CheckToken( WithT, nameof( WithT ), SqlTokenType.With );
+            Helper.CheckNotNull( Names, nameof( Names ) );
+            Helper.CheckNotNull( OuterStatement, nameof( OuterStatement ) );
         }
 
         SqlCTEStatement( SqlCTEStatement o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
@@ -50,6 +50,8 @@ namespace CK.SqlServer.Parser
         }
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
+
+        public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
 
         public StatementKnownName StatementKnownName => StatementKnownName.CTE;
 

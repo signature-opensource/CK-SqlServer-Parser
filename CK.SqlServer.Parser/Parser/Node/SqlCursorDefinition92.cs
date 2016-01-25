@@ -55,30 +55,30 @@ namespace CK.SqlServer.Parser
 
         void CheckContent()
         {
-            SNode.CheckNullableToken( InsensitiveOrScrollT, nameof( InsensitiveOrScrollT ), SqlTokenType.Insensitive, SqlTokenType.Scroll );
-            SNode.CheckNullableToken( ScrollOrInsensitiveT, nameof( ScrollOrInsensitiveT ), SqlTokenType.Insensitive, SqlTokenType.Scroll );
-            SNode.CheckToken( CursorT, nameof( CursorT ), SqlTokenType.Cursor );
-            SNode.CheckToken( ForT, nameof( ForT ), SqlTokenType.For );
-            SNode.CheckUnPar<ISelectSpecification>( SelectNode, nameof( Select ) );
-            SNode.CheckNullableToken( ForOptionsT, nameof( ForOptionsT ), SqlTokenType.For );
+            Helper.CheckNullableToken( InsensitiveOrScrollT, nameof( InsensitiveOrScrollT ), SqlTokenType.Insensitive, SqlTokenType.Scroll );
+            Helper.CheckNullableToken( ScrollOrInsensitiveT, nameof( ScrollOrInsensitiveT ), SqlTokenType.Insensitive, SqlTokenType.Scroll );
+            Helper.CheckToken( CursorT, nameof( CursorT ), SqlTokenType.Cursor );
+            Helper.CheckToken( ForT, nameof( ForT ), SqlTokenType.For );
+            Helper.CheckUnPar<ISelectSpecification>( SelectNode, nameof( Select ) );
+            Helper.CheckNullableToken( ForOptionsT, nameof( ForOptionsT ), SqlTokenType.For );
             if( ForOptionsT != null )
             {
-                SNode.CheckNullableToken( ReadT, nameof( ReadT ), SqlTokenType.Read );
-                SNode.CheckNullableToken( OnlyT, nameof( OnlyT ), SqlTokenType.Only );
-                SNode.CheckBothNullOrNot( ReadT, nameof( ReadT ), OnlyT, nameof( OnlyT ) );
-                SNode.CheckNullableToken( UpdateT, nameof( UpdateT ), SqlTokenType.Update );
-                SNode.CheckXORNull( ReadT, nameof( ReadT ), UpdateT, nameof( UpdateT ) );
-                SNode.CheckBothNullOrNot( ForOptionsT, nameof( ForOptionsT ), UpdateT, nameof( UpdateT ) );
-                SNode.CheckNullableToken( OfT, nameof( OfT ), SqlTokenType.Of );
-                SNode.CheckBothNullOrNot( OfT, nameof( OfT ), UpdateColumns, nameof( UpdateColumns ) );
+                Helper.CheckNullableToken( ReadT, nameof( ReadT ), SqlTokenType.Read );
+                Helper.CheckNullableToken( OnlyT, nameof( OnlyT ), SqlTokenType.Only );
+                Helper.CheckBothNullOrNot( ReadT, nameof( ReadT ), OnlyT, nameof( OnlyT ) );
+                Helper.CheckNullableToken( UpdateT, nameof( UpdateT ), SqlTokenType.Update );
+                Helper.CheckXORNull( ReadT, nameof( ReadT ), UpdateT, nameof( UpdateT ) );
+                Helper.CheckBothNullOrNot( ForOptionsT, nameof( ForOptionsT ), UpdateT, nameof( UpdateT ) );
+                Helper.CheckNullableToken( OfT, nameof( OfT ), SqlTokenType.Of );
+                Helper.CheckBothNullOrNot( OfT, nameof( OfT ), UpdateColumns, nameof( UpdateColumns ) );
             }
             else
             {
-                SNode.CheckNull( ReadT, nameof( ReadT ) );
-                SNode.CheckNull( OnlyT, nameof( OnlyT ) );
-                SNode.CheckNull( UpdateT, nameof( UpdateT ) );
-                SNode.CheckNull( OfT, nameof( OfT ) );
-                SNode.CheckNull( UpdateT, nameof( UpdateT ) );
+                Helper.CheckNull( ReadT, nameof( ReadT ) );
+                Helper.CheckNull( OnlyT, nameof( OnlyT ) );
+                Helper.CheckNull( UpdateT, nameof( UpdateT ) );
+                Helper.CheckNull( OfT, nameof( OfT ) );
+                Helper.CheckNull( UpdateT, nameof( UpdateT ) );
             }
         }
 
@@ -101,6 +101,8 @@ namespace CK.SqlServer.Parser
         public bool IsSql92Syntax => true;
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
+
+        public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
 
         public SqlTokenIdentifier InsensitiveOrScrollT => _content.V1;
 

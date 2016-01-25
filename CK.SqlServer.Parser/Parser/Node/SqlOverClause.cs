@@ -24,10 +24,10 @@ namespace CK.SqlServer.Parser
 
         void CheckContent()
         {
-            SNode.CheckToken( OverT, nameof( OverT ), SqlTokenType.Over );
-            SNode.CheckNotNull( Opener, nameof( Opener ) );
-            SNode.CheckNotNull( OverContent, nameof( OverContent ) );
-            SNode.CheckNotNull( Closer, nameof( Closer ) );
+            Helper.CheckToken( OverT, nameof( OverT ), SqlTokenType.Over );
+            Helper.CheckNotNull( Opener, nameof( Opener ) );
+            Helper.CheckNotNull( OverContent, nameof( OverContent ) );
+            Helper.CheckNotNull( Closer, nameof( Closer ) );
         }
 
         SqlOverClause( SqlOverClause o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
@@ -47,6 +47,8 @@ namespace CK.SqlServer.Parser
         }
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
+
+        public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
 
         public SqlTokenIdentifier OverT => _content.V1;
 

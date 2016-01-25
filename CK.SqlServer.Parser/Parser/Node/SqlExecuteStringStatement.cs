@@ -22,8 +22,8 @@ namespace CK.SqlServer.Parser
 
         void CheckContent()
         {
-            SNode.CheckToken( ExecT, nameof( ExecT ), SqlTokenType.Execute );
-            SNode.CheckNotNull( Arguments, nameof( Arguments ) );
+            Helper.CheckToken( ExecT, nameof( ExecT ), SqlTokenType.Execute );
+            Helper.CheckNotNull( Arguments, nameof( Arguments ) );
         }
 
         SqlExecuteStringStatement( SqlExecuteStringStatement o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
@@ -45,6 +45,8 @@ namespace CK.SqlServer.Parser
         public StatementKnownName StatementKnownName => StatementKnownName.ExecuteString;
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
+
+        public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
 
         public SqlTokenIdentifier ExecT => _content.V1;
 

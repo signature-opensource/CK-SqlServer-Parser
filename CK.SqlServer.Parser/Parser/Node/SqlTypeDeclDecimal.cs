@@ -25,21 +25,21 @@ namespace CK.SqlServer.Parser
 
         void CheckContent()
         {
-            SNode.CheckToken( TypeIdentifierT, nameof( TypeIdentifierT ), SqlTokenType.DecimalDbType );
+            Helper.CheckToken( TypeIdentifierT, nameof( TypeIdentifierT ), SqlTokenType.DecimalDbType );
             if( _content.Count > 1 )
             {
-                SNode.CheckNotNull( Opener, nameof( Opener ) );
-                SNode.CheckNotNull( Precision, nameof( Precision ) );
+                Helper.CheckNotNull( Opener, nameof( Opener ) );
+                Helper.CheckNotNull( Precision, nameof( Precision ) );
                 if( Precision.Value <= 0 || Precision.Value > 38 )
                     throw new ArgumentException( "Invalid precision.", nameof( Precision ) );
                 if( _content.Count > 4 )
                 {
-                    SNode.CheckNotNull( Comma, nameof( Comma ) );
-                    SNode.CheckNotNull( Scale, nameof( Scale ) );
+                    Helper.CheckNotNull( Comma, nameof( Comma ) );
+                    Helper.CheckNotNull( Scale, nameof( Scale ) );
                     if( Scale.Value < 0 || Scale.Value > Precision.Value )
                         throw new ArgumentException( "Invalid scale (must be less or equal to precision).", nameof( Scale ) );
                 }
-                SNode.CheckNotNull( Closer, nameof( Closer ) );
+                Helper.CheckNotNull( Closer, nameof( Closer ) );
             }
         }
 
@@ -76,6 +76,8 @@ namespace CK.SqlServer.Parser
         }
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
+
+        public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
 
         public SqlDbType DbType => SqlDbType.Decimal;
 

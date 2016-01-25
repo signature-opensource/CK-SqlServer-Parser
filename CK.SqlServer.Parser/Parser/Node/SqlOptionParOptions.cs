@@ -24,7 +24,7 @@ namespace CK.SqlServer.Parser
 
         void CheckContent()
         {
-            SNode.CheckToken( OptionT, nameof( OptionT ), SqlTokenType.Option );
+            Helper.CheckToken( OptionT, nameof( OptionT ), SqlTokenType.Option );
         }
 
         SqlOptionParOptions( SqlOptionParOptions o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )

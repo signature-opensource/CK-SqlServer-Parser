@@ -43,12 +43,12 @@ namespace CK.SqlServer.Parser
 
         void CheckContent()
         {
-            SNode.CheckNotNull( Left, nameof( Left ) );
-            SNode.CheckNullableToken( NotT, nameof( NotT ), SqlTokenType.Not );
-            SNode.CheckToken( BetweenT, nameof( BetweenT ), SqlTokenType.Between );
-            SNode.CheckNotNull( Start, nameof( Start ) );
-            SNode.CheckToken( AndT, nameof( AndT ), SqlTokenType.And );
-            SNode.CheckNotNull( Stop, nameof( Stop ) );
+            Helper.CheckNotNull( Left, nameof( Left ) );
+            Helper.CheckNullableToken( NotT, nameof( NotT ), SqlTokenType.Not );
+            Helper.CheckToken( BetweenT, nameof( BetweenT ), SqlTokenType.Between );
+            Helper.CheckNotNull( Start, nameof( Start ) );
+            Helper.CheckToken( AndT, nameof( AndT ), SqlTokenType.And );
+            Helper.CheckNotNull( Stop, nameof( Stop ) );
         }
 
         protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
@@ -57,6 +57,8 @@ namespace CK.SqlServer.Parser
         }
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
+
+        public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
 
         public ISqlNode Left => _content.V1;
 

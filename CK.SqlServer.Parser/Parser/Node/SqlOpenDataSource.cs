@@ -21,8 +21,8 @@ namespace CK.SqlServer.Parser
 
         void CheckContent()
         {
-            SNode.CheckToken( OpenDataSourceT, nameof( OpenDataSourceT ), SqlTokenType.OpenDataSource );
-            SNode.CheckNotNull( Parameters, nameof( Parameters ) );
+            Helper.CheckToken( OpenDataSourceT, nameof( OpenDataSourceT ), SqlTokenType.OpenDataSource );
+            Helper.CheckNotNull( Parameters, nameof( Parameters ) );
         }
 
         SqlOpenDataSource( SqlOpenDataSource o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
@@ -42,6 +42,8 @@ namespace CK.SqlServer.Parser
         }
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
+
+        public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
 
         public SqlTokenIdentifier OpenDataSourceT => _content.V1;
 

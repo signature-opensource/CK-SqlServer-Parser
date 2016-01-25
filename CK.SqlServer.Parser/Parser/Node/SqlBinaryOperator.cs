@@ -21,9 +21,9 @@ namespace CK.SqlServer.Parser
 
         void CheckContent()
         {
-            SNode.CheckNotNull( Left, nameof( Left ) );
-            SNode.CheckToken( Operator, nameof( Operator ), IsValidBinaryOperator );
-            SNode.CheckNotNull( Right, nameof( Right ) );
+            Helper.CheckNotNull( Left, nameof( Left ) );
+            Helper.CheckToken( Operator, nameof( Operator ), IsValidBinaryOperator );
+            Helper.CheckNotNull( Right, nameof( Right ) );
         }
 
         SqlBinaryOperator( SqlBinaryOperator o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
@@ -57,6 +57,8 @@ namespace CK.SqlServer.Parser
         }
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
+
+        public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
 
         public ISqlNode Left => _content.V1;
 

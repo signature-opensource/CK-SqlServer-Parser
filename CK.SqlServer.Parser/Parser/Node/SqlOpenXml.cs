@@ -23,7 +23,7 @@ namespace CK.SqlServer.Parser
 
         void CheckContent()
         {
-            SNode.CheckToken( FunName, nameof( FunName ), SqlTokenType.OpenXml );
+            Helper.CheckToken( FunName, nameof( FunName ), SqlTokenType.OpenXml );
         }
 
         SqlOpenXml( SqlOpenXml o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
@@ -43,6 +43,8 @@ namespace CK.SqlServer.Parser
         }
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
+
+        public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
 
         public SqlTokenIdentifier FunName => _content.V1;
 

@@ -46,14 +46,14 @@ namespace CK.SqlServer.Parser
 
         void CheckContent()
         {
-            SNode.CheckToken( CursorT, nameof( CursorT ), SqlTokenType.Cursor );
-            SNode.CheckToken( ForT, nameof( ForT ), SqlTokenType.For );
-            SNode.CheckUnPar<ISelectSpecification>( SelectNode, nameof( Select ) );
-            SNode.CheckNullableToken( ForOptionsT, nameof( ForOptionsT ), SqlTokenType.For );
-            SNode.CheckNullableToken( UpdateT, nameof( UpdateT ), SqlTokenType.Update );
-            SNode.CheckBothNullOrNot( ForOptionsT, nameof( ForOptionsT ), UpdateT, nameof( UpdateT ) );
-            SNode.CheckNullableToken( OfT, nameof( OfT ), SqlTokenType.Of );
-            SNode.CheckBothNullOrNot( OfT, nameof( OfT ), UpdateColumns, nameof( UpdateColumns ) );
+            Helper.CheckToken( CursorT, nameof( CursorT ), SqlTokenType.Cursor );
+            Helper.CheckToken( ForT, nameof( ForT ), SqlTokenType.For );
+            Helper.CheckUnPar<ISelectSpecification>( SelectNode, nameof( Select ) );
+            Helper.CheckNullableToken( ForOptionsT, nameof( ForOptionsT ), SqlTokenType.For );
+            Helper.CheckNullableToken( UpdateT, nameof( UpdateT ), SqlTokenType.Update );
+            Helper.CheckBothNullOrNot( ForOptionsT, nameof( ForOptionsT ), UpdateT, nameof( UpdateT ) );
+            Helper.CheckNullableToken( OfT, nameof( OfT ), SqlTokenType.Of );
+            Helper.CheckBothNullOrNot( OfT, nameof( OfT ), UpdateColumns, nameof( UpdateColumns ) );
         }
 
         SqlCursorDefinition( SqlCursorDefinition o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
@@ -75,6 +75,8 @@ namespace CK.SqlServer.Parser
         public bool IsSql92Syntax => false;
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
+
+        public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
 
         public SqlTokenIdentifier CursorT => _content.V1;
 

@@ -20,6 +20,14 @@ namespace CK.SqlServer.Parser
         IReadOnlyList<ISqlNode> ChildrenNodes { get; }
 
         /// <summary>
+        /// Extracts a mutable copy of the children. This list is either a truly dynamic <see cref="List{T}"/> 
+        /// with non null ISqlNode in it or an array with potentially null nodes that may be changed but 
+        /// its length can not change.
+        /// </summary>
+        /// <returns>A List&lt;ISqlNode&gt; or a ISqlode[] array.</returns>
+        IList<ISqlNode> GetRawContent();
+
+        /// <summary>
         /// Leading <see cref="SqlTrivia"/>. Never null but can be empty.
         /// </summary>
         ImmutableList<SqlTrivia> LeadingTrivias { get; }
@@ -49,33 +57,36 @@ namespace CK.SqlServer.Parser
         /// </summary>
         IEnumerable<ISqlNode> TrailingNodes { get; }
 
+        /// <summary>
+        /// Gets this node or the inner node of a <see cref="SqlPar"/>.
+        /// </summary>
         ISqlNode UnPar { get; }
 
         bool IsToken( SqlTokenType t );
 
         /// <summary>
-        /// Sets or removes a child at a given index in <see cref="ChildrenNodes"/>.
+        /// Sets or removes/clears a child at a given index in raw children (see <see cref="GetRawContent"/>).
         /// </summary>
-        /// <param name="i">The index.</param>
-        /// <param name="child">Null to remove or the node to replace.</param>
-        /// <returns>A new immutable object or this if no change occurred.</returns>
-        ISqlNode ReplaceChildNode( int i, ISqlNode child );
+        /// <param name="i">The index that must be replaced.</param>
+        /// <param name="child">The replacement. Null to remove or clear the node.</param>
+        /// <returns>A new immutable object or this node if no change occurred.</returns>
+        ISqlNode ReplaceContentNode( int i, ISqlNode child );
 
         /// <summary>
         /// Sets new children nodes.
         /// </summary>
         /// <param name="childrenNodes">Children nodes.</param>
         /// <returns>A new immutable object or this if no change occurred.</returns>
-        ISqlNode SetChildrenNodes( IReadOnlyList<ISqlNode> childrenNodes );
+        ISqlNode SetRawContent( IList<ISqlNode> childrenNodes );
 
         /// <summary>
-        /// Inserts or replace one or more children at a given index in <see cref="ChildrenNodes"/>.
+        /// Inserts or replace one or more children at a given index in <see cref="GetRawContent"/>.
         /// </summary>
         /// <param name="iStart">The index.</param>
         /// <param name="count">The number of children to replace.</param>
         /// <param name="child">The children to insert.</param>
         /// <returns>A new immutable object or this if no change occurred.</returns>
-        ISqlNode StuffChildren( int iStart, int count, IReadOnlyList<ISqlNode> children );
+        ISqlNode StuffRawContent( int iStart, int count, IReadOnlyList<ISqlNode> children );
         
         /// <summary>
         /// Overriden to return the result of <see cref="WriteWithoutTrivias"/> with 

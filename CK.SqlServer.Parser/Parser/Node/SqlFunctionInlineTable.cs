@@ -54,13 +54,13 @@ namespace CK.SqlServer.Parser
 
         void CheckContent()
         {
-            SNode.CheckToken( AlterOrCreateT, nameof( AlterOrCreateT ), SqlTokenType.Alter, SqlTokenType.Create );
-            SNode.CheckToken( ObjectTypeT, nameof( ObjectTypeT ), SqlTokenType.Function );
-            SNode.CheckNotNull( Parameters, nameof( Parameters ) );
-            SNode.CheckToken( ReturnsT, nameof( ReturnsT ), SqlTokenType.Returns );
-            SNode.CheckNotNull( TableT, nameof( TableT ) );
-            SNode.CheckNullableToken( AsT, nameof( AsT ), SqlTokenType.As );
-            SNode.CheckNotNull( Select, nameof( Select ) );
+            Helper.CheckToken( AlterOrCreateT, nameof( AlterOrCreateT ), SqlTokenType.Alter, SqlTokenType.Create );
+            Helper.CheckToken( ObjectTypeT, nameof( ObjectTypeT ), SqlTokenType.Function );
+            Helper.CheckNotNull( Parameters, nameof( Parameters ) );
+            Helper.CheckToken( ReturnsT, nameof( ReturnsT ), SqlTokenType.Returns );
+            Helper.CheckNotNull( TableT, nameof( TableT ) );
+            Helper.CheckNullableToken( AsT, nameof( AsT ), SqlTokenType.As );
+            Helper.CheckNotNull( Select, nameof( Select ) );
         }
 
         SqlFunctionInlineTable( SqlFunctionInlineTable o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
@@ -84,6 +84,8 @@ namespace CK.SqlServer.Parser
                                                     : StatementKnownName.CreateFunction;
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
+
+        public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
 
         public SqlTokenIdentifier AlterOrCreateT => _content.V1;
 
@@ -138,9 +140,9 @@ namespace CK.SqlServer.Parser
             Write( SqlTextWriter.CreateDefault( b ) );
         }
 
-        ISqlServerAlterOrCreateStatement ISqlServerAlterOrCreateStatement.ToggleKeyword()
+        ISqlServerAlterOrCreateStatement ISqlServerAlterOrCreateStatement.ToggleAlterKeyword()
         {
-            return (ISqlServerAlterOrCreateStatement)ReplaceChildNode( 0,
+            return (ISqlServerAlterOrCreateStatement)ReplaceContentNode( 0,
                     IsAlterKeyword
                         ? new SqlTokenIdentifier( SqlTokenType.Create, "create", AlterOrCreateT.LeadingTrivias, AlterOrCreateT.TrailingTrivias )
                         : new SqlTokenIdentifier( SqlTokenType.Alter, "alter", AlterOrCreateT.LeadingTrivias, AlterOrCreateT.TrailingTrivias ) );

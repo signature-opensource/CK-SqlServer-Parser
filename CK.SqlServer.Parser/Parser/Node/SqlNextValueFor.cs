@@ -25,10 +25,10 @@ namespace CK.SqlServer.Parser
 
         void CheckContent()
         {
-            SNode.CheckToken( NextT, nameof( NextT ), SqlTokenType.Next );
-            SNode.CheckToken( ValueT, nameof( ValueT ), SqlTokenType.Value );
-            SNode.CheckToken( ForT, nameof( ForT ), SqlTokenType.For );
-            SNode.CheckNotNull( SequenceName, nameof( SequenceName ) );
+            Helper.CheckToken( NextT, nameof( NextT ), SqlTokenType.Next );
+            Helper.CheckToken( ValueT, nameof( ValueT ), SqlTokenType.Value );
+            Helper.CheckToken( ForT, nameof( ForT ), SqlTokenType.For );
+            Helper.CheckNotNull( SequenceName, nameof( SequenceName ) );
         }
 
         SqlNextValueFor( SqlNextValueFor o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
@@ -48,6 +48,8 @@ namespace CK.SqlServer.Parser
         }
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
+
+        public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
 
         public SqlTokenIdentifier NextT => _content.V1;
 

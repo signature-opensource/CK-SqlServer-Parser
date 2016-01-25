@@ -21,12 +21,12 @@ namespace CK.SqlServer.Parser
 
         void CheckContent()
         {
-            SNode.CheckToken( Operator, nameof( Operator ), 
+            Helper.CheckToken( Operator, nameof( Operator ), 
                 SqlTokenType.Not, 
                 SqlTokenType.BitwiseNot, 
                 SqlTokenType.Plus, 
                 SqlTokenType.Minus );
-            SNode.CheckNotNull( Right, nameof( Right ) );
+            Helper.CheckNotNull( Right, nameof( Right ) );
         }
 
         SqlUnaryOperator( SqlUnaryOperator o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
@@ -46,6 +46,8 @@ namespace CK.SqlServer.Parser
         }
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
+
+        public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
 
         public SqlToken Operator => _content.V1;
 

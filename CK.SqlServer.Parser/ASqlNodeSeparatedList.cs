@@ -30,7 +30,7 @@ namespace CK.SqlServer.Parser
             if( items == null ) _items = o._items;
             else
             {
-                _items = ASqlNodeArrayBased.EnsureArray( items );
+                _items = Helper.EnsureArray( items );
                 CheckItemAndSeparators( o, minCount, _items, 0, _items.Length );
             }
         }
@@ -73,7 +73,9 @@ namespace CK.SqlServer.Parser
         /// <summary>
         /// Gets the direct children if any. Never null.
         /// </summary>
-        public override IReadOnlyList<ISqlNode> ChildrenNodes => _items;
+        public sealed override IReadOnlyList<ISqlNode> ChildrenNodes => _items;
+
+        public sealed override IList<ISqlNode> GetRawContent() => _items.ToList();
 
         public int Count => (_items.Length + 1) / 2;
 

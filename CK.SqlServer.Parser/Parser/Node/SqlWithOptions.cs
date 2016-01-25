@@ -22,7 +22,7 @@ namespace CK.SqlServer.Parser
 
         void CheckContent()
         {
-            SNode.CheckToken( WithT, nameof( WithT ), SqlTokenType.With );
+            Helper.CheckToken( WithT, nameof( WithT ), SqlTokenType.With );
         }
 
         SqlWithOptions( SqlWithOptions o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )

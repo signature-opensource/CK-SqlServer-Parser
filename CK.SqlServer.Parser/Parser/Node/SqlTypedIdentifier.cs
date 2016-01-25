@@ -26,9 +26,9 @@ namespace CK.SqlServer.Parser
 
         void CheckContent()
         {
-            SNode.CheckNotNull( Identifier, nameof( Identifier ) );
-            SNode.CheckNullableToken( AsT, nameof( AsT ), SqlTokenType.As );
-            SNode.CheckNotNull( TypeDecl, nameof( TypeDecl ) );
+            Helper.CheckNotNull( Identifier, nameof( Identifier ) );
+            Helper.CheckNullableToken( AsT, nameof( AsT ), SqlTokenType.As );
+            Helper.CheckNotNull( TypeDecl, nameof( TypeDecl ) );
         }
 
         SqlTypedIdentifier( SqlTypedIdentifier o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
@@ -48,6 +48,8 @@ namespace CK.SqlServer.Parser
         }
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
+
+        public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
 
         public SqlTokenIdentifier Identifier => _content.V1;
 

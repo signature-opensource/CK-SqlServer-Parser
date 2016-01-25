@@ -9,170 +9,15 @@ namespace CK.SqlServer.Parser
 
     static class SNode
     {
-        public static IEnumerator<ISqlNode> CreateEnumerator( params ISqlNode[] v )
+        public static IEnumerator<ISqlNode> CreateFilteredEnumerator( params ISqlNode[] v )
         {
             return v.Where( e => e != null ).GetEnumerator();
-        }
-
-        public static void CheckIsVariable( SqlTokenIdentifier token, string name )
-        {
-            if( token == null ) throw new ArgumentNullException( name );
-            if( !token.IsVariable ) throw new ArgumentException( "Must be a @VariableName", name );
-        }
-
-        public static void CheckIsVariable( SqlTypedIdentifier identifier, string name )
-        {
-            if( identifier == null ) throw new ArgumentNullException( name );
-            if( !identifier.Identifier.IsVariable ) throw new ArgumentException( "Must be a @VariableName", name );
-        }
-
-        public static void CheckToken( SqlToken token, string name, SqlTokenType tokenType )
-        {
-            if( token == null ) throw new ArgumentNullException( name );
-            if( token.TokenType != tokenType )
-            {
-                throw new ArgumentException( string.Format( "{0} must be {1}, not {2}.",
-                                                            name,
-                                                            SqlKeyword.ToString( tokenType ),
-                                                            token.ToString() ), name );
-            }
-        }
-
-        public static void CheckToken( SqlToken token, string name, Func<SqlTokenType,bool> predicate )
-        {
-            if( token == null ) throw new ArgumentNullException( name );
-            if( !predicate( token.TokenType ) )
-            {
-                throw new ArgumentException( string.Format( "{0} must satisfy '{1}' predicate.",
-                                                            name, predicate.Method.Name), name );
-            }
-        }
-
-        public static void CheckNullableToken( SqlToken token, string name, SqlTokenType tokenType )
-        {
-            if( token != null && token.TokenType != tokenType )
-            {
-                throw new ArgumentException( string.Format( "Optional {0} must be {1}, not {2}.",
-                                                            name,
-                                                            SqlKeyword.ToString( tokenType ),
-                                                            SqlKeyword.ToString( token.TokenType ) ), name );
-            }
-        }
-
-        public static void CheckNullableToken( SqlToken token, string name, SqlTokenType t1, SqlTokenType t2 )
-        {
-            if( token != null && token.TokenType != t1 && token.TokenType != t2 )
-            {
-                throw new ArgumentException( string.Format( "Optional {0} must be {1} or {2}, not {3}.",
-                                                            name,
-                                                            SqlKeyword.ToString( t1 ),
-                                                            SqlKeyword.ToString( t2 ),
-                                                            SqlKeyword.ToString( token.TokenType ) ), name );
-            }
-        }
-
-        public static void CheckNullableToken( SqlToken token, string name, SqlTokenType t1, SqlTokenType t2, SqlTokenType t3, SqlTokenType t4 )
-        {
-            if( token != null && token.TokenType != t1 && token.TokenType != t2 && token.TokenType != t3 && token.TokenType != t4 )
-            {
-                throw new ArgumentException( string.Format( "{0} must be {1}, {2}, {3} or {4}, not {5}.",
-                                                            name,
-                                                            SqlKeyword.ToString( t1 ),
-                                                            SqlKeyword.ToString( t2 ),
-                                                            SqlKeyword.ToString( t3 ),
-                                                            SqlKeyword.ToString( t4 ),
-                                                            SqlKeyword.ToString( token.TokenType ) ), name );
-            }
-        }
-
-        public static void CheckNullableToken( SqlToken token, string name, Func<SqlTokenType, bool> predicate )
-        {
-            if( token == null && !predicate( token.TokenType ) )
-            {
-                throw new ArgumentException( string.Format( "{0} must satisfy '{1}' predicate.",
-                                                            name, predicate.Method.Name ), name );
-            }
-        }
-
-
-        internal static void CheckBothNullOrNot( ISqlNode e1, string n1, ISqlNode e2, string n2 )
-        {
-            if( (e1 != null) != (e2 != null) )
-            {
-                throw new ArgumentException( String.Format( "{0} and {1} must be both null or not null.", n1, n2 ) );
-            }
-        }
-
-        internal static void CheckXORNull( ISqlNode e1, string n1, ISqlNode e2, string n2 )
-        {
-            if( (e1 != null) == (e2 != null) )
-            {
-                throw new ArgumentException( String.Format( "Either {0} or {1} must be defined and not both.", n1, n2 ) );
-            }
-        }        
-
-        public static void CheckToken( SqlToken token, string name, SqlTokenType t1, SqlTokenType t2 )
-        {
-            if( token == null ) throw new ArgumentNullException( name );
-            if( token.TokenType != t1 && token.TokenType != t2 )
-            {
-                throw new ArgumentException( string.Format( "{0} must be {1} or {2}, not {3}.",
-                                                            name,
-                                                            SqlKeyword.ToString( t1 ),
-                                                            SqlKeyword.ToString( t2 ),
-                                                            SqlKeyword.ToString( token.TokenType ) ), name );
-            }
-        }
-
-        public static void CheckToken( SqlToken token, string name, SqlTokenType t1, SqlTokenType t2, SqlTokenType t3 )
-        {
-            if( token == null ) throw new ArgumentNullException( name );
-            if( token.TokenType != t1 && token.TokenType != t2 && token.TokenType != t3 )
-            {
-                throw new ArgumentException( string.Format( "{0} must be {1}, {2} or {3}, not {4}.",
-                                                            name,
-                                                            SqlKeyword.ToString( t1 ),
-                                                            SqlKeyword.ToString( t2 ),
-                                                            SqlKeyword.ToString( t3 ),
-                                                            SqlKeyword.ToString( token.TokenType ) ), name );
-            }
-        }
-
-        public static void CheckToken( SqlToken token, string name, SqlTokenType t1, SqlTokenType t2, SqlTokenType t3, SqlTokenType t4 )
-        {
-            if( token == null ) throw new ArgumentNullException( name );
-            if( token.TokenType != t1 && token.TokenType != t2 && token.TokenType != t3 && token.TokenType != t4 )
-            {
-                throw new ArgumentException( string.Format( "{0} must be {1}, {2}, {3} or {4}, not {5}.",
-                                                            name,
-                                                            SqlKeyword.ToString( t1 ),
-                                                            SqlKeyword.ToString( t2 ),
-                                                            SqlKeyword.ToString( t3 ),
-                                                            SqlKeyword.ToString( t4 ),
-                                                            SqlKeyword.ToString( token.TokenType ) ), name );
-            }
-        }
-
-        public static void CheckNotNull( ISqlNode e, string name )
-        {
-            if( e == null ) throw new ArgumentNullException( name );
-        }
-
-        public static void CheckUnPar<T>( ISqlNode e, string name )
-        {
-            if( e == null ) throw new ArgumentNullException( name );
-            if( !(e.UnPar is T) ) throw new ArgumentException( String.Format( "Must be '{0}' but found '{1}'.", typeof( T ).Name, e.GetType().Name ), name );
-        }
-
-        public static void CheckNull( ISqlNode e, string name )
-        {
-            if( e != null ) throw new ArgumentException( "Must be null.", name );
         }
 
     }
 
     struct SNode<T> : IReadOnlyList<ISqlNode>
-        where T : class, ISqlNode 
+        where T : class, ISqlNode
     {
         public readonly T V;
 
@@ -203,6 +48,8 @@ namespace CK.SqlServer.Parser
         }
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+        public IList<ISqlNode> GetRawContent() => new ISqlNode[] { V };
     }
 
     sealed class CKEnumeratorBi<T> : IEnumerator<T>
@@ -286,6 +133,9 @@ namespace CK.SqlServer.Parser
         }
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+        public IList<ISqlNode> GetRawContent() => new ISqlNode[] { V1, V2 };
+
     }
 
     struct SNode<T1, T2, T3> : IReadOnlyList<ISqlNode>
@@ -323,7 +173,7 @@ namespace CK.SqlServer.Parser
                     }
                 }
             }
-            throw new ArgumentException( string.Format( "Expected {0}, {1}, {2}.", 
+            throw new ArgumentException( string.Format( "Expected {0}, {1}, {2}.",
                 typeof( T1 ).Name, typeof( T2 ).Name, typeof( T3 ).Name ), "content" );
         }
 
@@ -343,9 +193,12 @@ namespace CK.SqlServer.Parser
 
         int IReadOnlyCollection<ISqlNode>.Count => Count;
 
-        public IEnumerator<ISqlNode> GetEnumerator() => SNode.CreateEnumerator( V1, V2, V3 );
+        public IEnumerator<ISqlNode> GetEnumerator() => SNode.CreateFilteredEnumerator( V1, V2, V3 );
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+        public IList<ISqlNode> GetRawContent() => new ISqlNode[] { V1, V2, V3 };
+
     }
 
     struct SNode<T1, T2, T3, T4> : IReadOnlyList<ISqlNode>
@@ -411,9 +264,11 @@ namespace CK.SqlServer.Parser
 
         int IReadOnlyCollection<ISqlNode>.Count => Count;
 
-        public IEnumerator<ISqlNode> GetEnumerator() => SNode.CreateEnumerator( V1, V2, V3, V4 );
+        public IEnumerator<ISqlNode> GetEnumerator() => SNode.CreateFilteredEnumerator( V1, V2, V3, V4 );
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+        public IList<ISqlNode> GetRawContent() => new ISqlNode[] { V1, V2, V3, V4 };
     }
 
     struct SNode<T1, T2, T3, T4, T5> : IReadOnlyList<ISqlNode>
@@ -487,9 +342,11 @@ namespace CK.SqlServer.Parser
 
         int IReadOnlyCollection<ISqlNode>.Count => Count;
 
-        public IEnumerator<ISqlNode> GetEnumerator() => SNode.CreateEnumerator( V1, V2, V3, V4, V5 );
+        public IEnumerator<ISqlNode> GetEnumerator() => SNode.CreateFilteredEnumerator( V1, V2, V3, V4, V5 );
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+        public IList<ISqlNode> GetRawContent() => new ISqlNode[] { V1, V2, V3, V4, V5 };
     }
 
     struct SNode<T1, T2, T3, T4, T5, T6> : IReadOnlyList<ISqlNode>
@@ -571,9 +428,11 @@ namespace CK.SqlServer.Parser
 
         int IReadOnlyCollection<ISqlNode>.Count => Count;
 
-        public IEnumerator<ISqlNode> GetEnumerator() => SNode.CreateEnumerator( V1, V2, V3, V4, V5, V6 );
+        public IEnumerator<ISqlNode> GetEnumerator() => SNode.CreateFilteredEnumerator( V1, V2, V3, V4, V5, V6 );
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+        public IList<ISqlNode> GetRawContent() => new ISqlNode[] { V1, V2, V3, V4, V5, V6 };
     }
 
     struct SNode<T1, T2, T3, T4, T5, T6, T7> : IReadOnlyList<ISqlNode>
@@ -663,9 +522,11 @@ namespace CK.SqlServer.Parser
 
         int IReadOnlyCollection<ISqlNode>.Count => Count;
 
-        public IEnumerator<ISqlNode> GetEnumerator() => SNode.CreateEnumerator( V1, V2, V3, V4, V5, V6, V7 );
+        public IEnumerator<ISqlNode> GetEnumerator() => SNode.CreateFilteredEnumerator( V1, V2, V3, V4, V5, V6, V7 );
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+        public IList<ISqlNode> GetRawContent() => new ISqlNode[] { V1, V2, V3, V4, V5, V6, V7 };
     }
 
     struct SNode<T1, T2, T3, T4, T5, T6, T7, T8> : IReadOnlyList<ISqlNode>
@@ -770,9 +631,11 @@ namespace CK.SqlServer.Parser
 
         int IReadOnlyCollection<ISqlNode>.Count => Count;
 
-        public IEnumerator<ISqlNode> GetEnumerator() => SNode.CreateEnumerator( V1, V2, V3, V4, V5, V6, V7, V8 );
+        public IEnumerator<ISqlNode> GetEnumerator() => SNode.CreateFilteredEnumerator( V1, V2, V3, V4, V5, V6, V7, V8 );
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+        public IList<ISqlNode> GetRawContent() => new ISqlNode[] { V1, V2, V3, V4, V5, V6, V7, V8 };
     }
 
     struct SNode<T1, T2, T3, T4, T5, T6, T7, T8, T9> : IReadOnlyList<ISqlNode>
@@ -886,9 +749,11 @@ namespace CK.SqlServer.Parser
 
         int IReadOnlyCollection<ISqlNode>.Count => Count;
 
-        public IEnumerator<ISqlNode> GetEnumerator() => SNode.CreateEnumerator( V1, V2, V3, V4, V5, V6, V7, V8, V9 );
+        public IEnumerator<ISqlNode> GetEnumerator() => SNode.CreateFilteredEnumerator( V1, V2, V3, V4, V5, V6, V7, V8, V9 );
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+        public IList<ISqlNode> GetRawContent() => new ISqlNode[] { V1, V2, V3, V4, V5, V6, V7, V8, V9 };
     }
 
     struct SNode<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> : IReadOnlyList<ISqlNode>
@@ -1011,9 +876,11 @@ namespace CK.SqlServer.Parser
 
         int IReadOnlyCollection<ISqlNode>.Count => Count;
 
-        public IEnumerator<ISqlNode> GetEnumerator() => SNode.CreateEnumerator( V1, V2, V3, V4, V5, V6, V7, V8, V9, V10 );
+        public IEnumerator<ISqlNode> GetEnumerator() => SNode.CreateFilteredEnumerator( V1, V2, V3, V4, V5, V6, V7, V8, V9, V10 );
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+        public IList<ISqlNode> GetRawContent() => new ISqlNode[] { V1, V2, V3, V4, V5, V6, V7, V8, V9, V10 };
     }
 
     struct SNode<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> : IReadOnlyList<ISqlNode>
@@ -1145,24 +1012,26 @@ namespace CK.SqlServer.Parser
 
         int IReadOnlyCollection<ISqlNode>.Count => Count;
 
-        public IEnumerator<ISqlNode> GetEnumerator() => SNode.CreateEnumerator( V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11 );
+        public IEnumerator<ISqlNode> GetEnumerator() => SNode.CreateFilteredEnumerator( V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11 );
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+        public IList<ISqlNode> GetRawContent() => new ISqlNode[] { V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11 };
     }
 
     struct SNode<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> : IReadOnlyList<ISqlNode>
-        where T1 : ISqlNode
-        where T2 : ISqlNode
-        where T3 : ISqlNode
-        where T4 : ISqlNode
-        where T5 : ISqlNode
-        where T6 : ISqlNode
-        where T7 : ISqlNode
-        where T8 : ISqlNode
-        where T9 : ISqlNode
-        where T10 : ISqlNode
-        where T11 : ISqlNode
-        where T12 : ISqlNode
+            where T1 : ISqlNode
+            where T2 : ISqlNode
+            where T3 : ISqlNode
+            where T4 : ISqlNode
+            where T5 : ISqlNode
+            where T6 : ISqlNode
+            where T7 : ISqlNode
+            where T8 : ISqlNode
+            where T9 : ISqlNode
+            where T10 : ISqlNode
+            where T11 : ISqlNode
+            where T12 : ISqlNode
     {
         public readonly int Count;
         public readonly T1 V1;
@@ -1288,25 +1157,27 @@ namespace CK.SqlServer.Parser
 
         int IReadOnlyCollection<ISqlNode>.Count => Count;
 
-        public IEnumerator<ISqlNode> GetEnumerator() => SNode.CreateEnumerator( V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12 );
+        public IEnumerator<ISqlNode> GetEnumerator() => SNode.CreateFilteredEnumerator( V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12 );
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        public IList<ISqlNode> GetRawContent() => new ISqlNode[] { V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12 };
     }
 
+
     struct SNode<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> : IReadOnlyList<ISqlNode>
-        where T1 : ISqlNode
-        where T2 : ISqlNode
-        where T3 : ISqlNode
-        where T4 : ISqlNode
-        where T5 : ISqlNode
-        where T6 : ISqlNode
-        where T7 : ISqlNode
-        where T8 : ISqlNode
-        where T9 : ISqlNode
-        where T10 : ISqlNode
-        where T11 : ISqlNode
-        where T12 : ISqlNode
-        where T13 : ISqlNode
+            where T1 : ISqlNode
+            where T2 : ISqlNode
+            where T3 : ISqlNode
+            where T4 : ISqlNode
+            where T5 : ISqlNode
+            where T6 : ISqlNode
+            where T7 : ISqlNode
+            where T8 : ISqlNode
+            where T9 : ISqlNode
+            where T10 : ISqlNode
+            where T11 : ISqlNode
+            where T12 : ISqlNode
+            where T13 : ISqlNode
     {
         public readonly int Count;
         public readonly T1 V1;
@@ -1440,9 +1311,12 @@ namespace CK.SqlServer.Parser
 
         int IReadOnlyCollection<ISqlNode>.Count => Count;
 
-        public IEnumerator<ISqlNode> GetEnumerator() => SNode.CreateEnumerator( V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13 );
+        public IEnumerator<ISqlNode> GetEnumerator() => SNode.CreateFilteredEnumerator( V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13 );
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+        public IList<ISqlNode> GetRawContent() => new ISqlNode[] { V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13 };
+
     }
 
 }

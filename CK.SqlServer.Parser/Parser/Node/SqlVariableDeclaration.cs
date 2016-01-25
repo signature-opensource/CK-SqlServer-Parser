@@ -22,9 +22,9 @@ namespace CK.SqlServer.Parser
 
         void CheckContent()
         {
-            SNode.CheckIsVariable( Variable, nameof( Variable ) );
-            SNode.CheckNullableToken( AssignT, nameof( AssignT ), SqlTokenType.Assign );
-            SNode.CheckBothNullOrNot( AssignT, nameof( AssignT ), InitialValue, nameof( InitialValue ) );
+            Helper.CheckIsVariable( Variable, nameof( Variable ) );
+            Helper.CheckNullableToken( AssignT, nameof( AssignT ), SqlTokenType.Assign );
+            Helper.CheckBothNullOrNot( AssignT, nameof( AssignT ), InitialValue, nameof( InitialValue ) );
         }
 
         SqlVariableDeclaration( SqlVariableDeclaration o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
@@ -44,6 +44,8 @@ namespace CK.SqlServer.Parser
         }
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
+
+        public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
 
         public SqlTypedIdentifier Variable => _content.V1;
 

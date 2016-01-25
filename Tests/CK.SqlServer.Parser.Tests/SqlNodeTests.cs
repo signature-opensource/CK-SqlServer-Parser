@@ -11,7 +11,7 @@ using System.Diagnostics;
 namespace CK.SqlServer.Parser.Tests
 {
     [TestFixture]
-    public class SqlNodeTests
+    public sealed class SqlNodeTests
     {
         public class TestNode : SqlNodeExternal
         {
@@ -26,6 +26,8 @@ namespace CK.SqlServer.Parser.Tests
             }
 
             public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
+
+            public override IList<ISqlNode> GetRawContent() => _content.ToList();
 
 
             protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
@@ -56,7 +58,7 @@ namespace CK.SqlServer.Parser.Tests
                         .AddLeadingTrivia( new SqlTrivia( SqlTokenType.None, "[b2[" ) )
                         .AddTrailingTrivia( new SqlTrivia( SqlTokenType.None, "]a2]" ) )
                         .AddTrailingTrivia( new SqlTrivia( SqlTokenType.None, "]b2]" ) );
-            n = n.StuffChildren( 0, 0, new[] { n1, n2 } );
+            n = n.StuffRawContent( 0, 0, new[] { n1, n2 } );
 
             Assert.That( n.ToString( false ), Is.EqualTo( "N[b1[[a1[N1]a1]]b1][b2[[a2[N2]a2]]b2]" ) );
             Assert.That( n.ToString( true ), Is.EqualTo( "/*<<*/N[b1[[a1[N1]a1]]b1][b2[[a2[N2]a2]]b2]/*>>*/" ) );
@@ -90,7 +92,7 @@ namespace CK.SqlServer.Parser.Tests
             ISqlNode n2 = new TestNode( "Y" )
                             .AddLeadingTrivia( new SqlTrivia( SqlTokenType.None, Environment.NewLine + " 3 " + Environment.NewLine ) )
                             .AddTrailingTrivia( new SqlTrivia( SqlTokenType.None, Environment.NewLine + " 4 " + Environment.NewLine ) );
-            n = n2.StuffChildren( 0, 0, new[] { n } );
+            n = n2.StuffRawContent( 0, 0, new[] { n } );
 
             Assert.That( n.ToString( true ), Is.EqualTo(
                 Environment.NewLine + " 3 " + Environment.NewLine

@@ -25,8 +25,8 @@ namespace CK.SqlServer.Parser
 
         void CheckContent()
         {
-            SNode.CheckToken( CursorT, nameof( CursorT ), SqlTokenType.Cursor );
-            SNode.CheckNullableToken( VaryingT, nameof( VaryingT ), SqlTokenType.Varying );
+            Helper.CheckToken( CursorT, nameof( CursorT ), SqlTokenType.Cursor );
+            Helper.CheckNullableToken( VaryingT, nameof( VaryingT ), SqlTokenType.Varying );
         }
 
         SqlTypeDeclCursorParameter( SqlTypeDeclCursorParameter o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
@@ -45,6 +45,8 @@ namespace CK.SqlServer.Parser
         }
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
+
+        public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
 
         /// <summary>
         /// Gets the <see cref="SqlDbType.Udt"/>. 

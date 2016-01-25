@@ -41,12 +41,14 @@ namespace CK.SqlServer.Parser
 
         void CheckContent()
         {
-            SNode.CheckToken( ReturnT, nameof( ReturnT ), SqlTokenType.Return );
+            Helper.CheckToken( ReturnT, nameof( ReturnT ), SqlTokenType.Return );
         }
 
         public StatementKnownName StatementKnownName => StatementKnownName.Return;
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
+
+        public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
 
         public SqlTokenIdentifier ReturnT => _content.V1;
 

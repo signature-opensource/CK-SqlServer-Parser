@@ -25,8 +25,8 @@ namespace CK.SqlServer.Parser
 
         void CheckContent()
         {
-            SNode.CheckToken( GotoT, nameof( GotoT ), SqlTokenType.Goto );
-            SNode.CheckNotNull( Target, nameof( Target ) );
+            Helper.CheckToken( GotoT, nameof( GotoT ), SqlTokenType.Goto );
+            Helper.CheckNotNull( Target, nameof( Target ) );
         }
 
         SqlGoto( SqlGoto o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
@@ -48,6 +48,8 @@ namespace CK.SqlServer.Parser
         public StatementKnownName StatementKnownName => StatementKnownName.Goto;
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
+
+        public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
 
         public SqlTokenIdentifier GotoT => _content.V1;
 

@@ -45,7 +45,7 @@ namespace CK.SqlServer.Parser
             }
             else
             {
-                var a = ASqlNodeArrayBased.EnsureArray( items );
+                var a = Helper.EnsureArray( items );
                 if( enclosed || (a.Length > 0 && a[0] is TOpener) )
                 {
                     _enclosed = 1;
@@ -86,8 +86,6 @@ namespace CK.SqlServer.Parser
             return a.ToArray();
         }
 
-
-
         public bool IsEnclosed => _enclosed != 0;
 
         public TOpener Opener => _enclosed != 0 ? (TOpener)_items[0] : null;
@@ -99,7 +97,9 @@ namespace CK.SqlServer.Parser
         /// <summary>
         /// Gets the direct children if any. Never null.
         /// </summary>
-        public override IReadOnlyList<ISqlNode> ChildrenNodes => _items;
+        public sealed override IReadOnlyList<ISqlNode> ChildrenNodes => _items;
+
+        public sealed override IList<ISqlNode> GetRawContent() => _items.ToList();
 
         public int Count => (_items.Length + 1) / 2 - _enclosed;
 

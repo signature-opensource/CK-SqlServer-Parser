@@ -23,7 +23,7 @@ namespace CK.SqlServer.Parser
 
         SqlDbType CheckContent()
         {
-            SNode.CheckNotNull( TypeIdentifierT, nameof( TypeIdentifierT ) );
+            Helper.CheckNotNull( TypeIdentifierT, nameof( TypeIdentifierT ) );
             SqlDbType? dbType = SqlKeyword.FromSqlTokenTypeToSqlDbType( TypeIdentifierT.TokenType );
             if( !dbType.HasValue )
             {
@@ -61,6 +61,8 @@ namespace CK.SqlServer.Parser
         }
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
+
+        public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
 
         public SqlDbType DbType { get; }
 

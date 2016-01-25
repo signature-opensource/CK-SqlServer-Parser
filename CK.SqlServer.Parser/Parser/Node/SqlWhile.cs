@@ -25,9 +25,9 @@ namespace CK.SqlServer.Parser
 
         void CheckContent()
         {
-            SNode.CheckToken( WhileT, nameof( WhileT ), SqlTokenType.While );
-            SNode.CheckNotNull( Condition, nameof( Condition ) );
-            SNode.CheckNotNull( Statement, nameof( Statement ) );
+            Helper.CheckToken( WhileT, nameof( WhileT ), SqlTokenType.While );
+            Helper.CheckNotNull( Condition, nameof( Condition ) );
+            Helper.CheckNotNull( Statement, nameof( Statement ) );
         }
 
         SqlWhile( SqlWhile o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
@@ -49,6 +49,8 @@ namespace CK.SqlServer.Parser
         public StatementKnownName StatementKnownName => StatementKnownName.While;
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
+
+        public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
 
         public SqlTokenIdentifier WhileT => _content.V1;
 

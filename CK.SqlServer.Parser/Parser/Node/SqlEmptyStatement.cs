@@ -36,12 +36,14 @@ namespace CK.SqlServer.Parser
 
         void CheckContent()
         {
-            SNode.CheckNotNull( StatementTerminator, nameof( StatementTerminator ) );
+            Helper.CheckNotNull( StatementTerminator, nameof( StatementTerminator ) );
         }
 
         public StatementKnownName StatementKnownName => StatementKnownName.Empty;
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
+
+        public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
 
         public SqlTokenTerminal StatementTerminator => _content.V;
 

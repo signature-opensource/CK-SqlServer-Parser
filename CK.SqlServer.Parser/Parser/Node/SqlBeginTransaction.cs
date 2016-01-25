@@ -43,11 +43,11 @@ namespace CK.SqlServer.Parser
 
         void CheckContent()
         {
-            SNode.CheckToken( BeginT, nameof( BeginT ), SqlTokenType.Begin );
-            SNode.CheckToken( TranT, nameof( TranT ), SqlTokenType.Transaction );
-            SNode.CheckNullableToken( WithT, nameof( WithT ), SqlTokenType.With );
-            SNode.CheckNullableToken( MarkT, nameof( MarkT ), SqlTokenType.Mark );
-            SNode.CheckBothNullOrNot( WithT, nameof( WithT ), MarkT, nameof( MarkT ) );
+            Helper.CheckToken( BeginT, nameof( BeginT ), SqlTokenType.Begin );
+            Helper.CheckToken( TranT, nameof( TranT ), SqlTokenType.Transaction );
+            Helper.CheckNullableToken( WithT, nameof( WithT ), SqlTokenType.With );
+            Helper.CheckNullableToken( MarkT, nameof( MarkT ), SqlTokenType.Mark );
+            Helper.CheckBothNullOrNot( WithT, nameof( WithT ), MarkT, nameof( MarkT ) );
         }
 
         protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
@@ -58,6 +58,8 @@ namespace CK.SqlServer.Parser
         public StatementKnownName StatementKnownName => StatementKnownName.BeginTransaction;
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
+
+        public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
 
         public SqlTokenIdentifier BeginT => _content.V1;
 

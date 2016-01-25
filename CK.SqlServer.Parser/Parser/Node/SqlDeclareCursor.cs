@@ -38,14 +38,16 @@ namespace CK.SqlServer.Parser
 
         void CheckContent()
         {
-            SNode.CheckToken( DeclareT, nameof( DeclareT ), SqlTokenType.Declare );
-            SNode.CheckNotNull( CursorName, nameof( CursorName ) );
-            SNode.CheckNotNull( Cursor, nameof( Cursor ) );
+            Helper.CheckToken( DeclareT, nameof( DeclareT ), SqlTokenType.Declare );
+            Helper.CheckNotNull( CursorName, nameof( CursorName ) );
+            Helper.CheckNotNull( Cursor, nameof( Cursor ) );
         }
 
         public StatementKnownName StatementKnownName => StatementKnownName.DeclareCursor;
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
+
+        public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
 
         public SqlTokenIdentifier DeclareT => _content.V1;
 

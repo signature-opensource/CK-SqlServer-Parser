@@ -55,12 +55,12 @@ namespace CK.SqlServer.Parser
 
         void CheckContent()
         {
-            SNode.CheckNotNull( Header, nameof( Header ) );
-            SNode.CheckNotNull( Target, nameof( Target ) );
-            SNode.CheckToken( SetT, nameof( SetT ), SqlTokenType.Set );
-            SNode.CheckNotNull( Assigns, nameof( Assigns ) );
-            SNode.CheckNullableToken( WhereT, nameof( WhereT ), SqlTokenType.Where );
-            SNode.CheckBothNullOrNot( WhereT, nameof( WhereT ), WhereExpression, nameof( WhereExpression ) );
+            Helper.CheckNotNull( Header, nameof( Header ) );
+            Helper.CheckNotNull( Target, nameof( Target ) );
+            Helper.CheckToken( SetT, nameof( SetT ), SqlTokenType.Set );
+            Helper.CheckNotNull( Assigns, nameof( Assigns ) );
+            Helper.CheckNullableToken( WhereT, nameof( WhereT ), SqlTokenType.Where );
+            Helper.CheckBothNullOrNot( WhereT, nameof( WhereT ), WhereExpression, nameof( WhereExpression ) );
         }
 
         SqlUpdateStatement( SqlUpdateStatement o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
@@ -82,6 +82,8 @@ namespace CK.SqlServer.Parser
         public StatementKnownName StatementKnownName => StatementKnownName.Update;
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
+
+        public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
 
         public MIUDHeader Header => _content.V1;
 

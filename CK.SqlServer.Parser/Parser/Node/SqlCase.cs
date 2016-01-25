@@ -35,11 +35,11 @@ namespace CK.SqlServer.Parser
 
         void CheckContent()
         {
-            SNode.CheckToken( CaseT, nameof( CaseT ), SqlTokenType.Case );
-            SNode.CheckNotNull( WhenList, nameof( WhenList ) );
-            SNode.CheckNullableToken( ElseT, nameof( ElseT ), SqlTokenType.Else );
-            SNode.CheckToken( EndT, nameof( EndT ), SqlTokenType.End );
-            SNode.CheckBothNullOrNot( ElseT, nameof( ElseT ), ElseExpression, nameof( ElseExpression ) );
+            Helper.CheckToken( CaseT, nameof( CaseT ), SqlTokenType.Case );
+            Helper.CheckNotNull( WhenList, nameof( WhenList ) );
+            Helper.CheckNullableToken( ElseT, nameof( ElseT ), SqlTokenType.Else );
+            Helper.CheckToken( EndT, nameof( EndT ), SqlTokenType.End );
+            Helper.CheckBothNullOrNot( ElseT, nameof( ElseT ), ElseExpression, nameof( ElseExpression ) );
         }
 
         SqlCase( SqlCase o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
@@ -59,6 +59,8 @@ namespace CK.SqlServer.Parser
         }
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
+
+        public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
 
         /// <summary>
         /// Gets whether this is a simple case: "case Expression when V0 then C0 when V1 then C1 end".

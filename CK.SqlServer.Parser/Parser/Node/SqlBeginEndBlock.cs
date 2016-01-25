@@ -46,6 +46,8 @@ namespace CK.SqlServer.Parser
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
 
+        public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
+
         public SqlTokenIdentifier BeginT => _content.V1;
 
         public SqlStatementList Body => _content.V2;

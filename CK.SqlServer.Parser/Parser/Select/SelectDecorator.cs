@@ -33,7 +33,7 @@ namespace CK.SqlServer.Parser
 
         void CheckContent()
         {
-            SNode.CheckUnPar<ISelectSpecification>( SelectNode, nameof( SelectNode ) );
+            Helper.CheckUnPar<ISelectSpecification>( SelectNode, nameof( SelectNode ) );
         }
 
         SelectDecorator( SelectDecorator o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
@@ -53,6 +53,8 @@ namespace CK.SqlServer.Parser
         }
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
+
+        public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
 
         public ISqlNode SelectNode => _content.V1;
 

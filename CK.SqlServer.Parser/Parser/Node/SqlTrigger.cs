@@ -62,13 +62,13 @@ namespace CK.SqlServer.Parser
 
         void CheckContent()
         {
-            SNode.CheckToken( AlterOrCreateT, nameof( AlterOrCreateT ), SqlTokenType.Alter, SqlTokenType.Create );
-            SNode.CheckToken( ObjectTypeT, nameof( ObjectTypeT ), SqlTokenType.Trigger );
-            SNode.CheckNotNull( Name, nameof( Name ) );
-            SNode.CheckNotNull( TargetName, nameof( TargetName ) );
-            SNode.CheckNotNull( Configuration, nameof( Configuration ) );
-            SNode.CheckToken( AsT, nameof( AsT ), SqlTokenType.As );
-            SNode.CheckNotNull( Body, nameof( Body ) );
+            Helper.CheckToken( AlterOrCreateT, nameof( AlterOrCreateT ), SqlTokenType.Alter, SqlTokenType.Create );
+            Helper.CheckToken( ObjectTypeT, nameof( ObjectTypeT ), SqlTokenType.Trigger );
+            Helper.CheckNotNull( Name, nameof( Name ) );
+            Helper.CheckNotNull( TargetName, nameof( TargetName ) );
+            Helper.CheckNotNull( Configuration, nameof( Configuration ) );
+            Helper.CheckToken( AsT, nameof( AsT ), SqlTokenType.As );
+            Helper.CheckNotNull( Body, nameof( Body ) );
         }
 
         protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
@@ -82,6 +82,8 @@ namespace CK.SqlServer.Parser
 
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
+
+        public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
 
         public SqlTokenIdentifier AlterOrCreateT => _content.V1;
 

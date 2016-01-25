@@ -31,10 +31,10 @@ namespace CK.SqlServer.Parser
 
         void CheckContent()
         {
-            SNode.CheckNotNull( Header, nameof( Header ) );
-            SNode.CheckNotNull( Columns, nameof( Columns ) );
-            SNode.CheckNullableToken( WhereT, nameof( WhereT ), SqlTokenType.Where );
-            SNode.CheckBothNullOrNot( WhereT, nameof( WhereT ), WhereExpression, nameof( WhereExpression ) );
+            Helper.CheckNotNull( Header, nameof( Header ) );
+            Helper.CheckNotNull( Columns, nameof( Columns ) );
+            Helper.CheckNullableToken( WhereT, nameof( WhereT ), SqlTokenType.Where );
+            Helper.CheckBothNullOrNot( WhereT, nameof( WhereT ), WhereExpression, nameof( WhereExpression ) );
         }
 
         SelectSpec( SelectSpec o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
@@ -54,6 +54,8 @@ namespace CK.SqlServer.Parser
         }
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
+
+        public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
 
         /// <summary>
         /// Gets the operator token type: it is <see cref="SelectOperatorKind.None"/> since this is an 

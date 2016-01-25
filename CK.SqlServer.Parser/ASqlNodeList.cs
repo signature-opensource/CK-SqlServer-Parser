@@ -82,7 +82,9 @@ namespace CK.SqlServer.Parser
         /// <summary>
         /// Gets the direct children if any. Never null.
         /// </summary>
-        public override IReadOnlyList<ISqlNode> ChildrenNodes => (IReadOnlyList<ISqlNode>)_items;
+        public sealed override IReadOnlyList<ISqlNode> ChildrenNodes => _items;
+
+        public sealed override IList<ISqlNode> GetRawContent() => (IList<ISqlNode>)_items.ToList();
 
         public int Count => _items.Count;
 

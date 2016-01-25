@@ -21,9 +21,9 @@ namespace CK.SqlServer.Parser
 
         void CheckContent()
         {
-            SNode.CheckNotNull( Left, nameof( Left ) );
-            SNode.CheckToken( CollateT, nameof( CollateT ), SqlTokenType.Collate );
-            SNode.CheckNotNull( CollationName, nameof( CollationName ) );
+            Helper.CheckNotNull( Left, nameof( Left ) );
+            Helper.CheckToken( CollateT, nameof( CollateT ), SqlTokenType.Collate );
+            Helper.CheckNotNull( CollationName, nameof( CollationName ) );
         }
 
         SqlCollate( SqlCollate o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
@@ -43,6 +43,8 @@ namespace CK.SqlServer.Parser
         }
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
+
+        public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
 
         public ISqlNode Left => _content.V1;
 

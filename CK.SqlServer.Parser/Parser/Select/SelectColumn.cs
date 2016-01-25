@@ -12,8 +12,9 @@ namespace CK.SqlServer.Parser
     /// Captures a select column definition: it is either 'definition as name', 'name = definition' or the definition alone.
     /// The horrible syntax 'definition name' is also supported.
     /// </summary>
-    public sealed class SelectColumn : ASqlNodeArrayBased
+    public sealed class SelectColumn : SqlNode
     {
+        readonly ISqlNode[] _items;
         readonly SqlToken _colName;
         readonly SqlToken _asOrEqual;
         readonly ISqlNode _definition;
@@ -44,56 +45,66 @@ namespace CK.SqlServer.Parser
         {
         }
 
+        public override IReadOnlyList<ISqlNode> ChildrenNodes => _items;
+
+        /// <summary>
+        /// Gets the mutable content: it is a <see cref="List{T}"/> of non null ISqlNode.
+        /// </summary>
+        /// <returns><see cref="List{T}"/> of non null ISqlNode.</returns>
+        public override IList<ISqlNode> GetRawContent() => _items.ToList();
+
         SelectColumn( SelectColumn o, ImmutableList<SqlTrivia> leading, ISqlNode[] items, ImmutableList<SqlTrivia> trailing )
-            : base( leading, items, trailing )
+            : base( leading, trailing )
         {
             if( items == null )
             {
+                _items = o._items;
                 _definition = o._definition;
                 _asOrEqual = o._asOrEqual;
                 _colName = o._colName;
             }
             else
             {
-                if( Children.Length == 1 ) _definition = Children[0];
+                _items = items;
+                if( items.Length == 1 ) _definition = items[0];
                 else
                 {
-                    if( Children.Length == 2 )
+                    if( items.Length == 2 )
                     {
-                        _definition = Children[0];
-                        _colName = (SqlToken)Children[1];
-                        SNode.CheckToken( ColumnName, nameof( ColumnName ), SqlTokenTypeExtension.IsValidColumnAliasName );
+                        _definition = items[0];
+                        _colName = items[1] as SqlToken;
+                        Helper.CheckToken( ColumnName, nameof( ColumnName ), SqlTokenTypeExtension.IsValidColumnAliasName );
                     }
                     else
                     {
-                        if( Children.Length > 3 )
+                        if( items.Length == 0 || items.Length > 3 )
                         {
-                            throw new ArgumentException( "At most 3 parts must be provided." );
+                            throw new ArgumentException( "Between 1 and 3 parts must be provided." );
                         }
-                        _asOrEqual = (SqlToken)Children[1];
+                        _asOrEqual = _items[1] as SqlToken;
                         if( _asOrEqual is SqlTokenTerminal )
                         {
-                            _colName = (SqlToken)Children[0];
-                            SNode.CheckToken( AsOrEqualT, nameof( AsOrEqualT ), SqlTokenType.Assign );
-                            _definition = Children[2];
-                            SNode.CheckToken( ColumnName, nameof( ColumnName ), SqlTokenTypeExtension.IsValidColumnAliasNameOrVariable );
+                            _colName = (SqlToken)_items[0];
+                            Helper.CheckToken( AsOrEqualT, nameof( AsOrEqualT ), SqlTokenType.Assign );
+                            _definition = _items[2];
+                            Helper.CheckToken( ColumnName, nameof( ColumnName ), SqlTokenTypeExtension.IsValidColumnAliasNameOrVariable );
                         }
                         else
                         {
-                            _colName = (SqlToken)Children[2];
-                            SNode.CheckToken( AsOrEqualT, nameof( AsOrEqualT ), SqlTokenType.As );
-                            _definition = Children[0];
-                            SNode.CheckToken( ColumnName, nameof( ColumnName ), SqlTokenTypeExtension.IsValidColumnAliasName );
+                            Helper.CheckToken( AsOrEqualT, nameof( AsOrEqualT ), SqlTokenType.As );
+                            _colName = _items[2] as SqlToken;
+                            _definition = _items[0];
+                            Helper.CheckToken( ColumnName, nameof( ColumnName ), SqlTokenTypeExtension.IsValidColumnAliasName );
                         }
                     }
                 }
-                SNode.CheckNotNull( Definition, nameof( Definition ) );
+                Helper.CheckNotNull( Definition, nameof( Definition ) );
             }
         }
 
         protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
         {
-            return new SelectColumn( this, leading, EnsureArray( children ), trailing );
+            return new SelectColumn( this, leading, children == null ? null : children.Where( n => n != null ).ToArray(), trailing );
         }
 
         SqlTokenIdentifier GetRepairedAsToken()

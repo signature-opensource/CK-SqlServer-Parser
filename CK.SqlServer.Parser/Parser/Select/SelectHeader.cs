@@ -48,17 +48,19 @@ namespace CK.SqlServer.Parser
 
         void CheckContent()
         {
-            SNode.CheckToken( SelectT, nameof( SelectT ), SqlTokenType.Select );
-            SNode.CheckNullableToken( AllOrDistinctT, nameof( AllOrDistinctT ), SqlTokenType.All, SqlTokenType.Distinct );
-            SNode.CheckNullableToken( TopT, nameof( TopT ), SqlTokenType.Top );
-            SNode.CheckBothNullOrNot( TopT, nameof( TopT ), TopExpression, nameof(TopExpression) );
-            SNode.CheckNullableToken( PercentT, nameof( PercentT ), SqlTokenType.Percent );
-            SNode.CheckNullableToken( WithT, nameof( WithT ), SqlTokenType.With );
-            SNode.CheckNullableToken( TiesT, nameof( TiesT ), SqlTokenType.Ties );
-            SNode.CheckBothNullOrNot( WithT, nameof( WithT ), TiesT, nameof( TiesT ) );
+            Helper.CheckToken( SelectT, nameof( SelectT ), SqlTokenType.Select );
+            Helper.CheckNullableToken( AllOrDistinctT, nameof( AllOrDistinctT ), SqlTokenType.All, SqlTokenType.Distinct );
+            Helper.CheckNullableToken( TopT, nameof( TopT ), SqlTokenType.Top );
+            Helper.CheckBothNullOrNot( TopT, nameof( TopT ), TopExpression, nameof(TopExpression) );
+            Helper.CheckNullableToken( PercentT, nameof( PercentT ), SqlTokenType.Percent );
+            Helper.CheckNullableToken( WithT, nameof( WithT ), SqlTokenType.With );
+            Helper.CheckNullableToken( TiesT, nameof( TiesT ), SqlTokenType.Ties );
+            Helper.CheckBothNullOrNot( WithT, nameof( WithT ), TiesT, nameof( TiesT ) );
         }
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
+
+        public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
 
         public SqlTokenIdentifier SelectT => _content.V1;
 

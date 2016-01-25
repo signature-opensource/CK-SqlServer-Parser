@@ -21,8 +21,8 @@ namespace CK.SqlServer.Parser
 
         void CheckContent()
         {
-            SNode.CheckNotNull( Definition, nameof( Definition ) );
-            SNode.CheckNullableToken( AscOrDescT, nameof( AscOrDescT ), SqlTokenType.Asc, SqlTokenType.Desc );
+            Helper.CheckNotNull( Definition, nameof( Definition ) );
+            Helper.CheckNullableToken( AscOrDescT, nameof( AscOrDescT ), SqlTokenType.Asc, SqlTokenType.Desc );
         }
 
         SqlOrderByItem( SqlOrderByItem o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
@@ -42,6 +42,8 @@ namespace CK.SqlServer.Parser
         }
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
+
+        public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
 
         public ISqlNode Definition => _content.V1;
 

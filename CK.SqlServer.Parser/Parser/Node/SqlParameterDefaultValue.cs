@@ -29,15 +29,15 @@
 
 //        void CheckContent()
 //        {
-//            SNode.CheckToken( AssignT, nameof( AssignT ), SqlTokenType.Assign );
+//            Helper.CheckToken( AssignT, nameof( AssignT ), SqlTokenType.Assign );
 //            if( IsVariable || IsNull )
 //            {
-//                SNode.CheckNull( LiteralT, nameof( LiteralT ) );
+//                Helper.CheckNull( LiteralT, nameof( LiteralT ) );
 //            }
 //            else
 //            {
-//                SNode.CheckNullableToken( MinusSignOrNullOrVariableT, nameof( MinusSignOrNullOrVariableT ), SqlTokenType.Minus );
-//                SNode.CheckNotNull( LiteralT, nameof( LiteralT ) );
+//                Helper.CheckNullableToken( MinusSignOrNullOrVariableT, nameof( MinusSignOrNullOrVariableT ), SqlTokenType.Minus );
+//                Helper.CheckNotNull( LiteralT, nameof( LiteralT ) );
 //            }
 //        }
 

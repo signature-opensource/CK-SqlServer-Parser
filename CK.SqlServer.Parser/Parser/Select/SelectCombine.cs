@@ -28,11 +28,11 @@ namespace CK.SqlServer.Parser
 
         void CheckContent()
         {
-            SNode.CheckUnPar<ISelectSpecification>( LeftNode, nameof( LeftNode ) );
-            SNode.CheckToken( OperatorT, nameof( OperatorT ), SqlTokenType.Union, SqlTokenType.Intersect, SqlTokenType.Except );
-            SNode.CheckNullableToken( AllT, nameof( AllT ), SqlTokenType.All );
-            if( AllT != null ) SNode.CheckToken( OperatorT, nameof( OperatorT ), SqlTokenType.Union );
-            SNode.CheckNotNull( RightNode, nameof( RightNode ) );
+            Helper.CheckUnPar<ISelectSpecification>( LeftNode, nameof( LeftNode ) );
+            Helper.CheckToken( OperatorT, nameof( OperatorT ), SqlTokenType.Union, SqlTokenType.Intersect, SqlTokenType.Except );
+            Helper.CheckNullableToken( AllT, nameof( AllT ), SqlTokenType.All );
+            if( AllT != null ) Helper.CheckToken( OperatorT, nameof( OperatorT ), SqlTokenType.Union );
+            Helper.CheckNotNull( RightNode, nameof( RightNode ) );
         }
 
         SelectCombine( SelectCombine o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
@@ -52,6 +52,8 @@ namespace CK.SqlServer.Parser
         }
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
+
+        public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
 
         public ISqlNode LeftNode => _content.V1;
 

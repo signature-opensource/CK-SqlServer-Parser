@@ -41,13 +41,15 @@ namespace CK.SqlServer.Parser
 
         void CheckContent()
         {
-            SNode.CheckNullableToken( MinusT, nameof( MinusT ), SqlTokenType.Minus );
-            SNode.CheckNotNull( Value, nameof( Value ) );
+            Helper.CheckNullableToken( MinusT, nameof( MinusT ), SqlTokenType.Minus );
+            Helper.CheckNotNull( Value, nameof( Value ) );
         }
 
         public StatementKnownName StatementKnownName => StatementKnownName.Return;
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
+
+        public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
 
         public SqlTokenTerminal MinusT => _content.V1;
 

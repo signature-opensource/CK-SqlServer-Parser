@@ -25,14 +25,14 @@ namespace CK.SqlServer.Parser
 
         void CheckContent()
         {
-            SNode.CheckToken( ForT, nameof( ForT ), SqlTokenType.For );
-            SNode.CheckToken( TargetType, nameof( TargetType ),
+            Helper.CheckToken( ForT, nameof( ForT ), SqlTokenType.For );
+            Helper.CheckToken( TargetType, nameof( TargetType ),
                 SqlTokenType.XmlDbType,
                 SqlTokenType.Browse,
                 SqlTokenType.Json,
                 SqlTokenType.SystemTime );
-            SNode.CheckNotNull( TargetType, nameof( TargetType ) );
-            SNode.CheckNotNull( Format, nameof(Format) );
+            Helper.CheckNotNull( TargetType, nameof( TargetType ) );
+            Helper.CheckNotNull( Format, nameof(Format) );
         }
 
         SelectFor( SelectFor o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
@@ -52,6 +52,8 @@ namespace CK.SqlServer.Parser
         }
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
+
+        public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
 
         public SqlTokenIdentifier ForT => _content.V1;
 

@@ -32,11 +32,11 @@ namespace CK.SqlServer.Parser
 
         void CheckContent()
         {
-            SNode.CheckToken( GroupT, nameof( GroupT ), SqlTokenType.Group );
-            SNode.CheckToken( ByT, nameof( ByT ), SqlTokenType.By );
-            SNode.CheckNotNull( GroupExpression, nameof( GroupExpression ) );
-            SNode.CheckNullableToken( HavingT, nameof( HavingT ), SqlTokenType.Having );
-            SNode.CheckBothNullOrNot( HavingT, nameof( HavingT ), HavingExpression, nameof( HavingExpression ) );
+            Helper.CheckToken( GroupT, nameof( GroupT ), SqlTokenType.Group );
+            Helper.CheckToken( ByT, nameof( ByT ), SqlTokenType.By );
+            Helper.CheckNotNull( GroupExpression, nameof( GroupExpression ) );
+            Helper.CheckNullableToken( HavingT, nameof( HavingT ), SqlTokenType.Having );
+            Helper.CheckBothNullOrNot( HavingT, nameof( HavingT ), HavingExpression, nameof( HavingExpression ) );
         }
 
         SelectGroupBy( SelectGroupBy o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
@@ -56,6 +56,8 @@ namespace CK.SqlServer.Parser
         }
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
+
+        public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
 
         public SqlTokenIdentifier GroupT => _content.V1;
 

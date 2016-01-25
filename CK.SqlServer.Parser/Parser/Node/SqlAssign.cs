@@ -21,9 +21,9 @@ namespace CK.SqlServer.Parser
 
         void CheckContent()
         {
-            SNode.CheckNotNull( Left, nameof( Left ) );
-            SNode.CheckToken( Operator, nameof( Operator ), IsValidAssignOperator );
-            SNode.CheckNotNull( Right, nameof( Right ) );
+            Helper.CheckNotNull( Left, nameof( Left ) );
+            Helper.CheckToken( Operator, nameof( Operator ), IsValidAssignOperator );
+            Helper.CheckNotNull( Right, nameof( Right ) );
         }
 
         static bool IsValidAssignOperator( SqlTokenType tokenType )
@@ -48,6 +48,8 @@ namespace CK.SqlServer.Parser
         }
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
+
+        public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
 
         public ISqlNode Left => _content.V1;
 

@@ -75,6 +75,8 @@ namespace CK.SqlServer.Parser
         /// </summary>
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _items;
 
+        public sealed override IList<ISqlNode> GetRawContent() => _items.ToList();
+
         protected TPrefix Prefix => (TPrefix)_items[0];
 
         public int Count => _items.Length / 2;

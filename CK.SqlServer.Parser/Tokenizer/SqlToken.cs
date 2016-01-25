@@ -52,7 +52,9 @@ namespace CK.SqlServer.Parser
         /// <summary>
         /// Gets an empty node list.
         /// </summary>
-        public override IReadOnlyList<ISqlNode> ChildrenNodes => Util.EmptyArray<SqlNode>.Empty;
+        public sealed override IReadOnlyList<ISqlNode> ChildrenNodes => Util.EmptyArray<SqlNode>.Empty;
+
+        public sealed override IList<ISqlNode> GetRawContent() => Util.EmptyArray<SqlNode>.Empty;
 
         public override bool IsToken( SqlTokenType t ) => TokenType == t;
 

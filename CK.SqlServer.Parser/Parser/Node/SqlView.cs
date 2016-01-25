@@ -29,11 +29,11 @@ namespace CK.SqlServer.Parser
 
         void CheckContent()
         {
-            SNode.CheckToken( AlterOrCreateT, nameof( AlterOrCreateT ), SqlTokenType.Alter, SqlTokenType.Create );
-            SNode.CheckToken( ObjectTypeT, nameof( ObjectTypeT ), SqlTokenType.View );
-            SNode.CheckNotNull( Name, nameof( Name ) );
-            SNode.CheckNullableToken( AsT, nameof( AsT ), SqlTokenType.As );
-            SNode.CheckNotNull( Select, nameof( Select ) );
+            Helper.CheckToken( AlterOrCreateT, nameof( AlterOrCreateT ), SqlTokenType.Alter, SqlTokenType.Create );
+            Helper.CheckToken( ObjectTypeT, nameof( ObjectTypeT ), SqlTokenType.View );
+            Helper.CheckNotNull( Name, nameof( Name ) );
+            Helper.CheckNullableToken( AsT, nameof( AsT ), SqlTokenType.As );
+            Helper.CheckNotNull( Select, nameof( Select ) );
         }
 
         SqlView( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
@@ -53,6 +53,8 @@ namespace CK.SqlServer.Parser
                                             : StatementKnownName.CreateView;
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
+
+        public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
 
         public SqlTokenIdentifier AlterOrCreateT => _content.V1;
 

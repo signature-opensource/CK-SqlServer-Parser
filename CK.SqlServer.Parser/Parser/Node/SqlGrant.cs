@@ -25,10 +25,10 @@ namespace CK.SqlServer.Parser
 
         void CheckContent()
         {
-            SNode.CheckToken( GrantT, nameof( GrantT ), SqlTokenType.Grant );
-            SNode.CheckNotNull( Perm, nameof( Perm ) );
-            SNode.CheckToken( ToT, nameof( ToT ), SqlTokenType.To );
-            SNode.CheckNotNull( Target, nameof( Target ) );
+            Helper.CheckToken( GrantT, nameof( GrantT ), SqlTokenType.Grant );
+            Helper.CheckNotNull( Perm, nameof( Perm ) );
+            Helper.CheckToken( ToT, nameof( ToT ), SqlTokenType.To );
+            Helper.CheckNotNull( Target, nameof( Target ) );
         }
 
         SqlGrant( SqlGrant o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
@@ -50,6 +50,8 @@ namespace CK.SqlServer.Parser
         public StatementKnownName StatementKnownName => StatementKnownName.Grant;
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
+
+        public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
 
         public SqlTokenIdentifier GrantT => _content.V1;
 

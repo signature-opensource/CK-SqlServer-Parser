@@ -24,13 +24,13 @@ namespace CK.SqlServer.Parser
 
         SqlDbType CheckContent()
         {
-            SNode.CheckNotNull( TypeIdentifierT, nameof( TypeIdentifierT ) );
+            Helper.CheckNotNull( TypeIdentifierT, nameof( TypeIdentifierT ) );
             if( _content.Count > 1 )
             {
-                SNode.CheckNotNull( Opener, nameof( Opener ) );
-                SNode.CheckNotNull( SyntaxSecondScale, nameof( SyntaxSecondScale ) );
+                Helper.CheckNotNull( Opener, nameof( Opener ) );
+                Helper.CheckNotNull( SyntaxSecondScale, nameof( SyntaxSecondScale ) );
                 if( SyntaxSecondScale.Value > 7 ) throw new ArgumentException( "Fractional seconds precision must be less or equal to 7.", nameof( SyntaxSecondScale ) );
-                SNode.CheckNotNull( Closer, nameof( Closer ) );
+                Helper.CheckNotNull( Closer, nameof( Closer ) );
             }
             SqlDbType? dbType = SqlKeyword.FromSqlTokenTypeToSqlDbType( TypeIdentifierT.TokenType );
             if( !dbType.HasValue
@@ -70,6 +70,8 @@ namespace CK.SqlServer.Parser
         }
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
+
+        public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
 
         public SqlTokenIdentifier TypeIdentifierT => _content.V1;
 

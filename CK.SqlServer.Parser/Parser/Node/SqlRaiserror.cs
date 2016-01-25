@@ -25,8 +25,8 @@ namespace CK.SqlServer.Parser
 
         void CheckContent()
         {
-            SNode.CheckToken( RaiserorT, nameof( RaiserorT ), SqlTokenType.Raiserror );
-            SNode.CheckNotNull( Parameters, nameof( Parameters ) );
+            Helper.CheckToken( RaiserorT, nameof( RaiserorT ), SqlTokenType.Raiserror );
+            Helper.CheckNotNull( Parameters, nameof( Parameters ) );
         }
 
         SqlRaiserror( SqlRaiserror o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
@@ -48,6 +48,8 @@ namespace CK.SqlServer.Parser
         public StatementKnownName StatementKnownName => StatementKnownName.Raiserror;
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
+
+        public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
 
         public SqlTokenIdentifier RaiserorT => _content.V1;
 

@@ -23,10 +23,10 @@ namespace CK.SqlServer.Parser
 
         SqlTokenType CheckContent()
         {
-            SNode.CheckIsVariable( Variable, nameof( Variable ) );
-            SNode.CheckNullableToken( AssignT, nameof( AssignT ), SqlTokenType.Assign );
-            SNode.CheckNullableToken( OutputT, nameof( OutputT ), SqlTokenType.Output );
-            SNode.CheckNullableToken( ReadOnlyT, nameof( ReadOnlyT ), SqlTokenType.Readonly );
+            Helper.CheckIsVariable( Variable, nameof( Variable ) );
+            Helper.CheckNullableToken( AssignT, nameof( AssignT ), SqlTokenType.Assign );
+            Helper.CheckNullableToken( OutputT, nameof( OutputT ), SqlTokenType.Output );
+            Helper.CheckNullableToken( ReadOnlyT, nameof( ReadOnlyT ), SqlTokenType.Readonly );
             return OutputT != null
                         ? GetAllTrivias( this )
                                     .Where( t => t.TokenType != SqlTokenType.None )
@@ -60,6 +60,8 @@ namespace CK.SqlServer.Parser
         }
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
+
+        public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
 
         public SqlTypedIdentifier Variable => _content.V1;
 

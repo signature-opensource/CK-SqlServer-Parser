@@ -22,9 +22,9 @@ namespace CK.SqlServer.Parser
 
         void CheckContent()
         {
-            SNode.CheckNotNull( Opener, nameof( Opener ) );
-            SNode.CheckNotNull( Content, nameof( Content ) );
-            SNode.CheckNotNull( Closer, nameof( Closer ) );
+            Helper.CheckNotNull( Opener, nameof( Opener ) );
+            Helper.CheckNotNull( Content, nameof( Content ) );
+            Helper.CheckNotNull( Closer, nameof( Closer ) );
         }
 
         SqlPar( SqlPar o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
@@ -44,6 +44,8 @@ namespace CK.SqlServer.Parser
         }
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
+
+        public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
 
         public override ISqlNode UnPar => Content.UnPar;
 
