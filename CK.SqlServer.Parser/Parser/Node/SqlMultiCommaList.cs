@@ -18,9 +18,18 @@ namespace CK.SqlServer.Parser
         /// <summary>
         /// Initializes a new <see cref="SqlMultiCommaList"/>.
         /// </summary>
-        /// <param name="content">Items and comma tokens.</param>
-        public SqlMultiCommaList( IEnumerable<ISqlNode> content )
-            : base( null, 0, null, content, null )
+        /// <param name="content"><see cref="SqlEnclosedCommaList"/> and <see cref="SqlTokenComma"/>.</param>
+        public SqlMultiCommaList( IEnumerable<ISqlNode> content, ImmutableList<SqlTrivia> leading = null, ImmutableList<SqlTrivia> trailing = null )
+            : base( null, 0, leading, content, trailing )
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new <see cref="SqlMultiCommaList"/> with one or zero <see cref="SqlEnclosedCommaList"/> in it.
+        /// </summary>
+        /// <param name="item">An optional <see cref="SqlEnclosedCommaList"/>.</param>
+        public SqlMultiCommaList( SqlEnclosedCommaList item = null, ImmutableList<SqlTrivia> leading = null, ImmutableList<SqlTrivia> trailing = null )
+            : base( null, 0, leading, new[] { item }, trailing )
         {
         }
 
@@ -29,13 +38,19 @@ namespace CK.SqlServer.Parser
         {
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IList<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
         {
-            return new SqlMultiCommaList( this, leading, children, trailing );
+            return new SqlMultiCommaList( this, leading, content, trailing );
+        }
+        public SqlMultiCommaList AppendValue( ISqlNode expression )
+        {
+            int count = Count;
+            if( count == 0 ) return new SqlMultiCommaList( new SqlEnclosedCommaList( expression ), LeadingTrivias, TrailingTrivias );
+            return (SqlMultiCommaList)DoReplaceItems( ( idx, item ) => item.InsertAt( item.Count, expression ) );
         }
         
         [DebuggerStepThrough]
-        internal protected override ISqlNode Accept( SqlItemVisitor visitor ) => visitor.Visit( this );
+        internal protected override ISqlNode Accept( SqlNodeVisitor visitor ) => visitor.Visit( this );
 
     }
 

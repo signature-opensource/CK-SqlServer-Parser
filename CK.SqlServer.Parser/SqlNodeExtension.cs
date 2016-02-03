@@ -69,6 +69,28 @@ namespace CK.SqlServer.Parser
         }
 
         /// <summary>
+        /// Removes leading trivias (in <see cref="FullLeadingTrivias"/>) from left to right that match
+        /// the predicate. Extraction ends as soon as the predicate returns false.
+        /// </summary>
+        /// <param name="predicate">The predicate.</param>
+        /// <returns>A new immutable object or this if no change occurred.</returns>
+        static public T ExtractLeadingTrivias<T>( this T @this, Func<SqlTrivia, bool> predicate ) where T : ISqlNode
+        {
+            return (T)((SqlNode)(object)@this).DoExtractLeadingTrivias( predicate );
+        }
+
+        /// <summary>
+        /// Removes trailing trivias (in <see cref="FullTrailingTrivias"/>) from right to end that match
+        /// the predicate. Extraction ends as soon as the predicate returns false.
+        /// </summary>
+        /// <param name="predicate">The predicate.</param>
+        /// <returns>A new immutable object or this if no change occurred.</returns>
+        static public T ExtractTrailingTrivias<T>( this T @this, Func<SqlTrivia, bool> predicate ) where T : ISqlNode
+        {
+            return (T)((SqlNode)(object)@this).DoExtractTrailingTrivias( predicate );
+        }
+
+        /// <summary>
         /// Lifts leading and trailing trivias: <see cref="TrailingNodes"/> and <see cref="LeadingNodes"/> do not 
         /// have trailing trivias any more.
         /// </summary>
@@ -92,11 +114,75 @@ namespace CK.SqlServer.Parser
         /// Lifts trailing trivias: <see cref="TrailingNodes"/> do not have trailing trivias any more.
         /// </summary>
         /// <returns>A new immutable object or this if no change occurred.</returns>
-        static public T LiftTrailingTrivias<T>(this T @this ) where T : ISqlNode
+        static public T LiftTrailingTrivias<T>( this T @this ) where T : ISqlNode
         {
             return (T)((SqlNode)(object)@this).DoLiftTrailingTrivias();
         }
 
+        /// <summary>
+        /// Sets or removes/clears a child at a given index in raw children (see <see cref="ISqlNode.GetRawContent"/>).
+        /// </summary>
+        /// <param name="i">The index that must be replaced.</param>
+        /// <param name="child">The replacement. Null to remove or clear the node.</param>
+        /// <returns>A new immutable object or this node if no change occurred.</returns>
+        static public T ReplaceContentNode<T>( this T @this, int i, ISqlNode child ) where T : ISqlNode
+        {
+            return (T)((SqlNode)(object)@this).DoReplaceContentNode( i, child );
+        }
+
+        /// <summary>
+        /// Sets or removes/clears two children at given indexes in raw children (see <see cref="ISqlNode.GetRawContent"/>).
+        /// </summary>
+        /// <param name="i1">The first index that must be replaced.</param>
+        /// <param name="child1">The first replacement. Null to remove or clear the node.</param>
+        /// <param name="i2">The first index that must be replaced.</param>
+        /// <param name="child2">The first replacement. Null to remove or clear the node.</param>
+        /// <returns>A new immutable object or this node if no change occurred.</returns>
+        static public T ReplaceContentNode<T>( this T @this, int i1, ISqlNode child1, int i2, ISqlNode child2 ) where T : ISqlNode
+        {
+            return (T)((SqlNode)(object)@this).DoReplaceContentNode( i1, child1, i2, child2 );
+        }
+
+        /// <summary>
+        /// Sets new children nodes.
+        /// </summary>
+        /// <param name="childrenNodes">Children nodes.</param>
+        /// <returns>A new immutable object or this if no change occurred.</returns>
+        static public T SetRawContent<T>( this T @this, IList<ISqlNode> childrenNodes ) where T : ISqlNode
+        {
+            return (T)((SqlNode)(object)@this).DoSetRawContent( childrenNodes );
+        }
+
+        /// <summary>
+        /// Inserts or replace one or more children at a given index in <see cref="GetRawContent"/>.
+        /// </summary>
+        /// <param name="iStart">The index.</param>
+        /// <param name="count">The number of children to replace.</param>
+        /// <param name="child">The children to insert.</param>
+        /// <returns>A new immutable object or this if no change occurred.</returns>
+        static public T StuffRawContent<T>( this T @this, int iStart, int count, IReadOnlyList<ISqlNode> children ) where T : ISqlNode
+        {
+            return (T)((SqlNode)(object)@this).DoStuffRawContent( iStart, count, children );
+        }
+
+        /// <summary>
+        /// Returns a hyper compact textual representation of this <see cref="ISqlNode"/>.
+        /// This uses <see cref="SqlTextWriter.CreateHyperCompact(StringBuilder)"/>.
+        /// </summary>
+        /// <param name="this">This node.</param>
+        /// <returns>A hyper compact string.</returns>
+        public static string ToStringHyperCompact( this ISqlNode @this )
+        {
+            var w = SqlTextWriter.CreateHyperCompact();
+            @this.WriteWithoutTrivias( w );
+            return w.ToString();
+        }
+
+        /// <summary>
+        /// Returns a compact textual representation of multiple <see cref="ISqlNode"/> (see <see cref="SqlTextWriter.CreateOneLineCompact(StringBuilder)"/>).
+        /// </summary>
+        /// <param name="this">This multiple nodes.</param>
+        /// <returns>A compact string.</returns>
         public static string ToStringCompact( this IEnumerable<ISqlNode> @this )
         {
             return Write( @this, SqlTextWriter.CreateOneLineCompact() ).ToString();

@@ -36,9 +36,9 @@ namespace CK.SqlServer.Parser
             }
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IList<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
         {
-            return new SqlOrderByItem( this, leading, children, trailing );
+            return new SqlOrderByItem( this, leading, content, trailing );
         }
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
@@ -63,7 +63,7 @@ namespace CK.SqlServer.Parser
         public bool IsDesc => _content.V2 != null && _content.V2.IsToken( SqlTokenType.Desc );
 
         [DebuggerStepThrough]
-        internal protected override ISqlNode Accept( SqlItemVisitor visitor ) => visitor.Visit( this );
+        internal protected override ISqlNode Accept( SqlNodeVisitor visitor ) => visitor.Visit( this );
 
     }
 }

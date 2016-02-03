@@ -37,9 +37,9 @@ namespace CK.SqlServer.Parser
             }
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IList<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
         {
-            return new SqlBinaryOperator( this, leading, children, trailing );
+            return new SqlBinaryOperator( this, leading, content, trailing );
         }
 
         static public bool IsValidBinaryOperator( SqlTokenType op )
@@ -67,6 +67,6 @@ namespace CK.SqlServer.Parser
         public ISqlNode Right => _content.V3;
 
         [DebuggerStepThrough]
-        internal protected override ISqlNode Accept( SqlItemVisitor visitor ) => visitor.Visit( this );
+        internal protected override ISqlNode Accept( SqlNodeVisitor visitor ) => visitor.Visit( this );
     }
 }

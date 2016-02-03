@@ -23,10 +23,12 @@ namespace CK.SqlServer.Parser
         public override void WriteWithoutTrivias( ISqlTextWriter w )
         {
             Debug.Assert( SqlKeyword.ToString( SqlTokenType.Comma ) == "," );
-            w.Write( ",", whiteSpaceBefore: false, whiteSpaceAfter: null );
+            w.Write( SqlTokenType.Comma, ",", whiteSpaceBefore: false, whiteSpaceAfter: true );
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
+        public override string ToString() => ",";
+
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IList<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
         {
             return new SqlTokenComma( leading, trailing );
         }

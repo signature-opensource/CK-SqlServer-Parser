@@ -25,13 +25,13 @@ namespace CK.SqlServer.Parser
 
         public override string LiteralValue => string.Format( IsUnicode ? "N'{0}'" : "'{0}'", Value.Replace( "'", "''" ) );
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IList<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
         {
             return new SqlTokenLiteralString( TokenType, Value, leading, trailing );
         }
 
         [DebuggerStepThrough]
-        internal protected override ISqlNode Accept( SqlItemVisitor visitor ) => visitor.Visit( this );
+        internal protected override ISqlNode Accept( SqlNodeVisitor visitor ) => visitor.Visit( this );
 
     }
 

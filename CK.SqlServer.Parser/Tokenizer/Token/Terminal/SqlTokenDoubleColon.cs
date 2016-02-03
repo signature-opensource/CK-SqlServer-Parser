@@ -23,10 +23,12 @@ namespace CK.SqlServer.Parser
         public override void WriteWithoutTrivias( ISqlTextWriter w )
         {
             Debug.Assert( SqlKeyword.ToString( SqlTokenType.DoubleColons ) == "::" );
-            w.Write( "::", whiteSpaceBefore: false, whiteSpaceAfter: false );
+            w.Write( SqlTokenType.DoubleColons, "::", whiteSpaceBefore: false, whiteSpaceAfter: false );
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
+        public override string ToString() => "::";
+
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IList<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
         {
             return new SqlTokenDoubleColon( leading, trailing );
         }

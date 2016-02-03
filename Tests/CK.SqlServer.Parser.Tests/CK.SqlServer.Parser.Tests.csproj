@@ -47,7 +47,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="CK.SqlServer.Parser.Model, Version=1.2.0.0, Culture=neutral, PublicKeyToken=731c291b31fb8d27, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\CK.SqlServer.Parser.Model.1.2.0\lib\net45\CK.SqlServer.Parser.Model.dll</HintPath>
+      <HintPath>..\..\packages\CK.SqlServer.Parser.Model.1.2.2\lib\net45\CK.SqlServer.Parser.Model.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="nunit.framework">
@@ -75,12 +75,7 @@
     <Compile Include="Parsing\SqlTokenizerTest.cs" />
     <Compile Include="Parsing\SqlTokenReaderTests.cs" />
     <Compile Include="SetStatementTests.cs" />
-    <Compile Include="SqlNodeExtension.cs" />
     <Compile Include="SqlNodeTests.cs" />
-    <Compile Include="SqlToXmlStatementVisitor.cs" />
-    <Compile Include="SqlToXmlVisitor.cs" />
-    <Compile Include="StringNormalizationExtension.cs" />
-    <Compile Include="TestHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Transform\SimpleTransformTests.cs" />
     <Compile Include="XmlTests\XmlTests.cs" />
@@ -90,20 +85,28 @@
       <Project>{c569dc3c-aed5-449d-9c7d-cadc46423687}</Project>
       <Name>CK.SqlServer.Parser</Name>
     </ProjectReference>
+    <ProjectReference Include="..\CK.SqlServer.UtilTests\CK.SqlServer.UtilTests.csproj">
+      <Project>{abc14073-c34a-4dcf-aa78-2d1934014467}</Project>
+      <Name>CK.SqlServer.UtilTests</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Content Include="Parsing\Scripts\sp_GetDDL.sql" />
+    <Content Include="Parsing\Scripts\SQLDOM_core_persist_927.sql" />
     <Content Include="Parsing\Scripts\sStoredProcedureInputOutput.sql" />
     <Content Include="Parsing\Scripts\AdventureWorks2012-FullSchema.sql" />
     <Content Include="XmlTests\Big procedures.xml" />
     <Content Include="XmlTests\Functions.xml" />
     <Content Include="XmlTests\GrantDenyRevoke.xml" />
+    <Content Include="XmlTests\Delete.xml" />
     <Content Include="XmlTests\Trigger.xml" />
     <Content Include="XmlTests\TryCatch.xml" />
     <Content Include="XmlTests\Merge.xml" />
     <Content Include="XmlTests\Update.xml" />
     <Content Include="XmlTests\OpenXml.xml" />
-    <Content Include="XmlTests\Insert.xml" />
+    <Content Include="XmlTests\Insert.xml">
+      <SubType>Designer</SubType>
+    </Content>
     <Content Include="XmlTests\Multi Statements.xml" />
     <Content Include="XmlTests\CTE.xml" />
     <Content Include="XmlTests\Sequence.xml" />

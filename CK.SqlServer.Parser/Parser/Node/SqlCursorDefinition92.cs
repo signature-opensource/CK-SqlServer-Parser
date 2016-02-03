@@ -93,9 +93,9 @@ namespace CK.SqlServer.Parser
             }
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IList<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
         {
-            return new SqlCursorDefinition92( this, leading, children, trailing );
+            return new SqlCursorDefinition92( this, leading, content, trailing );
         }
 
         public bool IsSql92Syntax => true;
@@ -129,7 +129,7 @@ namespace CK.SqlServer.Parser
         public SqlIdentifierCommaList UpdateColumns => _content.V11;
 
         [DebuggerStepThrough]
-        internal protected override ISqlNode Accept( SqlItemVisitor visitor )
+        internal protected override ISqlNode Accept( SqlNodeVisitor visitor )
         {
             return visitor.Visit( this );
         }

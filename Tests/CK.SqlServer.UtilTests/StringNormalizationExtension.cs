@@ -5,9 +5,9 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace CK.SqlServer.Parser.Tests
+namespace CK.SqlServer.UtilTests
 {
-    static class StringNormalizationExtension
+    public static class StringNormalizationExtension
     {
         public static string NormalizeEOL( this string @this )
         {

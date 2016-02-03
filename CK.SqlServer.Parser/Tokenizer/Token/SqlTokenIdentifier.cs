@@ -79,7 +79,7 @@ namespace CK.SqlServer.Parser
             return String.Compare( _name, name, StringComparison.OrdinalIgnoreCase ) == 0; 
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IList<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
         {
             return new SqlTokenIdentifier( TokenType, _name, leading, trailing );
         }
@@ -96,10 +96,10 @@ namespace CK.SqlServer.Parser
             }
         }
 
-        public override void WriteWithoutTrivias( ISqlTextWriter w ) => w.Write( ToString() );
+        public override void WriteWithoutTrivias( ISqlTextWriter w ) => w.Write( TokenType, ToString() );
 
         [DebuggerStepThrough]
-        internal protected override ISqlNode Accept( SqlItemVisitor visitor ) => visitor.Visit( this );
+        internal protected override ISqlNode Accept( SqlNodeVisitor visitor ) => visitor.Visit( this );
 
     }
 

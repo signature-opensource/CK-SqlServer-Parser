@@ -82,9 +82,9 @@ namespace CK.SqlServer.Parser
             }
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IList<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
         {
-            return new SqlFunctionTable( this, leading, children, trailing );
+            return new SqlFunctionTable( this, leading, content, trailing );
         }
 
         public StatementKnownName StatementKnownName => AlterOrCreateT.TokenType == SqlTokenType.Alter
@@ -136,9 +136,9 @@ namespace CK.SqlServer.Parser
         public SqlTokenTerminal StatementTerminator => _content.V13;
 
         [DebuggerStepThrough]
-        internal protected override ISqlNode Accept( SqlItemVisitor visitor ) => visitor.Visit( this );
+        internal protected override ISqlNode Accept( SqlNodeVisitor visitor ) => visitor.Visit( this );
 
-        ISqlServerParameterList ISqlServerCallableObject.Parameters => _content.V4;
+        ISqlServerParameterList ISqlServerCallableObject.Parameters => _content.V4.ModelParameters;
 
         SqlServerObjectType ISqlServerObject.ObjectType => SqlServerObjectType.MultiStatementTableFunction;
 
@@ -154,10 +154,10 @@ namespace CK.SqlServer.Parser
 
         ISqlServerAlterOrCreateStatement ISqlServerAlterOrCreateStatement.ToggleAlterKeyword()
         {
-            return (ISqlServerAlterOrCreateStatement)ReplaceContentNode( 0,
-                    IsAlterKeyword
-                        ? new SqlTokenIdentifier( SqlTokenType.Create, "create", AlterOrCreateT.LeadingTrivias, AlterOrCreateT.TrailingTrivias )
-                        : new SqlTokenIdentifier( SqlTokenType.Alter, "alter", AlterOrCreateT.LeadingTrivias, AlterOrCreateT.TrailingTrivias ) );
+            return this.ReplaceContentNode( 0,
+                            IsAlterKeyword
+                                ? new SqlTokenIdentifier( SqlTokenType.Create, "create", AlterOrCreateT.LeadingTrivias, AlterOrCreateT.TrailingTrivias )
+                                : new SqlTokenIdentifier( SqlTokenType.Alter, "alter", AlterOrCreateT.LeadingTrivias, AlterOrCreateT.TrailingTrivias ) );
         }
 
     }

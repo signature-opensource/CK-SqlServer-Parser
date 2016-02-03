@@ -63,9 +63,9 @@ namespace CK.SqlServer.Parser
             Helper.CheckToken( EndCatchT, nameof( EndCatchT ), SqlTokenType.Catch );
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IList<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
         {
-            return new SqlTryCatch( this, leading, children, trailing );
+            return new SqlTryCatch( this, leading, content, trailing );
         }
 
         public StatementKnownName StatementKnownName => StatementKnownName.TryCatch;
@@ -97,7 +97,7 @@ namespace CK.SqlServer.Parser
         public SqlTokenTerminal StatementTerminator => _content.V11;
 
         [DebuggerStepThrough]
-        internal protected override ISqlNode Accept( SqlItemVisitor visitor ) => visitor.Visit( this );
+        internal protected override ISqlNode Accept( SqlNodeVisitor visitor ) => visitor.Visit( this );
 
     }
 

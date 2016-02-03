@@ -41,7 +41,7 @@ namespace CK.SqlServer.Parser
 
         public new SqlTokenTypeError TokenType => (SqlTokenTypeError)base.TokenType; 
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IList<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
         {
             return new SqlTokenError( TokenType, leading, trailing, ErrorMessage );
         }
@@ -50,11 +50,11 @@ namespace CK.SqlServer.Parser
 
         public override void WriteWithoutTrivias( ISqlTextWriter w )
         {
-            w.Write( ErrorMessage ); 
+            w.Write( base.TokenType, ErrorMessage ); 
         }
 
         [DebuggerStepThrough]
-        internal protected override ISqlNode Accept( SqlItemVisitor visitor ) => visitor.Visit( this );
+        internal protected override ISqlNode Accept( SqlNodeVisitor visitor ) => visitor.Visit( this );
 
     }
 

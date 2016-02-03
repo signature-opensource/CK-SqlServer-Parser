@@ -54,9 +54,9 @@ namespace CK.SqlServer.Parser
             return n.LeadingTrivias.Concat( n.TrailingTrivias ).Concat( n.ChildrenNodes.SelectMany( c => GetAllTrivias( c ) ) );
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IList<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
         {
-            return new SqlParameter( this, leading, children, trailing );
+            return new SqlParameter( this, leading, content, trailing );
         }
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
@@ -124,7 +124,7 @@ namespace CK.SqlServer.Parser
                 {
                     if( t.IsToken( SqlTokenType.Output ) )
                     {
-                        w.Write( "/*input*/", null, false );
+                        w.Write( SqlTokenType.StarComment, "/*input*/", null, false );
                     }
                     t.Write( w );
                 }
@@ -133,7 +133,7 @@ namespace CK.SqlServer.Parser
         }
 
         [DebuggerStepThrough]
-        internal protected override ISqlNode Accept( SqlItemVisitor visitor ) => visitor.Visit( this );
+        internal protected override ISqlNode Accept( SqlNodeVisitor visitor ) => visitor.Visit( this );
 
     }
 

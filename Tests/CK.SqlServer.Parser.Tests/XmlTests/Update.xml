@@ -9,18 +9,16 @@
       ORDER BY HireDate ASC) AS th
       WHERE HumanResources.Employee.BusinessEntityID = th.BusinessEntityID
     </Text>
-    <Description>
-      B. Using the TOP clause
-    </Description>
-    <Xml Shorten="From,WhereExpression,Assigns">
+    <Description>Using the TOP clause</Description>
+    <Xml ToStringCompact="From,WhereExpression,Assigns">
       <Sql>
         <UpdateStatement>
           <Target>
             <MultiIdentifier>HumanResources.Employee</MultiIdentifier>
           </Target>
-          <Assigns>VacationHours = VacationHours + 8</Assigns>
+          <Assigns>VacationHours=VacationHours+8</Assigns>
           <From>FROM(SELECT TOP 10 BusinessEntityID FROM HumanResources.Employee ORDER BY HireDate ASC) AS th</From>
-          <WhereExpression>HumanResources.Employee.BusinessEntityID = th.BusinessEntityID</WhereExpression>
+          <WhereExpression>HumanResources.Employee.BusinessEntityID=th.BusinessEntityID</WhereExpression>
         </UpdateStatement>
       </Sql>
     </Xml>
@@ -36,13 +34,13 @@
     <Description>
       B. Updating multiple columns
     </Description>
-    <Xml Shorten="Assigns">
+    <Xml ToStringCompact="Assigns">
       <Sql>
         <UpdateStatement>
           <Target>
             <MultiIdentifier>Sales.SalesPerson</MultiIdentifier>
           </Target>
-          <Assigns>Bonus = 6000, CommissionPct = 0.10, SalesQuota = NULL</Assigns>
+          <Assigns>Bonus=6000, CommissionPct=0.10, SalesQuota=NULL</Assigns>
         </UpdateStatement>
       </Sql>
     </Xml>
@@ -56,7 +54,7 @@
       WHERE CURRENT OF abc
     </Text>
     <Description>Current of a cursor.</Description>
-    <Xml Shorten="From">
+    <Xml ToStringCompact="From">
       <Sql>
         <UpdateStatement>
           <Target>
@@ -202,7 +200,7 @@
     <Description>
       Updating rows using DEFAULT values
     </Description>
-    <Xml Shorten="WhereExpression">
+    <Xml ToStringCompact="WhereExpression">
       <Sql>
           <UpdateStatement>
             <Target>
@@ -225,7 +223,7 @@
                 </Item>
               </CommaList>
             </Assigns>
-            <WhereExpression>CostRate &gt; 20.00</WhereExpression>
+            <WhereExpression>CostRate&gt;20.00</WhereExpression>
           </UpdateStatement>
 
       </Sql>
@@ -291,14 +289,14 @@
     <Description>
       Updating data in a remote table by using a linked server
     </Description>
-    <Xml Shorten="Assigns,WhereExpression">
+    <Xml ToStringCompact="Assigns,WhereExpression">
       <Sql>
           <UpdateStatement>
             <Target>
               <MultiIdentifier>MyLinkServer.AdventureWorks2012.HumanResources.Department</MultiIdentifier>
             </Target>
-            <Assigns>GroupName = N'Public Relations'</Assigns>
-            <WhereExpression>DepartmentID = 4</WhereExpression>
+            <Assigns>GroupName=N'Public Relations'</Assigns>
+            <WhereExpression>DepartmentID=4</WhereExpression>
           </UpdateStatement>
       </Sql>
     </Xml>
@@ -312,7 +310,7 @@
     <Description>
       Updating data in a remote table by using the OPENQUERY function
     </Description>
-    <Xml Shorten="Assigns">
+    <Xml ToStringCompact="Assigns">
       <Sql>
         <UpdateStatement>
           <Target>
@@ -329,7 +327,7 @@
               </Parameters>
             </KoCall>
           </Target>
-          <Assigns>GroupName = 'Sales and Marketing'</Assigns>
+          <Assigns>GroupName='Sales and Marketing'</Assigns>
         </UpdateStatement>
       </Sql>
     </Xml>
@@ -364,7 +362,7 @@
     <Description>
       Using UPDATE with .WRITE to modify data in an nvarchar(max) column
     </Description>
-    <Xml Shorten="OutputClause,WhereExpression">
+    <Xml ToStringCompact="OutputClause,WhereExpression">
       <Sql>
         <NodeList>
           <Item>
@@ -394,7 +392,7 @@
                 </CommaList>
               </Assigns>
               <OutputClause>OUTPUT deleted.DocumentSummary, inserted.DocumentSummary INTO @MyTableVar</OutputClause>
-              <WhereExpression>Title = N'Front Reflector Bracket Installation'</WhereExpression>
+              <WhereExpression>Title=N'Front Reflector Bracket Installation'</WhereExpression>
             </UpdateStatement>
           </Item>
           <Item>
@@ -423,7 +421,7 @@
                   </Item>
                 </CommaList>
               </Assigns>
-              <WhereExpression>Title = N'Crank Arm and Tire Maintenance'</WhereExpression>
+              <WhereExpression>Title=N'Crank Arm and Tire Maintenance'</WhereExpression>
             </UpdateStatement>
           </Item>
           <Item>
@@ -452,7 +450,7 @@
                   </Item>
                 </CommaList>
               </Assigns>
-              <WhereExpression>Title = N'Crank Arm and Tire Maintenance'</WhereExpression>
+              <WhereExpression>Title=N'Crank Arm and Tire Maintenance'</WhereExpression>
             </UpdateStatement>
           </Item>
           <Item>
@@ -481,7 +479,7 @@
                   </Item>
                 </CommaList>
               </Assigns>
-              <WhereExpression>Title = N'Crank Arm and Tire Maintenance'</WhereExpression>
+              <WhereExpression>Title=N'Crank Arm and Tire Maintenance'</WhereExpression>
             </UpdateStatement>
           </Item>
         </NodeList>
@@ -513,7 +511,7 @@
     <Description>
       Invoking a method
     </Description>
-    <Xml Shorten="WhereExpression">
+    <Xml ToStringCompact="WhereExpression">
       <Sql>
              <UpdateStatement>
                <Target>
@@ -537,7 +535,7 @@
                    </Item>
                  </CommaList>
                </Assigns>
-               <WhereExpression>Name = 'Anchorage'</WhereExpression>
+               <WhereExpression>Name='Anchorage'</WhereExpression>
              </UpdateStatement>
 
       </Sql>
@@ -554,7 +552,7 @@
     <Description>
       Specifying a table hint
     </Description>
-    <Xml Shorten="Assigns,WhereExpression">
+    <Xml ToStringCompact="Assigns,WhereExpression">
       <Sql>
         <UpdateStatement>
           <Target>
@@ -567,7 +565,7 @@
               </Item>
             </WithParOptions>
           </WithTableHints>
-          <Assigns>ListPrice *= 1.10</Assigns>
+          <Assigns>ListPrice*=1.10</Assigns>
           <WhereExpression>ProductNumber LIKE 'BK-%'</WhereExpression>
         </UpdateStatement>
       </Sql>
@@ -584,13 +582,13 @@
     <Description>
       Specifying a query hint
     </Description>
-    <Xml Shorten="Assigns,WhereExpression">
+    <Xml ToStringCompact="Assigns,WhereExpression">
       <Sql>
           <UpdateStatement>
             <Target>
               <MultiIdentifier>Production.Product</MultiIdentifier>
             </Target>
-            <Assigns>ListPrice = ListPrice * 1.10</Assigns>
+            <Assigns>ListPrice=ListPrice*1.10</Assigns>
             <WhereExpression>ProductNumber LIKE @Product</WhereExpression>
             <Options>
               <OptionParOptions>
@@ -643,7 +641,7 @@
     <Description>
       Update top with output.
     </Description>
-    <Xml Shorten="Assigns,Item">
+    <Xml ToStringCompact="Assigns,Item">
       <Sql>
         <UpdateStatement HasTerminator="true">
           <Top>
@@ -656,15 +654,15 @@
           <Target>
             <MultiIdentifier>HumanResources.Employee</MultiIdentifier>
           </Target>
-          <Assigns>VacationHours = VacationHours * 1.25, ModifiedDate = GETDATE()</Assigns>
+          <Assigns>VacationHours=VacationHours*1.25, ModifiedDate=GETDATE()</Assigns>
           <OutputClause>
             <OutputClause TargetTable="@MyTableVar">
               <Columns>
                 <SelectColumnList>
                   <Item>inserted.BusinessEntityID "COL"</Item>
                   <Item>deleted.VacationHours as First</Item>
-                  <Item>'other' = inserted.VacationHours</Item>
-                  <Item>[another] = inserted.ModifiedDate</Item>
+                  <Item>'other'=inserted.VacationHours</Item>
+                  <Item>[another]=inserted.ModifiedDate</Item>
                 </SelectColumnList>
               </Columns>
             </OutputClause>
@@ -687,7 +685,7 @@
     <Description>
       Update with case
     </Description>
-    <Xml Shorten="Operator">
+    <Xml ToStringCompact="Operator">
       <Sql>
         <UpdateStatement>
           <Target>

@@ -10,7 +10,7 @@ using System.Collections.Immutable;
 namespace CK.SqlServer.Parser
 {
 
-    public sealed class SqlExecuteStatement : SqlNode, ISqlNamedStatement
+    public sealed class SqlExecuteStatement : SqlNode, ISqlExecuteStatement
     {
         readonly SNode<SqlTokenIdentifier, ISqlIdentifier, SqlTokenTerminal, ISqlIdentifier, SqlCallParameterList, SqlWithOptions, SqlTokenTerminal> _content;
 
@@ -55,10 +55,12 @@ namespace CK.SqlServer.Parser
             }
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IList<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
         {
-            return new SqlExecuteStatement( this, leading, children, trailing );
+            return new SqlExecuteStatement( this, leading, content, trailing );
         }
+
+        bool ISqlExecuteStatement.IsExecuteString => false;
 
         public StatementKnownName StatementKnownName => StatementKnownName.Execute;
 
@@ -81,7 +83,7 @@ namespace CK.SqlServer.Parser
         public SqlTokenTerminal StatementTerminator => _content.V7;
 
         [DebuggerStepThrough]
-        internal protected override ISqlNode Accept( SqlItemVisitor visitor ) => visitor.Visit( this );
+        internal protected override ISqlNode Accept( SqlNodeVisitor visitor ) => visitor.Visit( this );
 
     }
 

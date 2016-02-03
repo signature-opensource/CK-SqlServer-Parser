@@ -18,6 +18,7 @@ namespace CK.SqlServer.Parser
         public SelectSpec( SelectHeader header, SelectColumnList columns, SelectInto into = null, SelectFrom from = null, SqlTokenIdentifier whereT = null, ISqlNode whereExpression = null, SelectGroupBy groupBy = null )
             : base( null, null )
         {
+            SqlTrivia.WhiteSpaceToLeft( ref header, ref columns );
             _content = new SNode<SelectHeader, SelectColumnList, SelectInto, SelectFrom, SqlTokenIdentifier, ISqlNode, SelectGroupBy>(
                 header, 
                 columns, 
@@ -48,9 +49,9 @@ namespace CK.SqlServer.Parser
             }
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IList<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
         {
-            return new SelectSpec( this, leading, children, trailing );
+            return new SelectSpec( this, leading, content, trailing );
         }
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
@@ -79,7 +80,7 @@ namespace CK.SqlServer.Parser
         public SelectGroupBy GroupByClause => _content.V7;
 
         [DebuggerStepThrough]
-        internal protected override ISqlNode Accept( SqlItemVisitor visitor ) => visitor.Visit( this );
+        internal protected override ISqlNode Accept( SqlNodeVisitor visitor ) => visitor.Visit( this );
 
     }
 }

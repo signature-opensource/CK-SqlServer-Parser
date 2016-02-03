@@ -30,17 +30,21 @@ namespace CK.SqlServer.Parser
         void Write( SqlTrivia t );
 
         /// <summary>
-        /// Writes a sql piece of text like a token or a terminal.
+        /// Writes piece of text like a token or a terminal.
         /// </summary>
+        /// <param name="type">
+        /// Type of the token. This is used to secure the separators between tokens (for instance
+        /// a separator must appear between two identifers).
+        /// </param>
         /// <param name="text">Text to write.</param>
         /// <param name="whiteSpaceBefore">
         /// True to force at least one whitespace before, false to remove it, null to let it be what it is.
         /// This does not apply to all kind of writer (<see cref="SqlTextWriter.CreateDefault"/> ignores it for instance).
         /// </param>
-        /// <param name="canOmitWhiteSpaceAfter">
+        /// <param name="whiteSpaceAfter">
         /// True to force at least one whitespace after, false to remove it, null to let it be what it is.
         /// This does not apply to all kind of writer (<see cref="SqlTextWriter.CreateDefault"/> ignores it for instance).
         /// </param>
-        void Write( string text, bool? whiteSpaceBefore = null, bool? whiteSpaceAfter = null );
+        void Write( SqlTokenType type, string text, bool? whiteSpaceBefore = null, bool? whiteSpaceAfter = null );
     }
 }

@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.23107.0
+VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CK.SqlServer.Parser", "CK.SqlServer.Parser\CK.SqlServer.Parser.csproj", "{C569DC3C-AED5-449D-9C7D-CADC46423687}"
 EndProject
@@ -19,6 +19,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		SharedAssemblyInfo.cs = SharedAssemblyInfo.cs
 		SharedKey.snk = SharedKey.snk
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CK.SqlServer.Transform", "CK.SqlServer.Transform\CK.SqlServer.Transform.csproj", "{8E02BF9B-E4CA-4F8D-9F22-419211671B73}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CK.SqlServer.Transform.Tests", "Tests\CK.SqlServer.Transform.Tests\CK.SqlServer.Transform.Tests.csproj", "{84AB530B-9623-4E69-A5B0-8F7FB88C44BB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CK.SqlServer.UtilTests", "Tests\CK.SqlServer.UtilTests\CK.SqlServer.UtilTests.csproj", "{ABC14073-C34A-4DCF-AA78-2D1934014467}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -38,11 +44,25 @@ Global
 		{FD4817B6-3CD7-4E74-AA10-7CA95FDFCF2D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FD4817B6-3CD7-4E74-AA10-7CA95FDFCF2D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FD4817B6-3CD7-4E74-AA10-7CA95FDFCF2D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8E02BF9B-E4CA-4F8D-9F22-419211671B73}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8E02BF9B-E4CA-4F8D-9F22-419211671B73}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8E02BF9B-E4CA-4F8D-9F22-419211671B73}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8E02BF9B-E4CA-4F8D-9F22-419211671B73}.Release|Any CPU.Build.0 = Release|Any CPU
+		{84AB530B-9623-4E69-A5B0-8F7FB88C44BB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{84AB530B-9623-4E69-A5B0-8F7FB88C44BB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{84AB530B-9623-4E69-A5B0-8F7FB88C44BB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{84AB530B-9623-4E69-A5B0-8F7FB88C44BB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ABC14073-C34A-4DCF-AA78-2D1934014467}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ABC14073-C34A-4DCF-AA78-2D1934014467}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ABC14073-C34A-4DCF-AA78-2D1934014467}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ABC14073-C34A-4DCF-AA78-2D1934014467}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{C6BE6C47-E2A4-45AB-904D-197F8F2275B5} = {12881CD7-3A65-4A6E-855D-D91650B1245A}
+		{84AB530B-9623-4E69-A5B0-8F7FB88C44BB} = {12881CD7-3A65-4A6E-855D-D91650B1245A}
+		{ABC14073-C34A-4DCF-AA78-2D1934014467} = {12881CD7-3A65-4A6E-855D-D91650B1245A}
 	EndGlobalSection
 EndGlobal

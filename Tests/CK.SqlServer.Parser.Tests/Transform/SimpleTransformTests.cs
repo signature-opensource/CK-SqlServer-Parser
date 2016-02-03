@@ -11,10 +11,13 @@ namespace CK.SqlServer.Parser.Tests.Transform
     public class SimpleTransformTests
     {
         [TestCase( "procedure test( @i int ) as begin select 0; end" )]
-        public void ToggleAlterOrCreate( string text )
+        [TestCase( "function fTest( @i int ) returns int begin return 0; end" )]
+        [TestCase( "function fTestMultiStatement( @i int ) returns @T table (Id int) begin return; end" )]
+        [TestCase( "function fTestITVF( @i int ) returns table return select 1;" )]
+        public void alter_or_create_can_be_toggled( string text )
         {
             ISqlServerObject sqlObject;
-            ISqlServerParserError r = SqlAnalyser.ParseStatement( out sqlObject, "create " + text );
+            ISqlServerParserError r = new SqlAnalyser( "create " + text ).ParseStatement( out sqlObject );
             Assert.That( !r.IsError );
             ISqlServerAlterOrCreateStatement st = sqlObject as ISqlServerAlterOrCreateStatement;
             Assert.That( st, Is.Not.Null );
@@ -24,7 +27,7 @@ namespace CK.SqlServer.Parser.Tests.Transform
             string alterV = stA.ToFullString();
             Assert.That( alterV, Is.EqualTo( "alter " + text ) );
 
-            ISqlServerParserError r2 = SqlAnalyser.ParseStatement( out sqlObject, alterV );
+            ISqlServerParserError r2 = new SqlAnalyser( alterV ).ParseStatement( out sqlObject );
             Assert.That( !r2.IsError );
             ISqlServerAlterOrCreateStatement st2 = sqlObject as ISqlServerAlterOrCreateStatement;
             string alter2V = st2.ToFullString();
@@ -33,15 +36,7 @@ namespace CK.SqlServer.Parser.Tests.Transform
             string alterC = stC.ToFullString();
             Assert.That( alterC, Is.EqualTo( "create " + text ) );
         }
+
     }
 
-    static class SqlServerExtension
-    {
-        static public string ToFullString( this ISqlServerObject @this )
-        {
-            StringBuilder b = new StringBuilder();
-            @this.Write( b );
-            return b.ToString();
-        }
-    }
 }

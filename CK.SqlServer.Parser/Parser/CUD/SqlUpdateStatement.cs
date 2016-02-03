@@ -74,9 +74,9 @@ namespace CK.SqlServer.Parser
             }
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IList<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
         {
-            return new SqlUpdateStatement( this, leading, children, trailing );
+            return new SqlUpdateStatement( this, leading, content, trailing );
         }
 
         public StatementKnownName StatementKnownName => StatementKnownName.Update;
@@ -114,7 +114,7 @@ namespace CK.SqlServer.Parser
         public SqlTokenTerminal StatementTerminator => _content.V10;
 
         [DebuggerStepThrough]
-        internal protected override ISqlNode Accept( SqlItemVisitor visitor ) => visitor.Visit( this );
+        internal protected override ISqlNode Accept( SqlNodeVisitor visitor ) => visitor.Visit( this );
 
     }
 

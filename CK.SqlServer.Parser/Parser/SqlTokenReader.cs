@@ -9,28 +9,23 @@ using System.Collections.Immutable;
 namespace CK.SqlServer.Parser
 {
     /// <summary>
-    /// An <see cref="IEnumerator{T}"/> of <see cref="SqlToken"/> decorator that acts as a reading head
-    /// on a raw tokens stream. It adds useful behavior such as one token lookup and '=' (Assign vs. Compare) operator
+    /// Decorates a <see cref="SqlTokenizer"/> that acts as a reading head. 
+    /// It adds useful behavior such as one token lookup and '=' (Assign vs. Compare) operator
     /// adaptation based on a toggle <see cref="AssignmentContext"/> flag.
     /// </summary>
-    internal class SqlTokenReader : IEnumerator<SqlToken> 
+    internal class SqlTokenReader
     {
-        readonly IEnumerable<SqlToken> _tokens;
-        readonly Func<string> _currentAnalyzedText;
-        readonly Func<SourcePosition> _currentTokenPosition;
-        IEnumerator<SqlToken> _e;
+        readonly SqlTokenizer _tokenizer;
         SqlToken _c;
         SqlToken _rawLookup;
         int _parenthesisDepth;
         bool _assignmentContext;
 
-        public SqlTokenReader( IEnumerable<SqlToken> tokens, Func<string> currentAnalyzedText, Func<SourcePosition> currentTokenPosition )
+        public SqlTokenReader( SqlTokenizer tokenizer )
         {
-            Debug.Assert( tokens != null );
-            _tokens = tokens;
-            _currentAnalyzedText = currentAnalyzedText;
-            _currentTokenPosition = currentTokenPosition;
-            Reset();
+            Debug.Assert( tokenizer != null );
+            _tokenizer = tokenizer;
+            _rawLookup = _tokenizer.Token;
         }
 
         public bool AssignmentContext => _assignmentContext;
@@ -56,73 +51,6 @@ namespace CK.SqlServer.Parser
             if( (_assignmentContext = assignment) ) return Util.CreateDisposableAction( () => _assignmentContext = false );
             return Util.CreateDisposableAction( () => _assignmentContext = true );
         }
-
-        /// <summary>
-        /// Collects tokens.
-        /// </summary>
-        public class Collector : List<SqlToken>, IDisposable
-        {
-            readonly SqlTokenReader _r;
-
-            internal Collector( SqlTokenReader r, bool addCurrentToken )
-            {
-                _r = r;
-                if( addCurrentToken ) Add( _r._c );
-                _r.TokenRead += this.Add;
-            }
-
-            /// <summary>
-            /// Collects all tokens up to the end (or to the next semi colon terminator).
-            /// Saves the semi colon terminator if possible.
-            /// </summary>
-            /// <returns></returns>
-            public SqlTokenTerminal ReadToEnd( bool stopAtSemiColon = false )
-            {
-                SqlTokenTerminal term = null;
-                if( stopAtSemiColon )
-                {
-                    do
-                    {
-                        if( term.TokenType == SqlTokenType.SemiColon )
-                        {
-                            term = _r.Read<SqlTokenTerminal>();
-                            break;
-                        }
-                    }
-                    while( _r.MoveNext() );
-                }
-                else
-                {
-                    while( _r.MoveNext() ) ;
-                    if( Count > 0 && this[Count - 1].TokenType == SqlTokenType.SemiColon )
-                    {
-                        term = (SqlTokenTerminal)this[Count - 1];
-                        RemoveAt( Count - 1 );
-                    }
-                }
-                return term;
-            }
-
-            public void Dispose()
-            {
-                _r.TokenRead -= this.Add;
-            }
-
-        }
-
-        /// <summary>
-        /// Opens a disposable collector for tokens read by <see cref="MoveNext"/>.
-        /// </summary>
-        /// <returns>A disposable collector.</returns>
-        public Collector OpenCollector( bool skipCurrentToken = false )
-        {
-            return new Collector( this, !skipCurrentToken );
-        }
-
-        /// <summary>
-        /// Fires at each <see cref="MoveNext"/>.
-        /// </summary>
-        public event Action<SqlToken> TokenRead;
 
         /// <summary>
         /// Gets the current token.
@@ -200,9 +128,9 @@ namespace CK.SqlServer.Parser
             {
                 suffix = " <- " + GetErrorMessage();
             }
-            else if( _currentTokenPosition != null )
+            else
             {
-                suffix = " " + _currentTokenPosition(); 
+                suffix = " " + _tokenizer.GetTokenPosition(); 
             }
             _c = new SqlTokenError( error + suffix );
             return false;
@@ -448,7 +376,6 @@ namespace CK.SqlServer.Parser
         /// <returns>True if end of input was not reached yet.</returns>
         public bool MoveNext()
         {
-            if( _e == null ) throw new ObjectDisposedException( "TokenReader" );
             if( _c == SqlTokenError.EndOfInput ) return false;
             if( _c != null )
             {
@@ -462,43 +389,23 @@ namespace CK.SqlServer.Parser
                 }
 
             }
-            _c = _rawLookup;
-            if( _c.TokenType > 0 )
-            {
-                var h = TokenRead;
-                if( h != null ) h( _c );
-            }
+            _c = _rawLookup ?? _tokenizer.Token;
             if( _c.TokenType == SqlTokenType.Equal && _assignmentContext ) _c = SqlTokenTerminal.Create( SqlTokenType.Assign, _c.LeadingTrivias, _c.TrailingTrivias );
-            _rawLookup = _e.MoveNext() ? _e.Current : SqlTokenError.EndOfInput;
+            _tokenizer.Forward();
+            _rawLookup = _tokenizer.Token;
             return true;
         }
 
-        public void Dispose()
+        public void Reset( string text )
         {
-            if( _e != null )
-            {
-                _e.Dispose();
-                _e = null;
-                _c = null;
-            }
-        }
-
-        object System.Collections.IEnumerator.Current
-        {
-            get { return Current; }
-        }
-
-        public void Reset()
-        {
-            _e = _tokens.GetEnumerator();
-            _rawLookup = _e.MoveNext() ? _e.Current : SqlTokenError.EndOfInput;
+            _tokenizer.Reset( text );
+            _rawLookup = _tokenizer.Token;
             _c = null;
         }
 
         [Conditional( "DEBUG" )]
         void CheckPosition()
         {
-            if( _e == null ) throw new ObjectDisposedException( "TokenReader" );
             if( _c == null ) throw new InvalidOperationException( "MoveNext must be called." );
         }
 
@@ -507,7 +414,7 @@ namespace CK.SqlServer.Parser
             string shortToken = Current.ToString();
             if( shortToken.Length > 50 ) shortToken = shortToken.Substring( 0, 50 ) + "...";
             string msg = string.Format( "{0}: '{1}'", Current.GetType().Name.Replace( "SqlToken", String.Empty ), shortToken );
-            if( _currentAnalyzedText != null ) msg += " - Text:" + _currentAnalyzedText();
+            msg += " - Text:" + _tokenizer.ToString();
             return msg;
         }
 

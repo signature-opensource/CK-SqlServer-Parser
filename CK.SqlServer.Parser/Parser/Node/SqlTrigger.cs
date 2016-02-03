@@ -71,9 +71,9 @@ namespace CK.SqlServer.Parser
             Helper.CheckNotNull( Body, nameof( Body ) );
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IList<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
         {
-            return new SqlTrigger( this, leading, children, trailing );
+            return new SqlTrigger( this, leading, content, trailing );
         }
 
         public StatementKnownName StatementKnownName => AlterOrCreateT.TokenType == SqlTokenType.Alter
@@ -127,7 +127,7 @@ namespace CK.SqlServer.Parser
         public SqlTokenTerminal StatementTerminator => _content.V10;
 
         [DebuggerStepThrough]
-        internal protected override ISqlNode Accept( SqlItemVisitor visitor ) => visitor.Visit( this );
+        internal protected override ISqlNode Accept( SqlNodeVisitor visitor ) => visitor.Visit( this );
 
     }
 }
