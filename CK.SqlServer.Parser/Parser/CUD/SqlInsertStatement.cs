@@ -97,7 +97,20 @@ namespace CK.SqlServer.Parser
 
         public SqlTokenTerminal StatementTerminator => _content.V7;
 
-        public SqlInsertStatement AddSimpleColumn( ISqlIdentifier colName, ISqlNode expression = null )
+        class AddColumnVisitor : SqlNodeVisitor
+        {
+            readonly ISqlNode _expression;
+
+            public AddColumnVisitor( ISqlNode expression ) { _expression = expression; }
+
+            public override ISqlNode Visit( SelectFrom e ) => e;
+
+            public override ISqlNode Visit( SelectColumnList e ) => e;
+
+            public override ISqlNode Visit( SelectSpec e ) => e.InsertColumn( e.Columns.Count, _expression, null );
+        }
+
+        public SqlInsertStatement AddSimpleColumn( SqlTokenIdentifier colName, ISqlNode expression = null )
         {
             if( colName == null ) throw new ArgumentNullException( nameof( colName ) );
             var newColumns = HasColumns
@@ -106,6 +119,10 @@ namespace CK.SqlServer.Parser
             ISqlNode newValues = null;
             if( expression != null )
             {
+                if( ValuesIsExecute )
+                {
+                    throw new NotSupportedException( "Can not add column in 'insert into execute'." );
+                }
                 if( ValuesIsDefaultValues )
                 {
                     newValues = new SqlTableValues( SqlKeyword.Values,
@@ -118,12 +135,11 @@ namespace CK.SqlServer.Parser
                     SqlTableValues v = (SqlTableValues)Values;
                     newValues = v.AppendValue( expression );
                 }
-                else if( ValuesIsSelect )
+                else
                 {
-                    SqlTableValues v = (SqlTableValues)Values;
-                    newValues = v.AppendValue( expression );
+                    Debug.Assert( ValuesIsSelect );
+                    newValues = new AddColumnVisitor( expression ).VisitItem( Values );
                 }
-                else throw new NotSupportedException( "Can not add column in 'insert into execute' or 'insert into select'." );
             }
             return this.ReplaceContentNode( 3, newColumns, 5, newValues );
         }

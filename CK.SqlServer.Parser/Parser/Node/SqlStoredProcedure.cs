@@ -8,7 +8,7 @@ using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
-    public sealed class SqlStoredProcedure : SqlNode, ISqlNamedStatement, ISqlServerStoredProcedure
+    public sealed class SqlStoredProcedure : SqlNode, ISqlNamedStatement, ISqlServerStoredProcedure, ISqlParameterListHolder
     {
         readonly SNode<
             SqlTokenIdentifier,
@@ -105,6 +105,8 @@ namespace CK.SqlServer.Parser
 
         public SqlParameterList Parameters => _content.V4;
 
+        public SqlStoredProcedure SetParameters( SqlParameterList parameters ) => this.ReplaceContentNode( 3, parameters );
+
         ISqlServerParameterList ISqlServerCallableObject.Parameters => _content.V4.ModelParameters;
 
         SqlServerObjectType ISqlServerObject.ObjectType => SqlServerObjectType.Procedure;
@@ -147,5 +149,8 @@ namespace CK.SqlServer.Parser
                                 ? new SqlTokenIdentifier( SqlTokenType.Create, "create", AlterOrCreateT.LeadingTrivias, AlterOrCreateT.TrailingTrivias )
                                 : new SqlTokenIdentifier( SqlTokenType.Alter, "alter", AlterOrCreateT.LeadingTrivias, AlterOrCreateT.TrailingTrivias ) );
         }
+
+        ISqlParameterListHolder ISqlParameterListHolder.SetParameters( SqlParameterList parameters ) => SetParameters( parameters );
+
     }
 }

@@ -8,7 +8,7 @@ using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
-    public sealed class SqlFunctionTable : SqlNode, ISqlNamedStatement, ISqlServerFunctionTable
+    public sealed class SqlFunctionTable : SqlNode, ISqlNamedStatement, ISqlServerFunctionTable, ISqlParameterListHolder
     {
         readonly SNode<SqlTokenIdentifier,
             SqlTokenIdentifier,
@@ -113,6 +113,8 @@ namespace CK.SqlServer.Parser
 
         public SqlParameterList Parameters => _content.V4;
 
+        public SqlFunctionTable SetParameters( SqlParameterList parameters ) => this.ReplaceContentNode( 3, parameters );
+
         public SqlTokenIdentifier ReturnsT => _content.V5;
 
         public SqlTokenIdentifier TableVariableName => _content.V6;
@@ -159,6 +161,8 @@ namespace CK.SqlServer.Parser
                                 ? new SqlTokenIdentifier( SqlTokenType.Create, "create", AlterOrCreateT.LeadingTrivias, AlterOrCreateT.TrailingTrivias )
                                 : new SqlTokenIdentifier( SqlTokenType.Alter, "alter", AlterOrCreateT.LeadingTrivias, AlterOrCreateT.TrailingTrivias ) );
         }
+
+        ISqlParameterListHolder ISqlParameterListHolder.SetParameters( SqlParameterList parameters ) => SetParameters( parameters );
 
     }
 }

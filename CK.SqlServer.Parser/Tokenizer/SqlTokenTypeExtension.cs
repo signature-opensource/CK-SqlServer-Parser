@@ -57,7 +57,6 @@ namespace CK.SqlServer.Parser
         /// syntax in select.
         /// </summary>
         /// <param name="type">Token type to test.</param>
-        /// <param name="allowVariableName">True </param>
         /// <returns>True if this is a valid column name alias.</returns>
         static public bool IsValidColumnAliasNameOrVariable( this SqlTokenType type )
         {

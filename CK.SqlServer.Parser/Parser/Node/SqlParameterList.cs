@@ -62,6 +62,31 @@ namespace CK.SqlServer.Parser
 
         internal ISqlServerParameterList ModelParameters => _modelParameters;
 
+
+        /// <summary>
+        /// Gets the index where a parameter may be inserted: it will appear after <paramref name="paramNameBefore"/> if
+        /// possible, before <see cref="paramNameAfter"/> (if the before parameter name was null or not found) and at the 
+        /// end if none of the two names are found.
+        /// </summary>
+        /// <param name="paramNameBefore">Parameter that will be before the inserted one.</param>
+        /// <param name="paramNameAfter">Parameter that will be after the inserted one.</param>
+        /// <returns>The index where a parameter can be inserted.</returns>
+        public int GetInsertIndex( string paramNameBefore = null, string paramNameAfter = null )
+        {
+            int idx = -1;
+            if( paramNameBefore != null )
+            {
+                idx = this.IndexOf( p => p.Name == paramNameBefore );
+                if( idx >= 0 ) ++idx;
+            }
+            if( idx == -1 )
+            {
+                if( paramNameAfter != null ) idx = this.IndexOf( p => p.Name == paramNameAfter );
+                if( idx == -1 ) idx = Count;
+            }
+            return idx;
+        }
+
         /// <summary>
         /// Inserts a new <see cref="SqlParameter"/> in this list.
         /// </summary>

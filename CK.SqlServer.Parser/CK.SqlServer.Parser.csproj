@@ -72,6 +72,7 @@
     <Compile Include="Parser\CUD\SqlUpdateStatement.cs" />
     <Compile Include="Parser\CUD\SqlMergeStatement.cs" />
     <Compile Include="Parser\CUD\SqlOutputClause.cs" />
+    <Compile Include="Parser\Node\ISqlParameterListHolder.cs" />
     <Compile Include="Parser\Node\ISqlExecuteStatement.cs" />
     <Compile Include="Parser\Node\SqlBasicValue.cs" />
     <Compile Include="Parser\Node\SqlFunctionTable.cs" />

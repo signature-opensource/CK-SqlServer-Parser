@@ -35,18 +35,16 @@ namespace CK.SqlServer.Transform.Tests
         @j float = 0.2
     )
 ", null, "@j" )]
-        public void adding_parameters( string paramList, string parameter, string result, string berforeName, string afterName )
+        public void adding_parameters( string paramList, string parameter, string result, string beforeName, string afterName )
         {
             SqlAnalyser a = new SqlAnalyser();
             a.Reset( parameter );
             SqlParameter pS = a.IsParameter( true );
             Assert.That( pS != null );
             a.Reset( "create procedure t" + paramList + " as begin select 0; end" );
-            SqlStoredProcedure p;
+            ISqlParameterListHolder p;
             Assert.That( a.ParseStatement( out p ).IsError, Is.False );
-            AddParameter v = new AddParameter( TestHelper.ConsoleMonitor, pS, berforeName, afterName );
-            SqlStoredProcedure p2 = (SqlStoredProcedure)v.VisitItem( p );
-
+            ISqlParameterListHolder p2 = p.InsertParameter( pS, beforeName, afterName );
             result = "create procedure t" + result + " as begin select 0; end";
             CheckRenderResult( result, a, p2 );
         }
@@ -82,12 +80,19 @@ namespace CK.SqlServer.Transform.Tests
         [TestCase( "insert into T (C1, C2) values (@P1, @P2)", "insert into T (C1, C2, NewCol) values (@P1, @P2, NewVal)" )]
         [TestCase( "insert into T (C1, C2) values (@P1, @P2), (@P3, @P4)", "insert into T (C1, C2, NewCol) values (@P1, @P2, NewVal), (@P3, @P4, NewVal)" )]
         [TestCase( "insert into T (C1, C2) select A, B from T", "insert into T (C1, C2, NewCol) select A, B, NewVal from T" )]
+        [TestCase( "insert into T (C) select A from T1 union select B from T2", "insert into T (C, NewCol) select A, NewVal from T1 union select B, NewVal from T2" )]
+        [TestCase(
+            "insert into T (C) select A = (select S1 from TZ) from T",
+            "insert into T (C, NewCol) select A = (select S1 from TZ), NewVal from T" )]
+        [TestCase(
+            "insert into T (C) select A = (select S1 from TZ) from (select X) as X",
+            "insert into T (C, NewCol) select A = (select S1 from TZ), NewVal from (select X) as X" )]
         public void add_insert_into_values( string s, string result )
         {
             var a = new SqlAnalyser( s );
             SqlInsertStatement st;
             Assert.That( a.ParseStatement( out st ).IsError, Is.False );
-            ISqlIdentifier colName = new SqlTokenIdentifier( SqlTokenType.IdentifierStandard, "NewCol" );
+            SqlTokenIdentifier colName = new SqlTokenIdentifier( SqlTokenType.IdentifierStandard, "NewCol" );
             ISqlNode newVal = new SqlTokenIdentifier( SqlTokenType.IdentifierStandard, "NewVal" );
             SqlInsertStatement transformed = st.AddSimpleColumn( colName, newVal );
             CheckRenderResult( result, a, transformed );

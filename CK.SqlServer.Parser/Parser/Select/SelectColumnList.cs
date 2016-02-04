@@ -29,6 +29,8 @@ namespace CK.SqlServer.Parser
             return new SelectColumnList( this, leading, content, trailing );
         }
 
+        public SelectColumnList InsertAt( int idx, SelectColumn col ) => (SelectColumnList)DoInsertAt( idx, col );
+
         [DebuggerStepThrough]
         internal protected override ISqlNode Accept( SqlNodeVisitor visitor ) => visitor.Visit( this );
 

@@ -60,14 +60,27 @@ namespace CK.SqlServer.Parser
 
         /// <summary>
         /// Gets the operator token type: it is <see cref="SelectOperatorKind.None"/> since this is an 
-        /// actual select specification and not an operator like <see cref="SelectCombine"/>, 
-        /// <see cref="SelectDecorator"/> or <see cref="SelectFor"/>.
+        /// actual select specification and not an operator like a <see cref="SelectCombine"/> or 
+        /// a <see cref="SelectDecorator"/>.
         /// </summary>
         public SelectOperatorKind SelectOperator => SelectOperatorKind.None;
 
         public SelectHeader Header => _content.V1;
 
         public SelectColumnList Columns => _content.V2;
+
+        public SelectSpec InsertColumn( int idx, SelectColumn column ) => this.ReplaceContentNode( 1, Columns.InsertAt( idx, column ) );
+
+        public SelectSpec InsertColumn( int idx, ISqlNode definition, SqlTokenIdentifier alias = null )
+        {
+            if( definition == null ) throw new ArgumentNullException( nameof( definition ) );
+            if( alias == null ) return InsertColumn( idx, new SelectColumn( definition ) );
+            SqlToken tSep = Columns.Where( col => col.AsOrEqualT != null ).Select( col => col.AsOrEqualT ).FirstOrDefault()
+                            ?? SqlKeyword.Assign;
+            return InsertColumn( idx, tSep.IsToken( SqlTokenType.Assign ) 
+                                        ? new SelectColumn( alias, (SqlTokenTerminal)tSep, definition )
+                                        : new SelectColumn( definition, (SqlTokenIdentifier)tSep, alias ) );
+        }
 
         public SelectInto IntoClause => _content.V3;
 

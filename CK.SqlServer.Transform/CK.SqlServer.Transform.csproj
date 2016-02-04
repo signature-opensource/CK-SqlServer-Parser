@@ -53,6 +53,7 @@
     <Compile Include="CK_CORE_NEXTVERSION.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SqlNodeTransformer.cs" />
+    <Compile Include="SqlTransformExtension.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CK.SqlServer.Parser\CK.SqlServer.Parser.csproj">
