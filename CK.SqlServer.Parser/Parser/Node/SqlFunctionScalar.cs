@@ -8,7 +8,7 @@ using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
-    public sealed class SqlFunctionScalar : SqlNode, ISqlNamedStatement, ISqlServerFunctionScalar
+    public sealed class SqlFunctionScalar : SqlNode, ISqlNamedStatement, ISqlServerFunctionScalar, ISqlParameterListHolder
     {
         readonly SNode<SqlTokenIdentifier,
             SqlTokenIdentifier,
@@ -61,10 +61,10 @@ namespace CK.SqlServer.Parser
             Helper.CheckNotNull( Parameters, nameof( Parameters ) );
             Helper.CheckToken( ReturnsT, nameof( ReturnsT ), SqlTokenType.Returns );
             Helper.CheckNotNull( ReturnedType, nameof( ReturnedType ) );
-            Helper.CheckToken( AsT, nameof( AsT ), SqlTokenType.As );
-            Helper.CheckNullableToken( BeginT, nameof( BeginT ), SqlTokenType.Begin );
+            Helper.CheckNullableToken( AsT, nameof( AsT ), SqlTokenType.As );
+            Helper.CheckToken( BeginT, nameof( BeginT ), SqlTokenType.Begin );
             Helper.CheckNotNull( BodyStatements, nameof( BodyStatements ) );
-            Helper.CheckNullableToken( EndT, nameof( EndT ), SqlTokenType.End );
+            Helper.CheckToken( EndT, nameof( EndT ), SqlTokenType.End );
         }
 
         SqlFunctionScalar( SqlFunctionScalar o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
@@ -78,9 +78,9 @@ namespace CK.SqlServer.Parser
             }
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IList<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
         {
-            return new SqlFunctionScalar( this, leading, children, trailing );
+            return new SqlFunctionScalar( this, leading, content, trailing );
         }
 
         public StatementKnownName StatementKnownName => AlterOrCreateT.TokenType == SqlTokenType.Alter
@@ -109,6 +109,8 @@ namespace CK.SqlServer.Parser
 
         public SqlParameterList Parameters => _content.V4;
 
+        public SqlFunctionScalar SetParameters( SqlParameterList parameters ) => this.ReplaceContentNode( 3, parameters );
+
         public SqlTokenIdentifier ReturnsT => _content.V5;
 
         public ISqlUnifiedTypeDecl ReturnedType => _content.V6;
@@ -130,11 +132,11 @@ namespace CK.SqlServer.Parser
         public SqlTokenTerminal StatementTerminator => _content.V12;
 
         [DebuggerStepThrough]
-        internal protected override ISqlNode Accept( SqlItemVisitor visitor ) => visitor.Visit( this );
+        internal protected override ISqlNode Accept( SqlNodeVisitor visitor ) => visitor.Visit( this );
 
         ISqlServerUnifiedTypeDecl ISqlServerFunctionScalar.ReturnType => _content.V6;
 
-        ISqlServerParameterList ISqlServerCallableObject.Parameters => _content.V4;
+        ISqlServerParameterList ISqlServerCallableObject.Parameters => _content.V4.ModelParameters;
 
         SqlServerObjectType ISqlServerObject.ObjectType => SqlServerObjectType.ScalarFunction;
 
@@ -150,11 +152,14 @@ namespace CK.SqlServer.Parser
 
         ISqlServerAlterOrCreateStatement ISqlServerAlterOrCreateStatement.ToggleAlterKeyword()
         {
-            return (ISqlServerAlterOrCreateStatement)ReplaceContentNode( 0,
-                    IsAlterKeyword
-                        ? new SqlTokenIdentifier( SqlTokenType.Create, "create", AlterOrCreateT.LeadingTrivias, AlterOrCreateT.TrailingTrivias )
-                        : new SqlTokenIdentifier( SqlTokenType.Alter, "alter", AlterOrCreateT.LeadingTrivias, AlterOrCreateT.TrailingTrivias ) );
+            return this.ReplaceContentNode( 0,
+                            IsAlterKeyword
+                                ? new SqlTokenIdentifier( SqlTokenType.Create, "create", AlterOrCreateT.LeadingTrivias, AlterOrCreateT.TrailingTrivias )
+                                : new SqlTokenIdentifier( SqlTokenType.Alter, "alter", AlterOrCreateT.LeadingTrivias, AlterOrCreateT.TrailingTrivias ) );
         }
+
+        ISqlParameterListHolder ISqlParameterListHolder.SetParameters( SqlParameterList parameters ) => SetParameters( parameters );
+
     }
 }
 

@@ -50,9 +50,9 @@ namespace CK.SqlServer.Parser
             Helper.CheckBothNullOrNot( WithT, nameof( WithT ), MarkT, nameof( MarkT ) );
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IList<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
         {
-            return new SqlBeginTransaction( this, leading, children, trailing );
+            return new SqlBeginTransaction( this, leading, content, trailing );
         }
 
         public StatementKnownName StatementKnownName => StatementKnownName.BeginTransaction;
@@ -76,7 +76,7 @@ namespace CK.SqlServer.Parser
         public SqlTokenTerminal StatementTerminator => _content.V7;
 
         [DebuggerStepThrough]
-        internal protected override ISqlNode Accept( SqlItemVisitor visitor ) => visitor.Visit( this );
+        internal protected override ISqlNode Accept( SqlNodeVisitor visitor ) => visitor.Visit( this );
 
     }
 

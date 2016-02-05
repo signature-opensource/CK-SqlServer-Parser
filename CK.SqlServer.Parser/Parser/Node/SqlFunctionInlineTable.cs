@@ -8,7 +8,7 @@ using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
-    public sealed class SqlFunctionInlineTable : SqlNode, ISqlNamedStatement, ISqlServerFunctionInlineTable
+    public sealed class SqlFunctionInlineTable : SqlNode, ISqlNamedStatement, ISqlServerFunctionInlineTable, ISqlParameterListHolder
     {
         readonly SNode<
             SqlTokenIdentifier,
@@ -74,9 +74,9 @@ namespace CK.SqlServer.Parser
             }
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IList<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
         {
-            return new SqlFunctionInlineTable( this, leading, children, trailing );
+            return new SqlFunctionInlineTable( this, leading, content, trailing );
         }
 
         public StatementKnownName StatementKnownName => AlterOrCreateT.TokenType == SqlTokenType.Alter 
@@ -103,6 +103,8 @@ namespace CK.SqlServer.Parser
         /// </summary>
         public ISqlIdentifier Name => _content.V3;
 
+        public SqlFunctionInlineTable SetParameters( SqlParameterList parameters ) => this.ReplaceContentNode( 3, parameters );
+
         public SqlParameterList Parameters => _content.V4;
 
         public SqlTokenIdentifier ReturnsT => _content.V5;
@@ -124,9 +126,9 @@ namespace CK.SqlServer.Parser
         public SqlTokenTerminal StatementTerminator => _content.V11;
 
         [DebuggerStepThrough]
-        internal protected override ISqlNode Accept( SqlItemVisitor visitor ) => visitor.Visit( this );
+        internal protected override ISqlNode Accept( SqlNodeVisitor visitor ) => visitor.Visit( this );
 
-        ISqlServerParameterList ISqlServerCallableObject.Parameters => _content.V4;
+        ISqlServerParameterList ISqlServerCallableObject.Parameters => _content.V4.ModelParameters;
 
         SqlServerObjectType ISqlServerObject.ObjectType => SqlServerObjectType.InlineTableFunction;
 
@@ -142,10 +144,13 @@ namespace CK.SqlServer.Parser
 
         ISqlServerAlterOrCreateStatement ISqlServerAlterOrCreateStatement.ToggleAlterKeyword()
         {
-            return (ISqlServerAlterOrCreateStatement)ReplaceContentNode( 0,
+            return this.ReplaceContentNode( 0,
                     IsAlterKeyword
                         ? new SqlTokenIdentifier( SqlTokenType.Create, "create", AlterOrCreateT.LeadingTrivias, AlterOrCreateT.TrailingTrivias )
                         : new SqlTokenIdentifier( SqlTokenType.Alter, "alter", AlterOrCreateT.LeadingTrivias, AlterOrCreateT.TrailingTrivias ) );
         }
+
+        ISqlParameterListHolder ISqlParameterListHolder.SetParameters( SqlParameterList parameters ) => SetParameters( parameters );
+
     }
 }

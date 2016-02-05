@@ -8,13 +8,7 @@ using System.Threading.Tasks;
 namespace CK.SqlServer.Parser.Tests
 {
     [TestFixture]
-    public class ConsoleTests
+    public class ConsoleTests : CK.SqlServer.UtilTests.ConsoleTests
     {
-        [Test]
-        [Explicit]
-        public void toggle_console()
-        {
-            TestHelper.LogsToConsole = !TestHelper.LogsToConsole;
-        }
     }
 }

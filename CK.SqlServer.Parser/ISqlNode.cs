@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
@@ -64,30 +65,6 @@ namespace CK.SqlServer.Parser
 
         bool IsToken( SqlTokenType t );
 
-        /// <summary>
-        /// Sets or removes/clears a child at a given index in raw children (see <see cref="GetRawContent"/>).
-        /// </summary>
-        /// <param name="i">The index that must be replaced.</param>
-        /// <param name="child">The replacement. Null to remove or clear the node.</param>
-        /// <returns>A new immutable object or this node if no change occurred.</returns>
-        ISqlNode ReplaceContentNode( int i, ISqlNode child );
-
-        /// <summary>
-        /// Sets new children nodes.
-        /// </summary>
-        /// <param name="childrenNodes">Children nodes.</param>
-        /// <returns>A new immutable object or this if no change occurred.</returns>
-        ISqlNode SetRawContent( IList<ISqlNode> childrenNodes );
-
-        /// <summary>
-        /// Inserts or replace one or more children at a given index in <see cref="GetRawContent"/>.
-        /// </summary>
-        /// <param name="iStart">The index.</param>
-        /// <param name="count">The number of children to replace.</param>
-        /// <param name="child">The children to insert.</param>
-        /// <returns>A new immutable object or this if no change occurred.</returns>
-        ISqlNode StuffRawContent( int iStart, int count, IReadOnlyList<ISqlNode> children );
-        
         /// <summary>
         /// Overriden to return the result of <see cref="WriteWithoutTrivias"/> with 
         /// a one line, compact, writer (<see cref="SqlTextWriter.CreateOneLineCompact"/>).

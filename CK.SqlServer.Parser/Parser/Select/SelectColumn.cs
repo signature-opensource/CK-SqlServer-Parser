@@ -102,63 +102,58 @@ namespace CK.SqlServer.Parser
             }
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IList<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
         {
-            return new SelectColumn( this, leading, children == null ? null : children.Where( n => n != null ).ToArray(), trailing );
+            return new SelectColumn( this, leading, content == null ? null : content.Where( n => n != null ).ToArray(), trailing );
         }
 
-        SqlTokenIdentifier GetRepairedAsToken()
-        {
-            SqlTokenIdentifier asT;
-            var leftTrivia = _definition.FullTrailingTrivias.Any();
-            var rightTrivia = _colName.FullLeadingTrivias.Any();
-            if( !leftTrivia )
-            {
-                if( !rightTrivia ) asT = _autoAsT;
-                else asT = _autoAsTNoRight;
-            }
-            else
-            {
-                if( !rightTrivia )
-                    asT = _autoAsTNoLeft;
-                else asT = _autoAsTNoSpace;
-            }
-            return asT;
-        }
-
+        /// <summary>
+        /// Returns a column selector that uses the "as" syntax if possible: 'select 1 as @i' is not 
+        /// valid (only the equal syntax is supported with variables). In such case, this SelectColumn 
+        /// is returned as-is.
+        /// </summary>
+        /// <returns>A column selector with the "as" syntax if possible.</returns>
         public SelectColumn ToAsSyntax()
         {
-            if( _colName == null || IsAsSyntax ) return this;
+            if( _colName == null || IsAsSyntax || _colName.TokenType == SqlTokenType.IdentifierVariable ) return this;
             if( IsHorribleSyntax )
             {
-                return new SelectColumn( null, LeadingTrivias, new[] { _definition, GetRepairedAsToken(), _colName }, TrailingTrivias );
+                return new SelectColumn( null, LeadingTrivias, new[] { _definition, _autoAsTNoSpace, _colName }, TrailingTrivias );
             }
             Debug.Assert( IsEqualSyntax );
-            var newName = _colName.SetTrivias( _definition.FullLeadingTrivias, _definition.FullTrailingTrivias );
-            var newDef = _definition.SetTrivias( _colName.FullLeadingTrivias, _colName.FullTrailingTrivias );
-            var newAs = _autoAsTNoSpace.SetTrivias( _asOrEqual.LeadingTrivias, _asOrEqual.TrailingTrivias );
+            var movedSpace = SqlTrivia.WhiteSpaceToMiddle( _colName, _asOrEqual, _definition );
+            var newAs = _autoAsTNoSpace.SetTrivias( movedSpace.Item2.LeadingTrivias, movedSpace.Item2.TrailingTrivias );
             return new SelectColumn(
                 null,
                 LeadingTrivias,
-                new[] { newDef, newAs, newName },
+                new[] { movedSpace.Item3, newAs, movedSpace.Item1 },
                 TrailingTrivias );
         }
 
+        /// <summary>
+        /// Returns a column selector that uses the "=" syntax.
+        /// </summary>
+        /// <returns>A column selector with the "=" syntax.</returns>
         public SelectColumn ToEqualSyntax()
         {
             if( _colName == null || IsEqualSyntax ) return this;
-            if( IsHorribleSyntax ) return ToAsSyntax().ToEqualSyntax();
+            if( IsHorribleSyntax )
+            {
+                return new SelectColumn( null, LeadingTrivias, new[] { _colName, _autoAssignTNoSpace, _definition }, TrailingTrivias );
+            }
             Debug.Assert( IsAsSyntax );
-            var newName = _colName.SetTrivias( _definition.FullLeadingTrivias, _definition.FullTrailingTrivias );
-            var newDef = _definition.SetTrivias( _colName.FullLeadingTrivias, _colName.FullTrailingTrivias );
-            var newEq = _autoAssignTNoSpace.SetTrivias( _asOrEqual.LeadingTrivias, _asOrEqual.TrailingTrivias );
+            var movedSpace = SqlTrivia.WhiteSpaceToMiddle( _definition, _asOrEqual, _colName );
+            var newEq = _autoAssignTNoSpace.SetTrivias( movedSpace.Item2.LeadingTrivias, movedSpace.Item2.TrailingTrivias );
             return new SelectColumn(
                 null,
                 LeadingTrivias,
-                new[] { newName, newEq, newDef },
+                new[] { movedSpace.Item3, newEq, movedSpace.Item1 },
                 TrailingTrivias );
         }
 
+        /// <summary>
+        /// Gets the column name (can be null).
+        /// </summary>
         public SqlToken ColumnName => _colName;
 
         public bool IsEqualSyntax => _asOrEqual is SqlTokenTerminal;
@@ -172,7 +167,7 @@ namespace CK.SqlServer.Parser
         public ISqlNode Definition => _definition;
 
         [DebuggerStepThrough]
-        internal protected override ISqlNode Accept( SqlItemVisitor visitor ) => visitor.Visit( this );
+        internal protected override ISqlNode Accept( SqlNodeVisitor visitor ) => visitor.Visit( this );
 
     }
 

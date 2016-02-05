@@ -18,6 +18,7 @@ namespace CK.SqlServer.Parser
         public SelectSpec( SelectHeader header, SelectColumnList columns, SelectInto into = null, SelectFrom from = null, SqlTokenIdentifier whereT = null, ISqlNode whereExpression = null, SelectGroupBy groupBy = null )
             : base( null, null )
         {
+            SqlTrivia.WhiteSpaceToLeft( ref header, ref columns );
             _content = new SNode<SelectHeader, SelectColumnList, SelectInto, SelectFrom, SqlTokenIdentifier, ISqlNode, SelectGroupBy>(
                 header, 
                 columns, 
@@ -48,9 +49,9 @@ namespace CK.SqlServer.Parser
             }
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IList<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
         {
-            return new SelectSpec( this, leading, children, trailing );
+            return new SelectSpec( this, leading, content, trailing );
         }
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
@@ -59,14 +60,27 @@ namespace CK.SqlServer.Parser
 
         /// <summary>
         /// Gets the operator token type: it is <see cref="SelectOperatorKind.None"/> since this is an 
-        /// actual select specification and not an operator like <see cref="SelectCombine"/>, 
-        /// <see cref="SelectDecorator"/> or <see cref="SelectFor"/>.
+        /// actual select specification and not an operator like a <see cref="SelectCombine"/> or 
+        /// a <see cref="SelectDecorator"/>.
         /// </summary>
         public SelectOperatorKind SelectOperator => SelectOperatorKind.None;
 
         public SelectHeader Header => _content.V1;
 
         public SelectColumnList Columns => _content.V2;
+
+        public SelectSpec InsertColumn( int idx, SelectColumn column ) => this.ReplaceContentNode( 1, Columns.InsertAt( idx, column ) );
+
+        public SelectSpec InsertColumn( int idx, ISqlNode definition, SqlTokenIdentifier alias = null )
+        {
+            if( definition == null ) throw new ArgumentNullException( nameof( definition ) );
+            if( alias == null ) return InsertColumn( idx, new SelectColumn( definition ) );
+            SqlToken tSep = Columns.Where( col => col.AsOrEqualT != null ).Select( col => col.AsOrEqualT ).FirstOrDefault()
+                            ?? SqlKeyword.Assign;
+            return InsertColumn( idx, tSep.IsToken( SqlTokenType.Assign ) 
+                                        ? new SelectColumn( alias, (SqlTokenTerminal)tSep, definition )
+                                        : new SelectColumn( definition, (SqlTokenIdentifier)tSep, alias ) );
+        }
 
         public SelectInto IntoClause => _content.V3;
 
@@ -79,7 +93,7 @@ namespace CK.SqlServer.Parser
         public SelectGroupBy GroupByClause => _content.V7;
 
         [DebuggerStepThrough]
-        internal protected override ISqlNode Accept( SqlItemVisitor visitor ) => visitor.Visit( this );
+        internal protected override ISqlNode Accept( SqlNodeVisitor visitor ) => visitor.Visit( this );
 
     }
 }

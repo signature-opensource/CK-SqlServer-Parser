@@ -9,7 +9,8 @@
       (
           MERGE Production.ProductInventory AS pi
               USING (
-                      SELECT ProductID, SUM(OrderQty) FROM Sales.SalesOrderDetail AS sod
+                      SELECT ProductID, SUM(OrderQty) 
+                      FROM Sales.SalesOrderDetail AS sod
                       JOIN Sales.SalesOrderHeader AS soh 
                                       ON sod.SalesOrderID = soh.SalesOrderID AND soh.OrderDate = '20070401'
                       GROUP BY ProductID
@@ -270,7 +271,7 @@
         FROM OPENROWSET(BULK N'C:\Text1.txt', SINGLE_BLOB) AS Document;
     </Text>
     <Description></Description>
-    <Xml Shorten="From">
+    <Xml ToStringCompact="From">
       <Sql>
         <InsertStatement HasTerminator="true">
           <Target>
@@ -335,7 +336,7 @@
         ORDER BY sp.SalesYTD DESC;
     </Text>
     <Description></Description>
-    <Xml Shorten="From">
+    <Xml ToStringCompact="From">
       <Sql>
         <InsertStatement HasTerminator="true">
           <Top Percent="true">
@@ -392,7 +393,7 @@
                       </Item>
                     </SelectColumnList>
                   </Columns>
-                  <From>FROM Sales.SalesPerson AS sp INNER JOIN Person.Person AS c ON sp.BusinessEntityID = c.BusinessEntityID</From>
+                  <From>FROM Sales.SalesPerson AS sp INNER JOIN Person.Person AS c ON sp.BusinessEntityID=c.BusinessEntityID</From>
                   <WhereExpression>
                     <BinaryOperator>
                       <Left>

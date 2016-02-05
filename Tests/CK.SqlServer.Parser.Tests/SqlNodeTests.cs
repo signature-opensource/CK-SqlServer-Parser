@@ -17,10 +17,12 @@ namespace CK.SqlServer.Parser.Tests
         {
             readonly string _name;
             readonly ISqlNode[] _content;
+            readonly SqlTokenType _tokenLike;
 
             public TestNode( string name, IEnumerable<ISqlNode> content = null, ImmutableList<SqlTrivia> leading = null, ImmutableList<SqlTrivia> trailing = null )
                 : base( leading, trailing )
             {
+                _tokenLike = SqlTokenType.IdentifierStandard;
                 _name = name;
                 _content = content != null ? content.ToArray() : Util.EmptyArray<ISqlNode>.Empty;
             }
@@ -30,14 +32,14 @@ namespace CK.SqlServer.Parser.Tests
             public override IList<ISqlNode> GetRawContent() => _content.ToList();
 
 
-            protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
+            protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IList<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
             {
-                return new TestNode( _name, children ?? _content, leading, trailing );
+                return new TestNode( _name, content ?? _content, leading, trailing );
             }
 
             public override void WriteWithoutTrivias( ISqlTextWriter w )
             {
-                w.Write( _name );
+                w.Write( _tokenLike, _name );
                 base.WriteWithoutTrivias( w );
             }
         }
@@ -66,7 +68,7 @@ namespace CK.SqlServer.Parser.Tests
             ISqlNode nLeftLift = n.LiftLeadingTrivias();
             Assert.That( nLeftLift.LeadingTrivias.Count, Is.EqualTo( 3 ) );
             Assert.That( nLeftLift.ChildrenNodes[0].LeadingTrivias, Is.Empty );
-            Assert.That( nLeftLift.ToString( true ), Is.EqualTo( "/*<<*/[b1[[a1[NN1]a1]]b1][b2[[a2[N2]a2]]b2]/*>>*/" ) );
+            Assert.That( nLeftLift.ToString( true ), Is.EqualTo( "/*<<*/[b1[[a1[N N1]a1]]b1][b2[[a2[N2]a2]]b2]/*>>*/" ) );
 
             ISqlNode nRightLift = n.LiftTrailingTrivias();
             Assert.That( nRightLift.TrailingTrivias.Count, Is.EqualTo( 3 ) );
@@ -79,8 +81,8 @@ namespace CK.SqlServer.Parser.Tests
             Assert.That( nLift.TrailingTrivias.Count, Is.EqualTo( 3 ) );
             Assert.That( nLift.ChildrenNodes[0].LeadingTrivias, Is.Empty );
             Assert.That( nLift.ChildrenNodes[1].TrailingTrivias, Is.Empty );
-            Assert.That( nLift.ToString( true ), Is.EqualTo( "/*<<*/[b1[[a1[NN1]a1]]b1][b2[[a2[N2]a2]]b2]/*>>*/" ) );
-            Assert.That( nLift.ToString( false ), Is.EqualTo( "NN1]a1]]b1][b2[[a2[N2" ) );
+            Assert.That( nLift.ToString( true ), Is.EqualTo( "/*<<*/[b1[[a1[N N1]a1]]b1][b2[[a2[N2]a2]]b2]/*>>*/" ) );
+            Assert.That( nLift.ToString( false ), Is.EqualTo( "N N1]a1]]b1][b2[[a2[N2" ) );
         }
 
         [Test]
@@ -97,12 +99,25 @@ namespace CK.SqlServer.Parser.Tests
             Assert.That( n.ToString( true ), Is.EqualTo(
                 Environment.NewLine + " 3 " + Environment.NewLine
                     + "Y"
-                        + Environment.NewLine + " 1 " + Environment.NewLine 
-                        + "X" 
+                        + Environment.NewLine + " 1 " + Environment.NewLine
+                        + "X"
                         + Environment.NewLine + " 2 " + Environment.NewLine
                 + Environment.NewLine + " 4 " + Environment.NewLine ) );
 
             Assert.That( n.ToString(), Is.EqualTo( "Y X" ) );
+        }
+
+        [Test]
+        public void moving_white_space_between_tokens()
+        {
+            ISqlNode list;
+            Assert.That( SqlAnalyser.Parse( out list, ParseMode.AnyExpression, "A /*1*/ B /*2*/ C /*3*/ D" ).IsError, Is.False );
+            SqlToken[] all = list.ChildrenNodes.Cast<SqlToken>().ToArray();
+            Assert.That( string.Join( "|", all.Select( t => t.ToString( true ) ) ), Is.EqualTo( "A /*1*/ |B /*2*/ |C /*3*/ |D" ) );
+            var allOnB = SqlTrivia.WhiteSpaceToMiddle( all[0], all[1], all[2] );
+            Assert.That( allOnB.Item1.ToString( true ), Is.EqualTo( "A /*1*/" ) );
+            Assert.That( allOnB.Item2.ToString( true ), Is.EqualTo( " B /*2*/ " ) );
+            Assert.That( allOnB.Item3.ToString( true ), Is.EqualTo( "C /*3*/ " ) );
         }
 
     }

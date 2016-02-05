@@ -200,7 +200,11 @@ namespace CK.SqlServer.Parser
             {
                 ISqlNode select = IsOneExpression( true );
                 if( select == null ) return null;
-                Debug.Assert( select.UnPar is ISelectSpecification );
+                if( !(select.UnPar is ISelectSpecification) )
+                {
+                    R.SetCurrentError( "Unxepected operator after select." );
+                    return null;
+                }
                 return new SqlSelectStatement( select, GetOptionalTerminator() );
             }
             if( id.TokenType == SqlTokenType.Insert )
@@ -296,6 +300,21 @@ namespace CK.SqlServer.Parser
             R.MoveNext();
             R.MoveNext();
             return new SqlLabelDefinition( id, colon );
+        }
+
+        [DebuggerStepThrough]
+        public ErrorResult ParseStatement<T>( out T statement ) where T : class
+        {
+            statement = null;
+            ISqlStatement st = IsExtendedStatement( true );
+            if( st == null ) return CreateErrorResult();
+            statement = st as T;
+            if( statement == null )
+            {
+                R.SetCurrentError( "Expected '{0}' statement but found a '{1}'.", typeof(T).Name, st.GetType().Name );
+                return CreateErrorResult();
+            }
+            return ErrorResult.NoError;
         }
 
         private ISqlNamedStatement MatchGrant( SqlTokenIdentifier id )
@@ -663,13 +682,19 @@ namespace CK.SqlServer.Parser
                 SqlTokenIdentifier intoT;
                 ISqlIdentifier targetTable = null;
                 SqlEnclosedIdentifierCommaList columnNames = null;
+                SqlTokenIdentifier outputT2 = null;
+                SelectColumnList columns2 = null;
                 if( R.IsToken( out intoT, SqlTokenType.Into, false ) )
                 {
                     targetTable = IsIdentifier( true );
                     if( targetTable == null ) return null;
                     columnNames = IsEnclosedCommaList( false, 1, IsIdentifier, ( o, i, c ) => new SqlEnclosedIdentifierCommaList( o, i, c ) );
+                    if( R.IsToken( out outputT2, SqlTokenType.Output, false ) )
+                    {
+                        columns2 = IsCommaList( 0, IsSelectColumn, i => new SelectColumnList( i ) );
+                    }
                 }
-                return new SqlOutputClause( outputT, columns, intoT, targetTable, columnNames );
+                return new SqlOutputClause( outputT, columns, intoT, targetTable, columnNames, outputT2, columns2 );
             }
             return null;
         }
@@ -994,7 +1019,7 @@ namespace CK.SqlServer.Parser
             return new SqlParameterList( openPar, items, closePar );
         }
 
-        SqlParameter IsParameter( bool expected )
+        public SqlParameter IsParameter( bool expected )
         {
             SqlTypedIdentifier declVar;
             SqlTokenTerminal assign;
@@ -1022,7 +1047,6 @@ namespace CK.SqlServer.Parser
             SqlTypedIdentifier declVar;
             SqlTokenTerminal assignToken = null;
             ISqlNode initialValue = null;
-            // Syntax: declare @name [as] type
             using( R.SetAssignmentContext( true ) )
             {
                 declVar = IsTypedIdentifer( t => t.IsVariable, expected );
@@ -1090,6 +1114,8 @@ namespace CK.SqlServer.Parser
             }
         }
 
+        // Syntax: identifier [as] type
+        // Where the identifier fulfills the idFilter (it must typically be a @variable).
         SqlTypedIdentifier IsTypedIdentifer( Predicate<SqlTokenIdentifier> idFilter, bool expected = true )
         {
             SqlTokenIdentifier identifier;

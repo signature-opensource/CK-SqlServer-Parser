@@ -131,7 +131,7 @@
           OPEN @CurrencyCursor
     </Text>
     <Description>CURSOR VARYING is a special case of type declaration that applies only to parameters.</Description>
-    <Xml Shorten="SetOption, CursorDefinition">
+    <Xml ToStringCompact="SetOption, CursorDefinition">
       <Sql>
         <StoredProcedure StatementName="CreateProcedure">
           <Name>dbo.uspCurrencyCursor</Name>

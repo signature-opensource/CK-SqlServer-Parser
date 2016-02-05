@@ -177,6 +177,17 @@ namespace CK.SqlServer.Parser
 
         #endregion
 
+        /// <summary>
+        /// Masks that covers all discriminators except IsIdentifier, IsNumber and IsString and IsErrorOrEndOfInput.
+        /// This is a "raw" mask because it does not cover quoted identifiers and ansi strings nor N'unicode strings'
+        /// (the latter requires a separator on its left when following an identifier or a number, but none on its right
+        /// except if it is an 'ansi' string).
+        /// Note that even if two subsquent strings are not valid in a sql script, we handle them correctly:
+        /// a 'ansi'N'unicode' is valid whereas 'ansi''ansi' and N'unicode''ansi' require a separator.
+        /// <see cref="SqlToken.RequiresSeparatorBetween(SqlTokenType, SqlTokenType)"/> handles this.
+        /// </summary>
+        RawActualSeparatorMask = IsErrorOrEndOfInput | IsAssignOperator | IsBasicOperator | IsBracket | IsCompareOperator | IsPunctuation | IsComment,
+
         AssignOperatorCount = 9,
         #region IsAssignOperator: =, |=, &=, ^=, +=, -=, /=, *= and %=.
         /// <summary>

@@ -61,42 +61,54 @@ namespace CK.SqlServer.Parser
         [DebuggerStepThrough]
         public static ErrorResult ParseStatement( out ISqlStatement statement, string text )
         {
-            SqlAnalyser a = new SqlAnalyser( new SqlTokenizer(), text );
+            SqlAnalyser a = new SqlAnalyser( text );
             statement = a.IsExtendedStatement( true );
             return statement != null ? ErrorResult.NoError : a.CreateErrorResult();
-        }
-
-        [DebuggerStepThrough]
-        public static ErrorResult ParseStatement<T>( out T statement, string text ) where T : class
-        {
-            statement = null;
-
-            SqlAnalyser a = new SqlAnalyser( new SqlTokenizer(), text );
-            ISqlStatement st = a.IsNamedStatement( true );
-            if( st == null ) return a.CreateErrorResult();
-
-            statement = st as T;
-            if( statement == null )
-            {
-                a.R.SetCurrentError( "Expected '{0}' statement but found a '{1}'.", statement.GetType().Name, st.GetType().Name );
-                return a.CreateErrorResult();
-            }
-            return ErrorResult.NoError;
         }
 
         [DebuggerStepThrough]
         public static ErrorResult Parse( out ISqlNode sql, ParseMode mode, string text )
         {
             sql = null;
-            SqlAnalyser a = new SqlAnalyser( new SqlTokenizer(), text );
+            SqlAnalyser a = new SqlAnalyser( text );
             sql = a.Parse( mode );
             return sql != null ? ErrorResult.NoError : a.CreateErrorResult();
         }
 
-        SqlAnalyser( SqlTokenizer t, string text )
+        /// <summary>
+        /// Initializes a new <see cref="SqlAnalyser"/> bound to a new <see cref="SqlTokenizer"/> instance 
+        /// on a text (<see cref="Reset"/> is automatically called).
+        /// </summary>
+        /// <param name="text">Text to analyse.</param>
+        public SqlAnalyser( string text )
         {
-            R = new SqlTokenReader( t.Parse( text ), t.ToString, t.GetTokenPosition );
+            R = new SqlTokenReader( new SqlTokenizer() );
+            Reset( text );
+        }
+
+        /// <summary>
+        /// Initializes a new <see cref="SqlAnalyser"/> bound to an existing tokenizer.
+        /// </summary>
+        /// <param name="t">The tokenizer.</param>
+        public SqlAnalyser( SqlTokenizer t )
+        {
+            R = new SqlTokenReader( t );
             R.MoveNext();
+        }
+
+        /// <summary>
+        /// Initializes a new <see cref="SqlAnalyser"/>.
+        /// <see cref="Reset(string)"/> must be called.
+        /// </summary>
+        public SqlAnalyser()
+        {
+            R = new SqlTokenReader( new SqlTokenizer() );
+        }
+
+        public bool Reset( string text )
+        {
+            R.Reset( text );
+            return R.MoveNext();
         }
 
         public ISqlNode Parse( ParseMode mode )

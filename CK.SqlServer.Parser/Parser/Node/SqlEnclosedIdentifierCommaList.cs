@@ -12,7 +12,7 @@ namespace CK.SqlServer.Parser
     /// <summary>
     /// Enclosed, possibly empty comma separated list of <see cref="ISqlIdentifier"/>.
     /// </summary>
-    public sealed class SqlEnclosedIdentifierCommaList : ASqlNodeEnclosableSeparatedList<SqlTokenOpenPar,ISqlIdentifier,SqlTokenComma,SqlTokenClosePar>, 
+    public sealed class SqlEnclosedIdentifierCommaList : ASqlNodeEnclosableSeparatedList<SqlTokenOpenPar, ISqlIdentifier, SqlTokenComma, SqlTokenClosePar>,
                                                         ISqlStructurallyEnclosed
     {
         /// <summary>
@@ -26,18 +26,32 @@ namespace CK.SqlServer.Parser
         {
         }
 
+        /// <summary>
+        /// Initializes a new list of identifiers with one or zero identifier inside.
+        /// </summary>
+        /// <param name="id">An optional <see cref="ISqlIdentifier"/>.</param>
+        public SqlEnclosedIdentifierCommaList( ISqlIdentifier id = null )
+            : base( 0, SqlKeyword.OpenPar, id == null ? Util.EmptyArray<ISqlIdentifier>.Empty : new[] { id }, SqlKeyword.ClosePar )
+        {
+        }
+
         SqlEnclosedIdentifierCommaList( SqlEnclosedIdentifierCommaList o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
             : base( o, 0, leading, items, trailing )
         {
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IList<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
         {
-            return new SqlEnclosedIdentifierCommaList( this, leading, children, trailing );
+            return new SqlEnclosedIdentifierCommaList( this, leading, content, trailing );
+        }
+
+        public SqlEnclosedIdentifierCommaList InsertAt( int idx, ISqlIdentifier identifier )
+        {
+            return (SqlEnclosedIdentifierCommaList)DoInsertAt( idx, identifier );
         }
 
         [DebuggerStepThrough]
-        internal protected override ISqlNode Accept( SqlItemVisitor visitor ) => visitor.Visit( this );
+        internal protected override ISqlNode Accept( SqlNodeVisitor visitor ) => visitor.Visit( this );
 
     }
 

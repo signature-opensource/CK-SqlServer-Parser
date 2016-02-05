@@ -38,12 +38,14 @@ namespace CK.SqlServer.Parser
 
         public SqlTrivia( SqlTokenType tokenType, string text )
         {
-            if( tokenType != SqlTokenType.None && tokenType != SqlTokenType.LineComment && tokenType != SqlTokenType.StarComment )
+            if( tokenType != SqlTokenType.None 
+                && tokenType != SqlTokenType.LineComment 
+                && tokenType != SqlTokenType.StarComment )
             {
-                throw new ArgumentException( "Must be none, star or line comment.", "tokenType" );
+                throw new ArgumentException( "Must be none, star or line comment.", nameof( tokenType ) );
             }
             _tokenType = tokenType;
-            _text = text ?? String.Empty;
+            _text = text ?? string.Empty;
         }
 
         /// <summary>
@@ -62,7 +64,7 @@ namespace CK.SqlServer.Parser
         /// When it is a <see cref="SqlTokenType.LineComment"/> or <see cref="SqlTokenType.StarComment"/>,
         /// the -- or /* */ characters do not appear.
         /// </summary>
-        public string Text { get { return _text ?? String.Empty; } }
+        public string Text => _text ?? String.Empty;
 
         public override int GetHashCode()
         {
@@ -83,10 +85,79 @@ namespace CK.SqlServer.Parser
         {
             switch( TokenType )
             {
-                case SqlTokenType.LineComment: return "--" + Text + Environment.NewLine;
-                case SqlTokenType.StarComment: return "/*" + Text + "*/";
+                case SqlTokenType.LineComment: return "--" + _text + Environment.NewLine;
+                case SqlTokenType.StarComment: return "/*" + _text + "*/";
             }
             return Text;
+        }
+
+        static public void WhiteSpaceToMiddle<TL, TM, TR>( ref TL left, ref TM middle, ref TR right )
+            where TL : ISqlNode
+            where TM : ISqlNode
+            where TR : ISqlNode
+        {
+            WhiteSpaceToRight( ref left, ref middle );
+            WhiteSpaceToLeft( ref middle, ref right );
+        }
+
+        static public Tuple<TL, TM, TR> WhiteSpaceToMiddle<TL, TM, TR>( TL left, TM middle, TR right )
+             where TL : ISqlNode
+             where TM : ISqlNode
+             where TR : ISqlNode
+        {
+            WhiteSpaceToRight( ref left, ref middle );
+            WhiteSpaceToLeft( ref middle, ref right );
+            return Tuple.Create( left, middle, right );
+        }
+
+        static public void WhiteSpaceToRight<TL, TR>( ref TL left, ref TR right )
+            where TL : ISqlNode
+            where TR : ISqlNode
+        {
+            ISqlNode r = right;
+            left = left.ExtractTrailingTrivias( t =>
+            {
+                if( t.TokenType == SqlTokenType.None )
+                {
+                    r = r.AddLeadingTrivia( t );
+                    return true;
+                }
+                return false;
+            } );
+            right = (TR)r;
+        }
+
+        static public Tuple<TL, TR> WhiteSpaceToRight<TL, TR>( TL left, TR right )
+             where TL : ISqlNode
+             where TR : ISqlNode
+        {
+            WhiteSpaceToRight( ref left, ref right );
+            return Tuple.Create( left, right );
+        }
+
+        static public void WhiteSpaceToLeft<TL, TR>( ref TL left, ref TR right )
+            where TL : ISqlNode
+            where TR : ISqlNode
+        {
+            ISqlNode l = left;
+            right = right.ExtractLeadingTrivias( t =>
+            {
+                if( t.TokenType == SqlTokenType.None )
+                {
+                    l = l.AddTrailingTrivia( t );
+                    return true;
+                }
+                return false;
+
+            } );
+            left = (TL)l;
+        }
+        static public Tuple<TL, TR> WhiteSpaceToLeft<TL, TR>( TL left, TR right )
+             where TL : ISqlNode
+             where TR : ISqlNode
+        {
+            WhiteSpaceToLeft( ref left, ref right );
+            return Tuple.Create( left, right );
         }
 
     }

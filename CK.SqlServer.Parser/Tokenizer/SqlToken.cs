@@ -169,6 +169,49 @@ namespace CK.SqlServer.Parser
             }
             return true;
         }
+
+        /// <summary>
+        /// Computes whether a withe space (a separator) is required between two tokens.
+        /// </summary>
+        /// <param name="left">The left token.</param>
+        /// <param name="right">The right token.</param>
+        /// <returns>True if a separator is required.</returns>
+        static public bool RequiresSeparatorBetween( SqlTokenType left, SqlTokenType right )
+        {
+            bool isLeftSep = left == SqlTokenType.None
+                                || (left & SqlTokenType.RawActualSeparatorMask) != 0
+                                || left.IsQuotedIdentifier()
+                                || left == SqlTokenType.IdentifierStar;
+            if( isLeftSep ) return false;
+            Debug.Assert( ((left & SqlTokenType.TokenDiscriminatorMask) & ~(SqlTokenType.IsIdentifier | SqlTokenType.IsString | SqlTokenType.IsNumber)) == 0 );
+            bool isRightSep = left == SqlTokenType.None
+                                || (right & SqlTokenType.RawActualSeparatorMask) != 0
+                                || right.IsQuotedIdentifier()
+                                || right == SqlTokenType.IdentifierStar;
+            if( isRightSep ) return false;
+            Debug.Assert( ((right & SqlTokenType.TokenDiscriminatorMask) & ~(SqlTokenType.IsIdentifier | SqlTokenType.IsString | SqlTokenType.IsNumber)) == 0 );
+            // If left is a N'Unicode' or 'ansi' string, we need a separator only if 
+            // it is followed by a 'ansi' string.
+            if( (left & SqlTokenType.IsString) != 0 )
+            {
+                return right == SqlTokenType.String;
+            }
+            // left is now a number or an identifier (and right is a number, an identifier or a string).
+            if( (left & SqlTokenType.IsNumber) != 0 )
+            {
+                // Only when another number follows should we add a separator.
+                // All those are valid:
+                //  select 2N'jj'from[CK].tUser;
+                //  select 2'jj'from[CK].tUser;
+                //  select 2from[CK].tUser;
+                return right == SqlTokenType.IsNumber;
+            }
+            // left is a non quoted identifer, if right is a number, an identifier or a N'unicode' string, a separator
+            // is required. Only if right is a 'ansi' string can we remove it.
+            return right != SqlTokenType.String;
+        }
+
+
     }
 
 }

@@ -2,55 +2,57 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using CK.Core;
+using System.Diagnostics;
 
 namespace CK.SqlServer.Parser
 {
-    public class SqlItemVisitor
+    public class SqlNodeVisitor
     {
         public virtual ISqlNode VisitItem( ISqlNode e )
         {
             return ((SqlNode)e).Accept( this );
         }
 
-        protected List<ISqlNode> VisitItems( IEnumerable<ISqlNode> nodes, ISqlNode prefixToKeep = null, ISqlNode suffixToKeep = null )
+        protected bool VisitRawContent( IList<ISqlNode> nodes )
         {
-            List<ISqlNode> modified = null;
-            int i = 0;
-            foreach( var a in nodes )
+            bool isModified = false;
+            List<ISqlNode> dynamicList = nodes as List<ISqlNode>;
+            if( dynamicList != null )
             {
-                var ve = VisitItem( a );
-                if( !ReferenceEquals( a, ve ) )
+                for( int i = 0; i < dynamicList.Count; ++i )
                 {
-                    if( modified == null )
+                    ISqlNode a = dynamicList[i];
+                    Debug.Assert( a != null );
+                    var ve = VisitItem( a );
+                    if( !ReferenceEquals( a, ve ) )
                     {
-                        modified = new List<ISqlNode>( i+1 );
-                        if( prefixToKeep != null ) modified.Add( prefixToKeep );
-                        if( i > 0 )
-                        {
-                            using( var oldE = nodes.GetEnumerator() )
-                            {
-                                int j = i;
-                                while( --j > 0 ) 
-                                {
-                                    oldE.MoveNext();
-                                    modified.Add( oldE.Current );
-                                }
-                            }
-                        }
+                        isModified = true;
+                        if( ve == null ) dynamicList.RemoveAt( i-- );
+                        else dynamicList[i] = ve;
                     }
-                    modified[i] = ve;
                 }
-                ++i;
             }
-            if( modified != null && suffixToKeep != null ) modified.Add( suffixToKeep );
-            return modified;
+            else
+            {
+                ISqlNode[] array = (ISqlNode[])nodes;
+                for( int i = 0; i < array.Length; ++i )
+                {
+                    ISqlNode a = array[i];
+                    var ve = a != null ? VisitItem( a ) : null;
+                    if( !ReferenceEquals( a, ve ) )
+                    {
+                        isModified = true;
+                        array[i] = ve;
+                    }
+                }
+            }
+            return isModified;
         }
 
         protected virtual ISqlNode VisitStandard( ISqlNode e )
         {
-            List<ISqlNode> modified = VisitItems( e.ChildrenNodes );
-            if( modified == null ) return e;
-            return ((SqlNode)e).InternalDoClone( e.LeadingTrivias, modified, e.TrailingTrivias );
+            IList<ISqlNode> content = e.GetRawContent();
+            return VisitRawContent( content ) ? e.SetRawContent( content ) : e;
         }
 
         protected virtual ISqlNode VisitTokenStandard( SqlToken e ) => e;

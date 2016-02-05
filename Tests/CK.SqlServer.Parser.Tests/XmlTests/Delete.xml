@@ -1,0 +1,58 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Tests>
+
+  <Test>
+    <Text>
+      /*
+      The following example deletes rows in the ProductProductPhoto table based on search criteria 
+      defined in the FROM clause of DELETE statement. 
+      
+      The OUTPUT INTO clause returns columns from the table being deleted (deleted.ProductID, deleted.ProductPhotoID) 
+      and columns from the Product table to the @MyTableVar table variable. 
+      
+      The Product table is used in the FROM clause to specify the rows to delete. 
+      
+      The OUTPUT clause returns the deleted.ProductID, deleted.ProductPhotoID columns and the date and time the row 
+      was deleted from the ProductProductPhoto table to the calling application.
+      */
+      USE AdventureWorks2012;
+      GO
+      DECLARE @MyTableVar table (
+          ProductID int NOT NULL, 
+          ProductName nvarchar(50)NOT NULL,
+          ProductModelID int NOT NULL, 
+          PhotoID int NOT NULL);
+
+      DELETE Production.ProductProductPhoto
+      OUTPUT DELETED.ProductID,
+             p.Name,
+             p.ProductModelID,
+             DELETED.ProductPhotoID
+          INTO @MyTableVar
+      OUTPUT DELETED.ProductID, DELETED.ProductPhotoID, GETDATE() AS DeletedDate 
+      FROM Production.ProductProductPhoto AS ph
+      JOIN Production.Product as p 
+          ON ph.ProductID = p.ProductID 
+      WHERE p.ProductID BETWEEN 800 and 810;
+
+      --Display the results of the table variable.
+      SELECT ProductID, ProductName, PhotoID, ProductModelID 
+      FROM @MyTableVar;
+      GO
+    </Text>
+    <Description></Description>
+    <Xml>
+      <Statements>
+        <Statement StatementName="USE" HasTerminator="true" />
+        <Statement StatementName="GO" />
+        <DeclareVariable HasTerminator="true" />
+        <DeleteStatement HasTerminator="true" />
+        <SelectStatement HasTerminator="true">
+          <SelectSpec />
+        </SelectStatement>
+        <Statement StatementName="GO" />
+      </Statements>
+    </Xml>
+  </Test>
+
+</Tests>

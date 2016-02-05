@@ -7,13 +7,20 @@ using System.Threading.Tasks;
 namespace CK.SqlServer.Parser
 {
     /// <summary>
-    /// Defines node that can be enclosed, typically with <see cref="SqlTokenOpenPar"/>/<see cref="SqlTokenClosePar"/>.
+    /// Defines node that holds a parameter list.
     /// </summary>
-    public interface ISqlEnclosable : ISqlNode
+    public interface ISqlParameterListHolder : ISqlNode
     {
         /// <summary>
-        /// Gets whether this node is enclosed or not.
+        /// Gets the parameters.
         /// </summary>
-        bool IsEnclosed { get; }
+        SqlParameterList Parameters { get; }
+
+        /// <summary>
+        /// Sets parameters.
+        /// </summary>
+        /// <param name="parameters">Parameters to set.</param>
+        /// <returns>A new parameters holder.</returns>
+        ISqlParameterListHolder SetParameters( SqlParameterList parameters );
     }
 }

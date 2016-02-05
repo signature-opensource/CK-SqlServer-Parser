@@ -56,9 +56,9 @@ namespace CK.SqlServer.Parser
             }
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IList<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
         {
-            return new SqlInsertStatement( this, leading, children, trailing );
+            return new SqlInsertStatement( this, leading, content, trailing );
         }
 
         public StatementKnownName StatementKnownName => StatementKnownName.Insert;
@@ -77,16 +77,75 @@ namespace CK.SqlServer.Parser
 
         public SqlEnclosedIdentifierCommaList Columns => _content.V4;
 
+        public SqlInsertStatement SetColumns( SqlEnclosedIdentifierCommaList c ) => this.ReplaceContentNode( 3, c );
+
         public bool HasOutputClause => _content.V5 != null;
 
         public SqlOutputClause OutputClause => _content.V5;
 
         public ISqlNode Values => _content.V6;
 
+        public SqlInsertStatement SetValues( ISqlNode values ) => this.ReplaceContentNode( 5, values );
+
+        public bool ValuesIsDefaultValues => Values.AllTokens.First().IsToken( SqlTokenType.Default );
+
+        public bool ValuesIsTableValues => Values is SqlTableValues;
+
+        public bool ValuesIsExecute => Values is ISqlExecuteStatement;
+
+        public bool ValuesIsSelect => Values is ISelectSpecification;
+
         public SqlTokenTerminal StatementTerminator => _content.V7;
 
+        class AddColumnVisitor : SqlNodeVisitor
+        {
+            readonly ISqlNode _expression;
+
+            public AddColumnVisitor( ISqlNode expression ) { _expression = expression; }
+
+            public override ISqlNode Visit( SelectFrom e ) => e;
+
+            public override ISqlNode Visit( SelectColumnList e ) => e;
+
+            public override ISqlNode Visit( SelectSpec e ) => e.InsertColumn( e.Columns.Count, _expression, null );
+        }
+
+        public SqlInsertStatement AddSimpleColumn( SqlTokenIdentifier colName, ISqlNode expression = null )
+        {
+            if( colName == null ) throw new ArgumentNullException( nameof( colName ) );
+            var newColumns = HasColumns
+                                ? Columns.InsertAt( Columns.Count, colName )
+                                : new SqlEnclosedIdentifierCommaList( colName );
+            ISqlNode newValues = null;
+            if( expression != null )
+            {
+                if( ValuesIsExecute )
+                {
+                    throw new NotSupportedException( "Can not add column in 'insert into execute'." );
+                }
+                if( ValuesIsDefaultValues )
+                {
+                    newValues = new SqlTableValues( SqlKeyword.Values,
+                                                    new SqlMultiCommaList( new SqlEnclosedCommaList( expression ) ),
+                                                    Values.FullLeadingTrivias.ToImmutableList(),
+                                                    Values.TrailingTrivias.ToImmutableList() );
+                }
+                else if( ValuesIsTableValues )
+                {
+                    SqlTableValues v = (SqlTableValues)Values;
+                    newValues = v.AppendValue( expression );
+                }
+                else
+                {
+                    Debug.Assert( ValuesIsSelect );
+                    newValues = new AddColumnVisitor( expression ).VisitItem( Values );
+                }
+            }
+            return this.ReplaceContentNode( 3, newColumns, 5, newValues );
+        }
+
         [DebuggerStepThrough]
-        internal protected override ISqlNode Accept( SqlItemVisitor visitor ) => visitor.Visit( this );
+        internal protected override ISqlNode Accept( SqlNodeVisitor visitor ) => visitor.Visit( this );
 
     }
 

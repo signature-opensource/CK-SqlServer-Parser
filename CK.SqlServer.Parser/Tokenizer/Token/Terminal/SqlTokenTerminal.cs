@@ -15,12 +15,6 @@ namespace CK.SqlServer.Parser
     /// </summary>
     public class SqlTokenTerminal : SqlToken
     {
-        public static readonly SqlTokenTerminal Dot = new SqlTokenDot( null, null );
-        public static readonly SqlTokenTerminal Comma = new SqlTokenComma( null, null );
-        public static readonly SqlTokenTerminal SemiColon = new SqlTokenTerminal( SqlTokenType.SemiColon, null, null );
-        public static readonly SqlTokenOpenPar OpenPar = new SqlTokenOpenPar( null, null );
-        public static readonly SqlTokenClosePar ClosePar = new SqlTokenClosePar( null, null );
-
         protected SqlTokenTerminal( SqlTokenType t, ImmutableList<SqlTrivia> leadingTrivia = null, ImmutableList<SqlTrivia> trailingTrivia = null )
             : base( t, leadingTrivia, trailingTrivia )
         {
@@ -31,7 +25,7 @@ namespace CK.SqlServer.Parser
             Debug.Assert( t != SqlTokenType.DoubleColons || GetType().Name == "SqlTokenDoubleColon" );
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IList<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
         {
             return new SqlTokenTerminal( TokenType, leading, trailing );
         }
@@ -55,19 +49,25 @@ namespace CK.SqlServer.Parser
             bool? whiteSpaceBefore = null;
             bool? whiteSpaceAfter = null;
             if( TokenType == SqlTokenType.SemiColon
-                                || TokenType == SqlTokenType.Colon )
+                || TokenType == SqlTokenType.Colon )
             {
                 whiteSpaceBefore = false;
+                if( TokenType == SqlTokenType.Colon )
+                {
+                    whiteSpaceAfter = false;
+                }
             }
-            if( TokenType == SqlTokenType.Colon )
+            else if( (TokenType&(SqlTokenType.IsAssignOperator|SqlTokenType.IsCompareOperator|SqlTokenType.IsBasicOperator)) != 0 )
             {
-                whiteSpaceAfter = false;
+                whiteSpaceBefore = whiteSpaceAfter = false;
             }
-            w.Write( SqlKeyword.ToString( TokenType ), whiteSpaceBefore, whiteSpaceAfter );
+            w.Write( TokenType, SqlKeyword.ToString( TokenType ), whiteSpaceBefore, whiteSpaceAfter );
         }
 
+        public override string ToString() => SqlKeyword.ToString( TokenType );
+
         [DebuggerStepThrough]
-        internal protected override ISqlNode Accept( SqlItemVisitor visitor )
+        internal protected override ISqlNode Accept( SqlNodeVisitor visitor )
         {
             return visitor.Visit( this );
         }

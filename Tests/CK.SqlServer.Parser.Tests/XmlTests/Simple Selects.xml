@@ -3,6 +3,20 @@
 
   <Test Mode="OneExpression">
     <Text>
+      select'u''u'as'b''b'
+    </Text>
+    <Description>Strange column naming.</Description>
+    <Xml ToStringCompact="Columns">
+      <Sql>
+        <SelectSpec>
+          <Columns>'u''u'as'b''b'</Columns>
+        </SelectSpec>
+      </Sql>
+    </Xml>
+  </Test>
+  
+  <Test Mode="OneExpression">
+    <Text>
       select 1 order by 1 desc
     </Text>
     <Description>Order is an operator for the decorator.</Description>
@@ -37,7 +51,6 @@
       </SelectDecorator>
     </Xml>
   </Test>
-
 
   <Test Mode="OneExpression">
     <Text>
@@ -217,7 +230,7 @@
         offset @StartingRowNumber - 1 rows
           fetch next @EndingRowNumber - @StartingRowNumber + 1 rows only</Text>
     <Description>SelectDecorator captures OrderBy, For (browse, xml, json, system_time) and Option.</Description>
-    <Xml Shorten="From">
+    <Xml ToStringCompact="From">
       <Sql>
           <SelectDecorator>
             <Select>
@@ -374,7 +387,7 @@
             ) AS OrdersArray
     </Text>
     <Description>Select in parenthesis.</Description>
-    <Xml Shorten="Columns">
+    <Xml ToStringCompact="Columns">
       <Sql>
        <SelectStatement>
          <Select>
@@ -480,7 +493,7 @@
       SELECT ROW_NUMBER() OVER(PARTITION BY PostalCode ORDER BY SalesYTD DESC) AS RowNumber from table
     </Text>
     <Description>Select in parenthesis.</Description>
-    <Xml Shorten="From">
+    <Xml ToStringCompact="From">
       <Sql>
         <SelectSpec>
           <Columns>
@@ -589,7 +602,7 @@
       WHERE SalesOrderID IN(43659,43664)
     </Text>
     <Description>All kind of column names.</Description>
-    <Xml Shorten="From">
+    <Xml ToStringCompact="From">
       <Sql>
         <SelectSpec>
           <Columns>
@@ -713,7 +726,7 @@
               from TestTab12
     </Text>
     <Description>Multiple select combination.</Description>
-    <Xml CombineElementType="true" Shorten="From">
+    <Xml CombineElementType="true" ToStringCompact="From">
       <Sql EType="SelectCombine" SelectType="UnionDistinct">
         <Left EType="SelectCombine" SelectType="UnionDistinct">
           <Left EType="SelectCombine" SelectType="UnionDistinct">
@@ -838,7 +851,7 @@
       select 1 union select 2 intersect select 0
     </Text>
     <Description>intersect is stronger than union.</Description>
-    <Xml CombineElementType="true" Shorten="From">
+    <Xml CombineElementType="true" ToStringCompact="From">
       <Sql EType="SelectCombine" SelectType="UnionDistinct">
         <Left EType="SelectSpec">
           <Columns EType="SelectColumnList">
@@ -872,7 +885,7 @@
       select 1 except select 2 intersect select 0
     </Text>
     <Description>intersect is stronger than except.</Description>
-    <Xml CombineElementType="true" Shorten="From">
+    <Xml CombineElementType="true" ToStringCompact="From">
       <Sql EType="SelectCombine" SelectType="Except">
         <Left EType="SelectSpec">
           <Columns EType="SelectColumnList">
@@ -904,20 +917,20 @@
   <Test Mode="OneExpression">
     <Text>
       SELECT p.BusinessEntityID, FirstName, LastName, PhoneNumber AS Phone
-        FROM Person.Person AS p
-        JOIN Person.PersonPhone AS pph ON p.BusinessEntityID  = pph.BusinessEntityID
-        WHERE LastName LIKE 'G%'
-        ORDER BY LastName, FirstName
-        FOR XML AUTO, TYPE, XMLSCHEMA, ELEMENTS XSINIL
+      FROM Person.Person AS p
+      JOIN Person.PersonPhone AS pph ON p.BusinessEntityID  = pph.BusinessEntityID
+      WHERE LastName LIKE 'G%'
+      ORDER BY LastName, FirstName
+      FOR XML AUTO, TYPE, XMLSCHEMA, ELEMENTS XSINIL
     </Text>
     <Description>For xml with format.</Description>
-    <Xml Shorten="Columns, From, WhereExpression, OrderBy">
+    <Xml ToStringCompact="Columns, From, WhereExpression, OrderBy">
       <Sql>
         <SelectDecorator>
           <Select>
             <SelectSpec>
               <Columns>p.BusinessEntityID, FirstName, LastName, PhoneNumber AS Phone</Columns>
-              <From>FROM Person.Person AS p JOIN Person.PersonPhone AS pph ON p.BusinessEntityID = pph.BusinessEntityID</From>
+              <From>FROM Person.Person AS p JOIN Person.PersonPhone AS pph ON p.BusinessEntityID=pph.BusinessEntityID</From>
               <WhereExpression>LastName LIKE 'G%'</WhereExpression>
             </SelectSpec>
           </Select>
@@ -958,5 +971,6 @@
       </Sql>
     </Xml>
   </Test>
+
 
 </Tests>

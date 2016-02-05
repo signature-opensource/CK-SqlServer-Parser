@@ -11,29 +11,36 @@ namespace CK.SqlServer.Parser
     /// </summary>
     public class SqlServerParser : ISqlServerParser
     {
+        readonly SqlAnalyser _a = new SqlAnalyser();
+
         public ISqlServerParserError ParseObject( string text, out ISqlServerObject sqlObject )
         {
-            return SqlAnalyser.ParseStatement( out sqlObject, text );
+            _a.Reset( text );
+            return _a.ParseStatement( out sqlObject );
         }
 
         public ISqlServerParserError ParseStoredFunctionInlineTable( string text, out ISqlServerFunctionInlineTable sqlFInlineTable )
         {
-            return SqlAnalyser.ParseStatement( out sqlFInlineTable, text );
+            _a.Reset( text );
+            return _a.ParseStatement( out sqlFInlineTable );
         }
 
         public ISqlServerParserError ParseStoredFunctionScalar( string text, out ISqlServerFunctionScalar sqlFScalar )
         {
-            return SqlAnalyser.ParseStatement( out sqlFScalar, text );
+            _a.Reset( text );
+            return _a.ParseStatement( out sqlFScalar );
         }
 
         public ISqlServerParserError ParseStoredFunctionTable( string text, out ISqlServerFunctionTable sqlFTable )
         {
-            return SqlAnalyser.ParseStatement( out sqlFTable, text );
+            _a.Reset( text );
+            return _a.ParseStatement( out sqlFTable );
         }
 
         public ISqlServerParserError ParseStoredProcedure( string text, out ISqlServerStoredProcedure sqlProcedure )
         {
-            return SqlAnalyser.ParseStatement( out sqlProcedure, text );
+            _a.Reset( text );
+            return _a.ParseStatement( out sqlProcedure );
         }
     }
 }

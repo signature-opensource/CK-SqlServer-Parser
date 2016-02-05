@@ -24,13 +24,15 @@ namespace CK.SqlServer.Parser
         {
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IList<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
         {
-            return new SelectColumnList( this, leading, children, trailing );
+            return new SelectColumnList( this, leading, content, trailing );
         }
 
+        public SelectColumnList InsertAt( int idx, SelectColumn col ) => (SelectColumnList)DoInsertAt( idx, col );
+
         [DebuggerStepThrough]
-        internal protected override ISqlNode Accept( SqlItemVisitor visitor ) => visitor.Visit( this );
+        internal protected override ISqlNode Accept( SqlNodeVisitor visitor ) => visitor.Visit( this );
 
     }
 }

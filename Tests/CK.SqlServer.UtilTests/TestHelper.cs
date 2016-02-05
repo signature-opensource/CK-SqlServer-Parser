@@ -6,10 +6,11 @@ using System.Linq;
 using System.Diagnostics;
 using System.Xml.Linq;
 using System.Text.RegularExpressions;
+using CK.SqlServer.Parser;
 
-namespace CK.SqlServer.Parser.Tests
+namespace CK.SqlServer.UtilTests
 {
-    static class TestHelper
+    public static class TestHelper
     {
         static string _projectFolder;
 

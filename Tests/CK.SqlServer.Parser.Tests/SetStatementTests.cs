@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using NUnit.Framework;
+using CK.SqlServer.UtilTests;
 
 namespace CK.SqlServer.Parser.Tests
 {
@@ -37,7 +38,7 @@ namespace CK.SqlServer.Parser.Tests
         public void setting_with_syntax_error()
         {
             SqlSetVariable e;
-            SqlAnalyser.ErrorResult r = SqlAnalyser.ParseStatement( out e, "set @v = (select 1==0);" );
+            SqlAnalyser.ErrorResult r = new SqlAnalyser( "set @v = (select 1==0);" ).ParseStatement( out e );
             Assert.That( r.IsError );
             Assert.That( r.ErrorMessage, Is.StringStarting( "¤Error: Expected expression" ) );
         }

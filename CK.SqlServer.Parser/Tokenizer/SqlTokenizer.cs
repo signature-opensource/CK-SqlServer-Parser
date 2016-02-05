@@ -63,12 +63,13 @@ namespace CK.SqlServer.Parser
             _inputIdx = -1;
             _headPos = 0;
             _lineHead = _colHead = 1;
+            _token = SqlTokenError.EndOfInput;
         }
 
-        public bool Reset( string input )
+        public bool Reset( string text )
         {
-            if( input == null ) throw new ArgumentNullException( "input" );
-            _input = input;
+            if( text == null ) throw new ArgumentNullException( nameof(text) );
+            _input = text;
             _inputIdx = -1;
             _headPos = 0;
             _lineHead = _colHead = 1;
@@ -297,16 +298,21 @@ namespace CK.SqlServer.Parser
                     _trailingTrivias.Add( BuildTrivia( SqlTokenType.LineComment, _buffer.ToString() ) );
                     // Line comment ends the trailing trivias.
                     return;
+                    //_buffer.Length = 0;
+                    //continue;
                 }
                 if( ic == '\r' || ic == '\n' || ic == '\u2028' || ic == '\u2029' )
                 {
                     Read();
                     if( ic == '\r' ) Read( '\n' );
                     _buffer.Append( Environment.NewLine );
-                    /// New line ends the current trailing trivia.
+                    // New line ends the current trailing trivia.
                     break;
+                    //_trailingTrivias.Add( BuildTrivia( SqlTokenType.None, _buffer.ToString() ) );
+                    //_buffer.Length = 0;
+                    //continue;
                 }
-                if( !Char.IsWhiteSpace( (char)ic ) )
+                if( !char.IsWhiteSpace( (char)ic ) )
                 {
                     // Any non-whitespace character ends the current trailing trivia.
                     break;
@@ -348,7 +354,7 @@ namespace CK.SqlServer.Parser
                 for( ; ; )
                 {
                     _tokenType = NextTokenLowLevel();
-                    if( (_tokenType & (int)SqlTokenType.IsComment) == 0 ) break;
+                    if( _tokenType < 0 || (_tokenType & (int)SqlTokenType.IsComment) == 0 ) break;
                     _leadingTrivias.Add( BuildTrivia( (SqlTokenType)_tokenType, _buffer.ToString() ) );
                 }
                 if( _tokenType < 0 )

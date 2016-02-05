@@ -1,4 +1,5 @@
 ﻿using CK.Core;
+using CK.SqlServer.Parser;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,9 +7,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
-namespace CK.SqlServer.Parser
+namespace CK.SqlServer.UtilTests
 {
-    public class SqlToXmlStatementVisitor : SqlItemVisitor
+    public class SqlToXmlStatementVisitor : SqlNodeVisitor
     {
         XElement _current;
 

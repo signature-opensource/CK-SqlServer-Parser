@@ -12,8 +12,8 @@ namespace CK.SqlServer.Parser
     {
         readonly SNode<SqlTokenIdentifier, SqlMultiCommaList> _content;
 
-        public SqlTableValues( SqlTokenIdentifier valuesT, SqlMultiCommaList values )
-            : base( null, null )
+        public SqlTableValues( SqlTokenIdentifier valuesT, SqlMultiCommaList values, ImmutableList<SqlTrivia> leading = null, ImmutableList<SqlTrivia> trailing = null )
+            : base( leading, trailing )
         {
             _content = new SNode<SqlTokenIdentifier, SqlMultiCommaList>( valuesT, values );
             CheckContent();
@@ -36,12 +36,14 @@ namespace CK.SqlServer.Parser
             }
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IList<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
         {
-            return new SqlTableValues( this, leading, children, trailing );
+            return new SqlTableValues( this, leading, content, trailing );
         }
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
+
+        public SqlTableValues AppendValue( ISqlNode expression ) => new SqlTableValues( ValuesT, Values.AppendValue( expression ), LeadingTrivias, TrailingTrivias );
 
         public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
 
@@ -50,7 +52,7 @@ namespace CK.SqlServer.Parser
         public SqlMultiCommaList Values => _content.V2;
 
         [DebuggerStepThrough]
-        internal protected override ISqlNode Accept( SqlItemVisitor visitor ) => visitor.Visit( this );
+        internal protected override ISqlNode Accept( SqlNodeVisitor visitor ) => visitor.Visit( this );
 
     }
 }

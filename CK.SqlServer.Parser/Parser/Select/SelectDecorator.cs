@@ -10,7 +10,9 @@ using System.Collections.Immutable;
 namespace CK.SqlServer.Parser
 {
     /// <summary>
-    /// The "Order by" operator is a <see cref="ISelectSpecification"/>.
+    /// A SelectDecorator operator applies to a <see cref="Select"/> and decorates it
+    /// with a <see cref="OrderBy"/> clause, a <see cref="For"/> xml, browse, json or system_time, 
+    /// and/or a <see cref="Option"/> clause (int this order).
     /// </summary>
     public class SelectDecorator : SqlNode, ISelectSpecification
     {
@@ -47,9 +49,9 @@ namespace CK.SqlServer.Parser
             }
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IList<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
         {
-            return new SelectDecorator( this, leading, children, trailing );
+            return new SelectDecorator( this, leading, content, trailing );
         }
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
@@ -77,7 +79,7 @@ namespace CK.SqlServer.Parser
         SelectColumnList ISelectSpecification.Columns => Select.Columns; 
 
         [DebuggerStepThrough]
-        internal protected override ISqlNode Accept( SqlItemVisitor visitor ) => visitor.Visit( this );
+        internal protected override ISqlNode Accept( SqlNodeVisitor visitor ) => visitor.Visit( this );
 
     }
 

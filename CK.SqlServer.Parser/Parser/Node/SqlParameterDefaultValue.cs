@@ -52,7 +52,7 @@
 //            }
 //        }
 
-//        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
+//        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IList<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
 //        {
 //            return new SqlParameterDefaultValue( this, leading, children, trailing );
 //        }

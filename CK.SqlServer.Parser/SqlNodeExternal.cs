@@ -20,7 +20,7 @@ namespace CK.SqlServer.Parser
         }
 
         [DebuggerStepThrough]
-        internal protected override sealed ISqlNode Accept( SqlItemVisitor visitor )
+        internal protected override sealed ISqlNode Accept( SqlNodeVisitor visitor )
         {
             return visitor.Visit( this );
         }

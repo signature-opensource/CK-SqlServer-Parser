@@ -10,11 +10,12 @@ namespace CK.SqlServer.Parser
     {
         /// <summary>
         /// Gets the operator type: it can be:
-        ///  <see cref="SelectOperatorKind.UnionDistinct"/>, <see cref="SqlTokenType.Except"/>, <see cref="SqlTokenType.Intersect"/>
-        /// if this is a <see cref="SelectCombine"/>, 
-        /// <see cref="SqlTokenType.Order"/> for a <see cref="SelectDecorator"/>, 
-        /// <see cref="SqlTokenType.For"/> 
-        /// for <see cref="SelectFor"/> and <see cref="SqlTokenType.None"/> if this is a <see cref="SelectSpec"/>.
+        /// <see cref="SqlTokenType.None"/> if this is a <see cref="SelectSpec"/>.
+        ///  <see cref="SelectOperatorKind.UnionAll"/>, 
+        ///  <see cref="SelectOperatorKind.UnionDistinct"/>, 
+        ///  <see cref="SelectOperatorKind.Except"/>, 
+        ///  <see cref="SelectOperatorKind.Intersect"/> if this is a <see cref="SelectCombine"/>, 
+        /// <see cref="SelectOperatorKind.Decorator"/> for a <see cref="SelectDecorator"/>.
         /// </summary>
         SelectOperatorKind SelectOperator { get; }
 

@@ -31,15 +31,15 @@ namespace CK.SqlServer.Parser
             if( items != null ) CheckContent();
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IList<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
         {
-            return new SqlWithOptions( this, leading, children, trailing );
+            return new SqlWithOptions( this, leading, content, trailing );
         }
 
         public SqlTokenIdentifier WithT => Prefix;
 
         [DebuggerStepThrough]
-        internal protected override ISqlNode Accept( SqlItemVisitor visitor ) => visitor.Visit( this );
+        internal protected override ISqlNode Accept( SqlNodeVisitor visitor ) => visitor.Visit( this );
 
     }
 

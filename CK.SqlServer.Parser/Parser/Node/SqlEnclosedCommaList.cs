@@ -27,18 +27,29 @@ namespace CK.SqlServer.Parser
         {
         }
 
+        /// <summary>
+        /// Initializes a new <see cref="SqlEnclosedCommaList"/> with one or zero item in it.
+        /// </summary>
+        /// <param name="item">Optional item.</param>
+        public SqlEnclosedCommaList( ISqlNode item = null )
+            : base( 0, SqlKeyword.OpenPar, item == null ? Util.EmptyArray<ISqlNode>.Empty : new[] { item }, SqlKeyword.ClosePar )
+        {
+        }
+
         SqlEnclosedCommaList( SqlEnclosedCommaList o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
             : base( o, 0, leading, items, trailing )
         {
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
+        public SqlEnclosedCommaList InsertAt( int idx, ISqlNode item ) => (SqlEnclosedCommaList)DoInsertAt( idx, item );
+
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IList<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
         {
-            return new SqlEnclosedCommaList( this, leading, children, trailing );
+            return new SqlEnclosedCommaList( this, leading, content, trailing );
         }
         
         [DebuggerStepThrough]
-        internal protected override ISqlNode Accept( SqlItemVisitor visitor ) => visitor.Visit( this );
+        internal protected override ISqlNode Accept( SqlNodeVisitor visitor ) => visitor.Visit( this );
 
     }
 

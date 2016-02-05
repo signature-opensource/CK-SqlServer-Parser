@@ -26,9 +26,9 @@ namespace CK.SqlServer.Parser
         {
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IList<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
         {
-            return new SqlMultiIdentifier( this, leading, items, trailing );
+            return new SqlMultiIdentifier( this, leading, content, trailing );
         }
         public bool IsVariable => this[0].IsVariable;
 
@@ -37,7 +37,7 @@ namespace CK.SqlServer.Parser
         IReadOnlyList<ISqlIdentifier> ISqlIdentifier.Identifiers => this;
 
         [DebuggerStepThrough]
-        internal protected override ISqlNode Accept( SqlItemVisitor visitor ) => visitor.Visit( this );
+        internal protected override ISqlNode Accept( SqlNodeVisitor visitor ) => visitor.Visit( this );
 
     }
 

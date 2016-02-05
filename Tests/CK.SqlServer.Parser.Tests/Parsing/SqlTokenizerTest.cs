@@ -5,6 +5,7 @@ using System.Text;
 using NUnit.Framework;
 using CK.SqlServer;
 using System.Text.RegularExpressions;
+using CK.SqlServer.UtilTests;
 
 namespace CK.SqlServer.Parser.Tests
 {

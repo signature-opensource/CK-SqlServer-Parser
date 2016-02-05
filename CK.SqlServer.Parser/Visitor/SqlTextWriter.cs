@@ -25,6 +25,7 @@ namespace CK.SqlServer.Parser
 
         /// <summary>
         /// Creates a writer on one line without any comments.
+        /// Existing spaces (and line separators) are compacted but still appear in the result.
         /// </summary>
         /// <param name="b">An optional existing String builder.</param>
         /// <returns>The text writer.</returns>
@@ -33,10 +34,22 @@ namespace CK.SqlServer.Parser
             return new OneLineCompact( b ?? new StringBuilder() );
         }
 
+        /// <summary>
+        /// Creates a writer without any optional separators: a white space appears only when it is
+        /// syntaxically mandatory.
+        /// </summary>
+        /// <param name="b">An optional existing String builder.</param>
+        /// <returns>The text writer.</returns>
+        public static ISqlTextWriter CreateHyperCompact( StringBuilder b = null )
+        {
+            return new HyperCompact( b ?? new StringBuilder() );
+        }
+
         class Full : ISqlTextWriter
         {
             readonly StringBuilder _b;
             readonly bool _restoreUselessComments;
+            SqlTokenType _prevTokenType;
 
             public Full( StringBuilder b, bool restoreUselessComments )
             {
@@ -50,6 +63,8 @@ namespace CK.SqlServer.Parser
 
             public void Write( SqlTrivia t )
             {
+                if( t.IsEmpty ) return;
+                _prevTokenType = t.TokenType;
                 switch( t.TokenType )
                 {
                     case SqlTokenType.LineComment: _b.Append( "--" ).Append( t.Text ).AppendLine(); break;
@@ -80,8 +95,13 @@ namespace CK.SqlServer.Parser
                 }
             }
 
-            public void Write( string text, bool? whiteSpaceBefore = null, bool? whiteSpaceAfter = null )
+            public void Write( SqlTokenType type, string text, bool? whiteSpaceBefore = null, bool? whiteSpaceAfter = null )
             {
+                if( SqlToken.RequiresSeparatorBetween( _prevTokenType, type ) )
+                {
+                    _b.Append( ' ' );
+                }
+                _prevTokenType = type;
                 _b.Append( text );
             }
 
@@ -96,6 +116,7 @@ namespace CK.SqlServer.Parser
             readonly StringBuilder _b;
             bool _ensureWhiteSpace;
             bool _allowWhiteSpaceAfter;
+            SqlTokenType _prevTokenType;
 
             public OneLineCompact( StringBuilder b ) { _b = b; }
 
@@ -105,19 +126,24 @@ namespace CK.SqlServer.Parser
 
             public void Write( SqlTrivia t )
             {
-                _ensureWhiteSpace = _allowWhiteSpaceAfter;
+                if( !t.IsEmpty )
+                {
+                    _ensureWhiteSpace = _allowWhiteSpaceAfter;
+                }
             }
 
-            public void Write( string text, bool? whiteSpaceBefore = null, bool? whiteSpaceAfter = null )
+            public void Write( SqlTokenType type, string text, bool? whiteSpaceBefore = null, bool? whiteSpaceAfter = null )
             {
                 if( text.Length > 0 )
                 {
                     if( (!whiteSpaceBefore.HasValue && _ensureWhiteSpace)
-                        || (whiteSpaceBefore.HasValue && whiteSpaceBefore.Value) )
+                        || (whiteSpaceBefore.HasValue && whiteSpaceBefore.Value)
+                        || SqlToken.RequiresSeparatorBetween( _prevTokenType, type ) )
                     {
                         _b.Append( ' ' );
                     }
                     _b.Append( text );
+                    _prevTokenType = type;
                     if( whiteSpaceAfter.HasValue )
                     {
                         _allowWhiteSpaceAfter = _ensureWhiteSpace = whiteSpaceAfter.Value;
@@ -135,5 +161,40 @@ namespace CK.SqlServer.Parser
                 return _b.ToString();
             }
         }
+
+        class HyperCompact : ISqlTextWriter
+        {
+            readonly StringBuilder _b;
+            SqlTokenType _prevTokenType;
+
+            public HyperCompact( StringBuilder b ) { _b = b; }
+
+            public bool SkipLineComment => true;
+
+            public bool SkipStarComment => true;
+
+            public void Write( SqlTrivia t )
+            {
+            }
+
+            public void Write( SqlTokenType type, string text, bool? whiteSpaceBefore = null, bool? whiteSpaceAfter = null )
+            {
+                if( text.Length > 0 )
+                {
+                    if( SqlToken.RequiresSeparatorBetween( _prevTokenType, type ) )
+                    {
+                        _b.Append( ' ' );
+                    }
+                    _b.Append( text );
+                    _prevTokenType = type;
+                }
+            }
+
+            public override string ToString()
+            {
+                return _b.ToString();
+            }
+        }
+
     }
 }

@@ -8,7 +8,7 @@ using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
-    public sealed class SqlFunctionTable : SqlNode, ISqlNamedStatement, ISqlServerFunctionTable
+    public sealed class SqlFunctionTable : SqlNode, ISqlNamedStatement, ISqlServerFunctionTable, ISqlParameterListHolder
     {
         readonly SNode<SqlTokenIdentifier,
             SqlTokenIdentifier,
@@ -82,9 +82,9 @@ namespace CK.SqlServer.Parser
             }
         }
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> children, ImmutableList<SqlTrivia> trailing )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IList<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
         {
-            return new SqlFunctionTable( this, leading, children, trailing );
+            return new SqlFunctionTable( this, leading, content, trailing );
         }
 
         public StatementKnownName StatementKnownName => AlterOrCreateT.TokenType == SqlTokenType.Alter
@@ -113,6 +113,8 @@ namespace CK.SqlServer.Parser
 
         public SqlParameterList Parameters => _content.V4;
 
+        public SqlFunctionTable SetParameters( SqlParameterList parameters ) => this.ReplaceContentNode( 3, parameters );
+
         public SqlTokenIdentifier ReturnsT => _content.V5;
 
         public SqlTokenIdentifier TableVariableName => _content.V6;
@@ -136,9 +138,9 @@ namespace CK.SqlServer.Parser
         public SqlTokenTerminal StatementTerminator => _content.V13;
 
         [DebuggerStepThrough]
-        internal protected override ISqlNode Accept( SqlItemVisitor visitor ) => visitor.Visit( this );
+        internal protected override ISqlNode Accept( SqlNodeVisitor visitor ) => visitor.Visit( this );
 
-        ISqlServerParameterList ISqlServerCallableObject.Parameters => _content.V4;
+        ISqlServerParameterList ISqlServerCallableObject.Parameters => _content.V4.ModelParameters;
 
         SqlServerObjectType ISqlServerObject.ObjectType => SqlServerObjectType.MultiStatementTableFunction;
 
@@ -154,11 +156,13 @@ namespace CK.SqlServer.Parser
 
         ISqlServerAlterOrCreateStatement ISqlServerAlterOrCreateStatement.ToggleAlterKeyword()
         {
-            return (ISqlServerAlterOrCreateStatement)ReplaceContentNode( 0,
-                    IsAlterKeyword
-                        ? new SqlTokenIdentifier( SqlTokenType.Create, "create", AlterOrCreateT.LeadingTrivias, AlterOrCreateT.TrailingTrivias )
-                        : new SqlTokenIdentifier( SqlTokenType.Alter, "alter", AlterOrCreateT.LeadingTrivias, AlterOrCreateT.TrailingTrivias ) );
+            return this.ReplaceContentNode( 0,
+                            IsAlterKeyword
+                                ? new SqlTokenIdentifier( SqlTokenType.Create, "create", AlterOrCreateT.LeadingTrivias, AlterOrCreateT.TrailingTrivias )
+                                : new SqlTokenIdentifier( SqlTokenType.Alter, "alter", AlterOrCreateT.LeadingTrivias, AlterOrCreateT.TrailingTrivias ) );
         }
+
+        ISqlParameterListHolder ISqlParameterListHolder.SetParameters( SqlParameterList parameters ) => SetParameters( parameters );
 
     }
 }

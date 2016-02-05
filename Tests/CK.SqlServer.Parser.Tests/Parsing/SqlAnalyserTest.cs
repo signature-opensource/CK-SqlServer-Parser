@@ -8,6 +8,7 @@ using System.Text.RegularExpressions;
 using NUnit.Framework;
 using System.Xml.Linq;
 using CK.Core;
+using CK.SqlServer.UtilTests;
 
 namespace CK.SqlServer.Parser.Tests
 {
@@ -25,10 +26,11 @@ namespace CK.SqlServer.Parser.Tests
             Assert.That( e.ToString( true, true ).NormalizeEOL(), Is.EqualTo( text ) );
         }
 
-        [Test]
-        public void The_sp_GetDDL_script_is_correctlty_parsed()
+        [TestCase( "sp_GetDDL.sql", 7 )]
+        [TestCase( "SQLDOM_core_persist_927.sql", 86 )]
+        public void The_big_scripts_are_correctlty_parsed( string name, int numberOfStatement )
         {
-            string text = TestHelper.LoadTextFromParsingScripts( "sp_GetDDL.sql" );
+            string text = TestHelper.LoadTextFromParsingScripts( name );
             ISqlNode e;
             SqlAnalyser.ErrorResult r = SqlAnalyser.Parse( out e, ParseMode.AllStatements, text );
             Assert.That( r.IsError, Is.False, r.ToString() );
@@ -38,7 +40,7 @@ namespace CK.SqlServer.Parser.Tests
             string visitedString = visited.ToString();
             TestHelper.ConsoleMonitor.Trace().Send( visitedString );
 
-            Assert.That( ((SqlNodeList)e).Count, Is.EqualTo( 7 ) );
+            Assert.That( ((SqlNodeList)e).Count, Is.EqualTo( numberOfStatement ) );
         }
 
         [Test]
@@ -124,7 +126,7 @@ namespace CK.SqlServer.Parser.Tests
                 Assert.That( sp.Parameters[8].DefaultValue.IsNull, Is.True );
                 Assert.That( sp.Parameters[8].DefaultValue.IsLiteral, Is.False );
 
-                Assert.That( sp.Header.ToStringCompact(), Is.EqualTo( "procedure CK.sStoredProcedureInputOutput @p1 int, @p2 tinyint = 0, @p3 smallint output, @p4 nvarchar(50)=N'Murfn...', @p5 varchar(max) /*input*/output, @p6 char /*input*/output, @p7 Xml output, @p8 smalldatetime /*input*/output, @p9 smalldatetime = null" ) );
+                Assert.That( sp.Header.ToStringCompact(), Is.EqualTo( "procedure CK.sStoredProcedureInputOutput @p1 int, @p2 tinyint=0, @p3 smallint output, @p4 nvarchar(50)=N'Murfn...', @p5 varchar(max) /*input*/output, @p6 char /*input*/output, @p7 Xml output, @p8 smalldatetime /*input*/output, @p9 smalldatetime=null" ) );
             } );
         }
 
