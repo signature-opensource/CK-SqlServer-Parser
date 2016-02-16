@@ -13,7 +13,7 @@ namespace CK.SqlServer.Parser
     /// An identifier (a <see cref="SqlTokenIdentifier"/>, typically a variable name) followed by an
     /// optional 'as' and a type declaration (<see cref="ISqlUnifiedTypeDecl"/>).
     /// </summary>
-    public sealed class SqlTypedIdentifier : SqlNode
+    public sealed class SqlTypedIdentifier : SqlNonToken
     {
         readonly SNode<SqlTokenIdentifier, SqlTokenIdentifier, ISqlUnifiedTypeDecl> _content;
 

@@ -49,29 +49,29 @@ namespace CK.SqlServer.Parser
 
         public override sealed IEnumerable<SqlTrivia> FullTrailingTrivias => TrailingTrivias;
 
+        public override sealed IEnumerable<ISqlNode> LeadingNodes => Util.EmptyArray<ISqlNode>.Empty;
+
+        public override sealed IEnumerable<ISqlNode> TrailingNodes => Util.EmptyArray<ISqlNode>.Empty;
+
+        public override sealed int Width => 1;
+
         /// <summary>
         /// Gets an empty node list.
         /// </summary>
-        public sealed override IReadOnlyList<ISqlNode> ChildrenNodes => Util.EmptyArray<SqlNode>.Empty;
+        public override sealed IReadOnlyList<ISqlNode> ChildrenNodes => Util.EmptyArray<SqlNode>.Empty;
 
-        public sealed override IList<ISqlNode> GetRawContent() => Util.EmptyArray<SqlNode>.Empty;
+        public override sealed IList<ISqlNode> GetRawContent() => Util.EmptyArray<SqlNode>.Empty;
 
-        public override bool IsToken( SqlTokenType t ) => TokenType == t;
+        public override sealed bool IsToken( SqlTokenType t ) => TokenType == t;
 
         #region IEnumerable<SqlToken> AllTokens auto implementation
-        public override IEnumerable<SqlToken> AllTokens => this;
+        public override sealed IEnumerable<SqlToken> AllTokens => this;
 
-        IEnumerator<SqlToken> IEnumerable<SqlToken>.GetEnumerator()
-        {
-            return new CKEnumeratorMono<SqlToken>( this );
-        }
+        IEnumerator<SqlToken> IEnumerable<SqlToken>.GetEnumerator() => new CKEnumeratorMono<SqlToken>( this );
 
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return new CKEnumeratorMono<SqlToken>( this );
-        }
+        IEnumerator IEnumerable.GetEnumerator() => new CKEnumeratorMono<SqlToken>( this );
+
         #endregion
-
 
         /// <summary>
         /// True if the <see cref="SqlToken"/> is the terminator statement ';'.
@@ -150,6 +150,7 @@ namespace CK.SqlServer.Parser
 
         /// <summary>
         /// Tests whether an identifier must be quoted (it is empty, starts with @, or $ or contains a character that is not valid).
+        /// This DOES NOT consider <see cref="SqlKeyword.IsReservedKeyword(string, out SqlTokenType)"/>.
         /// </summary>
         /// <param name="identifier">Identifier to test.</param>
         /// <returns>True if the identifier can be used without surrounding quotes.</returns>
@@ -210,7 +211,6 @@ namespace CK.SqlServer.Parser
             // is required. Only if right is a 'ansi' string can we remove it.
             return right != SqlTokenType.String;
         }
-
 
     }
 

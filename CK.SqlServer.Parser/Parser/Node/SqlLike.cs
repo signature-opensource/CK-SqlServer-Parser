@@ -13,7 +13,7 @@ namespace CK.SqlServer.Parser
     /// <summary>
     /// 
     /// </summary>
-    public sealed class SqlLike : SqlNode
+    public sealed class SqlLike : SqlNonToken
     {
         readonly SNode<ISqlNode, SqlTokenIdentifier, SqlTokenIdentifier, ISqlNode, SqlTokenIdentifier, SqlTokenLiteralString> _content;
 

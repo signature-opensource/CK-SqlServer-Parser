@@ -7,7 +7,7 @@ namespace CK.SqlServer.Parser
     /// <summary>
     /// A try/catch block is defined by begin try...end try begin catch...end catch.
     /// </summary>
-    public sealed class SqlTryCatch : SqlNode, ISqlNamedStatement
+    public sealed class SqlTryCatch : SqlNonToken, ISqlNamedStatement
     {
         readonly SNode<
             SqlTokenIdentifier, SqlTokenIdentifier, 

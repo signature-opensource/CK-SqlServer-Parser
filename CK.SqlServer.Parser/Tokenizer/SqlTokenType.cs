@@ -50,20 +50,25 @@ namespace CK.SqlServer.Parser
     {
         /// <summary>
         /// Not a token per-se.
-        /// Can be used to denote white space.
+        /// Used to denote white space.
         /// </summary>
         None = 0,
 
         #region SqlTokenTypeError values bits (negative values)
         /// <summary>
-        /// Any negative value indicates an error or the end of the input.
+        /// Any negative value indicates an error or the end or beg of the input.
         /// </summary>
-        IsErrorOrEndOfInput = SqlTokenTypeError.IsErrorOrEndOfInput,       
+        IsErrorOrEndOfInput = SqlTokenTypeError.IsErrorOrEndOfInput,
         /// <summary>
         /// Same value as <see cref="SqlTokenTypeError.EndOfInput"/>.
-        /// The two most significant bits are set.
         /// </summary>
         EndOfInput = SqlTokenTypeError.EndOfInput,
+        /// <summary>
+        /// Same value as <see cref="SqlTokenTypeError.BegOfInput"/>.
+        /// This is not used as the parser level (the tokenizer always positions itself on the first token
+        /// or the end of the inpit). This type is available as a helper to other layers.
+        /// </summary>
+        BegOfInput = SqlTokenTypeError.BegOfInput,
 
         IsError = SqlTokenTypeError.IsError,
         ErrorMask = SqlTokenTypeError.ErrorMask,
@@ -326,22 +331,22 @@ namespace CK.SqlServer.Parser
         NotLessThan = IsCompareOperator | OpLevel11 | 9,
         #endregion
         
-        PunctuationCount = 5,
+        PunctuationCount = 8,
         #region Punctuations
         /// <summary>
         /// One dot.
         /// </summary>
         Dot = IsPunctuation | OpLevel15 | 1,
         /// <summary>
-        /// The comma is an operator.
+        /// The comma (,) is an operator.
         /// </summary>
         Comma = IsPunctuation | OpLevel01 | 2,
         /// <summary>
-        /// Statement terminator;
+        /// Statement terminator (;).
         /// </summary>
         SemiColon = IsPunctuation | 3,
         /// <summary>
-        /// One single colon.
+        /// One single colon (:).
         /// </summary>
         Colon = IsPunctuation | 4,
         /// <summary>
@@ -349,6 +354,18 @@ namespace CK.SqlServer.Parser
         /// statements: GRANT SELECT ON OBJECT::Person.Address TO Albert;
         /// </summary>
         DoubleColons = IsPunctuation | OpLevel15 | 5,
+        /// <summary>
+        /// Question mark (?) does not belong to the T-Sql terminals.
+        /// </summary>
+        QuestionMark = IsPunctuation | 6,
+        /// <summary>
+        /// Double Question mark (??) does not belong to the T-Sql terminals.
+        /// </summary>
+        DoubleQuestionMark = IsPunctuation | 7,
+        /// <summary>
+        /// Triple Question mark (???) does not belong to the T-Sql terminals.
+        /// </summary>
+        TripleQuestionMark = IsPunctuation | 8,
         #endregion
 
         /// <summary>

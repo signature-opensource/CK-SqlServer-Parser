@@ -12,7 +12,7 @@ namespace CK.SqlServer.Parser
     /// <summary>
     /// A block is defined by begin...end enclosing keywords.
     /// </summary>
-    public sealed class SqlBeginEndBlock : SqlNode, ISqlNamedStatement
+    public sealed class SqlBeginEndBlock : SqlNonToken, ISqlNamedStatement
     {
         readonly SNode<SqlTokenIdentifier, SqlStatementList, SqlTokenIdentifier, SqlTokenTerminal> _content;
 

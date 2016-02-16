@@ -14,7 +14,7 @@ namespace CK.SqlServer.Parser
     /// Even if it seems that "having" can exist without "group by" clause, I have not found any use of it: 
     /// I decided to subordinate the "having" to the "group by".
     /// </summary>
-    public sealed class SelectGroupBy : SqlNode
+    public sealed class SelectGroupBy : SqlNonToken
     {
         readonly SNode<SqlTokenIdentifier, SqlTokenIdentifier, ISqlNode, SqlTokenIdentifier, ISqlNode> _content;
 

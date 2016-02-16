@@ -16,6 +16,11 @@ namespace CK.SqlServer.Parser
         IEnumerable<SqlToken> AllTokens { get; }
 
         /// <summary>
+        /// Gets the number of tokens in <see cref="AllTokens"/>.
+        /// </summary>
+        int Width { get; }
+
+        /// <summary>
         /// Gets the direct children if any. Never null.
         /// </summary>
         IReadOnlyList<ISqlNode> ChildrenNodes { get; }
@@ -63,7 +68,21 @@ namespace CK.SqlServer.Parser
         /// </summary>
         ISqlNode UnPar { get; }
 
+        /// <summary>
+        /// Helper function that helps challenging this node as a token.
+        /// </summary>
+        /// <param name="t">The expected token type.</param>
+        /// <returns>True if this node is a token of the expected type.</returns>
         bool IsToken( SqlTokenType t );
+
+        /// <summary>
+        /// Finds the token at a relative position in this node. if the index is out of 
+        /// range (ie. negative or greater or equal to <see cref="Width"/>), null is returned.
+        /// </summary>
+        /// <param name="index">The zero based index of the token to locate.</param>
+        /// <param name="onPath">Will be called for each intermediate node with the relative index of its first token.</param>
+        /// <returns>The token or null if index is out of range.</returns>
+        SqlToken LocateToken( int index, Action<ISqlNode, int> onPath );
 
         /// <summary>
         /// Overriden to return the result of <see cref="WriteWithoutTrivias"/> with 

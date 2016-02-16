@@ -8,7 +8,7 @@ using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
-    public sealed class SqlKoCall : SqlNode
+    public sealed class SqlKoCall : SqlNonToken
     {
         readonly SNode<ISqlNode, SqlEnclosedCommaList, SqlOverClause> _content;
 

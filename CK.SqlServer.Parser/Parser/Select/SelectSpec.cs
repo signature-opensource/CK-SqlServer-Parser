@@ -11,7 +11,7 @@ namespace CK.SqlServer.Parser
     /// Captures 'into', 'from', 'where' and 'group by' clauses. The <see cref="SelectDecorator"/> and <see cref="SelectFor"/>
     /// as well as the <see cref="SelectCombine"/> are operators that wraps other <see cref="ISelectSpecification"/>.
     /// </summary>
-    public sealed class SelectSpec : SqlNode, ISelectSpecification
+    public sealed class SelectSpec : SqlNonToken, ISelectSpecification
     {
         readonly SNode<SelectHeader, SelectColumnList, SelectInto, SelectFrom, SqlTokenIdentifier, ISqlNode, SelectGroupBy> _content;
 

@@ -14,7 +14,7 @@ namespace CK.SqlServer.Parser
     /// <summary>
     /// A user defined type is denoted by a dotted identifier [dbo].DefinedType or single identifier like geometry.
     /// </summary>
-    public sealed class SqlTypeDeclUserDefined : SqlNode, ISqlUnifiedTypeDecl
+    public sealed class SqlTypeDeclUserDefined : SqlNonToken, ISqlUnifiedTypeDecl
     {
         readonly SNode<ISqlIdentifier> _content;
 

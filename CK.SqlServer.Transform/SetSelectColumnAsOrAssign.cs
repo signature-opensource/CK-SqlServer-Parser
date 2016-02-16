@@ -8,17 +8,16 @@ using System.Threading.Tasks;
 
 namespace CK.SqlServer.Transform
 {
-    public class SetSelectColumnAsOrAssign : SqlNodeTransformer
+    public class SetSelectColumnAsOrAssign : SqlNodeLocationVisitor
     {
         readonly bool _equalSyntax;
         
-        public SetSelectColumnAsOrAssign( IActivityMonitor monitor, bool useEqualSyntax )
-            : base( monitor )
+        public SetSelectColumnAsOrAssign( bool useEqualSyntax )
         {
             _equalSyntax = useEqualSyntax;
         }
 
-        public override ISqlNode Visit( SelectColumn e )
+        protected override ISqlNode Visit( SelectColumn e )
         {
             e = _equalSyntax ? e.ToEqualSyntax() : e.ToAsSyntax();
             return base.Visit( e );

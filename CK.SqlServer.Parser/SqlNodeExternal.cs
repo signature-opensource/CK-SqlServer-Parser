@@ -12,7 +12,7 @@ namespace CK.SqlServer.Parser
     /// <summary>
     /// Abstract class that can be used to extend the model with any type of nodes.
     /// </summary>
-    public abstract class SqlNodeExternal : SqlNode
+    public abstract class SqlNodeExternal : SqlNonToken
     {
         protected SqlNodeExternal( ImmutableList<SqlTrivia> leading = null, ImmutableList<SqlTrivia> trailing = null )
             : base( leading, trailing )

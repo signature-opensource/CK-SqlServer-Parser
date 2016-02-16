@@ -13,7 +13,7 @@ namespace CK.SqlServer.Parser
     /// Captures any statement: it is a <see cref="Name"/> and a non empty <see cref="Content"/> 
     /// (a <see cref="SqlNodeList"/>).
     /// </summary>
-    public sealed class SqlStatement : SqlNode, ISqlNamedStatement
+    public sealed class SqlStatement : SqlNonToken, ISqlNamedStatement
     {
         readonly SNode<ISqlIdentifier, ISqlNode, SqlTokenTerminal> _content;
 

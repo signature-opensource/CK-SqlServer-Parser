@@ -17,8 +17,6 @@ namespace CK.SqlServer.Parser
     {
         readonly string _errorMessage;
 
-        public static readonly SqlTokenError EndOfInput = new SqlTokenError( SqlTokenTypeError.EndOfInput, null, null, null );
-
         public SqlTokenError( SqlTokenTypeError t, ImmutableList<SqlTrivia> leadingTrivia = null, ImmutableList<SqlTrivia> trailingTrivia = null, string message = null )
             : base( (SqlTokenType)t, leadingTrivia, trailingTrivia )
         {

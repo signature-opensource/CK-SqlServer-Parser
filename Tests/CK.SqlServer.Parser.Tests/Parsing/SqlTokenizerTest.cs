@@ -194,6 +194,23 @@ end
             Assert.That( Regex.Replace( tokenTypes, @"\s+", string.Empty ), Is.EqualTo( Regex.Replace( sT, @"\s+", string.Empty ) ) );
         }
 
+        [TestCase( "A.B.C", 1, "C" )]
+        [TestCase( "A.B.C", 2, "B" )]
+        [TestCase( "A.B.C", 3, "A" )]
+        [TestCase( "A.B.C", 4, null )]
+        [TestCase( "[ 1 ]", 1, " 1 " )]
+        [TestCase( "[ 1 ] /*k*/ . [ - n°2 - ]", 1, " - n°2 - " )]
+        [TestCase( "[ 1 ] /*k*/ . [ - n°2 - ]", 2, " 1 " )]
+        [TestCase( "[ 1 ] /*k*/ . [ - n°2 - ]", 3, null )]
+        [TestCase( "[ $ ]", 1, " $ " )]
+        [TestCase( "[ $ ]", 2, null )]
+        public void getting_identifier_part_name( string id, int idxPart, string part )
+        {
+            ISqlIdentifier t = (ISqlIdentifier)new SqlAnalyser( id ).IsOneExpression( true );
+            Assert.That( t.GetPartName( idxPart ), Is.EqualTo( part ) );
+        }
+
+
         [Test]
         public void Float_and_Decimal_with_leading_dot_are_transformed_with_a_leading_Zero_Dot()
         {

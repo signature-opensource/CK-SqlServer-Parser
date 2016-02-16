@@ -13,7 +13,7 @@ namespace CK.SqlServer.Parser
     /// <summary>
     /// Generic list of T separated by TSep.
     /// </summary>
-    public abstract class ASqlNodeSeparatedList<T,TSep> : SqlNode, IReadOnlyList<T>
+    public abstract class ASqlNodeSeparatedList<T,TSep> : SqlNonToken, IReadOnlyList<T>
         where T : class, ISqlNode 
         where TSep : class, ISqlNode
     {
@@ -73,17 +73,23 @@ namespace CK.SqlServer.Parser
         /// <summary>
         /// Gets the direct children if any. Never null.
         /// </summary>
-        public sealed override IReadOnlyList<ISqlNode> ChildrenNodes => _items;
+        public override sealed IReadOnlyList<ISqlNode> ChildrenNodes => _items;
 
-        public sealed override IList<ISqlNode> GetRawContent() => _items.ToList();
+        public override sealed IList<ISqlNode> GetRawContent() => _items.ToList();
 
         public int Count => (_items.Length + 1) / 2;
 
+        /// <summary>
+        /// Transforms or removes an item.
+        /// </summary>
+        /// <param name="transform">Transformer. When null is returned, the item is removed.</param>
+        /// <returns>A new list.</returns>
         protected ASqlNodeSeparatedList<T, TSep> DoReplaceItems( Func<int,T,T> transform )
         {
             if( transform == null ) throw new ArgumentNullException( nameof( transform ) );
             int count = Count;
             List<ISqlNode> changed = null;
+            int iC = 0;
             for( int i = 0; i < count; ++i )
             {
                 var item = this[i];
@@ -91,23 +97,36 @@ namespace CK.SqlServer.Parser
                 if( item != item2 )
                 {
                     if( changed == null ) changed = _items.ToList();
+                    int idChanged = iC * 2;
                     if( item2 == null )
                     {
-                        changed.RemoveAt( i * 2 );
-                        if( i < count-1 ) changed.RemoveAt( i * 2 );
-                        --i;
+                        changed.RemoveAt( idChanged );
+                        if( i < count-1 ) changed.RemoveAt( idChanged );
+                        else if( changed.Count > 1 ) changed.RemoveAt( changed.Count-1 );
+                        --iC;
                     }
-                    else changed[i * 2] = item2;
+                    else changed[idChanged] = item2;
                 }
+                ++iC;
             }
             return changed != null ? this.SetRawContent( changed ) : this;
         }
 
 
-        protected ASqlNodeSeparatedList<T, TSep> DoInsertAt( int idx, T item )
+        /// <summary>
+        /// Inserts a new item at a specified position in the list.
+        /// By default, <see cref="CreateDefaultSeparator"/> is used.
+        /// </summary>
+        /// <param name="idx">Insertion position.</param>
+        /// <param name="item">Item to insert.</param>
+        /// <param name="reuseExistingSeparatorIfPossible">False to always use <paramref name="separatorFactory"/>.</param>
+        /// <param name="separatorFactory">Let it to null to use <see cref="CreateDefaultSeparator"/>.</param>
+        /// <returns>A new list.</returns>
+        protected ASqlNodeSeparatedList<T, TSep> DoInsertAt( int idx, T item, bool reuseExistingSeparatorIfPossible = true, Func<TSep> separatorFactory = null )
         {
             if( item == null ) throw new ArgumentNullException( nameof( item ) );
             if( idx < 0 || idx > Count ) throw new IndexOutOfRangeException();
+            if( separatorFactory == null ) separatorFactory = CreateDefaultSeparator;
             ISqlNode result;
             int count = Count;
             if( count == 0 )
@@ -129,7 +148,10 @@ namespace CK.SqlServer.Parser
             else if( idx < count )
             {
                 int rIdx = idx * 2;
-                TSep sep = idx == count - 1 ? (TSep)_items[rIdx - 1] : (TSep)_items[rIdx + 1];
+                TSep sep;
+                if( reuseExistingSeparatorIfPossible )
+                    sep = idx == count - 1 ? (TSep)_items[rIdx - 1] : (TSep)_items[rIdx + 1];
+                else sep = separatorFactory();
                 var content = _items.ToList();
                 content.Insert( rIdx, item );
                 content.Insert( rIdx + 1, sep );
@@ -138,9 +160,12 @@ namespace CK.SqlServer.Parser
             else
             {
                 Debug.Assert( idx == count );
-                TSep lastSep = (TSep)_items[_items.Length - 2];
+                TSep sep;
+                if( reuseExistingSeparatorIfPossible )
+                    sep = (TSep)_items[_items.Length - 2];
+                else sep = separatorFactory();
                 var content = _items.ToList();
-                content.Add( lastSep );
+                content.Add( sep );
                 content.Add( item );
                 result = DoSetRawContent( content );
             }

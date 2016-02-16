@@ -111,7 +111,7 @@ namespace CK.SqlServer.Parser
             return R.MoveNext();
         }
 
-        public ISqlNode Parse( ParseMode mode )
+        public ISqlNode Parse( ParseMode mode = ParseMode.AllStatements )
         {
             switch( mode )
             {

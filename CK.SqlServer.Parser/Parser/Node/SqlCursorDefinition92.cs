@@ -10,7 +10,7 @@ using System.Collections.Immutable;
 namespace CK.SqlServer.Parser
 {
 
-    public sealed class SqlCursorDefinition92 : SqlNode, ISqlCursorDefinition
+    public sealed class SqlCursorDefinition92 : SqlNonToken, ISqlCursorDefinition
     {
         readonly SNode<SqlTokenIdentifier,
             SqlTokenIdentifier,

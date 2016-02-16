@@ -36,6 +36,24 @@ namespace CK.SqlServer.Parser
 
         IReadOnlyList<ISqlIdentifier> ISqlIdentifier.Identifiers => this;
 
+        public ISqlIdentifier SetPartName( int idxPart, string name )
+        {
+            if( idxPart <= 0 || idxPart > 4 ) throw new ArgumentException( "Must be between 1 and 4.", nameof( idxPart ) );
+            if( IsOpenDataSouce ) throw new InvalidOperationException();
+            int idx = Count - idxPart;
+            if( name == null )
+            {
+                if( idx < 0 ) throw new ArgumentException( nameof( idxPart ) );
+                return (ISqlIdentifier)DoReplaceItems( ( i, n ) => i == idx ? null : n );
+            }
+            if( idx < -1 ) throw new ArgumentException( nameof( idxPart ) );
+            return idx == -1
+                    ? (ISqlIdentifier)DoInsertAt( 0, SqlTokenIdentifier.Create( name ) )
+                    : (ISqlIdentifier)DoReplaceItems( ( i, n ) => i == idx ? n.SetPartName(1, name ) : n );
+        }
+
+        protected override ISqlTokenIdentifierSeparator CreateDefaultSeparator() => SqlKeyword.Dot;
+
         [DebuggerStepThrough]
         internal protected override ISqlNode Accept( SqlNodeVisitor visitor ) => visitor.Visit( this );
 

@@ -9,11 +9,17 @@ namespace CK.SqlServer.Parser
 {
     public static class SqlKeyword
     {
+        public static readonly SqlTokenError BegOfInput;
+        public static readonly SqlTokenError EndOfInput;
+
         public static readonly SqlTokenDot Dot;
         public static readonly SqlTokenDoubleColon DoubleColon;
         public static readonly SqlTokenComma Comma;
         public static readonly SqlTokenComma CommaOneSpace;
         public static readonly SqlTokenTerminal SemiColon;
+        public static readonly SqlTokenTerminal QuestionMark;
+        public static readonly SqlTokenTerminal DoubleQuestionMark;
+        public static readonly SqlTokenTerminal TripleQuestionMark;
         public static readonly SqlTokenOpenPar OpenPar;
         public static readonly SqlTokenClosePar ClosePar;
         public static readonly SqlTokenTerminal Colon;
@@ -708,13 +714,16 @@ namespace CK.SqlServer.Parser
             NotGreaterThan			= RegTerminal( SqlTokenType.NotGreaterThan, "!>" );
             NotLessThan				= RegTerminal( SqlTokenType.NotLessThan, "!<" );
 
-            Debug.Assert( (int)SqlTokenType.PunctuationCount == 5 );
+            Debug.Assert( (int)SqlTokenType.PunctuationCount == 8 );
             Dot = (SqlTokenDot)RegTerminal( SqlTokenType.Dot, "." );
             Comma = (SqlTokenComma)RegTerminal( SqlTokenType.Comma, "," );
             CommaOneSpace = new SqlTokenComma( null, SqlTrivia.OneSpace );
             SemiColon = RegTerminal( SqlTokenType.SemiColon, ";" );
             Colon = RegTerminal( SqlTokenType.Colon, ":" );
             DoubleColon = (SqlTokenDoubleColon)RegTerminal( SqlTokenType.DoubleColons, "::" );
+            QuestionMark = RegTerminal( SqlTokenType.QuestionMark, "?" );
+            DoubleQuestionMark = RegTerminal( SqlTokenType.DoubleQuestionMark, "??" );
+            TripleQuestionMark = RegTerminal( SqlTokenType.TripleQuestionMark, "???" );
 
             OpenPar = (SqlTokenOpenPar)RegTerminal( SqlTokenType.OpenPar, "(" );
             ClosePar = (SqlTokenClosePar)RegTerminal( SqlTokenType.ClosePar, ")" );
@@ -729,12 +738,16 @@ namespace CK.SqlServer.Parser
             _typeToString.Add( SqlTokenType.None, "刁one" );
             _typeToString.Add( SqlTokenType.ErrorMask, "九rror" );
             _typeToString.Add( SqlTokenType.EndOfInput, "九ndOfInput" );
+            _typeToString.Add( SqlTokenType.BegOfInput, "丁egOfInput" );
             _typeToString.Add( SqlTokenType.ErrorInvalidChar, "九rrorInvalidChar" );
             _typeToString.Add( SqlTokenType.ErrorStringUnterminated, "九rrorStringUnterminated" );
             _typeToString.Add( SqlTokenType.ErrorIdentifierUnterminated, "九rrorIdentifierUnterminated" );
             _typeToString.Add( SqlTokenType.ErrorNumberUnterminatedValue, "九rrorNumberUnterminatedValue" );
             _typeToString.Add( SqlTokenType.ErrorNumberValue, "九rrorNumberValue" );
             _typeToString.Add( SqlTokenType.ErrorNumberIdentifierStartsImmediately, "九rrorNumberIdentifierStartsImmediately" );
+
+            BegOfInput = new SqlTokenError( SqlTokenTypeError.BegOfInput );
+            EndOfInput = new SqlTokenError( SqlTokenTypeError.EndOfInput );
 
             _typeToString.Add( SqlTokenType.String, "又tring" );
             _typeToString.Add( SqlTokenType.UnicodeString, "下nicodeString" );

@@ -74,9 +74,48 @@ namespace CK.SqlServer.Parser
         /// </summary>
         public string Name => _name; 
 
-        public bool NameEquals( string name )
-        { 
-            return String.Compare( _name, name, StringComparison.OrdinalIgnoreCase ) == 0; 
+        /// <summary>
+        /// Sets this identifier name.
+        /// </summary>
+        /// <param name="name">Name to set (must not be null nor empty).</param>
+        /// <param name="quoteReservedKeyword">False to not quote a reserved keyword. By default, a reserved keyword will be [quoted].</param>
+        /// <returns>This or a new identifier with the same trivias as this one.</returns>
+        public SqlTokenIdentifier SetName( string name, bool quoteReservedKeyword = true )
+        {
+            return name == _name ? this : Create( name, quoteReservedKeyword, LeadingTrivias, TrailingTrivias );
+        }
+
+        /// <summary>
+        /// Creates an identifier form a name. It will be [quoted] as needed.
+        /// </summary>
+        /// <param name="name">Name (must not be null nor empty).</param>
+        /// <param name="quoteReservedKeyword">False to not quote a reserved keyword. By default, a reserved keyword will be [quoted].</param>
+        /// <param name="leading">Optional leading trivias.</param>
+        /// <param name="trailing">Optional trailing trivias.</param>
+        /// <returns>A new identifier.</returns>
+        public static SqlTokenIdentifier Create( string name, bool quoteReservedKeyword = true, ImmutableList<SqlTrivia> leading = null, ImmutableList<SqlTrivia> trailing = null )
+        {
+            if( string.IsNullOrWhiteSpace( name ) ) throw new ArgumentNullException( nameof( name ) );
+            SqlTokenType knownType;
+            bool isReservedKeyWord = SqlKeyword.IsReservedKeyword( name, out knownType );
+
+            if( (quoteReservedKeyword && isReservedKeyWord) || IsQuoteRequired( name ) )
+            {
+                return new SqlTokenIdentifier( SqlTokenType.IdentifierQuotedBracket, name, leading, trailing );
+            }
+            if( knownType == SqlTokenType.None ) knownType = SqlTokenType.IdentifierStandard;
+            return new SqlTokenIdentifier( knownType, name, leading, trailing );
+        }
+
+        public ISqlIdentifier SetPartName( int idxPart, string name )
+        {
+            if( idxPart <= 0 || idxPart > 4 ) throw new ArgumentException( "Must be between 1 and 4.", nameof( idxPart ) );
+            if( name == null ) throw new InvalidOperationException();
+            int idx = 1 - idxPart;
+            if( idx < -1 ) throw new ArgumentException( nameof( idxPart ) );
+            return idx == -1
+                    ? (ISqlIdentifier)new SqlMultiIdentifier( new ISqlNode[] { Create( name ), SqlKeyword.Dot, this } )
+                    : SetName( name );
         }
 
         protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IList<ISqlNode> content, ImmutableList<SqlTrivia> trailing )

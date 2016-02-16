@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace CK.SqlServer.Parser
 {
-    public sealed class SqlPar : SqlNode
+    public sealed class SqlPar : SqlNonToken
     {
         readonly SNode<SqlTokenOpenPar, ISqlNode, SqlTokenClosePar> _content;
 

@@ -37,6 +37,54 @@ namespace CK.SqlServer.Parser.Tests.Transform
             Assert.That( alterC, Is.EqualTo( "create " + text ) );
         }
 
+        [TestCase( "create procedure X.test( @i int ) as begin select 0; end", " $ ", "create procedure [ $ ].test" )]
+        [TestCase( "alter function fTest( @i int ) returns int begin return 0; end", "PPP", "alter function PPP.fTest" )]
+        [TestCase( "create function /*c1*/[X]/*c2*/./*c3*/fTestMultiStatement( @i int ) returns @T table (Id int) begin return; end", "S", "create function /*c1*/S/*c2*/./*c3*/fTestMultiStatement" )]
+        [TestCase( "alter function [a schema].fTestITVF( @i int ) returns table return select 1;", null, "alter function fTestITVF" )]
+        public void schema_name_can_be_set( string text, string schema, string resultStart )
+        {
+            ISqlServerObject sqlObject;
+            ISqlServerParserError r = new SqlAnalyser( text ).ParseStatement( out sqlObject );
+            Assert.That( !r.IsError );
+            ISqlServerObject o2 = sqlObject.SetSchemaName( schema );
+            Assert.That( o2.ToFullString(), Is.StringStarting( resultStart ) );
+        }
+
+        [TestCase( "One", 1, "Two", "Two" )]
+        [TestCase( "One", 2, "Two", "Two.One" )]
+        [TestCase( "One", 3, "Two", "ArgumentException" )]
+        [TestCase( "One.Two", 1, "[3]", "One.[[3]]]" )]
+        [TestCase( "One.Two", 2, "[3]", "[[3]]].Two" )]
+        [TestCase( "One.Two", 3, "[3]", "[[3]]].One.Two" )]
+        [TestCase( "One.Two", 1, null, "One" )]
+        [TestCase( "One.Two", 2, null, "Two" )]
+        [TestCase( "One.Two", 3, null, "ArgumentException" )]
+        [TestCase( "One", 1, null, "InvalidOperationException" )]
+        [TestCase( "One", 2, null, "InvalidOperationException" )]
+        [TestCase( "One.Two.Three.Four", 5, null, "ArgumentException" )]
+        [TestCase( "One.Two.Three.Four", 4, null, "Two.Three.Four" )]
+        [TestCase( "One.Two.Three.Four", 3, null, "One.Three.Four" )]
+        [TestCase( "One.Two.Three.Four", 2, null, "One.Two.Four" )]
+        [TestCase( "One.Two.Three.Four", 1, null, "One.Two.Three" )]
+        [TestCase( "One.Two.Three.Four", 0, null, "ArgumentException" )]
+        public void setting_identifier_parts_via_SetPartName( string id, int idxPart, string name, string result )
+        {
+            ISqlIdentifier t = (ISqlIdentifier)new SqlAnalyser( id ).IsOneExpression( true );
+            if( result == "ArgumentException" )
+                Assert.Throws<ArgumentException>( () => t.SetPartName( idxPart, name ) );
+            else if( result == "InvalidOperationException" )
+                Assert.Throws<InvalidOperationException>( () => t.SetPartName( idxPart, name ) );
+            else
+            {
+                var r = t.SetPartName( idxPart, name );
+                Assert.That( r.ToString(), Is.EqualTo( result ) );
+                if( name != null )
+                {
+                    Assert.That( r.GetPartName( idxPart ), Is.EqualTo( name ) );
+                }
+            }
+        }
+
     }
 
 }

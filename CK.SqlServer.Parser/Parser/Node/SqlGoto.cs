@@ -12,7 +12,7 @@ namespace CK.SqlServer.Parser
     /// <summary>
     /// 
     /// </summary>
-    public sealed class SqlGoto : SqlNode, ISqlNamedStatement
+    public sealed class SqlGoto : SqlNonToken, ISqlNamedStatement
     {
         readonly SNode<SqlTokenIdentifier, SqlTokenIdentifier, SqlTokenTerminal> _content;
 

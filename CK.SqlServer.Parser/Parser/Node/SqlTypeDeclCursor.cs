@@ -13,7 +13,7 @@ namespace CK.SqlServer.Parser
     /// <summary>
     /// Captures 'CURSOR' or special 'CURSOR VARYING' parameter type. 
     /// </summary>
-    public sealed class SqlTypeDeclCursorParameter : SqlNode, ISqlUnifiedTypeDecl
+    public sealed class SqlTypeDeclCursorParameter : SqlNonToken, ISqlUnifiedTypeDecl
     {
         readonly SNode<SqlTokenIdentifier, SqlTokenIdentifier> _content;
 

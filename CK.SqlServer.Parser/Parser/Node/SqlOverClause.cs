@@ -11,7 +11,7 @@ namespace CK.SqlServer.Parser
     /// <summary>
     /// Captures a select column definition. 
     /// </summary>
-    public sealed class SqlOverClause : SqlNode
+    public sealed class SqlOverClause : SqlNonToken
     {
         readonly SNode<SqlTokenIdentifier, SqlTokenOpenPar, SqlNodeList, SqlTokenClosePar> _content;
 

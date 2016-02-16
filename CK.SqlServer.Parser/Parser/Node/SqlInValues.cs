@@ -10,7 +10,7 @@ using System.Collections.Immutable;
 namespace CK.SqlServer.Parser
 {
   
-    public class SqlInValues : SqlNode
+    public class SqlInValues : SqlNonToken
     {
         readonly SNode<ISqlNode, SqlTokenIdentifier, SqlTokenIdentifier, SqlEnclosedCommaList> _content;
 

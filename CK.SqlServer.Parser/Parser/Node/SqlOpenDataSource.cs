@@ -8,7 +8,7 @@ using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
-    public sealed class SqlOpenDataSource : SqlNode, ISqlIdentifier
+    public sealed class SqlOpenDataSource : SqlNonToken, ISqlIdentifier
     {
         readonly SNode<SqlTokenIdentifier, SqlEnclosedCommaList> _content;
 
@@ -46,6 +46,11 @@ namespace CK.SqlServer.Parser
         public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
 
         public SqlTokenIdentifier OpenDataSourceT => _content.V1;
+
+        public ISqlIdentifier SetPartName( int idxPart, string name )
+        {
+            throw new InvalidOperationException();
+        }
 
         public SqlEnclosedCommaList Parameters => _content.V2;
 

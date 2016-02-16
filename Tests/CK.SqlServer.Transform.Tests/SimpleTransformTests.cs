@@ -60,7 +60,7 @@ namespace CK.SqlServer.Transform.Tests
             var a = new SqlAnalyser( s );
             SqlSelectStatement st;
             Assert.That( a.ParseStatement( out st ).IsError, Is.False );
-            ISqlNode transformed = new SetSelectColumnAsOrAssign( TestHelper.ConsoleMonitor, true ).VisitItem( st );
+            ISqlNode transformed = new SetSelectColumnAsOrAssign( true ).VisitRoot( st );
             CheckRenderResult( result, a, transformed );
         }
 
@@ -71,7 +71,7 @@ namespace CK.SqlServer.Transform.Tests
             var a = new SqlAnalyser( s );
             SqlSelectStatement st;
             Assert.That( a.ParseStatement( out st ).IsError, Is.False );
-            SqlSelectStatement transformed = (SqlSelectStatement)new SetSelectColumnAsOrAssign( TestHelper.ConsoleMonitor, false ).VisitItem( st );
+            SqlSelectStatement transformed = (SqlSelectStatement)new SetSelectColumnAsOrAssign( false ).VisitRoot( st );
             CheckRenderResult( result, a, transformed );
         }
 

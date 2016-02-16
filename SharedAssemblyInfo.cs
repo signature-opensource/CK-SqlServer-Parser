@@ -14,7 +14,6 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyProduct( "CK-Database" )]
 [assembly: AssemblyCopyright( "Copyright © Invenietis 2012-2015" )]
 [assembly: AssemblyTrademark( "" )]
-[assembly: CLSCompliant( true )]
 
 #if DEBUG
     [assembly: AssemblyConfiguration( "Debug" )]

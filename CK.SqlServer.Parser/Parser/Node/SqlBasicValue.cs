@@ -12,7 +12,7 @@ namespace CK.SqlServer.Parser
     /// <summary>
     /// 
     /// </summary>
-    public sealed class SqlBasicValue : SqlNode, ISqlServerParameterDefaultValue
+    public sealed class SqlBasicValue : SqlNonToken, ISqlServerParameterDefaultValue
     {
         readonly SNode<SqlTokenTerminal, SqlToken> _content;
 

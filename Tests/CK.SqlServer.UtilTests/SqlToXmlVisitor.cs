@@ -131,7 +131,7 @@ namespace CK.SqlServer.UtilTests
             return e;
         }
 
-        public override ISqlNode Visit( SqlSelectStatement e )
+        protected override ISqlNode Visit( SqlSelectStatement e )
         {
             StartNode( e, x => 
                 x.Add( ToXml( "Select", e.Select ) ) 
@@ -139,7 +139,7 @@ namespace CK.SqlServer.UtilTests
             return e;
         }
 
-        public override ISqlNode Visit( SelectCombine e )
+        protected override ISqlNode Visit( SelectCombine e )
         {
             StartNode( e )
                 .Add( new XAttribute( "SelectType", e.SelectOperator.ToString() ),
@@ -148,7 +148,7 @@ namespace CK.SqlServer.UtilTests
             return e;
         }
 
-        public override ISqlNode Visit( SelectDecorator e )
+        protected override ISqlNode Visit( SelectDecorator e )
         {
             StartNode( e )
                 .Add( ToXml( "Select", e.Select ),
@@ -159,7 +159,7 @@ namespace CK.SqlServer.UtilTests
             return e;
         }
 
-        public override ISqlNode Visit( SelectOrderBy e )
+        protected override ISqlNode Visit( SelectOrderBy e )
         {
             StartNode( e, x => x.Add(
                     ToXml( nameof( e.OrderByColumns ), e.OrderByColumns ),
@@ -169,7 +169,7 @@ namespace CK.SqlServer.UtilTests
             return e;
         }
 
-        public override ISqlNode Visit( SelectFor e )
+        protected override ISqlNode Visit( SelectFor e )
         {
             StartNode( e, x => x.Add(
                     new XAttribute( nameof( e.TargetType ), e.TargetType.ToString() ),
@@ -179,7 +179,7 @@ namespace CK.SqlServer.UtilTests
         }
 
 
-        public override ISqlNode Visit( SqlOrderByItem e )
+        protected override ISqlNode Visit( SqlOrderByItem e )
         {
             StartNode( e )
                 .Add( e.IsDesc ? new XAttribute( "Desc", "true" ) : null,
@@ -187,7 +187,7 @@ namespace CK.SqlServer.UtilTests
             return e;
         }
 
-        public override ISqlNode Visit( SelectSpec e )
+        protected override ISqlNode Visit( SelectSpec e )
         {
             StartNode( e )
                 .Add( e.Header.TopT != null 
@@ -204,7 +204,7 @@ namespace CK.SqlServer.UtilTests
             return e;
         }
 
-        public override ISqlNode Visit( SqlOutputClause e )
+        protected override ISqlNode Visit( SqlOutputClause e )
         {
             StartNode( e ).Add( 
                 e.HasTargetTable ? new XAttribute( "TargetTable", e.TargetTable.ToString() ) : null,
@@ -213,7 +213,7 @@ namespace CK.SqlServer.UtilTests
             return e;
         }
 
-        public override ISqlNode Visit( SelectColumn e )
+        protected override ISqlNode Visit( SelectColumn e )
         {
             StartNode( e )
                 .Add( e.ColumnName != null ? new XAttribute( "ColumnName", e.ColumnName.ToString() ) : null,
@@ -221,13 +221,13 @@ namespace CK.SqlServer.UtilTests
             return e;
         }
 
-        public override ISqlNode Visit( SqlStatement e )
+        protected override ISqlNode Visit( SqlStatement e )
         {
             StartNode( e ).Add( ToXml( "Content", e.Content ) );
             return e;
         }
 
-        public override ISqlNode Visit( SqlIf e )
+        protected override ISqlNode Visit( SqlIf e )
         {
             StartNode( e, x =>
                 x.Add( ToXml( "Condition", e.Condition ),
@@ -237,7 +237,7 @@ namespace CK.SqlServer.UtilTests
             return e;
         }
 
-        public override ISqlNode Visit( SqlTableValues e )
+        protected override ISqlNode Visit( SqlTableValues e )
         {
             StartNode( e, x =>
                 x.Add( ToXml( "Values", e.Values ) )
@@ -245,7 +245,7 @@ namespace CK.SqlServer.UtilTests
             return e;
         }
 
-        public override ISqlNode Visit( SqlInsertStatement e )
+        protected override ISqlNode Visit( SqlInsertStatement e )
         {
             StartNode( e, x => x.Add(
                 e.Header.HasTop
@@ -261,7 +261,7 @@ namespace CK.SqlServer.UtilTests
             return e;
         }
 
-        public override ISqlNode Visit( SqlUpdateStatement e )
+        protected override ISqlNode Visit( SqlUpdateStatement e )
         {
             StartNode( e, x => x.Add(
                 e.Header.HasTop
@@ -279,7 +279,7 @@ namespace CK.SqlServer.UtilTests
             return e;
         }
 
-        public override ISqlNode Visit( SqlMergeStatement e )
+        protected override ISqlNode Visit( SqlMergeStatement e )
         {
             StartNode( e ).Add(
                 e.Header.HasTop ? ToXml( "Top", e.Header.TopExpression ) : null,
@@ -291,7 +291,7 @@ namespace CK.SqlServer.UtilTests
             return e;
         }
 
-        public override ISqlNode Visit( SqlOpenJSON e )
+        protected override ISqlNode Visit( SqlOpenJSON e )
         {
             StartNode( e, x => x.Add(
                 ToXml( nameof( e.Parameters ), e.Parameters ),
@@ -300,7 +300,7 @@ namespace CK.SqlServer.UtilTests
             return e;
         }
 
-        public override ISqlNode Visit( SqlOpenXml e )
+        protected override ISqlNode Visit( SqlOpenXml e )
         {
             StartNode( e, x => x.Add(
                 ToXml( nameof( e.Parameters ), e.Parameters ),
@@ -313,7 +313,7 @@ namespace CK.SqlServer.UtilTests
             return e;
         }
 
-        public override ISqlNode Visit( SqlParameter e )
+        protected override ISqlNode Visit( SqlParameter e )
         {
             StartNode( e, x =>
                 x.Add( new XAttribute( "Name", e.Name ),
@@ -325,7 +325,7 @@ namespace CK.SqlServer.UtilTests
             return e;
         }
 
-        public override ISqlNode Visit( SqlStoredProcedure e )
+        protected override ISqlNode Visit( SqlStoredProcedure e )
         {
             StartNode( e ).Add(
                     e.IsAlterKeyword ? new XAttribute( "IsAlter", "true" ) : null,
@@ -337,7 +337,7 @@ namespace CK.SqlServer.UtilTests
             return e;
         }
 
-        public override ISqlNode Visit( SqlTokenIdentifier e )
+        protected override ISqlNode Visit( SqlTokenIdentifier e )
         {
             StartNode( e, x =>
             {
@@ -351,7 +351,7 @@ namespace CK.SqlServer.UtilTests
             return e;
         }
 
-        public override ISqlNode Visit( SqlMultiIdentifier e )
+        protected override ISqlNode Visit( SqlMultiIdentifier e )
         {
             StartNode( e, x =>
             {
@@ -362,20 +362,20 @@ namespace CK.SqlServer.UtilTests
             return e;
         }
 
-        public override ISqlNode Visit( SqlOpenDataSource e )
+        protected override ISqlNode Visit( SqlOpenDataSource e )
         {
             StartNode( e ).Add( e.ToString() );
             return e;
         }
 
-        public override ISqlNode Visit( SqlTokenLiteralString e )
+        protected override ISqlNode Visit( SqlTokenLiteralString e )
         {
             base.Visit( e );
             if( e.IsUnicode ) _current.Add( new XAttribute( "IsUnicode", "true" ) );
             return e;
         }
 
-        public override ISqlNode Visit( SqlCollate e )
+        protected override ISqlNode Visit( SqlCollate e )
         {
             StartNode( e, x => x.Add(
                 new XAttribute( "CollationName", e.CollationName ),
@@ -384,7 +384,7 @@ namespace CK.SqlServer.UtilTests
             return e;
         }
 
-        public override ISqlNode Visit( SqlBetween e )
+        protected override ISqlNode Visit( SqlBetween e )
         {
             StartNode( e, x => x.Add(
                 e.IsNotBetween ? new XAttribute( "IsNotBetween", "true" ) : null,
@@ -395,7 +395,7 @@ namespace CK.SqlServer.UtilTests
             return e;
         }
 
-        public override ISqlNode Visit( SqlLike e )
+        protected override ISqlNode Visit( SqlLike e )
         {
             StartNode( e, x=> x.Add(
                 e.IsNotLike ? new XAttribute( "IsNotLike", "true" ) : null,
@@ -405,20 +405,20 @@ namespace CK.SqlServer.UtilTests
             return e;
         }
 
-        public override ISqlNode Visit( SqlIsNull e )
+        protected override ISqlNode Visit( SqlIsNull e )
         {
             StartNode( e, x => x.Add( e.IsNotNull ? new XAttribute( "IsNotNull", "true" ) : null,
                                 ToXml( "Left", e.Left ) ) );
             return e;
         }
 
-        public override ISqlNode Visit( SqlNextValueFor e )
+        protected override ISqlNode Visit( SqlNextValueFor e )
         {
             StartNode( e ).Add( e.SequenceName.ToString() );
             return e;
         }
 
-        public override ISqlNode Visit( SqlKoCall e )
+        protected override ISqlNode Visit( SqlKoCall e )
         {
             StartNode( e, x => x.Add( 
                 new XAttribute( "FunName", e.FunName.ToString() ), 
@@ -427,14 +427,14 @@ namespace CK.SqlServer.UtilTests
             return e;
         }
 
-        public override ISqlNode Visit( SelectGroupBy e )
+        protected override ISqlNode Visit( SelectGroupBy e )
         {
             StartNode( e ).Add( ToXml( "GroupExpression", e.GroupExpression ),
                                 e.HasHaving ? ToXml( "Having", e.HavingExpression ) : null );
             return e;
         }
 
-        public override ISqlNode Visit( SqlExecuteStatement e )
+        protected override ISqlNode Visit( SqlExecuteStatement e )
         {
             StartNode( e, x => x.Add(
                 new XElement( nameof( e.Name ), e.Name.ToString() ),
@@ -443,7 +443,7 @@ namespace CK.SqlServer.UtilTests
             return e;
         }
 
-        public override ISqlNode Visit( SqlExecuteStringStatement e )
+        protected override ISqlNode Visit( SqlExecuteStringStatement e )
         {
             StartNode( e, x => x.Add(
                 ToXml( nameof( e.Arguments ), e.Arguments ),
@@ -451,7 +451,7 @@ namespace CK.SqlServer.UtilTests
             return e;
         }
 
-        public override ISqlNode Visit( SqlCTEStatement e )
+        protected override ISqlNode Visit( SqlCTEStatement e )
         {
             StartNode( e ).Add(
                 ToXml( nameof( e.Names ), e.Names ),
@@ -459,7 +459,7 @@ namespace CK.SqlServer.UtilTests
             return e;
         }
 
-        public override ISqlNode Visit( SqlCTEName e )
+        protected override ISqlNode Visit( SqlCTEName e )
         {
             StartNode( e, x => x.Add(
                 new XAttribute( nameof(e.Name ), e.Name.ToString() ),
@@ -470,13 +470,13 @@ namespace CK.SqlServer.UtilTests
             return e;
         }
 
-        public override ISqlNode Visit( SqlCase e )
+        protected override ISqlNode Visit( SqlCase e )
         {
             StartNode( e, x => x.Add( ToXml( nameof( e.WhenList ), e.WhenList ) ) );
             return e;
         }
 
-        public override ISqlNode Visit( SqlCaseWhenSelector e )
+        protected override ISqlNode Visit( SqlCaseWhenSelector e )
         {
             StartNode( e, x => x.Add( 
                 ToXml( nameof( e.Expression ), e.Expression ),

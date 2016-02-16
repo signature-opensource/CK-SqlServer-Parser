@@ -12,7 +12,7 @@ namespace CK.SqlServer.Parser
     /// <summary>
     /// An isolated statement terminator ; is valid.
     /// </summary>
-    public sealed class SqlEmptyStatement : SqlNode, ISqlNamedStatement
+    public sealed class SqlEmptyStatement : SqlNonToken, ISqlNamedStatement
     {
         readonly SNode<SqlTokenTerminal> _content;
 

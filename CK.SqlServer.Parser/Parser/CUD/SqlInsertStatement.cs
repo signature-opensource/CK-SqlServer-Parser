@@ -12,7 +12,7 @@ namespace CK.SqlServer.Parser
     /// <summary>
     /// 
     /// </summary>
-    public sealed class SqlInsertStatement : SqlNode, ISqlNamedStatement
+    public sealed class SqlInsertStatement : SqlNonToken, ISqlNamedStatement
     {
         readonly SNode<MIUDHeader, SqlTokenIdentifier, IUDTarget, SqlEnclosedIdentifierCommaList, SqlOutputClause, ISqlNode, SqlTokenTerminal> _content;
 
@@ -103,11 +103,11 @@ namespace CK.SqlServer.Parser
 
             public AddColumnVisitor( ISqlNode expression ) { _expression = expression; }
 
-            public override ISqlNode Visit( SelectFrom e ) => e;
+            internal protected override ISqlNode Visit( SelectFrom e ) => e;
 
-            public override ISqlNode Visit( SelectColumnList e ) => e;
+            internal protected override ISqlNode Visit( SelectColumnList e ) => e;
 
-            public override ISqlNode Visit( SelectSpec e ) => e.InsertColumn( e.Columns.Count, _expression, null );
+            internal protected override ISqlNode Visit( SelectSpec e ) => e.InsertColumn( e.Columns.Count, _expression, null );
         }
 
         public SqlInsertStatement AddSimpleColumn( SqlTokenIdentifier colName, ISqlNode expression = null )
@@ -138,7 +138,7 @@ namespace CK.SqlServer.Parser
                 else
                 {
                     Debug.Assert( ValuesIsSelect );
-                    newValues = new AddColumnVisitor( expression ).VisitItem( Values );
+                    newValues = new AddColumnVisitor( expression ).VisitRoot( Values );
                 }
             }
             return this.ReplaceContentNode( 3, newColumns, 5, newValues );

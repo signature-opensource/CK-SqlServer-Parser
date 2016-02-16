@@ -13,7 +13,7 @@ namespace CK.SqlServer.Parser
     /// <summary>
     /// Enclosable list of separated T (relies on <see cref="ISqlStructurallyEnclosed"/>).
     /// </summary>
-    public abstract class ASqlNodeEnclosableSeparatedList<TOpener,T,TSep,TCloser> : SqlNode, ISqlEnclosable, IReadOnlyList<T>
+    public abstract class ASqlNodeEnclosableSeparatedList<TOpener,T,TSep,TCloser> : SqlNonToken, ISqlEnclosable, IReadOnlyList<T>
         where TOpener : class, ISqlNode
         where T : class, ISqlNode
         where TSep : class, ISqlNode
@@ -97,9 +97,9 @@ namespace CK.SqlServer.Parser
         /// <summary>
         /// Gets the direct children if any. Never null.
         /// </summary>
-        public sealed override IReadOnlyList<ISqlNode> ChildrenNodes => _items;
+        public override sealed IReadOnlyList<ISqlNode> ChildrenNodes => _items;
 
-        public sealed override IList<ISqlNode> GetRawContent() => _items.ToList();
+        public override sealed IList<ISqlNode> GetRawContent() => _items.ToList();
 
         public int Count => (_items.Length + 1) / 2 - _enclosed;
 

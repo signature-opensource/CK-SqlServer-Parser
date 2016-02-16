@@ -1,0 +1,114 @@
+﻿using CK.Core;
+using CK.SqlServer.Parser;
+using CK.SqlServer.UtilTests;
+using NUnit.Framework;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace CK.SqlServer.Transform.Tests
+{
+    [TestFixture]
+    public class LocationTests
+    {
+        class AllLocations : SqlNodeLocationVisitor
+        {
+            public readonly List<SqlNodeLocation> Collector = new List<SqlNodeLocation>();
+
+            public bool GetQualifiedNodeLocation;
+
+            protected override ISqlNode VisitStandard( ISqlNode e ) => VisitStandardReadOnly( e );
+
+            protected override void BeforeVisitItem()
+            {
+                base.BeforeVisitItem();
+                Collector.Add( VisitContext.GetCurrentLocation( true ) );
+            }
+
+            static public List<SqlNodeLocation> GetAllLocations( 
+                string text, 
+                ParseMode mode = ParseMode.AllStatements,
+                bool getQualifiedNodeLocation = false,
+                bool buildQualifiedNodeLocation = false )
+            {
+                List<SqlNodeLocation> locs;
+                ISqlNode n = new SqlAnalyser( text ).Parse( mode );
+                using( TestHelper.ConsoleMonitor.OpenInfo().Send( "GetAllLocations " + text ) )
+                {
+                    var c = new AllLocations()
+                    {
+                        GetQualifiedNodeLocation = getQualifiedNodeLocation,
+                        BuildQualifiedNodeLocations = buildQualifiedNodeLocation
+                    };
+                    c.VisitRoot( n );
+                    locs = c.Collector;
+                    if( TestHelper.LogsToConsole )
+                    {
+                        int i = 0;
+                        foreach( var l in locs ) TestHelper.ConsoleMonitor.Trace().Send( "[" + i++ + "] " + l.ToString() );
+                    }
+                }
+                return locs;
+            }
+        }
+
+        [TestCase( true )]
+        [TestCase( false )]
+        public void creating_all_locations( bool buildQualifiedNodeLocation )
+        {
+            List<SqlNodeLocation> locs = AllLocations.GetAllLocations( "select W as A, C = Z;", ParseMode.Statement, true, buildQualifiedNodeLocation );
+            Assert.That( locs.Count, Is.EqualTo( 15 ) );
+            Assert.That( locs[8].Node.ToString(), Is.EqualTo( "A" ) );
+            Assert.That( locs[9].Node.IsToken( SqlTokenType.Comma ) );
+            Assert.That( locs[10].Node.ToString(), Is.EqualTo( "C=Z" ) );
+        }
+
+        [Test]
+        public void mono_token_with_beg_and_end_markers()
+        {
+            List<SqlNodeLocation> locs = AllLocations.GetAllLocations( "A", ParseMode.OneExpression );
+            Assert.That( locs.Count, Is.EqualTo( 1 ) );
+
+            Assert.That( locs[0].IsBegMarker, Is.False );
+            Assert.That( locs[0].IsEndMarker, Is.False );
+            Assert.That( locs[0].Node.IsToken( SqlTokenType.IdentifierStandard ) );
+            Assert.That( locs[0].Position, Is.EqualTo( 0 ) );
+            Assert.That( locs[0].Root, Is.SameAs( locs[0] ) );
+
+            var beg = locs[0].Predecessor();
+            Assert.That( beg.IsBegMarker );
+            Assert.That( beg.IsEndMarker, Is.False );
+            Assert.That( beg.Position, Is.EqualTo( -1 ) );
+            Assert.That( beg.Node, Is.SameAs( SqlKeyword.BegOfInput ) );
+            Assert.That( beg.Predecessor(), Is.Null );
+            Assert.That( beg.Successor(), Is.SameAs( locs[0] ) );
+
+            var end = locs[0].Successor();
+            Assert.That( end.IsBegMarker, Is.False );
+            Assert.That( end.IsEndMarker );
+            Assert.That( end.Position, Is.EqualTo( 1 ) );
+            Assert.That( end.Node, Is.SameAs( SqlKeyword.EndOfInput ) );
+            Assert.That( end.Successor(), Is.Null );
+            Assert.That( end.Predecessor().Position, Is.EqualTo( 0 ) );
+        }
+
+        [Test]
+        public void flat_successors_and_predecessors()
+        {
+            List<SqlNodeLocation> locs = AllLocations.GetAllLocations( "A B C D E F", ParseMode.ExtendedExpression );
+            Assert.That( locs.Count, Is.EqualTo( 7 ) );
+            Assert.That( locs.Select( l => l.Position ).SequenceEqual( new[] { 0, 0, 1, 2, 3, 4, 5 } ) );
+            var prec = locs.Select( l => l.Predecessor() ).ToArray();
+            Assert.That( prec[0].IsBegMarker );
+            Assert.That( prec[1].IsBegMarker );
+            Assert.That( prec.Select( l => l.Position ).SequenceEqual( new[] { -1, -1, 0, 1, 2, 3, 4 } ) );
+
+            var succ = locs.Select( l => l.Successor() ).ToArray();
+            Assert.That( succ.Select( l => l.Position ).SequenceEqual( new[] { 1, 1, 2, 3, 4, 5, 6 } ) );
+        }
+
+
+    }
+}

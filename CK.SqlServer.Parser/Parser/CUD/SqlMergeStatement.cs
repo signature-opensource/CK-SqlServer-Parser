@@ -12,7 +12,7 @@ namespace CK.SqlServer.Parser
     /// <summary>
     /// 
     /// </summary>
-    public sealed class SqlMergeStatement : SqlNode, ISqlNamedStatement
+    public sealed class SqlMergeStatement : SqlNonToken, ISqlNamedStatement
     {
         readonly SNode<MIUDHeader, SqlTokenIdentifier, ISqlNode, SqlWithParOptions, SqlTokenIdentifier, SqlTokenIdentifier, SqlTokenIdentifier, ISqlNode, SqlTokenTerminal> _content;
 

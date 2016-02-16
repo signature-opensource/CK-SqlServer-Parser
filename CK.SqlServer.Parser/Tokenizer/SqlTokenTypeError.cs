@@ -21,9 +21,14 @@ namespace CK.SqlServer.Parser
         EndOfInput = IsErrorOrEndOfInput,
 
         /// <summary>
+        /// The beginning of the input.
+        /// </summary>
+        BegOfInput = IsErrorOrEndOfInput | (1 << 30),
+
+        /// <summary>
         /// Error bit (all kind of errors, but not the end of the input).
         /// </summary>
-        IsError = 1 << 30,
+        IsError = 1 << 29,
 
         /// <summary>
         /// Error mask for any errors: all kind of errors have these 2 bits set.
@@ -31,9 +36,9 @@ namespace CK.SqlServer.Parser
         ErrorMask = IsErrorOrEndOfInput | IsError,
 
         /// <summary>
-        /// Error mask for errors raised at the <see cref="SqlTokenizer"/> level: the 3 bits - n°29, 30 &amp; 31 - are set.
+        /// Error mask for errors raised at the <see cref="SqlTokenizer"/> level: the 3 bits - n°28, 29 &amp; 31 - are set.
         /// </summary>
-        ErrorTokenizerMask = IsErrorOrEndOfInput | IsError | (1 << 29),
+        ErrorTokenizerMask = IsErrorOrEndOfInput | IsError | (1 << 28),
 
         /// <summary>
         /// Invalid character.

@@ -8,20 +8,19 @@ using System.Threading.Tasks;
 
 namespace CK.SqlServer.Transform
 {
-    public class AddColumnInInsert : SqlNodeTransformer
+    public class AddColumnInInsert : SqlNodeLocationVisitor
     {
         readonly ISqlIdentifier _columnName;
         readonly ISqlNode _expression;
 
-        public AddColumnInInsert( IActivityMonitor monitor, ISqlIdentifier columnName, ISqlNode expression = null )
-            : base( monitor )
+        public AddColumnInInsert( ISqlIdentifier columnName, ISqlNode expression = null )
         {
             if( columnName != null ) throw new ArgumentNullException( nameof( columnName ) );
             _columnName = columnName;
             _expression = expression;
         }
 
-        public override ISqlNode Visit( SqlInsertStatement e )
+        protected override ISqlNode Visit( SqlInsertStatement e )
         {
             var newColumns = e.HasColumns
                                 ? e.Columns.InsertAt( e.Columns.Count, _columnName )

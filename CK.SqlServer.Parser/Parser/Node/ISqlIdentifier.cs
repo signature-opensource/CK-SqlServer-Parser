@@ -27,5 +27,16 @@ namespace CK.SqlServer.Parser
         /// </summary>
         bool IsOpenDataSouce { get; }
 
+        /// <summary>
+        /// Sets a named part in an identifier. Setting null removes the part (it must exist otherwise an exception is thrown).
+        /// The indexing is one based and in reverse order (works the same as the T-Sql PARSENAME function).
+        /// It is possible to set the part at an index that do not exist to extend this by one identifier (ie. idxPart can be 
+        /// be equal to the <see cref="Identifiers"/>'s count plus one).
+        /// </summary>
+        /// <param name="this">This identifier.</param>
+        /// <param name="idxPart">Part index: 1 = Object name, 2 = Schema name, 3 = Database name, 4 = Server name.</param>
+        /// <returns>A new identifier.</returns>
+        ISqlIdentifier SetPartName( int idxPart, string part );
+
     }
 }

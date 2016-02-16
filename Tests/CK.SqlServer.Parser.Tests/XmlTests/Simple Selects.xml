@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <Tests>
-
+  
   <Test Mode="OneExpression">
     <Text>
       select'u''u'as'b''b'
@@ -972,5 +972,43 @@
     </Xml>
   </Test>
 
+  <Test>
+    <Text>
+      SELECT PARSENAME('AdventureWorks2012..Person', 1) AS 'Object Name';
+    </Text>
+    <Description>Parse name with missing schema part.</Description>
+    <Xml>
+      <Sql>
+        <SelectStatement HasTerminator="true">
+          <Select>
+            <SelectSpec>
+              <Columns>
+                <SelectColumnList>
+                  <Item>
+                    <SelectColumn ColumnName="'Object Name'">
+                      <Definition>
+                        <KoCall FunName="PARSENAME">
+                          <Parameters>
+                            <EnclosedCommaList>
+                              <Item>
+                                <LiteralString>'AdventureWorks2012..Person'</LiteralString>
+                              </Item>
+                              <Item>
+                                <LiteralInteger>1</LiteralInteger>
+                              </Item>
+                            </EnclosedCommaList>
+                          </Parameters>
+                        </KoCall>
+                      </Definition>
+                    </SelectColumn>
+                  </Item>
+                </SelectColumnList>
+              </Columns>
+            </SelectSpec>
+          </Select>
+        </SelectStatement>
+      </Sql>
+    </Xml>
+  </Test>
 
 </Tests>

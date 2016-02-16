@@ -12,7 +12,7 @@ namespace CK.SqlServer.Parser
     /// <summary>
     /// 
     /// </summary>
-    public sealed class SqlRaiserror : SqlNode, ISqlNamedStatement
+    public sealed class SqlRaiserror : SqlNonToken, ISqlNamedStatement
     {
         readonly SNode<SqlTokenIdentifier, SqlEnclosedCommaList, SqlWithOptions, SqlTokenTerminal> _content;
 

@@ -25,39 +25,51 @@ namespace CK.SqlServer.Parser
 
         public ImmutableList<SqlTrivia> TrailingTrivias { get; }
 
-        public IEnumerable<ISqlNode> LeadingNodes
+        public abstract IEnumerable<ISqlNode> LeadingNodes { get; }
+
+        public abstract IEnumerable<ISqlNode> TrailingNodes { get; }
+
+        public abstract IEnumerable<SqlToken> AllTokens { get; }
+
+        public abstract IEnumerable<SqlTrivia> FullLeadingTrivias { get; }
+
+        public abstract IEnumerable<SqlTrivia> FullTrailingTrivias { get; }
+
+        public abstract int Width { get; }
+
+        public abstract bool IsToken( SqlTokenType t );
+
+        public SqlToken LocateToken( int index, Action<ISqlNode, int> onPath )
         {
-            get
+            if( index < 0 || index >= Width ) return null;
+
+            SqlToken result = this as SqlToken;
+            if( result != null ) return result;
+
+            ISqlNode n = this;
+            int cPos = 0;
+            for(;;)
             {
-                ISqlNode n = this;
-                for( ;;)
+                Debug.Assert( n.ChildrenNodes.Count != 0 || (index == 0 && n is SqlToken) );
+                var children = n.ChildrenNodes;
+                if( children.Count == 0 ) return (SqlToken)n;
+                foreach( var c in children )
                 {
-                    yield return n;
-                    if( n.ChildrenNodes.Count == 0 ) yield break;
-                    n = n.ChildrenNodes[0];
+                    int cW = c.Width;
+                    if( index < cW )
+                    {
+                        result = c as SqlToken;
+                        if( result != null ) return result;
+                        onPath( c, cPos );
+                        n = c;
+                        break;
+                    }
+                    cPos += cW;
+                    index -= cW;
+                    Debug.Assert( index >= 0 );
                 }
             }
         }
-
-        public IEnumerable<ISqlNode> TrailingNodes
-        {
-            get
-            {
-                ISqlNode n = this;
-                for( ;;)
-                {
-                    yield return n;
-                    if( n.ChildrenNodes.Count == 0 ) yield break;
-                    n = n.ChildrenNodes[n.ChildrenNodes.Count-1];
-                }
-            }
-        }
-
-        public virtual IEnumerable<SqlTrivia> FullLeadingTrivias => LeadingNodes.SelectMany( n => n.LeadingTrivias );
-
-        public virtual IEnumerable<SqlTrivia> FullTrailingTrivias => TrailingNodes.Reverse().SelectMany( n => n.TrailingTrivias );
-
-        public virtual IEnumerable<SqlToken> AllTokens => ChildrenNodes.ToTokens();
 
         ISqlNode DoLift( ImmutableList<SqlTrivia>.Builder hL, ImmutableList<SqlTrivia>.Builder tL, ISqlNode n, bool root )
         {
@@ -315,8 +327,6 @@ namespace CK.SqlServer.Parser
             if( t.IsEmpty ) return this;
             return DoClone( LeadingTrivias, null, TrailingTrivias.Add( t ) );
         }
-
-        public virtual bool IsToken( SqlTokenType t ) => false;
 
         public virtual ISqlNode UnPar => this;
 

@@ -13,7 +13,7 @@ namespace CK.SqlServer.Parser
     /// <summary>
     /// Simple abstract wrapper around an array of T optionally enclosed.
     /// </summary>
-    public abstract class ASqlNodePrefixedEnclosedSeparatedList<TPrefix,TOpener,T,TSep,TCloser> : SqlNode, IReadOnlyList<T>
+    public abstract class ASqlNodePrefixedEnclosedSeparatedList<TPrefix,TOpener,T,TSep,TCloser> : SqlNonToken, IReadOnlyList<T>
         where TPrefix : class, ISqlNode
         where TOpener : class, ISqlNode
         where T : class, ISqlNode
@@ -73,7 +73,7 @@ namespace CK.SqlServer.Parser
         /// </summary>
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _items;
 
-        public sealed override IList<ISqlNode> GetRawContent() => _items.ToList();
+        public override sealed IList<ISqlNode> GetRawContent() => _items.ToList();
 
         public int Count => (_items.Length) / 2 - 1;
 

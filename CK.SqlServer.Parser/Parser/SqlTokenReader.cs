@@ -376,7 +376,7 @@ namespace CK.SqlServer.Parser
         /// <returns>True if end of input was not reached yet.</returns>
         public bool MoveNext()
         {
-            if( _c == SqlTokenError.EndOfInput ) return false;
+            if( _c == SqlKeyword.EndOfInput ) return false;
             if( _c != null )
             {
                 if( _c.TokenType == SqlTokenType.OpenPar )

@@ -8,7 +8,7 @@ using System.Text;
 
 namespace CK.SqlServer.Parser
 {
-    public sealed class SqlBinaryOperator : SqlNode
+    public sealed class SqlBinaryOperator : SqlNonToken
     {
         readonly SNode<ISqlNode, SqlToken, ISqlNode> _content;
 

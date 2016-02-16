@@ -12,7 +12,7 @@ namespace CK.SqlServer.Parser
     /// <summary>
     /// 
     /// </summary>
-    public sealed class SqlUpdateStatement : SqlNode, ISqlNamedStatement
+    public sealed class SqlUpdateStatement : SqlNonToken, ISqlNamedStatement
     {
         readonly SNode<
             MIUDHeader,

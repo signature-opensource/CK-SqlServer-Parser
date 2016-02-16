@@ -1,5 +1,4 @@
-﻿using CK.Core;
-using CK.SqlServer.Parser;
+﻿using CK.SqlServer.Parser;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,24 +7,70 @@ using System.Threading.Tasks;
 
 namespace CK.SqlServer.Transform
 {
-    public class SqlNodeTransformer : SqlNodeVisitor
+    public class SqlNodeTransformer
     {
-        readonly IActivityMonitor _monitor;
-        bool _stop;
+        LocationRoot _root;
 
-        protected SqlNodeTransformer( IActivityMonitor monitor )
+        public SqlNodeTransformer( ISqlNode node )
         {
-            _monitor = monitor;
+            if( node == null ) throw new ArgumentNullException( nameof( node ) );
+            _root = new LocationRoot( node, false );
         }
 
-        public override ISqlNode VisitItem( ISqlNode e )
+        /// <summary>
+        /// Gets the current node. 
+        /// This property tracks the transformed node.
+        /// </summary>
+        public ISqlNode Node => _root.Node;
+
+        public void Visit( SqlNodeVisitor rawVisitor )
         {
-            return _stop ? e : base.VisitItem( e );
+            ISqlNode r = rawVisitor.VisitRoot( _root.Node );
+            if( r != _root.Node ) _root = new LocationRoot( r, false );
         }
 
-        protected IActivityMonitor Monitor => _monitor;
+        class ScopeResolver : SqlNodeLocationVisitor
+        {
+            readonly SqlNodeRangeBuilder _builder;
+            readonly List<SqlNodeLocationRange> _ranges;
 
-        protected void StopVisit() => _stop = true;
+            public ScopeResolver( SqlNodeRangeBuilder builder )
+            {
+                builder.Reset();
+                _builder = builder;
+                _ranges = new List<SqlNodeLocationRange>();
+            }
+
+            public ISqlNodeLocationRange Result => _ranges.Count == 0 ? SqlNodeLocationRange.Empty : new SqlNodeNodeLocationMultiRange( _ranges );
+
+            protected override ISqlNode VisitStandard( ISqlNode e ) => VisitStandardReadOnly( e );
+
+            protected override void BeforeVisitItem()
+            {
+                ISqlNodeLocationRange r = _builder.Enter( VisitContext );
+                if( r != null ) _ranges.AddRange( r );
+            }
+
+            protected override ISqlNode AfterVisitItem( ISqlNode visitResult )
+            {
+                ISqlNodeLocationRange r = _builder.Leave( VisitContext );
+                if( r != null ) _ranges.AddRange( r );
+                if( VisitContext.Depth == 0 )
+                {
+                    _builder.Conclude( VisitContext.LocationManager, _ranges.AddRange );
+                }
+                return visitResult;
+            }
+        }
+
+        public ISqlNodeLocationRange BuildRange( SqlNodeRangeBuilder builder )
+        {
+            if( builder == null ) throw new ArgumentNullException( nameof( builder ) );
+            var s = new ScopeResolver( builder );
+            s.VisitRoot( _root );
+            return s.Result;
+        }
+
 
     }
 }

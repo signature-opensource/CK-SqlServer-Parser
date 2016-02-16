@@ -23,7 +23,7 @@ namespace CK.SqlServer.UtilTests
         protected override ISqlNode VisitStandard( ISqlNode e )
         {
             ISqlStatement st = e as ISqlStatement;
-            if( st == null ) return base.VisitStandard( e );
+            if( st == null ) return base.VisitStandardReadOnly( e );
 
             using( StartNode( e ) )
             {
@@ -40,7 +40,7 @@ namespace CK.SqlServer.UtilTests
                 {
                     _current.Add( new XAttribute( "HasTerminator", "true" ) );
                 }
-                base.VisitStandard( e );
+                base.VisitStandardReadOnly( e );
             }
             return e;
         }
@@ -57,7 +57,7 @@ namespace CK.SqlServer.UtilTests
             return Util.CreateDisposableAction( () => { _current = prev; } );
         }
 
-        public override ISqlNode Visit( SelectSpec e )
+        protected override ISqlNode Visit( SelectSpec e )
         {
             using( StartNode( e ) )
             {
@@ -65,7 +65,7 @@ namespace CK.SqlServer.UtilTests
             }
         }
 
-        public override ISqlNode Visit( SelectCombine e )
+        protected override ISqlNode Visit( SelectCombine e )
         {
             using( StartNode( e ) )
             {
@@ -74,7 +74,7 @@ namespace CK.SqlServer.UtilTests
             }
         }
 
-        public override ISqlNode Visit( SelectDecorator e )
+        protected override ISqlNode Visit( SelectDecorator e )
         {
             using( StartNode( e ) )
             {

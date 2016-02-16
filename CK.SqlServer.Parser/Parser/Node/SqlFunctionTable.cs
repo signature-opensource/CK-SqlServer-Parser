@@ -8,7 +8,7 @@ using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
-    public sealed class SqlFunctionTable : SqlNode, ISqlNamedStatement, ISqlServerFunctionTable, ISqlParameterListHolder
+    public sealed class SqlFunctionTable : SqlNonToken, ISqlNamedStatement, ISqlServerFunctionTable, ISqlParameterListHolder
     {
         readonly SNode<SqlTokenIdentifier,
             SqlTokenIdentifier,
@@ -107,6 +107,11 @@ namespace CK.SqlServer.Parser
         public string ObjectName => Name.ToString();
 
         /// <summary>
+        /// Gets the schema name or null if there is no schema.
+        /// </summary>
+        public string SchemaName => Name.GetPartName( 2 );
+
+        /// <summary>
         /// Gets the name of the procedure (may start with the Schema).
         /// </summary>
         public ISqlIdentifier Name => _content.V3;
@@ -141,6 +146,11 @@ namespace CK.SqlServer.Parser
         internal protected override ISqlNode Accept( SqlNodeVisitor visitor ) => visitor.Visit( this );
 
         ISqlServerParameterList ISqlServerCallableObject.Parameters => _content.V4.ModelParameters;
+
+        ISqlServerObject ISqlServerObject.SetSchemaName( string name )
+        {
+            return this.ReplaceContentNode( 2, Name.SetPartName( 2, name ) );
+        }
 
         SqlServerObjectType ISqlServerObject.ObjectType => SqlServerObjectType.MultiStatementTableFunction;
 

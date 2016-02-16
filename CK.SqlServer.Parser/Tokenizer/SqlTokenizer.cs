@@ -63,7 +63,7 @@ namespace CK.SqlServer.Parser
             _inputIdx = -1;
             _headPos = 0;
             _lineHead = _colHead = 1;
-            _token = SqlTokenError.EndOfInput;
+            _token = SqlKeyword.EndOfInput;
         }
 
         public bool Reset( string text )
@@ -473,6 +473,12 @@ namespace CK.SqlServer.Parser
                         return ReadIdentifier( ic );
                     }
                     return ReadMoney( ic );
+                case '?':
+                    if( Read( '?' ) )
+                    {
+                        return Read( '?' ) ? (int)SqlTokenType.TripleQuestionMark : (int)SqlTokenType.DoubleQuestionMark;
+                    }
+                    return (int)SqlTokenType.QuestionMark;
                 default:
                     {
                         if( ic == 'N' )

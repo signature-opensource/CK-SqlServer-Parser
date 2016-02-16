@@ -11,7 +11,7 @@ using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
-    public sealed class SqlTypeDeclWithSize : SqlNode, ISqlUnifiedTypeDecl
+    public sealed class SqlTypeDeclWithSize : SqlNonToken, ISqlUnifiedTypeDecl
     {
         readonly SNode<SqlTokenIdentifier, SqlTokenOpenPar, SqlToken, SqlTokenClosePar> _content;
 

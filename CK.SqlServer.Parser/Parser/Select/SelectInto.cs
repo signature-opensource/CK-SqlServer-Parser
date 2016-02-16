@@ -12,7 +12,7 @@ namespace CK.SqlServer.Parser
     /// <summary>
     /// Captures the optional "INTO table".
     /// </summary>
-    public sealed class SelectInto : SqlNode
+    public sealed class SelectInto : SqlNonToken
     {
         readonly SNode<SqlTokenIdentifier, ISqlIdentifier> _content;
 
