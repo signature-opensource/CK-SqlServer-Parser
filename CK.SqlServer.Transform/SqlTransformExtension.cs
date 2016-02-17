@@ -1,10 +1,11 @@
-﻿using System;
+﻿using CK.SqlServer.Parser;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CK.SqlServer.Parser
+namespace CK.SqlServer.Transform
 {
     public static class SqlTransformExtension
     {

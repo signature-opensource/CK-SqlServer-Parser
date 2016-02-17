@@ -9,9 +9,9 @@ namespace CK.SqlServer.Transform
 {
 
     /// <summary>
-    /// Builds ranges based on a node predicate.
+    /// Builds scopes based on a node predicate.
     /// </summary>
-    public class SqlNodeRangePredicate : SqlNodeRangeBuilder
+    public class SqlNodeScopePredicate : SqlNodeScopeBuilder
     {
         readonly Func<ISqlNode,bool> _predicate;
         readonly int _maxOccur;
@@ -19,7 +19,7 @@ namespace CK.SqlServer.Transform
         ISqlNode _currentNode;
         int _currentRemainder;
 
-        public SqlNodeRangePredicate( Func<ISqlNode,bool> predicate, int maxOccur = -1 )
+        public SqlNodeScopePredicate( Func<ISqlNode,bool> predicate, int maxOccur = -1 )
         {
             if( predicate == null ) throw new ArgumentNullException( nameof( predicate ) );
             if( maxOccur == 0 ) throw new ArgumentException( "Must not be zero.", nameof( maxOccur ) );

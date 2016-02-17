@@ -8,18 +8,19 @@ using System.Threading.Tasks;
 
 namespace CK.SqlServer.Transform
 {
-    internal class SqlNodeNodeLocationMultiRange : ISqlNodeLocationRange
+    internal class LocationRangeList : ISqlNodeLocationRange
     {
         readonly IReadOnlyList<SqlNodeLocationRange> _v;
 
-        internal SqlNodeNodeLocationMultiRange( params SqlNodeLocationRange[] values )
+        internal LocationRangeList( params SqlNodeLocationRange[] values )
             : this( (IReadOnlyList<SqlNodeLocationRange>)values )
         {
         }
 
-        internal SqlNodeNodeLocationMultiRange( IReadOnlyList<SqlNodeLocationRange> list )
+        internal LocationRangeList( IReadOnlyList<SqlNodeLocationRange> list )
         {
             Debug.Assert( list != null && list.Count > 1 && list.All( r => r != null ) );
+            Debug.Assert( list.Select( (r,idx) => idx == 0 || list[idx-1].End.Position < r.Beg.Position ).Any() );
             _v = list;
         }
 

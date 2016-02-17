@@ -31,17 +31,17 @@ namespace CK.SqlServer.Transform
 
         class ScopeResolver : SqlNodeLocationVisitor
         {
-            readonly SqlNodeRangeBuilder _builder;
+            readonly SqlNodeScopeBuilder _builder;
             readonly List<SqlNodeLocationRange> _ranges;
 
-            public ScopeResolver( SqlNodeRangeBuilder builder )
+            public ScopeResolver( SqlNodeScopeBuilder builder )
             {
                 builder.Reset();
                 _builder = builder;
                 _ranges = new List<SqlNodeLocationRange>();
             }
 
-            public ISqlNodeLocationRange Result => _ranges.Count == 0 ? SqlNodeLocationRange.Empty : new SqlNodeNodeLocationMultiRange( _ranges );
+            public ISqlNodeLocationRange Result => _ranges.Count == 0 ? SqlNodeLocationRange.Empty : new LocationRangeList( _ranges );
 
             protected override ISqlNode VisitStandard( ISqlNode e ) => VisitStandardReadOnly( e );
 
@@ -57,13 +57,14 @@ namespace CK.SqlServer.Transform
                 if( r != null ) _ranges.AddRange( r );
                 if( VisitContext.Depth == 0 )
                 {
-                    _builder.Conclude( VisitContext.LocationManager, _ranges.AddRange );
+                    r = _builder.Conclude( VisitContext.LocationManager );
+                    if( r != null ) _ranges.AddRange( r );
                 }
                 return visitResult;
             }
         }
 
-        public ISqlNodeLocationRange BuildRange( SqlNodeRangeBuilder builder )
+        public ISqlNodeLocationRange BuildRange( SqlNodeScopeBuilder builder )
         {
             if( builder == null ) throw new ArgumentNullException( nameof( builder ) );
             var s = new ScopeResolver( builder );

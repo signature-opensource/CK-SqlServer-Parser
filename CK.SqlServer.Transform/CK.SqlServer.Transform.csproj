@@ -57,25 +57,24 @@
     <Compile Include="..\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="AddColumnInInsert.cs" />
-    <Compile Include="ISqlNodeLocationRange.cs" />
-    <Compile Include="ISqlNodeLocationManager.cs" />
+    <Compile Include="Location\LocationRangeCombined.cs" />
+    <Compile Include="Transformers\AddColumnInInsert.cs" />
+    <Compile Include="Location\ISqlNodeLocationRange.cs" />
+    <Compile Include="Location\ISqlNodeLocationManager.cs" />
     <Compile Include="Location\ISqlNodeLocationBuilder.cs" />
     <Compile Include="Location\LightLocationBuilder.cs" />
     <Compile Include="Location\QualifiedLocationBuilder.cs" />
-    <Compile Include="Locator\ISqlPattern.cs" />
-    <Compile Include="Locator\BeforeTokenLocator.cs" />
-    <Compile Include="Scope\SqlNodeRangePredicate.cs" />
-    <Compile Include="Scope\SqlNodeRangeIntersect.cs" />
-    <Compile Include="Scope\SqlNodeRangeBuilder.cs" />
-    <Compile Include="SetSelectColumnAsOrAssign.cs" />
-    <Compile Include="AddParameter.cs" />
+    <Compile Include="Scope\SqlNodeScopePredicate.cs" />
+    <Compile Include="Scope\SqlNodeScopeIntersect.cs" />
+    <Compile Include="Scope\SqlNodeScopeBuilder.cs" />
+    <Compile Include="Transformers\SetSelectColumnAsOrAssign.cs" />
+    <Compile Include="Transformers\AddParameter.cs" />
     <Compile Include="CK_CORE_NEXTVERSION.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Location\LocationRoot.cs" />
     <Compile Include="Location\SqlNodeLocation.cs" />
     <Compile Include="Location\SqlNodeLocationRange.cs" />
-    <Compile Include="Location\SqlNodeNodeLocationMultiRange.cs" />
+    <Compile Include="Location\LocationRangeList.cs" />
     <Compile Include="Location\SqlNodeLocationVisitor.cs" />
     <Compile Include="SqlNodeTransformer.cs" />
     <Compile Include="SqlTransformExtension.cs" />

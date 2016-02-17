@@ -8,6 +8,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using CK.SqlServer.UtilTests;
+using CK.SqlServer.Transform.Transformers;
 
 namespace CK.SqlServer.Transform.Tests
 {

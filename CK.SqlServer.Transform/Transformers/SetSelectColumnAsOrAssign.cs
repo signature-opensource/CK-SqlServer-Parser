@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CK.SqlServer.Transform
+namespace CK.SqlServer.Transform.Transformers
 {
     public class SetSelectColumnAsOrAssign : SqlNodeLocationVisitor
     {

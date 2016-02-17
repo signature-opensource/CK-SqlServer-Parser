@@ -169,7 +169,7 @@ namespace CK.SqlServer.Transform
                 case Kind.SameEnd: return new SqlNodeLocationRange( r1.Beg.Min( r2.Beg ), r1.End.MostPrecise( r2.End ) );
                 case Kind.Overlapped:
                 case Kind.Congruent: return new SqlNodeLocationRange( r1.Beg, r2.End );
-                case Kind.Independent: return new SqlNodeNodeLocationMultiRange( r1, r2 );
+                case Kind.Independent: return new LocationRangeCombined( r1, r2 );
             }
             throw new NotImplementedException();
         }
@@ -187,7 +187,7 @@ namespace CK.SqlServer.Transform
                     {
                         var left = new SqlNodeLocationRange( r1.Beg, r2.Beg.Successor() );
                         var right = new SqlNodeLocationRange( r2.End.Predecessor(), r1.End );
-                        return new SqlNodeNodeLocationMultiRange( left, right );
+                        return new LocationRangeCombined( left, right );
                     }
                 case Kind.Contained|Kind.Swapped: return Empty;
 
@@ -201,7 +201,6 @@ namespace CK.SqlServer.Transform
             }
             throw new NotImplementedException();
         }
-
 
         public SqlNodeLocationRange Intersect( SqlNodeLocationRange other )
         {
@@ -221,6 +220,7 @@ namespace CK.SqlServer.Transform
         public IEnumerator<SqlNodeLocationRange> GetEnumerator() => new CKEnumeratorMono<SqlNodeLocationRange>( this );
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
     }
 
 }

@@ -9,7 +9,7 @@ namespace CK.SqlServer.Transform
 {
 
     /// <summary>
-    /// Abstraction required by a <see cref="SqlNodeLocationVisitor"/> that is in charge of computing 
+    /// Internal abstraction required by a <see cref="SqlNodeLocationVisitor"/> that is in charge of computing 
     /// the <see cref="SqlNodeLocation"/> during the visit.
     /// </summary>
     interface ISqlNodeLocationBuilder
