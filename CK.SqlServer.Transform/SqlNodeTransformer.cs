@@ -41,14 +41,19 @@ namespace CK.SqlServer.Transform
                 _ranges = new List<SqlNodeLocationRange>();
             }
 
-            public ISqlNodeLocationRange Result => _ranges.Count == 0 ? SqlNodeLocationRange.Empty : new LocationRangeList( _ranges );
+            public ISqlNodeLocationRange Result => SqlNodeLocationRange.Create( _ranges );
 
             protected override ISqlNode VisitStandard( ISqlNode e ) => VisitStandardReadOnly( e );
 
-            protected override void BeforeVisitItem()
+            protected override bool BeforeVisitItem()
             {
                 ISqlNodeLocationRange r = _builder.Enter( VisitContext );
-                if( r != null ) _ranges.AddRange( r );
+                if( r != null )
+                {
+                   _ranges.AddRange( r );
+                    if( r.Last.End.Position == VisitContext.Position + VisitContext.VisitedNode.Width + 1 ) return false;
+                }
+                return true;
             }
 
             protected override ISqlNode AfterVisitItem( ISqlNode visitResult )

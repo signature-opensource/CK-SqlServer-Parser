@@ -16,8 +16,8 @@ namespace CK.SqlServer.Transform
         readonly SqlNodeScopeBuilder _left;
         readonly SqlNodeScopeBuilder _right;
         readonly List<SqlNodeLocationRange> _buffer;
-        readonly RangeEnumerator _leftE;
-        readonly RangeEnumerator _rightE;
+        RangeEnumerator _leftE;
+        RangeEnumerator _rightE;
 
         public SqlNodeScopeIntersect( SqlNodeScopeBuilder left, SqlNodeScopeBuilder right )
         {
@@ -56,14 +56,14 @@ namespace CK.SqlServer.Transform
 
         ISqlNodeLocationRange Handle( ISqlNodeLocationRange left, ISqlNodeLocationRange right )
         {
-            _leftE.Add( left );
-            _rightE.Add( right );
+            _leftE = _leftE.Add( left );
+            _rightE = _rightE.Add( right );
             OnTheFlyIntersect( _leftE, _rightE, _buffer.Add );
             if( _buffer.Count > 0 )
             {
-                var r = _buffer.ToArray();
+                var r = SqlNodeLocationRange.Create( _buffer );
                 _buffer.Clear();
-                return new LocationRangeList( r );
+                return r;
             }
             return null;
         }

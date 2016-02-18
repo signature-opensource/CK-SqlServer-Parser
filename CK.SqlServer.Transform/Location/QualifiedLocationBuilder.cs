@@ -48,12 +48,12 @@ namespace CK.SqlServer.Transform
             Debug.Assert( root != null && root.Node != null );
             _root = root;
             _path.Clear();
-            _path.Add( new PLoc( root, root.Node, 0, 0 ) );
         }
 
         public void Enter( ISqlNode n )
         {
-            if( n != _root.Node )
+            if( n == _root.Node ) _path.Add( new PLoc( _root, n, 0, 0 ) );
+            else
             {
                 PLoc c = _path[_path.Count - 1];
                 _path.Add( new PLoc( null, n, c.CurChildPos, c.CurChildPos ) );
@@ -62,10 +62,10 @@ namespace CK.SqlServer.Transform
 
         public void Leave( ISqlNode n )
         {
+            int top = _path.Count;
+            _path.RemoveAt( --top );
             if( n != _root.Node )
             {
-                int top = _path.Count;
-                _path.RemoveAt( --top );
                 PLoc c = _path[--top];
                 _path[top] = new PLoc( c.Loc, c.Node, c.Pos, c.CurChildPos + n.Width );
             }

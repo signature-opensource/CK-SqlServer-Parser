@@ -24,7 +24,7 @@ namespace CK.SqlServer.Transform
             Debug.Assert( root != null && root.Node != null );
             _root = root;
             _curPos = 0;
-            _depth = 0;
+            _depth = -1;
         }
 
         public LocationRoot Root => _root;
@@ -33,7 +33,11 @@ namespace CK.SqlServer.Transform
 
         public int Position => _curPos;
 
-        public void Enter( ISqlNode n ) => ++_depth;
+        public void Enter( ISqlNode n )
+        {
+            ++_depth;
+            _currentQ = null;
+        }
 
         public void Leave( ISqlNode n )
         {
@@ -41,8 +45,9 @@ namespace CK.SqlServer.Transform
             if( n is SqlToken )
             {
                 ++_curPos;
-                _currentQ = _current = null;
+                _current = null;
             }
+            _currentQ = null;
         }
 
         public SqlNodeLocation GetCurrent( ISqlNode current, bool qualifiedLocation )

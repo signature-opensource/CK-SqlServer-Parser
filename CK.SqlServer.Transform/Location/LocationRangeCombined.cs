@@ -30,5 +30,11 @@ namespace CK.SqlServer.Transform
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
+        public override string ToString()
+        {
+            return string.Join( ", ", this.Select( r => r.ToString() ) );
+        }
+
+
     }
 }

@@ -58,7 +58,7 @@ namespace CK.SqlServer.Transform
             {
                 if( loc.Node == node ) return loc;
                 loc = loc.Parent;
-                Debug.Assert(  loc == null || node is SqlToken || _qualifiedCache == null || _qualifiedCache.ContainsKey( node ), "Already cached if qualified cache exists." );
+                Debug.Assert(  loc == null || _qualifiedCache == null || _qualifiedCache.ContainsKey( loc.Node ), "Already cached if qualified cache exists." );
             }
             throw new ArgumentException( "Node does not exist at this position." );
         }
@@ -80,7 +80,8 @@ namespace CK.SqlServer.Transform
                 else newLoc = new SqlNodeLocation( loc, n, p );
                 loc = newLoc;
             } );
-            return loc == this && position == 0 ? loc : new SqlNodeLocation( loc, token, position );
+            Debug.Assert( token != Node || loc == this );
+            return loc == this && token == Node ? loc : new SqlNodeLocation( loc, token, position );
         }
 
         internal SqlNodeLocation EnsureLocation( SqlNodeLocation parent, ISqlNode node, int pos )

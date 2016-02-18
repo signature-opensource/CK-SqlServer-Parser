@@ -1,6 +1,48 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <Tests>
 
+  
+    <Test>
+    <Text>
+      break;
+      select 1;
+    </Text>
+    <Description></Description>
+    <Xml>
+      <Sql>
+        <NodeList>
+          <Item>
+            <Statement StatementName="break" HasTerminator="true">
+              <Content>
+                <NodeList />
+              </Content>
+            </Statement>
+          </Item>
+          <Item>
+            <SelectStatement HasTerminator="true">
+              <Select>
+                <SelectSpec>
+                  <Columns>
+                    <SelectColumnList>
+                      <Item>
+                        <SelectColumn>
+                          <Definition>
+                            <LiteralInteger>1</LiteralInteger>
+                          </Definition>
+                        </SelectColumn>
+                      </Item>
+                    </SelectColumnList>
+                  </Columns>
+                </SelectSpec>
+              </Select>
+            </SelectStatement>
+          </Item>
+        </NodeList>
+      </Sql>
+    </Xml>
+  </Test>
+
+
   <Test>
     <Text>
     

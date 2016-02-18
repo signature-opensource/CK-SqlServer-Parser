@@ -52,7 +52,7 @@ namespace CK.SqlServer.Parser
             {
                 Debug.Assert( n.ChildrenNodes.Count != 0 || (index == 0 && n is SqlToken) );
                 var children = n.ChildrenNodes;
-                if( children.Count == 0 ) return (SqlToken)n;
+                Debug.Assert( children.Count != 0 );
                 foreach( var c in children )
                 {
                     int cW = c.Width;

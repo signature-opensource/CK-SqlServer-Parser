@@ -24,7 +24,7 @@ namespace CK.SqlServer.Transform
             if( predicate == null ) throw new ArgumentNullException( nameof( predicate ) );
             if( maxOccur == 0 ) throw new ArgumentException( "Must not be zero.", nameof( maxOccur ) );
             _predicate = predicate;
-            _currentRemainder = _maxOccur = maxOccur;
+            _currentRemainder = _maxOccur = maxOccur > 0 ? maxOccur : int.MaxValue;
         }
 
         protected override void DoReset()
@@ -41,7 +41,7 @@ namespace CK.SqlServer.Transform
                 --_currentRemainder;
                 _currentNode = context.VisitedNode;
                 var beg = context.GetCurrentLocation();
-                _current = new SqlNodeLocationRange( beg, context.LocationManager.GetRawLocation( beg.Position + _currentNode.Width ) );
+                _current = new SqlNodeLocationRange( beg, context.LocationManager.GetRawLocation( beg.Position + _currentNode.Width + 1 ) );
                 return _current;
             }
             return null;

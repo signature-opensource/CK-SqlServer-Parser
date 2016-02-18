@@ -21,10 +21,10 @@ namespace CK.SqlServer.Transform.Tests
 
             protected override ISqlNode VisitStandard( ISqlNode e ) => VisitStandardReadOnly( e );
 
-            protected override void BeforeVisitItem()
+            protected override bool BeforeVisitItem()
             {
-                base.BeforeVisitItem();
                 Collector.Add( VisitContext.GetCurrentLocation( true ) );
+                return true;
             }
 
             static public List<SqlNodeLocation> GetAllLocations( 
@@ -63,6 +63,22 @@ namespace CK.SqlServer.Transform.Tests
             Assert.That( locs[8].Node.ToString(), Is.EqualTo( "A" ) );
             Assert.That( locs[9].Node.IsToken( SqlTokenType.Comma ) );
             Assert.That( locs[10].Node.ToString(), Is.EqualTo( "C=Z" ) );
+        }
+
+        [TestCase( true )]
+        [TestCase( false )]
+        public void multi_statements_locations( bool buildQualifiedNodeLocation )
+        {
+            List<SqlNodeLocation> locs = AllLocations.GetAllLocations( "break; select 1; continue; select 2;", ParseMode.AllStatements, true, buildQualifiedNodeLocation );
+            Assert.That( locs.Count, Is.EqualTo( 23 ) );
+            Assert.That( locs[4].Node.ToString(), Is.EqualTo( "select 1;" ) );
+            Assert.That( locs[5].Node.ToString(), Is.EqualTo( "select 1" ) );
+            Assert.That( locs[6].Node.ToString(), Is.EqualTo( "select" ) );
+            Assert.That( locs[7].Node.ToString(), Is.EqualTo( "select" ) );
+            Assert.That( locs[8].Node, Is.InstanceOf<SelectColumnList>() );
+            Assert.That( locs[9].Node, Is.InstanceOf<SelectColumn>() );
+            Assert.That( locs[10].Node, Is.InstanceOf<SqlTokenLiteralInteger>() );
+            Assert.That( locs[11].Node.IsToken( SqlTokenType.SemiColon ) );
         }
 
         [Test]

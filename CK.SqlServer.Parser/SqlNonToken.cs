@@ -15,6 +15,7 @@ namespace CK.SqlServer.Parser
         protected SqlNonToken( ImmutableList<SqlTrivia> leading = null, ImmutableList<SqlTrivia> trailing = null )
             : base( leading, trailing )
         {
+            _width = -1;
         }
 
         public override sealed bool IsToken( SqlTokenType t ) => false;
@@ -53,7 +54,7 @@ namespace CK.SqlServer.Parser
 
         public override sealed IEnumerable<SqlToken> AllTokens => ChildrenNodes.ToTokens();
 
-        public override sealed int Width => _width == 0 ? (_width = ChildrenNodes.Select( c => c.Width ).Sum()) : _width;
+        public override sealed int Width => _width == -1 ? (_width = ChildrenNodes.Select( c => c.Width ).Sum()) : _width;
 
     }
 }

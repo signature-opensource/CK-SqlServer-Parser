@@ -90,6 +90,21 @@ namespace CK.SqlServer.Transform
             return new SqlNodeLocationRange( eqBeg, eqEnd );
         }
 
+        static internal ISqlNodeLocationRange Create( IReadOnlyList<SqlNodeLocationRange> ranges, bool cloneOnMulti = true )
+        {
+            if( ranges.Count == 0 ) return Empty;
+            if( ranges.Count == 1 ) return ranges.First();
+            return new LocationRangeList( cloneOnMulti ? ranges.ToArray() : ranges );
+        }
+
+        public override string ToString()
+        {
+            Debug.Assert( Beg != null || this == Empty );
+            Debug.Assert( (Beg == null) == (End == null) );
+            if( this == Empty ) return "∅";
+            return string.Format( "[{0},{1}[", Beg.Position, End.Position );   
+        }
+
         internal void InternalExtend( SqlNodeLocation end )
         {
             Debug.Assert( end.Position > _end.Position );
@@ -122,7 +137,7 @@ namespace CK.SqlServer.Transform
             {
                 var rTemp = r2;
                 r2 = r1;
-                r1 = r2;
+                r1 = rTemp;
                 swap = Kind.Swapped;
             }
             if( r1.End.Position == r2.End.Position )

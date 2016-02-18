@@ -70,6 +70,7 @@ namespace CK.SqlServer.Transform
             public void Reset( LocationRoot root )
             {
                 _builder.Reset( root );
+                Debug.Assert( _builder.Depth == -1 );
             }
 
             public void Reset( ISqlNode root )
@@ -83,14 +84,15 @@ namespace CK.SqlServer.Transform
                 _builder.Enter( n );
             }
 
-            public void Leave()
+            public void Leave( ISqlNode prev )
             {
                 _builder.Leave( VisitedNode );
+                VisitedNode = prev;
             }
 
             public ISqlNodeLocationManager LocationManager => _builder.Root;
 
-            public ISqlNode VisitedNode { get; set; }
+            public ISqlNode VisitedNode { get; private set; }
 
             public LocationRoot Root => _builder.Root;
 
@@ -150,13 +152,18 @@ namespace CK.SqlServer.Transform
         /// <returns>The visited result node.</returns>
         protected override ISqlNode VisitItem( ISqlNode e )
         {
-            var prev = _context.VisitedNode;
-            _context.Enter( e );
-            BeforeVisitItem();
-            ISqlNode v = _stop ? e : base.VisitItem( e );
-            v = AfterVisitItem( v );
-            _context.Leave();
-            _context.VisitedNode = prev;
+            ISqlNode v = e;
+            if( e.Width != 0 )
+            {
+                var prev = _context.VisitedNode;
+                _context.Enter( e );
+                if( BeforeVisitItem() )
+                {
+                    if( !_stop ) v = base.VisitItem( e );
+                    v = AfterVisitItem( v );
+                }
+                _context.Leave( prev );
+            }
             return v;
         }
 
@@ -165,8 +172,13 @@ namespace CK.SqlServer.Transform
         /// The <see cref="VisitContext"/> is bound to the node that will be visited.
         /// </summary>
         /// <param name="ctx">The current context visit.</param>
-        protected virtual void BeforeVisitItem()
+        /// <returns>
+        /// False to skip the visit of the current node (and the call to <see cref="AfterVisitItem(ISqlNode)"/>).
+        /// False to visit the children.
+        /// </returns>
+        protected virtual bool BeforeVisitItem()
         {
+            return true;
         }
 
         /// <summary>
