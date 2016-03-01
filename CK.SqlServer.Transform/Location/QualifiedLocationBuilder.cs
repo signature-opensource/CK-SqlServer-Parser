@@ -60,7 +60,7 @@ namespace CK.SqlServer.Transform
             }
         }
 
-        public void Leave( ISqlNode n )
+        public void Leave( ISqlNode n, bool skipped )
         {
             int top = _path.Count;
             _path.RemoveAt( --top );

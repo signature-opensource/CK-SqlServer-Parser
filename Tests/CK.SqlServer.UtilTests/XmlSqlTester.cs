@@ -16,10 +16,12 @@ namespace CK.SqlServer.UtilTests
         public readonly string Text;
         public readonly string Description;
         public readonly ParseMode Mode;
+
+        public readonly XElement ExpectedXml;
         public readonly bool CombineElementType;
-        public readonly XElement Expected;
-        public readonly XElement ExpectedStatements;
         public readonly string[] ToStringCompactForms;
+
+        public readonly XElement ExpectedStatementsXml;
 
         public XmlSqlTester( XElement t )
         {
@@ -28,48 +30,59 @@ namespace CK.SqlServer.UtilTests
             // TrimEnd the text because the last trivia is skipped.
             Text = t.Element( "Text" ).Value.TrimEnd().NormalizeEOL();
             Description = t.Elements( "Description" ).Select( e => e.Value ).FirstOrDefault();
+
             XElement xmlTestElement = t.Element( "Xml" );
-            CombineElementType = xmlTestElement != null ? xmlTestElement.GetAttributeBoolean( "CombineElementType", false ) : false;
-            Expected = xmlTestElement != null ? xmlTestElement.Element( "Sql" ) : null;
-            var s = (string)xmlTestElement.Attribute( "ToStringCompact" );
-            if( s != null ) ToStringCompactForms = s.Split( ',' ).Select( f => f.Trim() ).ToArray();
-            else ToStringCompactForms = Util.EmptyStringArray;
-            ExpectedStatements = xmlTestElement != null ? xmlTestElement.Element( "Statements" ) : null;
+            if( xmlTestElement != null )
+            {
+                CombineElementType = xmlTestElement.GetAttributeBoolean( "CombineElementType", false );
+                ExpectedXml = xmlTestElement.Element( "Sql" );
+                var s = (string)xmlTestElement.Attribute( "ToStringCompact" );
+                if( s != null ) ToStringCompactForms = s.Split( ',' ).Select( f => f.Trim() ).ToArray();
+                else ToStringCompactForms = Util.EmptyStringArray;
+
+                ExpectedStatementsXml = xmlTestElement.Element( "Statements" );
+            }
         }
 
         public virtual void ParseAndCheck()
         {
-            ISqlNode e;
-            SqlAnalyser.ErrorResult r = SqlAnalyser.Parse( out e, Mode, Text );
-            Assert.That( r.IsError, Is.False, r.ToString() );
-            Assert.That( e.ToString( true, true ).NormalizeEOL(), Is.EqualTo( Text ) );
+            ISqlNode e = ParseAndCheckSqlText( Text );
             e = OnParsed( e );
-            if( Expected != null )
+            if( ExpectedXml != null )
             {
                 using( TestHelper.ConsoleMonitor.OpenInfo().Send( "Checking detailed Xml." ) )
                 {
                     XElement visited = new SqlToXmlVisitor( CombineElementType, ToStringCompactForms ).ToXml( "Sql", e );
                     string visitedString = visited.ToString();
                     TestHelper.ConsoleMonitor.Trace().Send( visitedString );
-                    if( !XNode.DeepEquals( visited, Expected ) )
+                    if( !XNode.DeepEquals( visited, ExpectedXml ) )
                     {
-                        TestHelper.AssertXmlStringEqual( visitedString, Expected );
+                        TestHelper.AssertXmlStringEqual( visitedString, ExpectedXml );
                     }
                 }
             }
-            if( ExpectedStatements != null )
+            if( ExpectedStatementsXml != null )
             {
                 using( TestHelper.ConsoleMonitor.OpenInfo().Send( "Checking statements only Xml." ) )
                 {
                     XElement visited = new SqlToXmlStatementVisitor().ToXml( "Statements", e );
                     string visitedString = visited.ToString();
                     TestHelper.ConsoleMonitor.Trace().Send( visitedString );
-                    if( !XNode.DeepEquals( visited, ExpectedStatements ) )
+                    if( !XNode.DeepEquals( visited, ExpectedStatementsXml ) )
                     {
-                        TestHelper.AssertXmlStringEqual( visitedString, ExpectedStatements );
+                        TestHelper.AssertXmlStringEqual( visitedString, ExpectedStatementsXml );
                     }
                 }
             }
+        }
+
+        protected ISqlNode ParseAndCheckSqlText( string text )
+        {
+            ISqlNode e;
+            SqlAnalyser.ErrorResult r = SqlAnalyser.Parse( out e, Mode, text );
+            Assert.That( r.IsError, Is.False, r.ToString() );
+            Assert.That( e.ToString( true, true ).NormalizeEOL(), Is.EqualTo( text ) );
+            return e;
         }
 
         protected virtual ISqlNode OnParsed( ISqlNode e )

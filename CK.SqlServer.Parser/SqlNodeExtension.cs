@@ -166,6 +166,18 @@ namespace CK.SqlServer.Parser
         }
 
         /// <summary>
+        /// Inserts or replace one or more children at a given index in <see cref="GetRawContent"/>.
+        /// </summary>
+        /// <param name="iStart">The index.</param>
+        /// <param name="count">The number of children to replace.</param>
+        /// <param name="child">The children to insert.</param>
+        /// <returns>A new immutable object or this if no change occurred.</returns>
+        static public T StuffRawContent<T>( this T @this, int iStart, int count, params ISqlNode[] children ) where T : ISqlNode
+        {
+            return (T)((SqlNode)(object)@this).DoStuffRawContent( iStart, count, children );
+        }
+
+        /// <summary>
         /// Returns a hyper compact textual representation of this <see cref="ISqlNode"/>.
         /// This uses <see cref="SqlTextWriter.CreateHyperCompact(StringBuilder)"/>.
         /// </summary>

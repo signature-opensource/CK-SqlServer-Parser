@@ -15,12 +15,12 @@ namespace CK.SqlServer.Transform
     /// terms of path (but not in terms of positions): the goal is, whenever possible, to capture better, 
     /// more precise, postions.
     /// </summary>
-    public class SqlNodeLocationRange : ISqlNodeLocationRange
+    public class SqlNodeLocationRange : ISqlNodeLocationRange, ISqlNodeLocationRangeInternal
     {
         SqlNodeLocation _beg;
         SqlNodeLocation _end;
 
-        public static readonly ISqlNodeLocationRange Empty = new SqlNodeLocationRange();
+        public static readonly SqlNodeLocationRange EmptySet = new SqlNodeLocationRange();
 
         public SqlNodeLocation Beg => _beg;
 
@@ -36,10 +36,15 @@ namespace CK.SqlServer.Transform
             if( beg == null ) throw new ArgumentNullException( nameof( beg ) );
             if( beg.IsBegMarker ) throw new ArgumentException( "Range can not include the BegMarker.", nameof( beg ) );
             if( end == null ) throw new ArgumentNullException( nameof( end ) );
-            if( beg.Position >= end.Position ) throw new ArgumentException( "Range: beg position is on or after end." );
+            int w = end.Position - beg.Position;
+            if( w < 0 ) throw new ArgumentException( "Range: beg position is after end." );
             _beg = beg;
-            _end = end;
+            _end = w == 0 ? beg : end;
         }
+
+        public bool IsLocation => _beg == _end;
+
+        int ISqlNodeLocationRange.Count => 1;
 
         SqlNodeLocationRange ISqlNodeLocationRange.First => this;
 
@@ -54,6 +59,7 @@ namespace CK.SqlServer.Transform
             var b = Beg.ToFullLocation();
             if( b != _beg ) _beg = b;
             int w = End.Position - b.Position;
+            if( w == 0 ) return _end = _beg;
             // Here b can never be null since Beg can not be the BegMarker: the width
             // is at most the root node's width.
             while( b.Node.Width < w ) b = b.Parent;
@@ -78,40 +84,43 @@ namespace CK.SqlServer.Transform
         /// <returns>This, other or a more precise range at the same position.</returns>
         public SqlNodeLocationRange MostPrecise( SqlNodeLocationRange other )
         {
-            if( other == null || other == Empty ) return this;
-            var eqBeg = Beg.MostPrecise( other.Beg );
-            if( eqBeg != Beg ) _beg = eqBeg;
-            else other._beg = eqBeg;
-            var eqEnd = End.MostPrecise( other.End );
-            if( eqEnd != End ) _end = eqEnd;
-            else other._end = eqEnd;
-            if( eqBeg == Beg && eqEnd == End ) return this;
-            if( eqBeg == other.Beg && eqEnd == other.End ) return other;
-            return new SqlNodeLocationRange( eqBeg, eqEnd );
+            //TODO: handle IsLocation case... or totally remove Precision if eventually useless.
+            return this;
         }
 
-        static internal ISqlNodeLocationRange Create( IReadOnlyList<SqlNodeLocationRange> ranges, bool cloneOnMulti = true )
+        static internal ISqlNodeLocationRange Create( IEnumerable<SqlNodeLocationRange> ranges, int countOfRanges, bool cloneOnMulti = true )
         {
-            if( ranges.Count == 0 ) return Empty;
-            if( ranges.Count == 1 ) return ranges.First();
-            return new LocationRangeList( cloneOnMulti ? ranges.ToArray() : ranges );
+            if( countOfRanges == 0 ) return EmptySet;
+            if( countOfRanges == 1 ) return ranges.First();
+            if( cloneOnMulti ) return new LocationRangeList( ranges.ToArray() );
+            IReadOnlyList<SqlNodeLocationRange> r = ranges as IReadOnlyList<SqlNodeLocationRange>;
+            return new LocationRangeList( r == null ? ranges.ToArray() : r );
         }
+
+        internal SqlNodeLocationRange InternalSetEnd( SqlNodeLocation end )
+        {
+            Debug.Assert( end.Position >= _beg.Position );
+            return new SqlNodeLocationRange( _beg, end );
+        }
+
+        internal SqlNodeLocationRange InternalSetBeg( SqlNodeLocation beg )
+        {
+            Debug.Assert( beg.Position <= _end.Position );
+            return new SqlNodeLocationRange( beg, _end );
+        }
+
+        ISqlNodeLocationRangeInternal ISqlNodeLocationRangeInternal.InternalSetEnd( SqlNodeLocation end ) => InternalSetEnd( end );
 
         public override string ToString()
         {
-            Debug.Assert( Beg != null || this == Empty );
+            Debug.Assert( Beg != null || this == EmptySet );
             Debug.Assert( (Beg == null) == (End == null) );
-            if( this == Empty ) return "∅";
+            if( this == EmptySet ) return "∅";
+            if( IsLocation ) return string.Format( "]{0}[",Beg.Position );
             return string.Format( "[{0},{1}[", Beg.Position, End.Position );   
         }
 
-        internal void InternalExtend( SqlNodeLocation end )
-        {
-            Debug.Assert( end.Position > _end.Position );
-            _end = end;
-        }
-
-        enum Kind
+        internal enum Kind
         {
             Equal,
             SameEnd,
@@ -123,9 +132,9 @@ namespace CK.SqlServer.Transform
             Swapped = 32
         }
 
-        static ISqlNodeLocationRange Unified( SqlNodeLocationRange r1, SqlNodeLocationRange r2, Func<Kind,SqlNodeLocationRange,SqlNodeLocationRange,ISqlNodeLocationRange> on )
+        static internal ISqlNodeLocationRange Unified( SqlNodeLocationRange r1, SqlNodeLocationRange r2, Func<Kind,SqlNodeLocationRange,SqlNodeLocationRange,ISqlNodeLocationRange> on )
         {
-            if( r2 == null ) throw new ArgumentNullException( "other" );
+            Debug.Assert( r1 != null && r1 != EmptySet && r2 != null && r2 != EmptySet );
             if( r1.Beg.Position == r2.Beg.Position )
             {
                 if( r1.End.Position == r2.End.Position ) return on( Kind.Equal, r1, r2 );
@@ -133,7 +142,7 @@ namespace CK.SqlServer.Transform
                 return on( Kind.SameStart|Kind.Swapped, r2, r1 );
             }
             Kind swap = 0;
-            if( r2.Beg.Position > r1.Beg.Position )
+            if( r1.Beg.Position > r2.Beg.Position )
             {
                 var rTemp = r2;
                 r2 = r1;
@@ -169,7 +178,7 @@ namespace CK.SqlServer.Transform
                 case Kind.SameEnd: return r2.End.ComparePathLength( r1.End ) >= 0 ? r2 : new SqlNodeLocationRange( r2.Beg, r1.End );
                 case Kind.Overlapped: return new SqlNodeLocationRange( r2.Beg, r1.End );
                 case Kind.Congruent:
-                case Kind.Independent: return Empty;
+                case Kind.Independent: return EmptySet;
             }
             throw new NotImplementedException();
         }
@@ -180,8 +189,8 @@ namespace CK.SqlServer.Transform
             {
                 case Kind.Equal: return r1.MostPrecise( r2 );
                 case Kind.Contained: return r1;
-                case Kind.SameStart: return new SqlNodeLocationRange( r1.Beg.MostPrecise( r2.Beg ), r1.End.Max( r2.End ) );
-                case Kind.SameEnd: return new SqlNodeLocationRange( r1.Beg.Min( r2.Beg ), r1.End.MostPrecise( r2.End ) );
+                case Kind.SameStart: return new SqlNodeLocationRange( r1.Beg.MostPrecise( r2.Beg ), r2.End );
+                case Kind.SameEnd: return new SqlNodeLocationRange( r1.Beg, r1.End.MostPrecise( r2.End ) );
                 case Kind.Overlapped:
                 case Kind.Congruent: return new SqlNodeLocationRange( r1.Beg, r2.End );
                 case Kind.Independent: return new LocationRangeCombined( r1, r2 );
@@ -193,43 +202,57 @@ namespace CK.SqlServer.Transform
         {
             switch( k )
             {
-                case Kind.Equal: return Empty;
+                case Kind.Equal:
+                case Kind.Contained|Kind.Swapped: return EmptySet;
+
                 case Kind.Congruent:
-                case Kind.Congruent|Kind.Swapped:
                 case Kind.Independent: return r1;
-                case Kind.Independent | Kind.Swapped: return r2;
+
+                case Kind.Congruent|Kind.Swapped:
+                case Kind.Independent|Kind.Swapped: return r2;
+
                 case Kind.Contained:
                     {
-                        var left = new SqlNodeLocationRange( r1.Beg, r2.Beg.Successor() );
-                        var right = new SqlNodeLocationRange( r2.End.Predecessor(), r1.End );
-                        return new LocationRangeCombined( left, right );
+                        var first = new SqlNodeLocationRange( r1.Beg, r2.Beg );
+                        var last = new SqlNodeLocationRange( r2.End, r1.End );
+                        return new LocationRangeCombined( first, last );
                     }
-                case Kind.Contained|Kind.Swapped: return Empty;
 
-                case Kind.SameStart: return Empty;
-                case Kind.SameStart|Kind.Swapped: return new SqlNodeLocationRange( r1.End.Predecessor(), r2.End );
+                case Kind.SameStart: return EmptySet;
+                case Kind.SameStart|Kind.Swapped: return new SqlNodeLocationRange( r1.End, r2.End );
 
                 case Kind.Overlapped:
-                case Kind.SameEnd: return new SqlNodeLocationRange( r1.Beg, r2.Beg.Successor() );
-                case Kind.SameEnd | Kind.Swapped: return Empty;
-                case Kind.Overlapped | Kind.Swapped: return new SqlNodeLocationRange( r2.End.Predecessor(), r1.End ); ;
+                case Kind.SameEnd: return new SqlNodeLocationRange( r1.Beg, r2.Beg );
+                case Kind.SameEnd | Kind.Swapped: return EmptySet;
+                case Kind.Overlapped | Kind.Swapped: return new SqlNodeLocationRange( r1.End, r2.End ); ;
             }
             throw new NotImplementedException();
         }
 
         public SqlNodeLocationRange Intersect( SqlNodeLocationRange other )
         {
-            return (SqlNodeLocationRange)Unified( this, other, DoIntersect );
+            if( other == null ) throw new ArgumentNullException( nameof( other ) );
+            return this == EmptySet || IsLocation || other == EmptySet || other.IsLocation 
+                        ? EmptySet 
+                        : (SqlNodeLocationRange)Unified( this, other, DoIntersect );
         }
 
         public ISqlNodeLocationRange Union( SqlNodeLocationRange other )
         {
-            return Unified( this, other, DoUnion );
+            if( other == null ) throw new ArgumentNullException( nameof( other ) );
+            return this == EmptySet || IsLocation 
+                        ? other 
+                        : (other == EmptySet || other.IsLocation 
+                                ? this 
+                                : Unified( this, other, DoUnion ));
         }
 
         public ISqlNodeLocationRange Except( SqlNodeLocationRange other )
         {
-            return Unified( this, other, DoExcept );
+            if( other == null ) throw new ArgumentNullException( nameof( other ) );
+            return this == EmptySet || IsLocation || other == EmptySet || other.IsLocation 
+                        ? this 
+                        : Unified( this, other, DoExcept );
         }
 
         public IEnumerator<SqlNodeLocationRange> GetEnumerator() => new CKEnumeratorMono<SqlNodeLocationRange>( this );

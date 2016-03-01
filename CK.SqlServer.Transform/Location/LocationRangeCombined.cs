@@ -9,18 +9,20 @@ using System.Threading.Tasks;
 
 namespace CK.SqlServer.Transform
 {
-    internal class LocationRangeCombined : ISqlNodeLocationRange
+    internal class LocationRangeCombined : ISqlNodeLocationRange, ISqlNodeLocationRangeInternal
     {
-        readonly ISqlNodeLocationRange _r1;
-        readonly ISqlNodeLocationRange _r2;
+        readonly ISqlNodeLocationRangeInternal _r1;
+        readonly ISqlNodeLocationRangeInternal _r2;
 
-        internal LocationRangeCombined( ISqlNodeLocationRange r1, ISqlNodeLocationRange r2 )
+        internal LocationRangeCombined( ISqlNodeLocationRangeInternal r1, ISqlNodeLocationRangeInternal r2 )
         {
-            Debug.Assert( r1 != null && r1 != SqlNodeLocationRange.Empty );
-            Debug.Assert( r2 != null && r2 != SqlNodeLocationRange.Empty );
+            Debug.Assert( r1 != null && r1 != SqlNodeLocationRange.EmptySet );
+            Debug.Assert( r2 != null && r2 != SqlNodeLocationRange.EmptySet );
             _r1 = r1;
             _r2 = r2;
         }
+
+        public int Count => _r1.Count + _r2.Count;
 
         public SqlNodeLocationRange First => _r1.First;
 
@@ -30,9 +32,14 @@ namespace CK.SqlServer.Transform
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
+        public ISqlNodeLocationRangeInternal InternalSetEnd( SqlNodeLocation end )
+        {
+            return new LocationRangeCombined( _r1, _r2.InternalSetEnd( end ) );
+        }
+
         public override string ToString()
         {
-            return string.Join( ", ", this.Select( r => r.ToString() ) );
+            return string.Join( "-", this.Select( r => r.ToString() ) );
         }
 
 

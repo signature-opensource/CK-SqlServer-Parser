@@ -18,15 +18,32 @@ namespace CK.SqlServer.Transform
     public class SqlNodeLocationVisitor : SqlNodeVisitor
     {
         /// <summary>
-        /// This context is available on <see cref="VisitContext"/> property.
+        /// Base context exposes the <see cref="LocationManager"/> and <see cref="AddError"/> method
+        /// and is avalable to .
         /// </summary>
-        public interface IVisitContext
+        public interface IVisitContextBase
         {
             /// <summary>
             /// Gets the location manager to use.
             /// </summary>
             ISqlNodeLocationManager LocationManager { get; }
 
+            /// <summary>
+            /// Gets the monitor to use to raise error or to say something to the external world.
+            /// </summary>
+            IActivityMonitor Monitor { get; }
+
+            /// <summary>
+            /// Gets the current range filter. Can be null.
+            /// </summary>
+            ISqlNodeLocationRange RangeFilter { get; }
+        }
+
+        /// <summary>
+        /// This context is available on <see cref="VisitContext"/> property.
+        /// </summary>
+        public interface IVisitContext : IVisitContextBase
+        {
             /// <summary>
             /// Gets the visited node.
             /// </summary>
@@ -49,11 +66,18 @@ namespace CK.SqlServer.Transform
             /// <param name="qualifiedLocation">True to force the obtention of a qualified location.</param>
             /// <returns>A (potentially qualified) location.</returns>
             SqlNodeLocation GetCurrentLocation( bool ensureQualifiedLocation = false );
+
         }
 
         class VContext : IVisitContext
         {
             ISqlNodeLocationBuilder _builder;
+            ISqlNodeLocationRange _rangeFilter;
+            IEnumerator<SqlNodeLocationRange> _filteredRange;
+            IActivityMonitor _monitor;
+            bool _inScope;
+
+            public ISqlNodeLocationRange RangeFilter => _rangeFilter;
 
             public bool BuildQualifiedNodeLocations
             {
@@ -67,27 +91,60 @@ namespace CK.SqlServer.Transform
                 }
             }
 
-            public void Reset( LocationRoot root )
+            public IActivityMonitor Monitor
+            {
+                get { return _monitor; }
+                set { _monitor = value; }
+            }
+
+
+            public void Reset( LocationRoot root, ISqlNodeLocationRange rangeFilter )
             {
                 _builder.Reset( root );
                 Debug.Assert( _builder.Depth == -1 );
+                _filteredRange = null;
+                if( (_rangeFilter = rangeFilter) != null )
+                {
+                    var e = rangeFilter.GetEnumerator();
+                    if( e.MoveNext() ) _filteredRange = e;
+                }
+                _inScope = true;
             }
 
-            public void Reset( ISqlNode root )
+            public void EnsureRootForNode( ISqlNode root )
             {
-                if( root != _builder.Root?.Node ) Reset( new LocationRoot( root ) );
+                if( root != _builder.Root?.Node ) _builder.Reset( new LocationRoot( root ) );
             }
 
-            public void Enter( ISqlNode n )
+            public bool Enter( ISqlNode prev, ISqlNode n )
             {
                 VisitedNode = n;
                 _builder.Enter( n );
+                if( !_inScope )
+                {
+                    Leave( prev, true );
+                    return false;
+                }
+                return true;
             }
 
-            public void Leave( ISqlNode prev )
+            public void Leave( ISqlNode prev, bool skipped )
             {
-                _builder.Leave( VisitedNode );
+                _builder.Leave( VisitedNode, skipped );
                 VisitedNode = prev;
+                if( _filteredRange != null )
+                {
+                    int p = _builder.Position;
+                    while( p < _filteredRange.Current.Beg.Position )
+                    {
+                        if( !_filteredRange.MoveNext() )
+                        {
+                            _inScope = false;
+                            return;
+                        }
+                    }
+                    _inScope = p < _filteredRange.Current.End.Position;
+                }
             }
 
             public ISqlNodeLocationManager LocationManager => _builder.Root;
@@ -100,7 +157,11 @@ namespace CK.SqlServer.Transform
 
             public int Position => _builder.Position;
 
-            public SqlNodeLocation GetCurrentLocation( bool ensureQualifiedLocation ) => _builder.GetCurrent( VisitedNode, ensureQualifiedLocation );
+            public SqlNodeLocation GetCurrentLocation( bool ensureQualifiedLocation )
+            {
+                return VisitedNode != null ? _builder.GetCurrent( VisitedNode, ensureQualifiedLocation ) : _builder.Root;
+            }
+
         }
 
         readonly VContext _context;
@@ -125,6 +186,15 @@ namespace CK.SqlServer.Transform
         }
 
         /// <summary>
+        /// Gets or sets the monitor.
+        /// </summary>
+        public IActivityMonitor Monitor
+        {
+            get { return _context.Monitor; }
+            set { _context.Monitor = value; }
+        }
+
+        /// <summary>
         /// Overridden to adapt this public method to the internals of this implementation.
         /// It is not intented to be used directly.
         /// </summary>
@@ -133,16 +203,23 @@ namespace CK.SqlServer.Transform
         public override sealed ISqlNode VisitRoot( ISqlNode root )
         {
             if( root == null ) throw new ArgumentNullException( nameof( root ) );
-            _context.Reset( root );
-            return VisitRoot( _context.Root );
+            _context.EnsureRootForNode( root );
+            return VisitRoot( _context.Root, null );
         }
 
-        internal ISqlNode VisitRoot( LocationRoot root )
+        internal ISqlNode VisitRoot( LocationRoot root, ISqlNodeLocationRange rangeFilter )
         {
             Debug.Assert( root != null && root.Node != null );
-            _context.Reset( root );
+            _context.Reset( root, rangeFilter );
             return base.VisitRoot( root.Node );
         }
+
+        /// <summary>
+        /// Overridden to use <see cref="VisitStandard"/> otherwise type declaration would be skipped by the visit.
+        /// </summary>
+        /// <param name="e">The type declaration to process.</param>
+        /// <returns>Result of the visit.</returns>
+        protected override ISqlNode VisitTypeDeclStandard( ISqlUnifiedTypeDecl e ) => VisitStandard( e );
 
         /// <summary>
         /// Overridden to update <see cref="VisitContext"/>, call <see cref="BeforeVisitItem"/>, 
@@ -156,13 +233,13 @@ namespace CK.SqlServer.Transform
             if( e.Width != 0 )
             {
                 var prev = _context.VisitedNode;
-                _context.Enter( e );
-                if( BeforeVisitItem() )
+                if( _context.Enter( prev, e ) )
                 {
-                    if( !_stop ) v = base.VisitItem( e );
+                    bool doChildrenVisit = BeforeVisitItem() && !_stop;
+                    if( doChildrenVisit ) v = base.VisitItem( e );
                     v = AfterVisitItem( v );
+                    _context.Leave( prev, !doChildrenVisit );
                 }
-                _context.Leave( prev );
             }
             return v;
         }
@@ -173,8 +250,7 @@ namespace CK.SqlServer.Transform
         /// </summary>
         /// <param name="ctx">The current context visit.</param>
         /// <returns>
-        /// False to skip the visit of the current node (and the call to <see cref="AfterVisitItem(ISqlNode)"/>).
-        /// False to visit the children.
+        /// True (the default) to visit the children. False to skip the visit of the current node. 
         /// </returns>
         protected virtual bool BeforeVisitItem()
         {

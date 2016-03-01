@@ -20,6 +20,7 @@ namespace CK.SqlServer.Transform
         int _currentRemainder;
 
         public SqlNodeScopePredicate( Func<ISqlNode,bool> predicate, int maxOccur = -1 )
+            : base( false )
         {
             if( predicate == null ) throw new ArgumentNullException( nameof( predicate ) );
             if( maxOccur == 0 ) throw new ArgumentException( "Must not be zero.", nameof( maxOccur ) );
@@ -40,8 +41,8 @@ namespace CK.SqlServer.Transform
             {
                 --_currentRemainder;
                 _currentNode = context.VisitedNode;
-                var beg = context.GetCurrentLocation();
-                _current = new SqlNodeLocationRange( beg, context.LocationManager.GetRawLocation( beg.Position + _currentNode.Width + 1 ) );
+                var beg = context.GetCurrentLocation( true );
+                _current = new SqlNodeLocationRange( beg, context.LocationManager.GetRawLocation( beg.Position + _currentNode.Width ) );
                 return _current;
             }
             return null;
@@ -57,7 +58,7 @@ namespace CK.SqlServer.Transform
             return null;
         }
 
-        protected override ISqlNodeLocationRange DoConclude( ISqlNodeLocationManager locManager )
+        protected override ISqlNodeLocationRange DoConclude( SqlNodeLocationVisitor.IVisitContextBase context )
         {
             return null;
         }

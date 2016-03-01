@@ -48,7 +48,7 @@ namespace CK.SqlServer.Parser
 
             ISqlNode n = this;
             int cPos = 0;
-            for(;;)
+            for( ;;)
             {
                 Debug.Assert( n.ChildrenNodes.Count != 0 || (index == 0 && n is SqlToken) );
                 var children = n.ChildrenNodes;
@@ -69,6 +69,26 @@ namespace CK.SqlServer.Parser
                     Debug.Assert( index >= 0 );
                 }
             }
+        }
+
+        public int LocateDirectChildIndex( ref int index )
+        {
+            int idx = -1;
+            if( index >= 0 && index < Width )
+            {
+                int cPos = 0;
+                var children = ChildrenNodes;
+                foreach( var c in children )
+                {
+                    ++idx;
+                    int cW = c.Width;
+                    if( index < cW ) break;
+                    cPos += cW;
+                    index -= cW;
+                    Debug.Assert( index >= 0 );
+                }
+            }
+            return idx;
         }
 
         ISqlNode DoLift( ImmutableList<SqlTrivia>.Builder hL, ImmutableList<SqlTrivia>.Builder tL, ISqlNode n, bool root )

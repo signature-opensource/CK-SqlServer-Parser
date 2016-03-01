@@ -522,5 +522,89 @@
     </Xml>
   </Test>
 
+
+  <Test>
+    <Text>break; continue 3+5 ; A, B</Text>
+    <Description>Two statements and .</Description>
+    <Xml>
+      <Sql>
+        <NodeList>
+          <Item>
+            <Statement StatementName="break" HasTerminator="true">
+              <Content>
+                <NodeList />
+              </Content>
+            </Statement>
+          </Item>
+          <Item>
+            <Statement StatementName="continue" HasTerminator="true">
+              <Content>
+                <BinaryOperator>
+                  <Left>
+                    <LiteralInteger>3</LiteralInteger>
+                  </Left>
+                  <Operator>
+                    <Terminal>+</Terminal>
+                  </Operator>
+                  <Right>
+                    <LiteralInteger>5</LiteralInteger>
+                  </Right>
+                </BinaryOperator>
+              </Content>
+            </Statement>
+          </Item>
+          <Item>
+            <UnnamedStatement>
+              <Content>
+                <CommaList>
+                  <Item>
+                    <Identifier>A</Identifier>
+                  </Item>
+                  <Item>
+                    <Identifier>B</Identifier>
+                  </Item>
+                </CommaList>
+              </Content>
+            </UnnamedStatement>
+          </Item>
+        </NodeList>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test>
+    <Text>EXEC sys.sp_spaceused @objname = N'Sales.SalesOrderHeader';</Text>
+    <Description></Description>
+    <Xml>
+      <Sql>
+          <ExecuteStatement HasTerminator="true">
+            <Name>sys.sp_spaceused</Name>
+            <Parameters>
+              <CallParameterList>
+                <Item>
+                  <CallParameter>
+                    <Name>
+                      <Identifier IsVariable="true">@objname</Identifier>
+                    </Name>
+                    <AsssignT>
+                      <Terminal>=</Terminal>
+                    </AsssignT>
+                    <Value>
+                      <BasicValue>
+                        <Value>
+                          <LiteralString IsUnicode="true">N'Sales.SalesOrderHeader'</LiteralString>
+                        </Value>
+                      </BasicValue>
+                    </Value>
+                  </CallParameter>
+                </Item>
+              </CallParameterList>
+            </Parameters>
+          </ExecuteStatement>
+      </Sql>
+    </Xml>
+  </Test>
+
+
 </Tests>
 

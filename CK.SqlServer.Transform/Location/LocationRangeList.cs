@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace CK.SqlServer.Transform
 {
-    internal class LocationRangeList : ISqlNodeLocationRange
+    internal class LocationRangeList : ISqlNodeLocationRange, ISqlNodeLocationRangeInternal
     {
         readonly IReadOnlyList<SqlNodeLocationRange> _v;
 
@@ -23,6 +23,7 @@ namespace CK.SqlServer.Transform
             Debug.Assert( list.Select( (r,idx) => idx == 0 || list[idx-1].End.Position < r.Beg.Position ).Any() );
             _v = list;
         }
+        public int Count => _v.Count;
 
         public SqlNodeLocationRange First => _v[0];
 
@@ -32,9 +33,16 @@ namespace CK.SqlServer.Transform
 
         IEnumerator IEnumerable.GetEnumerator() => _v.GetEnumerator();
 
+        public ISqlNodeLocationRangeInternal InternalSetEnd( SqlNodeLocation end )
+        {
+            var v = _v.ToArray();
+            v[v.Length - 1] = v[v.Length - 1].InternalSetEnd( end );
+            return new LocationRangeList( v );
+        }
+
         public override string ToString()
         {
-            return string.Join( ", ", this.Select( r => r.ToString() ) );
+            return string.Join( "-", this.Select( r => r.ToString() ) );
         }
 
     }

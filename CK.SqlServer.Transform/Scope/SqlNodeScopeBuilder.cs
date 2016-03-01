@@ -15,7 +15,18 @@ namespace CK.SqlServer.Transform
     /// </summary>
     public abstract class SqlNodeScopeBuilder
     {
-        ISqlNodeLocationRange _last;
+        readonly bool _autoMergeSubsequent;
+        ISqlNodeLocationRangeInternal _last;
+
+        /// <summary>
+        /// Initializes a new <see cref="SqlNodeScopeBuilder"/> that, by default, merges emitted 
+        /// directly subsequent ranges (ie. [1,8[ and [8,12[ are meged as [1,12[). 
+        /// </summary>
+        /// <param name="autoMergeSubsequent">False to emit unmerged subsequent ranges.</param>
+        public SqlNodeScopeBuilder( bool autoMergeSubsequent = true )
+        {
+            _autoMergeSubsequent = autoMergeSubsequent;
+        }
 
         /// <summary>
         /// Resets any internal state
@@ -27,17 +38,17 @@ namespace CK.SqlServer.Transform
 
         internal ISqlNodeLocationRange Enter( SqlNodeLocationVisitor.IVisitContext context )
         {
-            return Handle( DoEnter( context ) );
+            return Handle( (ISqlNodeLocationRangeInternal)DoEnter( context ) );
         }
 
         internal ISqlNodeLocationRange Leave( SqlNodeLocationVisitor.IVisitContext context )
         {
-            return Handle( DoLeave( context ) );
+            return Handle( (ISqlNodeLocationRangeInternal)DoLeave( context ) );
         }
 
-        internal ISqlNodeLocationRange Conclude( ISqlNodeLocationManager locManager )
+        internal ISqlNodeLocationRange Conclude( SqlNodeLocationVisitor.IVisitContextBase context )
         {
-            var r1 = Handle( DoConclude( locManager ) );
+            var r1 = (ISqlNodeLocationRangeInternal)Handle( (ISqlNodeLocationRangeInternal)DoConclude( context ) );
             var r2 = _last;
             if( r2 != null )
             {
@@ -69,21 +80,23 @@ namespace CK.SqlServer.Transform
         /// <summary>
         /// Called at the end of the visit.
         /// </summary>
-        /// <param name="locManager">Location manager to use.</param>
+        /// <param name="context">Base context (offers location manager and error management).</param>
         /// <returns>Null or the final range to consider.</returns>
-        protected abstract ISqlNodeLocationRange DoConclude( ISqlNodeLocationManager locManager );
+        protected abstract ISqlNodeLocationRange DoConclude( SqlNodeLocationVisitor.IVisitContextBase context );
 
-        ISqlNodeLocationRange Handle( ISqlNodeLocationRange r )
+        ISqlNodeLocationRange Handle( ISqlNodeLocationRangeInternal r )
         {
-            if( r == null || r == SqlNodeLocationRange.Empty ) return null;
-            ISqlNodeLocationRange result = _last;
+            if( r == null || r == SqlNodeLocationRange.EmptySet ) return null;
+            if( !_autoMergeSubsequent ) return r;
+
+            ISqlNodeLocationRangeInternal result = _last;
             if( result != null )
             {
                 var l = result.Last;
                 if( l.End.Position > r.First.Beg.Position ) throw new InvalidOperationException( "Newly built range intersects previous one." );
                 if( l.End.Position == r.First.Beg.Position )
                 {
-                    l.InternalExtend( r.Last.End );
+                    _last = _last.InternalSetEnd( r.Last.End );
                     return null;
                 }
             }
@@ -110,10 +123,10 @@ namespace CK.SqlServer.Transform
             }
 
             /// <summary>
-            /// Appends an enumerable. Either this RangeEnumerator or a new on is returned.
+            /// Appends an enumerable. Either this RangeEnumerator or a new one is returned.
             /// </summary>
-            /// <param name="next">The next eanumeable. Can be null.</param>
-            /// <returns>This or a one that cobines this and the next range.</returns>
+            /// <param name="next">The next enumerable. Can be null.</param>
+            /// <returns>This or a new one that combines this and the next range.</returns>
             public RangeEnumerator Add( IEnumerable<SqlNodeLocationRange> next )
             {
                 if( next == null ) return this;
@@ -136,10 +149,18 @@ namespace CK.SqlServer.Transform
             }
 
             /// <summary>
-            /// Gets whether this RangeEnumerator has a <see cref="Current"/> range.
+            /// Gets whether this RangeEnumerator has no more <see cref="Current"/> range.
             /// </summary>
             public bool IsEmpty => _current == null;
 
+            /// <summary>
+            /// Gets whether this RangeEnumerator has a <see cref="Current"/> range.
+            /// </summary>
+            public bool HasMore => _current != null;
+
+            /// <summary>
+            /// Gets the current range.
+            /// </summary>
             public SqlNodeLocationRange Current => _current.Current;
 
             /// <summary>
@@ -183,18 +204,139 @@ namespace CK.SqlServer.Transform
 
         }
 
-        static protected void OnTheFlyIntersect( RangeEnumerator left, RangeEnumerator right, Action<SqlNodeLocationRange> result )
+
+        protected struct RangeBuffer
         {
-            for( ;;)
+            readonly List<SqlNodeLocationRange> _buffer;
+
+            public RangeBuffer( bool onlyCtor )
             {
-                if( left.IsEmpty || right.IsEmpty ) return;
-                SqlNodeLocationRange l = left.Current.Intersect( right.Current );
-                if( l != SqlNodeLocationRange.Empty ) result( l );
-                bool forward1 = left.Current.End.Position <= right.Current.End.Position;
-                bool forward2 = left.Current.End.Position >= right.Current.End.Position;
-                if( forward1 ) left.MoveNext();
-                if( forward2 ) right.MoveNext();
+                _buffer = new List<SqlNodeLocationRange>();
             }
+
+            public void Reset() => _buffer.Clear();
+
+            public void AddResult( SqlNodeLocationRange r ) => _buffer.Add( r );
+
+            public ISqlNodeLocationRange ExtractResult()
+            {
+                ISqlNodeLocationRange r = null;
+                if( _buffer.Count > 0 )
+                {
+                    r = SqlNodeLocationRange.Create( _buffer, _buffer.Count );
+                    _buffer.Clear();
+                }
+                return r;
+            }
+        }
+
+        /// <summary>
+        /// Helper class that factorizes code between union and except implementations.
+        /// </summary>
+        protected struct BiRangeState
+        {
+            readonly RangeBuffer _buffer;
+            public RangeEnumerator LeftE { get; private set; }
+            public RangeEnumerator RightE { get; private set; }
+
+            public BiRangeState( bool onlyCtor )
+            {
+                LeftE = new RangeEnumerator();
+                RightE = new RangeEnumerator();
+                _buffer = new RangeBuffer( true );
+            }
+
+            public void Reset()
+            {
+                LeftE.Reset();
+                RightE.Reset();
+                _buffer.Reset();
+            }
+
+            public void AddInputRanges( ISqlNodeLocationRange left, ISqlNodeLocationRange right )
+            {
+                LeftE = LeftE.Add( left );
+                RightE = RightE.Add( right );
+            }
+
+            public bool BothHaveMore => LeftE.HasMore && RightE.HasMore;
+
+            public void ForwardLeftUntil( int position )
+            {
+                if( LeftE.HasMore ) while( LeftE.Current.End.Position <= position && LeftE.MoveNext() ) ;
+            }
+
+            public void ForwardRightUntil( int position )
+            {
+                if( RightE.HasMore ) while( RightE.Current.End.Position <= position && RightE.MoveNext() ) ;
+            }
+
+            public void MoveLeftOnceAndRightUntil( int position, bool swapped )
+            {
+                if( swapped )
+                {
+                    RightE.MoveNext();
+                    while( LeftE.MoveNext() && LeftE.Current.End.Position <= position ) ;
+                }
+                else
+                {
+                    LeftE.MoveNext();
+                    while( RightE.MoveNext() && RightE.Current.End.Position <= position ) ;
+                }
+            }
+
+            public void MoveLeft( bool swapped )
+            {
+                if( swapped )
+                {
+                    RightE.MoveNext();
+                }
+                else
+                {
+                    LeftE.MoveNext();
+                }
+            }
+
+            public void MoveBoth()
+            {
+                LeftE.MoveNext();
+                RightE.MoveNext();
+            }
+
+            public void AddResult( SqlNodeLocationRange r ) => _buffer.AddResult( r );
+
+            public ISqlNodeLocationRange ExtractResult() => _buffer.ExtractResult();
+
+            /// <summary>
+            /// Unconditionnaly flushes left ranges (or right if swapped is true) to the results, combining
+            /// the remaining ranges with a current one that will be null after this.
+            /// </summary>
+            /// <param name="current">A current range that will be extended and emitted if not null.</param>
+            /// <param name="swapped">True to flush right instead of left.</param>
+            public void FlushLeft( ref SqlNodeLocationRange current, bool swapped = false )
+            {
+                RangeEnumerator e = swapped ? RightE : LeftE;
+                if( current != null )
+                {
+                    while( current.End.Position >= e.Current.Beg.Position )
+                    {
+                        if( e.Current.End.Position > current.End.Position ) current = current.InternalSetEnd( e.Current.End );
+                        if( !e.MoveNext() ) break;
+                    }
+                    AddResult( current );
+                    current = null;
+                }
+                if( e.HasMore )
+                {
+                    do
+                    {
+                        AddResult( e.Current );
+                    }
+                    while( e.MoveNext() );
+                }
+            }
+
+
         }
 
 

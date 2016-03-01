@@ -39,10 +39,15 @@ namespace CK.SqlServer.Transform
             _currentQ = null;
         }
 
-        public void Leave( ISqlNode n )
+        public void Leave( ISqlNode n, bool skipped )
         {
             --_depth;
-            if( n is SqlToken )
+            if( skipped )
+            {
+                _curPos += n.Width;
+                _current = null;
+            }
+            else if( n is SqlToken )
             {
                 ++_curPos;
                 _current = null;

@@ -45,7 +45,8 @@ namespace CK.SqlServer.Transform
         /// Called after having visited a node.
         /// </summary>
         /// <param name="n">The visited node.</param>
-        void Leave( ISqlNode n );
+        /// <param name="skipped">True if the node's children have been skipped.</param>
+        void Leave( ISqlNode n, bool skipped );
 
         /// <summary>
         /// Obtains the location of the currently visited node.

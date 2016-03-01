@@ -20,8 +20,9 @@ namespace CK.SqlServer.Parser
         {
             return ((SqlNode)e).Accept( this );
         }
+
         /// <summary>
-        /// Visits childre nodes and handles any modification that may occur on visited children.
+        /// Visits children nodes and handles any modification that may occur on visited children.
         /// This virtual method can be rerouted to <see cref="VisitStandardReadOnly"/> if there is no
         /// mutations planned or if the mutations should be ignored.
         /// </summary>

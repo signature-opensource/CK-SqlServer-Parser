@@ -269,7 +269,7 @@ namespace CK.SqlServer.Transform
                 if( curP != l.Position ) b.Append( $"[{l.Position}]" );
                 curP = l.Position;
             }
-            b.Append( " - " ).Append( Node.ToStringHyperCompact() );
+            if( Node != null ) b.Append( " - " ).Append( Node.ToStringHyperCompact() );
             return b.ToString();
         }
     }

@@ -33,5 +33,23 @@ namespace CK.SqlServer.Transform
             return InsertParameter( @this, @this.Parameters.GetInsertIndex( paramNameBefore, paramNameAfter ), parameter );
         }
 
+        public static ISqlNodeLocationRange Intersect( this ISqlNodeLocationRange @this, ISqlNodeLocationRange other )
+        {
+            if( other == null ) throw new ArgumentNullException( nameof( other ) );
+            return SqlNodeScopeIntersect.DoIntersect( @this, other );
+        }
+
+        public static ISqlNodeLocationRange Union( this ISqlNodeLocationRange @this, ISqlNodeLocationRange other )
+        {
+            if( other == null ) throw new ArgumentNullException( nameof( other ) );
+            return SqlNodeScopeUnion.DoUnion( @this, other );
+        }
+
+        public static ISqlNodeLocationRange Except( this ISqlNodeLocationRange @this, ISqlNodeLocationRange other )
+        {
+            if( other == null ) throw new ArgumentNullException( nameof( other ) );
+            return SqlNodeScopeExcept.DoExcept( @this, other );
+        }
+
     }
 }
