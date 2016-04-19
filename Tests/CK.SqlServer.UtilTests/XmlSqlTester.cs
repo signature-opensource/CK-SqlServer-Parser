@@ -26,7 +26,7 @@ namespace CK.SqlServer.UtilTests
         public XmlSqlTester( XElement t )
         {
             TestElement = t;
-            Mode = t.GetAttributeEnum( "Mode", ParseMode.AllStatements );
+            Mode = t.AttributeEnum( "Mode", ParseMode.AllStatements );
             // TrimEnd the text because the last trivia is skipped.
             Text = t.Element( "Text" ).Value.TrimEnd().NormalizeEOL();
             Description = t.Elements( "Description" ).Select( e => e.Value ).FirstOrDefault();
@@ -34,11 +34,12 @@ namespace CK.SqlServer.UtilTests
             XElement xmlTestElement = t.Element( "Xml" );
             if( xmlTestElement != null )
             {
-                CombineElementType = xmlTestElement.GetAttributeBoolean( "CombineElementType", false );
+                var ce = xmlTestElement.Attribute( "CombineElementType" );
+                CombineElementType = ce == null ? false : (bool)ce;
                 ExpectedXml = xmlTestElement.Element( "Sql" );
                 var s = (string)xmlTestElement.Attribute( "ToStringCompact" );
                 if( s != null ) ToStringCompactForms = s.Split( ',' ).Select( f => f.Trim() ).ToArray();
-                else ToStringCompactForms = Util.EmptyStringArray;
+                else ToStringCompactForms = Util.Array.Empty<string>();
 
                 ExpectedStatementsXml = xmlTestElement.Element( "Statements" );
             }

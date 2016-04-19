@@ -101,7 +101,7 @@ namespace CK.SqlServer.Parser
             TItem item = matcher( atLeastOne );
             if( item == null ) return R.IsError ? null : listCreator( Enumerable.Empty<TItem>() );
             TItem item2 = matcher( false );
-            if( item2 == null ) return R.IsError ? null : listCreator( new CKReadOnlyListMono<TItem>( item ) );
+            if( item2 == null ) return R.IsError ? null : listCreator( new TItem[] { item } );
             List<TItem> items = new List<TItem>();
             items.Add( item );
             items.Add( item2 );

@@ -31,7 +31,7 @@ namespace CK.SqlServer.Parser
         /// </summary>
         /// <param name="id">An optional <see cref="ISqlIdentifier"/>.</param>
         public SqlEnclosedIdentifierCommaList( ISqlIdentifier id = null )
-            : base( 0, SqlKeyword.OpenPar, id == null ? Util.EmptyArray<ISqlIdentifier>.Empty : new[] { id }, SqlKeyword.ClosePar )
+            : base( 0, SqlKeyword.OpenPar, id == null ? Util.Array.Empty<ISqlIdentifier>() : new[] { id }, SqlKeyword.ClosePar )
         {
         }
 

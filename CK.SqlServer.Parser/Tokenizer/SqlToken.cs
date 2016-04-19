@@ -49,18 +49,18 @@ namespace CK.SqlServer.Parser
 
         public override sealed IEnumerable<SqlTrivia> FullTrailingTrivias => TrailingTrivias;
 
-        public override sealed IEnumerable<ISqlNode> LeadingNodes => Util.EmptyArray<ISqlNode>.Empty;
+        public override sealed IEnumerable<ISqlNode> LeadingNodes => Util.Array.Empty<ISqlNode>();
 
-        public override sealed IEnumerable<ISqlNode> TrailingNodes => Util.EmptyArray<ISqlNode>.Empty;
+        public override sealed IEnumerable<ISqlNode> TrailingNodes => Util.Array.Empty<ISqlNode>();
 
         public override sealed int Width => 1;
 
         /// <summary>
         /// Gets an empty node list.
         /// </summary>
-        public override sealed IReadOnlyList<ISqlNode> ChildrenNodes => Util.EmptyArray<SqlNode>.Empty;
+        public override sealed IReadOnlyList<ISqlNode> ChildrenNodes => Util.Array.Empty<ISqlNode>();
 
-        public override sealed IList<ISqlNode> GetRawContent() => Util.EmptyArray<SqlNode>.Empty;
+        public override sealed IList<ISqlNode> GetRawContent() => Util.Array.Empty<ISqlNode>();
 
         public override sealed bool IsToken( SqlTokenType t ) => TokenType == t;
 

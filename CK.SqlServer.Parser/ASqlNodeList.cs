@@ -37,7 +37,7 @@ namespace CK.SqlServer.Parser
                 T[] a = items as T[];
                 if( a == null )
                 {
-                    if( i == 0 ) a = Util.EmptyArray<T>.Empty;
+                    if( i == 0 ) a = Util.Array.Empty<T>();
                     {
                         a = new T[i];
                         i = 0;
