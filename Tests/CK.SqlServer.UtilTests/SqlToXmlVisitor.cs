@@ -329,7 +329,7 @@ namespace CK.SqlServer.UtilTests
         {
             StartNode( e ).Add(
                     e.IsAlterKeyword ? new XAttribute( "IsAlter", "true" ) : null,
-                    new XElement( "Name", e.Name.ToString() ),
+                    new XElement( "Name", e.FullName.ToString() ),
                     ToXml( "Parameters", e.Parameters ),
                     e.HasOptions ? ToXml( "Options", e.Options ) : null,
                     ToXml( "Body", e.Body )

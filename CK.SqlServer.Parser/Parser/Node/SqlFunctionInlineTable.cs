@@ -94,19 +94,24 @@ namespace CK.SqlServer.Parser
         public SqlTokenIdentifier ObjectTypeT => _content.V2;
 
         /// <summary>
-        /// Gets the name of the procedure (may start with the Schema).
+        /// Gets the name of the function without schema.
         /// </summary>
-        public string ObjectName => Name.ToString();
+        public string Name => FullName.GetPartName( 1 );
 
         /// <summary>
         /// Gets the schema name or null if there is no schema.
         /// </summary>
-        public string SchemaName => Name.GetPartName( 2 );
+        public string Schema => FullName.GetPartName( 2 );
 
         /// <summary>
-        /// Gets the name of the procedure (may start with the Schema).
+        /// Gets the full name of the function (may start with the Schema).
         /// </summary>
-        public ISqlIdentifier Name => _content.V3;
+        public string SchemaName => FullName.ToString();
+
+        /// <summary>
+        /// Gets the name of the function (may start with the Schema).
+        /// </summary>
+        public ISqlIdentifier FullName => _content.V3;
 
         public SqlFunctionInlineTable SetParameters( SqlParameterList parameters ) => this.ReplaceContentNode( 3, parameters );
 
@@ -135,9 +140,9 @@ namespace CK.SqlServer.Parser
 
         ISqlServerParameterList ISqlServerCallableObject.Parameters => _content.V4.ModelParameters;
 
-        ISqlServerObject ISqlServerObject.SetSchemaName( string name )
+        ISqlServerObject ISqlServerObject.SetSchema( string name )
         {
-            return this.ReplaceContentNode( 2, Name.SetPartName( 2, name ) );
+            return this.ReplaceContentNode( 2, FullName.SetPartName( 2, name ) );
         }
         SqlServerObjectType ISqlServerObject.ObjectType => SqlServerObjectType.InlineTableFunction;
 

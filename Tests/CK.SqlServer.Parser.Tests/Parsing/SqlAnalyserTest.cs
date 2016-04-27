@@ -48,9 +48,9 @@ namespace CK.SqlServer.Parser.Tests
         {
             CheckStatement<SqlStoredProcedure>( "sStoredProcedureInputOutput.sql", sp =>
             {
-                Assert.That( sp.Name.Identifiers[0].ToString(), Is.EqualTo( "CK" ) );
-                Assert.That( sp.Name.Identifiers[1].ToString(), Is.EqualTo( "sStoredProcedureInputOutput" ) );
-                Assert.That( sp.Name.ToString(), Is.EqualTo( "CK.sStoredProcedureInputOutput" ) );
+                Assert.That( sp.FullName.Identifiers[0].ToString(), Is.EqualTo( "CK" ) );
+                Assert.That( sp.FullName.Identifiers[1].ToString(), Is.EqualTo( "sStoredProcedureInputOutput" ) );
+                Assert.That( sp.FullName.ToString(), Is.EqualTo( "CK.sStoredProcedureInputOutput" ) );
 
                 Assert.That( sp.Parameters[0].IsOutput, Is.False );
                 Assert.That( sp.Parameters[0].IsReadOnly, Is.False );

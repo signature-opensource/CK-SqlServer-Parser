@@ -64,7 +64,7 @@ namespace CK.SqlServer.Parser
         {
             Helper.CheckToken( AlterOrCreateT, nameof( AlterOrCreateT ), SqlTokenType.Alter, SqlTokenType.Create );
             Helper.CheckToken( ObjectTypeT, nameof( ObjectTypeT ), SqlTokenType.Procedure );
-            Helper.CheckNotNull( Name, nameof( Name ) );
+            Helper.CheckNotNull( FullName, nameof( FullName ) );
             Helper.CheckNotNull( Parameters, nameof( Parameters ) );
             Helper.CheckToken( AsT, nameof( AsT ), SqlTokenType.As );
             Helper.CheckNullableToken( BeginT, nameof( BeginT ), SqlTokenType.Begin );
@@ -94,29 +94,37 @@ namespace CK.SqlServer.Parser
         public SqlTokenIdentifier ObjectTypeT => _content.V2;
 
         /// <summary>
-        /// Gets the name of the procedure (may start with the Schema).
+        /// Gets the name of the procedure without the schema.
         /// </summary>
-        public string ObjectName => Name.ToString();
+        public string Name => FullName.GetPartName( 1 );
 
         /// <summary>
         /// Gets the schema name or null if there is no schema.
         /// </summary>
-        public string SchemaName => Name.GetPartName( 2 );
+        public string Schema => FullName.GetPartName( 2 );
+
+        /// <summary>
+        /// Gets the full name of the procedure (may start with the Schema).
+        /// </summary>
+        public string SchemaName => FullName.ToString();
 
         /// <summary>
         /// Gets the name of the procedure (may start with the Schema).
         /// </summary>
-        public ISqlIdentifier Name => _content.V3;
+        public ISqlIdentifier FullName => _content.V3;
 
+        /// <summary>
+        /// Gets the parameters.
+        /// </summary>
         public SqlParameterList Parameters => _content.V4;
 
         public SqlStoredProcedure SetParameters( SqlParameterList parameters ) => this.ReplaceContentNode( 3, parameters );
 
         ISqlServerParameterList ISqlServerCallableObject.Parameters => _content.V4.ModelParameters;
 
-        ISqlServerObject ISqlServerObject.SetSchemaName(string name)
+        ISqlServerObject ISqlServerObject.SetSchema(string name)
         {
-            return this.ReplaceContentNode( 2, Name.SetPartName( 2, name ) );
+            return this.ReplaceContentNode( 2, FullName.SetPartName( 2, name ) );
         }
 
         SqlServerObjectType ISqlServerObject.ObjectType => SqlServerObjectType.Procedure;

@@ -14,7 +14,7 @@
     <language>en-US</language>
 	  <dependencies>
       <dependency id="System.Collections.Immutable" version="1.1.37" />
-      <dependency id="CK.SqlServer.Parser.Model" version="2.0.0-a02" />
+      <dependency id="CK.SqlServer.Parser.Model" version="3.0.0-a" />
 	  </dependencies>
   </metadata>
   <files>

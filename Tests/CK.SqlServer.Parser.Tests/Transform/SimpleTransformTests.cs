@@ -41,12 +41,12 @@ namespace CK.SqlServer.Parser.Tests.Transform
         [TestCase( "alter function fTest( @i int ) returns int begin return 0; end", "PPP", "alter function PPP.fTest" )]
         [TestCase( "create function /*c1*/[X]/*c2*/./*c3*/fTestMultiStatement( @i int ) returns @T table (Id int) begin return; end", "S", "create function /*c1*/S/*c2*/./*c3*/fTestMultiStatement" )]
         [TestCase( "alter function [a schema].fTestITVF( @i int ) returns table return select 1;", null, "alter function fTestITVF" )]
-        public void schema_name_can_be_set( string text, string schema, string resultStart )
+        public void schema_can_be_set( string text, string schema, string resultStart )
         {
             ISqlServerObject sqlObject;
             ISqlServerParserError r = new SqlAnalyser( text ).ParseStatement( out sqlObject );
             Assert.That( !r.IsError );
-            ISqlServerObject o2 = sqlObject.SetSchemaName( schema );
+            ISqlServerObject o2 = sqlObject.SetSchema( schema );
             Assert.That( o2.ToFullString(), Is.StringStarting( resultStart ) );
         }
 
