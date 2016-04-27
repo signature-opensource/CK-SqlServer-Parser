@@ -417,25 +417,21 @@
                                    <Identifier>Number</Identifier>
                                  </Item>
                                  <Item>
-                                   <KoCall FunName="varchar">
-                                     <Parameters>
-                                       <EnclosedCommaList>
-                                         <Item>
-                                           <LiteralInteger>200</LiteralInteger>
-                                         </Item>
-                                       </EnclosedCommaList>
-                                     </Parameters>
-                                   </KoCall>
+                                   <TypeDeclWithSize DBType="VarChar" Text="varchar(200)" />
                                  </Item>
                                </NodeList>
                              </Item>
                              <Item>
                                <NodeList>
                                  <Item>
-                                   <Identifier IsDbType="true">Date</Identifier>
+                                   <!-- 
+                                   This is a shame. Without context, Date is a TypeDecl.
+                                   This is the price to pay to avoid KoCall for char(30).
+                                   -->
+                                   <TypeDeclDateAndTime DBType="Date" Text="Date" />
                                  </Item>
                                  <Item>
-                                   <Identifier IsDbType="true">datetime</Identifier>
+                                   <TypeDeclDateAndTime DBType="DateTime" Text="datetime" />
                                  </Item>
                                </NodeList>
                              </Item>
@@ -445,15 +441,7 @@
                                    <Identifier>Customer</Identifier>
                                  </Item>
                                  <Item>
-                                   <KoCall FunName="varchar">
-                                     <Parameters>
-                                       <EnclosedCommaList>
-                                         <Item>
-                                           <LiteralInteger>200</LiteralInteger>
-                                         </Item>
-                                       </EnclosedCommaList>
-                                     </Parameters>
-                                   </KoCall>
+                                   <TypeDeclWithSize DBType="VarChar" Text="varchar(200)" />
                                  </Item>
                                </NodeList>
                              </Item>
@@ -463,7 +451,7 @@
                                    <Identifier>Quantity</Identifier>
                                  </Item>
                                  <Item>
-                                   <Identifier IsDbType="true">int</Identifier>
+                                   <TypeDeclSimple DBType="Int" Text="int" />
                                  </Item>
                                </NodeList>
                              </Item>

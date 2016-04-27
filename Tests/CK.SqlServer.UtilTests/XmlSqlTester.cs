@@ -37,11 +37,19 @@ namespace CK.SqlServer.UtilTests
                 var ce = xmlTestElement.Attribute( "CombineElementType" );
                 CombineElementType = ce == null ? false : (bool)ce;
                 ExpectedXml = xmlTestElement.Element( "Sql" );
+                if( ExpectedXml != null )
+                {
+                    ExpectedXml.DescendantNodes().OfType<XComment>().Remove();
+                }
                 var s = (string)xmlTestElement.Attribute( "ToStringCompact" );
                 if( s != null ) ToStringCompactForms = s.Split( ',' ).Select( f => f.Trim() ).ToArray();
                 else ToStringCompactForms = Util.Array.Empty<string>();
 
                 ExpectedStatementsXml = xmlTestElement.Element( "Statements" );
+                if( ExpectedStatementsXml != null )
+                {
+                    ExpectedStatementsXml.DescendantNodes().OfType<XComment>().Remove();
+                }
             }
         }
 

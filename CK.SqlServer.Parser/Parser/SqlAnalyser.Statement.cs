@@ -1131,23 +1131,21 @@ namespace CK.SqlServer.Parser
         }
 
         /// <summary>
-        /// Either a SqlDbType (int, sql_variant) or multiple identifiers that is a user defined type.
+        /// A SqlDbType (int, sql_variant).
         /// </summary>
         /// <returns></returns>
-        ISqlUnifiedTypeDecl IsTypeDecl( bool expected )
+        ISqlUnifiedTypeDecl IsSqlDbTypeDecl()
         {
-            SqlTypeDeclTable tableDecl = IsTypeDeclTable( false );
-            if( tableDecl != null ) return tableDecl;
-
             SqlTokenIdentifier id;
-            if( R.IsToken( out id, t => t.TokenType.IsDbType(), false )
+            if( R.IsToken( out id, t => t.TokenType != SqlTokenType.TableDbType && t.TokenType.IsDbType(), false )
                 || (id = R.IsQuotedDbTypeWithUselessComments( false )) != null )
             {
                 Debug.Assert( SqlKeyword.FromSqlTokenTypeToSqlDbType( id.TokenType ).HasValue, "TokenType has been mapped to a SqlDbType." );
 
-                #region Type mapped to SqlDbType.
                 SqlDbType dbType = SqlKeyword.FromSqlTokenTypeToSqlDbType( id.TokenType ).Value;
-                Debug.Assert( dbType != SqlDbType.Structured, "TABLE has been handled by IsTypeDeclTable." );
+                Debug.Assert( dbType != SqlDbType.Structured, "TABLE has been filtered and should be handled by IsTypeDeclTable." );
+                
+                #region Type mapped to SqlDbType.
                 switch( dbType )
                 {
                     case SqlDbType.Date:
@@ -1237,28 +1235,42 @@ namespace CK.SqlServer.Parser
                 }
                 #endregion
             }
-            else if( R.Current.TokenType == SqlTokenType.Cursor )
+            return null;
+        }
+
+        /// <summary>
+        /// Either a SqlDbType (int, sql_variant), a table(...) definition, a cursor (<see cref="IsSqlDbTypeDeclOrCursorOrTableDefinition"/>)
+        /// or multiple identifiers that is a user defined type.
+        /// </summary>
+        /// <returns></returns>
+        ISqlUnifiedTypeDecl IsTypeDecl( bool expected )
+        {
+            ISqlUnifiedTypeDecl standard = IsSqlDbTypeDecl();
+            if( standard != null ) return standard;
+
+            SqlTypeDeclTable tableDecl = IsTypeDeclTable( false );
+            if( tableDecl != null ) return tableDecl;
+
+            if( R.Current.TokenType == SqlTokenType.Cursor )
             {
                 SqlTokenIdentifier cursorT = R.Read<SqlTokenIdentifier>();
                 SqlTokenIdentifier varyingT;
                 R.IsToken( out varyingT, SqlTokenType.Varying, false );
                 return new SqlTypeDeclCursorParameter( cursorT, varyingT );
             }
-            else if( R.Current.TokenType.IsReservedKeyword() 
-                        || R.Current.TokenType.IsVariableNameOrLiteral()
-                        || R.Current.TokenType.IsIdentifierSpecial() )
+
+            if( R.Current.TokenType.IsReservedKeyword() 
+                || R.Current.TokenType.IsVariableNameOrLiteral()
+                || R.Current.TokenType.IsIdentifierSpecial() )
             {
                 if( expected ) R.SetCurrentError( "Expected type or user defined type (not a reserved keyword, a variable, a special identifier or a literal)." );
                 return null;
             }
-            else
-            {
-                // A User defined type is simply one or more identifiers.
-                ISqlIdentifier identifier = IsIdentifier( expected );
-                if( identifier == null ) return null;
-                SqlTokenIdentifier tId = identifier as SqlTokenIdentifier;
-                return new SqlTypeDeclUserDefined( identifier );
-            }
+            // A User defined type is simply one or more identifiers.
+            ISqlIdentifier identifier = IsIdentifier( expected );
+            if( identifier == null ) return null;
+            SqlTokenIdentifier tId = identifier as SqlTokenIdentifier;
+            return new SqlTypeDeclUserDefined( identifier );
         }
 
         SqlTypeDeclTable IsTypeDeclTable( bool expected )

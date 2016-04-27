@@ -25,6 +25,38 @@
     </Xml>
   </Test>
 
+  <Test>
+    <Text>
+      alter procedure dbo.ASimpleTestProcedure(
+	        @NumberOfLines int, 
+          @Two varchar(3) = 'abc', 
+          @Three decimal(10,3),
+          @Result datetime2(2) /*input*/output
+      )
+      as    
+      begin
+          set nocount on;
+          set @Result = PARSE('Monday, 13 December 2010' AS datetime2 USING 'en-US');
+          select top(@NumberOfLines) @Two, @Three, * from sys.databases;
+          return 0;
+      end
+    </Text>
+    <Xml>
+      <Statements>
+        <StoredProcedure StatementName="AlterProcedure">
+          <StatementList>
+            <SetOption HasTerminator="true" />
+            <SetVariable HasTerminator="true" />
+            <SelectStatement HasTerminator="true">
+              <SelectSpec />
+            </SelectStatement>
+            <ReturnStatement HasTerminator="true" />
+          </StatementList>
+        </StoredProcedure>
+      </Statements>
+    </Xml>
+  </Test>
+
   
   <Test>
     <Text>

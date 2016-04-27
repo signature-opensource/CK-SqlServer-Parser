@@ -58,7 +58,7 @@
     <Text>int</Text>
     <Xml>
       <Sql>
-        <Identifier IsDbType="true">int</Identifier>
+        <TypeDeclSimple DBType="Int" Text="int" />
       </Sql>
     </Xml>
   </Test>
@@ -67,7 +67,7 @@
     <Text>sql_variant</Text>
     <Xml>
       <Sql>
-        <Identifier IsDbType="true">sql_variant</Identifier>
+        <TypeDeclSimple DBType="Variant" Text="sql_variant" />
       </Sql>
     </Xml>
   </Test>
@@ -76,7 +76,16 @@
     <Text>datetime2</Text>
     <Xml>
       <Sql>
-        <Identifier IsDbType="true">datetime2</Identifier>
+        <TypeDeclDateAndTime DBType="DateTime2" Text="datetime2" />
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test Mode="OneExpression">
+    <Text>datetime</Text>
+    <Xml>
+      <Sql>
+        <TypeDeclDateAndTime DBType="DateTime" Text="datetime" />
       </Sql>
     </Xml>
   </Test>

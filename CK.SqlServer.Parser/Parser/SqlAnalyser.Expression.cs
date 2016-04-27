@@ -77,6 +77,8 @@ namespace CK.SqlServer.Parser
                 }
                 return new SqlPar( opener, content, closer );
             }
+            ISqlUnifiedTypeDecl stdType = IsSqlDbTypeDecl();
+            if( stdType != null ) return stdType;
             if( (R.Current.TokenType & SqlTokenType.IsIdentifier) != 0 )
             {
                 SqlTokenIdentifier id = R.Read<SqlTokenIdentifier>();

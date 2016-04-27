@@ -1,6 +1,42 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <Tests>
 
+
+  <Test Mode="OneExpression">
+    <Text>PARSE('Monday, 13 December 2010' AS datetime2(2) USING 'en-US')</Text>
+    <Description>Not null: unary operator.</Description>
+    <Xml>
+      <Sql>
+        <KoCall FunName="PARSE">
+          <Parameters>
+            <EnclosedCommaList>
+              <Item>
+                <NodeList>
+                  <Item>
+                    <LiteralString>'Monday, 13 December 2010'</LiteralString>
+                  </Item>
+                  <Item>
+                    <Identifier IsReservedKeyword="true">AS</Identifier>
+                  </Item>
+                  <Item>
+                    <TypeDeclDateAndTime DBType="DateTime2" Text="datetime2(2)" />
+                  </Item>
+                  <Item>
+                    <Identifier>USING</Identifier>
+                  </Item>
+                  <Item>
+                    <LiteralString>'en-US'</LiteralString>
+                  </Item>
+                </NodeList>
+              </Item>
+            </EnclosedCommaList>
+          </Parameters>
+        </KoCall>
+      </Sql>
+    </Xml>
+  </Test>
+
+
   <Test Mode="OneExpression">
     <Text>null</Text>
     <Description>Null, even if it is a reserved keyword is a simple identifier.</Description>
@@ -395,5 +431,5 @@
     </Xml>
   </Test>
 
-
+  
 </Tests>
