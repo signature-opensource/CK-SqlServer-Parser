@@ -96,7 +96,7 @@ namespace CK.SqlServer.Parser
         [DebuggerStepThrough]
         internal protected override ISqlNode Accept( SqlNodeVisitor visitor ) => visitor.Visit( this );
 
-        string ISqlServerUnifiedTypeDecl.ToStringClean() => ChildrenNodes.ToStringCompact();
+        string ISqlServerUnifiedTypeDecl.ToStringClean() => ChildrenNodes.ToStringHyperCompact();
 
         byte ISqlServerUnifiedTypeDecl.SyntaxPrecision => Precision != null ? (byte)Precision.Value : (byte)0;
 

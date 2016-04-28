@@ -200,6 +200,22 @@ namespace CK.SqlServer.Parser
             return Write( @this, SqlTextWriter.CreateOneLineCompact() ).ToString();
         }
 
+        /// <summary>
+        /// Returns a hyper compact textual representation of multiple <see cref="ISqlNode"/> (see <see cref="SqlTextWriter.CreateHyperCompact(StringBuilder)"/>).
+        /// </summary>
+        /// <param name="this">This multiple nodes.</param>
+        /// <returns>A very compact string.</returns>
+        public static string ToStringHyperCompact( this IEnumerable<ISqlNode> @this )
+        {
+            return Write( @this, SqlTextWriter.CreateHyperCompact() ).ToString();
+        }
+
+        /// <summary>
+        /// Writes all nodes in a <see cref="ISqlTextWriter"/>.
+        /// </summary>
+        /// <param name="this">This nodes.</param>
+        /// <param name="w">The writer.</param>
+        /// <returns>The writer itself.</returns>
         public static ISqlTextWriter Write( this IEnumerable<ISqlNode> @this, ISqlTextWriter w )
         {
             foreach( var n in @this ) n.Write( w );
