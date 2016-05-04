@@ -607,6 +607,7 @@ namespace CK.SqlServer.Parser
             }
             if( name == null ) return null;
             SqlCallParameterList parameters = IsCommaList( 0, IsCallParameter, i => new SqlCallParameterList( i ) );
+            if( parameters == null ) return null;
             SqlWithOptions options = IsIdentifierPrefixedCommaList( false, SqlTokenType.With, 1, IsExecuteOption, (p,i) => new SqlWithOptions( p, i ) );
             return new SqlExecuteStatement( execT, returnVar, assignT, name, parameters, options, ignoreTerminator ? null : GetOptionalTerminator() );
         }
@@ -657,20 +658,21 @@ namespace CK.SqlServer.Parser
             }
             if( R.Current.TokenType == SqlTokenType.Default )
             {
-                return new SqlCallParameter( name, assignT, R.Read<SqlTokenIdentifier>() );
+                // null name, assign token and output.
+                return new SqlCallParameter( name, assignT, R.Read<SqlTokenIdentifier>(), null );
             }
-            if( variable != null || R.IsToken( out variable, SqlTokenType.IdentifierVariable, false ) )
+            if( variable != null || R.IsToken( out variable, false ) )
             {
                 SqlTokenIdentifier outputT = null;
                 if( R.IsToken( out outputT, SqlTokenType.Output, false ) )
                 {
-                    return new SqlCallParameter( name, assignT, new SqlNodeList( variable, outputT ) );
+                    return new SqlCallParameter( name, assignT, variable, outputT );
                 }
-                return new SqlCallParameter( name, assignT, variable );
+                return new SqlCallParameter( name, assignT, variable, null );
             }
             SqlBasicValue value = IsBasicValue( expected );
             if( value == null ) return null;
-            return new SqlCallParameter( name, assignT, value );
+            return new SqlCallParameter( name, assignT, value, null );
         }
 
         SqlOutputClause IsOutputClause( bool expected )
