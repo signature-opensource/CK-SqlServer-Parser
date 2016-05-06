@@ -14,12 +14,12 @@ namespace CK.SqlServer.Parser
     /// </summary>
     public sealed class SqlCallParameter : SqlNonToken
     {
-        readonly SNode<SqlTokenIdentifier, SqlTokenTerminal, ISqlNode> _content;
+        readonly SNode<SqlTokenIdentifier, SqlTokenTerminal, ISqlNode, SqlTokenIdentifier> _content;
 
-        public SqlCallParameter( SqlTokenIdentifier name, SqlTokenTerminal assignT, ISqlNode value )
+        public SqlCallParameter( SqlTokenIdentifier name, SqlTokenTerminal assignT, ISqlNode value, SqlTokenIdentifier outputT )
             : base( null, null )
         {
-            _content = new SNode<SqlTokenIdentifier, SqlTokenTerminal, ISqlNode>( name, assignT, value );
+            _content = new SNode<SqlTokenIdentifier, SqlTokenTerminal, ISqlNode, SqlTokenIdentifier>( name, assignT, value, outputT );
             CheckContent();
         }
 
@@ -29,6 +29,7 @@ namespace CK.SqlServer.Parser
             Helper.CheckNullableToken( AsssignT, nameof( AsssignT ), SqlTokenType.Assign );
             Helper.CheckBothNullOrNot( Name, nameof( Name ), AsssignT, nameof( AsssignT ) );
             Helper.CheckNotNull( Value, nameof( Value ) );
+            Helper.CheckNullableToken( OutputT, nameof( OutputT ), SqlTokenType.Output );
         }
 
         SqlCallParameter( SqlCallParameter o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
@@ -37,7 +38,7 @@ namespace CK.SqlServer.Parser
             if( items == null ) _content = o._content;
             else
             {
-                _content = new SNode<SqlTokenIdentifier, SqlTokenTerminal, ISqlNode>( items );
+                _content = new SNode<SqlTokenIdentifier, SqlTokenTerminal, ISqlNode, SqlTokenIdentifier>( items );
                 CheckContent();
             }
         }
@@ -56,6 +57,8 @@ namespace CK.SqlServer.Parser
         public SqlToken AsssignT => _content.V2;
 
         public ISqlNode Value => _content.V3;
+
+        public SqlTokenIdentifier OutputT => _content.V4;
 
         [DebuggerStepThrough]
         internal protected override ISqlNode Accept( SqlNodeVisitor visitor ) => visitor.Visit( this );

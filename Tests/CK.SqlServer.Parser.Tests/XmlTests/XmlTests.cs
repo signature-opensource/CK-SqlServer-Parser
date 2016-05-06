@@ -21,6 +21,7 @@ namespace CK.SqlServer.Parser.Tests.XmlTests
         [TestCase( "CTE.xml" )]
         [TestCase( "Cursors.xml" )]
         [TestCase( "Delete.xml" )]
+        [TestCase( "Execute.xml" )]
         [TestCase( "Functions.xml" )]
         [TestCase( "GrantDenyRevoke.xml" )]
         [TestCase( "Identifiers.xml" )]
