@@ -19,6 +19,8 @@ namespace CK.SqlServer.Parser
         /// Initializes a new <see cref="SqlMultiCommaList"/>.
         /// </summary>
         /// <param name="content"><see cref="SqlEnclosedCommaList"/> and <see cref="SqlTokenComma"/>.</param>
+        /// <param name="leading">Optional leading trivias.</param>
+        /// <param name="trailing">Optional trailing trivias.</param>
         public SqlMultiCommaList( IEnumerable<ISqlNode> content, ImmutableList<SqlTrivia> leading = null, ImmutableList<SqlTrivia> trailing = null )
             : base( null, 0, leading, content, trailing )
         {
@@ -28,6 +30,8 @@ namespace CK.SqlServer.Parser
         /// Initializes a new <see cref="SqlMultiCommaList"/> with one or zero <see cref="SqlEnclosedCommaList"/> in it.
         /// </summary>
         /// <param name="item">An optional <see cref="SqlEnclosedCommaList"/>.</param>
+        /// <param name="leading">Optional leading trivias.</param>
+        /// <param name="trailing">Optional trailing trivias.</param>
         public SqlMultiCommaList( SqlEnclosedCommaList item = null, ImmutableList<SqlTrivia> leading = null, ImmutableList<SqlTrivia> trailing = null )
             : base( null, 0, leading, new[] { item }, trailing )
         {

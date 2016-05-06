@@ -22,6 +22,14 @@ namespace CK.SqlServer.Parser
         // 0 when no Opener/Closer, 1 otherwise.
         int _enclosed;
 
+        /// <summary>
+        /// Initializes a new enclosable list.
+        /// </summary>
+        /// <param name="o"></param>
+        /// <param name="minCount"></param>
+        /// <param name="leading"></param>
+        /// <param name="items"></param>
+        /// <param name="trailing"></param>
         protected ASqlNodeEnclosableList(
             ASqlNodeEnclosableList<TOpener, T, TCloser> o,
             int minCount,
@@ -69,12 +77,26 @@ namespace CK.SqlServer.Parser
             }
         }
 
+        /// <summary>
+        /// Gets whether this list is actually enclosed in parenthesis.
+        /// </summary>
         public bool IsEnclosed => _enclosed != 0;
 
+        /// <summary>
+        /// Gets the opener element. Null if <see cref="IsEnclosed"/> is false.
+        /// </summary>
         public TOpener Opener => (TOpener)_items[0];
 
+        /// <summary>
+        /// Gets the node at a position.
+        /// </summary>
+        /// <param name="index">Index of the node in list.</param>
+        /// <returns>The node.</returns>
         public T this[int index] => (T)_items[index+1];
 
+        /// <summary>
+        /// Gets the closer element. Null if <see cref="IsEnclosed"/> is false.
+        /// </summary>
         public TCloser Closer => (TCloser)_items[_items.Length-1];
         
         /// <summary>
@@ -82,8 +104,15 @@ namespace CK.SqlServer.Parser
         /// </summary>
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _items;
 
+        /// <summary>
+        /// Gets the count of items in this list.
+        /// </summary>
         public int Count => _items.Length - 2;
 
+        /// <summary>
+        /// Gets the enumerator on the node (not containing the <see cref="Opener"/> nor the <see cref="Closer"/>).
+        /// </summary>
+        /// <returns>The enumerator.</returns>
         public IEnumerator<T> GetEnumerator()
         {
             return _items.Skip(1).Take( _items.Length-2 ).Cast<T>().GetEnumerator();

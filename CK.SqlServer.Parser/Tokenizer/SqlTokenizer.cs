@@ -193,10 +193,10 @@ namespace CK.SqlServer.Parser
         /// <summary>
         /// Extracts the operator precedence from a token type.
         /// </summary>
-        /// <returns>The precedence level between 30 and 0. 
         /// <remarks>
         /// This uses <see cref="SqlTokenType.OpLevelMask"/> and <see cref="SqlTokenType.OpLevelShift"/>.
         /// </remarks>
+        /// <returns>The precedence level between 30 and 0.</returns>
         public static int PrecedenceLevel( SqlTokenType t )
         {
             return t > 0 ? (((int)(t & SqlTokenType.OpLevelMask)) >> (int)SqlTokenType.OpLevelShift) : 0;

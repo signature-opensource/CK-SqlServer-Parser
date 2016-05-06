@@ -1241,7 +1241,7 @@ namespace CK.SqlServer.Parser
         }
 
         /// <summary>
-        /// Either a SqlDbType (int, sql_variant), a table(...) definition, a cursor (<see cref="IsSqlDbTypeDeclOrCursorOrTableDefinition"/>)
+        /// Either a SqlDbType (int, sql_variant), a table(...) definition, a cursor
         /// or multiple identifiers that is a user defined type.
         /// </summary>
         /// <returns></returns>

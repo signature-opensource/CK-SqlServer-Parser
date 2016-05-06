@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
@@ -76,8 +77,6 @@ namespace CK.SqlServer.Parser
         /// nor special nor is a variable name.
         /// </summary>
         /// <param name="type">Token type to test.</param>
-        /// <param name="allowVariableName">True to authorize variable name (ie. to 
-        /// support @var = definition syntax in select).</param>
         /// <returns>True if this is a valid column name alias.</returns>
         static public bool IsValidColumnAliasName( this SqlTokenType type )
         {

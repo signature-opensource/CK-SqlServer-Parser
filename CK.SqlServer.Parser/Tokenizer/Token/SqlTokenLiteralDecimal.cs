@@ -67,15 +67,24 @@ namespace CK.SqlServer.Parser
         public Decimal DecimalValue { get; private set; }
 
         /// <summary>
-        /// Whether <see cref="DecimalVale"/> has been successfully parsed into a <see cref="Decimal"/> .Net type.
+        /// Whether <see cref="DecimalValue"/> has been successfully parsed into a <see cref="Decimal"/> .Net type.
         /// </summary>
         public bool IsValidDecimalValue { get; private set; }
 
+        /// <summary>
+        /// Gets the number of digits.
+        /// </summary>
         public byte Precision { get; private set; }
 
+        /// <summary>
+        /// Gets the number of fractional digits.
+        /// </summary>
         public byte Scale { get; private set; }
 
-        public override string LiteralValue { get { return ValueAsString; } }
+        /// <summary>
+        /// Gets the <see cref="ValueAsString"/>.
+        /// </summary>
+        public override string LiteralValue => ValueAsString;
 
         protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IList<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
         {

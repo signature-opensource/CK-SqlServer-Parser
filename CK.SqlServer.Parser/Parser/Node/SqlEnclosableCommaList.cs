@@ -18,7 +18,11 @@ namespace CK.SqlServer.Parser
         /// <summary>
         /// Initializes a new <see cref="SqlEnclosableCommaList"/>.
         /// </summary>
+        /// <param name="openPar">Opening parenthesis.</param>
         /// <param name="content">Items and comma tokens.</param>
+        /// <param name="closePar">Closing parnthesis.</param>
+        /// <param name="leading">Optional leading trivias.</param>
+        /// <param name="trailing">Optional trailing trivias.</param>
         public SqlEnclosableCommaList( SqlTokenOpenPar openPar, IEnumerable<ISqlNode> content, SqlTokenClosePar closePar, ImmutableList<SqlTrivia> leading = null, ImmutableList<SqlTrivia> trailing = null )
             : base( 0, openPar, content, closePar, leading, trailing )
         {

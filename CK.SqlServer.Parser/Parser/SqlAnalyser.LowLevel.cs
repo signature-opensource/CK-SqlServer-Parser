@@ -69,6 +69,7 @@ namespace CK.SqlServer.Parser
         /// Reads a comma separated list of extended expressions that may be enclosed or not in parenthesis.
         /// </summary>
         /// <param name="expected">True to set an error if no enclosed list exists.</param>
+        /// <param name="parenthesis">Parenthesis mode.</param>
         /// <returns>A <see cref="SqlEnclosableCommaList"/> or null.</returns>
         SqlEnclosableCommaList IsEnclosableCommaList( bool expected, Parenthesis parenthesis = Parenthesis.Optional )
         {
@@ -91,8 +92,10 @@ namespace CK.SqlServer.Parser
         /// Reads a typed list of nodes.
         /// </summary>
         /// <typeparam name="T">The type of nodes to read.</typeparam>
+        /// <typeparam name="TItem">Type of the items.</typeparam>
         /// <param name="atLeastOne">True to expect at least one item.</param>
         /// <param name="matcher">The node matcher.</param>
+        /// <param name="listCreator">The function that knows how to concretize a <typeparamref name="T"/>.</param>
         /// <returns>Null on error or a posssibly empty list (if <paramref name="atLeastOne"/> is false).</returns>
         T IsList<T,TItem>( bool atLeastOne, Func<bool, TItem> matcher, Func<IEnumerable<TItem>,T> listCreator ) 
             where TItem : class, ISqlNode
@@ -116,8 +119,10 @@ namespace CK.SqlServer.Parser
         /// Reads an enclosed comma separated list of typed nodes.
         /// </summary>
         /// <typeparam name="T">The type of the created object.</typeparam>
+        /// <typeparam name="TItem">Type of the items.</typeparam>
         /// <param name="expected">True to expect at least one opening parenthesis.</param>
         /// <param name="minCount">Minimal number of objects.</param>
+        /// <param name="matcher">The matcher function.</param>
         /// <param name="typeCreator">The function that knows how to concretize a <typeparamref name="T"/>.</param>
         /// <returns>Null if no list has been found or if an error occured.</returns>
         T IsEnclosedCommaList<T,TItem>( bool expected, int minCount, Func<bool,TItem> matcher, Func<SqlTokenOpenPar,IEnumerable<ISqlNode>,SqlTokenClosePar,T> typeCreator )

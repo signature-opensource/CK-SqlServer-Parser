@@ -33,8 +33,8 @@ namespace CK.SqlServer.Parser
         /// It is possible to set the part at an index that do not exist to extend this by one identifier (ie. idxPart can be 
         /// be equal to the <see cref="Identifiers"/>'s count plus one).
         /// </summary>
-        /// <param name="this">This identifier.</param>
         /// <param name="idxPart">Part index: 1 = Object name, 2 = Schema name, 3 = Database name, 4 = Server name.</param>
+        /// <param name="part">The part to set.</param>
         /// <returns>A new identifier.</returns>
         ISqlIdentifier SetPartName( int idxPart, string part );
 

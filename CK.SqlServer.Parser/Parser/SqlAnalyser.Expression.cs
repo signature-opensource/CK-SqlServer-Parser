@@ -400,6 +400,7 @@ namespace CK.SqlServer.Parser
         /// A comma or a closing parenthesis stops this.
         /// </summary>
         /// <param name="expected">True to set an error if no expression exist.</param>
+        /// <param name="allowLeadingStatement">True to accept a first statement.</param>
         /// <returns>One expression, a <see cref="SqlNodeList"/> or null.</returns>
         public ISqlNode IsExtendedExpression( bool expected, bool allowLeadingStatement )
         {
@@ -430,7 +431,7 @@ namespace CK.SqlServer.Parser
 
         /// <summary>
         /// Any expression can be an extended expression or a comma separated list of 
-        /// extended expression optionally enclosed in parenthesis (<see cref="EncloseableCommaList"/>).
+        /// extended expression optionally enclosed in parenthesis (<see cref="SqlEnclosableCommaList"/>).
         /// </summary>
         /// <param name="expected">True to set an error if no expression exist.</param>
         /// <param name="allowLeadingStatement">True to accept the first statement, false to not consider it.</param>
@@ -462,7 +463,7 @@ namespace CK.SqlServer.Parser
 
         /// <summary>
         /// Any expression can be an extended expression or a comma separated list of 
-        /// extended expression optionally enclosed in parenthesis (<see cref="EncloseableCommaList"/>).
+        /// extended expression optionally enclosed in parenthesis (<see cref="SqlEnclosableCommaList"/>).
         /// </summary>
         /// <param name="expected">True to set an error if no expression exist.</param>
         /// <returns>Any expression or null.</returns>

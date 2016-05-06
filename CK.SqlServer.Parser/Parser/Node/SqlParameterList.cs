@@ -65,7 +65,7 @@ namespace CK.SqlServer.Parser
 
         /// <summary>
         /// Gets the index where a parameter may be inserted: it will appear after <paramref name="paramNameBefore"/> if
-        /// possible, before <see cref="paramNameAfter"/> (if the before parameter name was null or not found) and at the 
+        /// possible, before <paramref name="paramNameAfter"/> (if the before parameter name was null or not found) and at the 
         /// end if none of the two names are found.
         /// </summary>
         /// <param name="paramNameBefore">Parameter that will be before the inserted one.</param>

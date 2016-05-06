@@ -106,7 +106,7 @@ namespace CK.SqlServer.Parser
         string ToString( bool withThisTrivia, bool restoreUselessComments = false );
 
         /// <summary>
-        /// Writes the node with its <see cref="LeadingTrivia"/> and <see cref="TrailingTrivia"/>.
+        /// Writes the node with its Leading and TrailingTrivia.
         /// </summary>
         /// <param name="w">The <see cref="ISqlTextWriter"/> to write to.</param>
         void Write( ISqlTextWriter w );

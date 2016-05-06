@@ -20,7 +20,7 @@ namespace CK.SqlServer.Parser
         /// when it is <see cref="StatementKnownName.Unknown"/>, the name of the 
         /// first <see cref="ISqlIdentifier"/> token of the sttement.
         /// </summary>
-        /// <param name="@this">This named statement.</param>
+        /// <param name="this">This named statement.</param>
         /// <returns>The statement name.</returns>
         static public string GetStatementName( this ISqlNamedStatement @this )
         {
