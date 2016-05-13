@@ -146,15 +146,18 @@ namespace CK.SqlServer.Parser
         }
         SqlServerObjectType ISqlServerObject.ObjectType => SqlServerObjectType.InlineTableFunction;
 
+        IEnumerable<ISqlServerComment> ISqlServerParsedText.HeaderComments
+        {
+            get { return FullLeadingTrivias.Where( t => t.TokenType != SqlTokenType.None ).Cast<ISqlServerComment>(); }
+        }
+
+
         string ISqlServerObject.ToStringSignature( bool withOptions )
         {
             return withOptions ? Header.ToStringCompact() : _content.Skip( 1 ).Take( 5 ).ToStringCompact();
         }
 
-        void ISqlServerObject.Write( StringBuilder b )
-        {
-            Write( SqlTextWriter.CreateDefault( b ) );
-        }
+        void ISqlServerParsedText.Write( StringBuilder b ) => Write( SqlTextWriter.CreateDefault( b ) );
 
         ISqlServerAlterOrCreateStatement ISqlServerAlterOrCreateStatement.ToggleAlterKeyword()
         {

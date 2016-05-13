@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CK.Core;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,34 +14,71 @@ namespace CK.SqlServer.Parser
     {
         readonly SqlAnalyser _a = new SqlAnalyser();
 
-        public ISqlServerParserError ParseObject( string text, out ISqlServerObject sqlObject )
+        delegate SqlAnalyser.ErrorResult ParseFunc<T>( out T parsed );
+
+        class ParseResult<T> : ISqlServerParserResult<T> where T : class, ISqlServerParsedText
         {
-            _a.Reset( text );
-            return _a.ParseStatement( out sqlObject );
+            readonly SqlAnalyser.ErrorResult _error;
+
+            public ParseResult( ParseFunc<T> f )
+            {
+                T result;
+                _error = f( out result );
+                Result = result;
+            }
+
+            public string ErrorMessage => _error.ErrorMessage;
+
+            public string HeadSource => _error.HeadSource;
+
+            public bool IsError => _error.IsError;
+
+            public T Result { get; }
+
+            public void LogOnError( IActivityMonitor monitor, bool asWarning ) => _error.LogOnError( monitor, asWarning );
         }
 
-        public ISqlServerParserError ParseStoredFunctionInlineTable( string text, out ISqlServerFunctionInlineTable sqlFInlineTable )
+        public ISqlServerParserResult<ISqlServerObject> ParseObject( string text )
         {
             _a.Reset( text );
-            return _a.ParseStatement( out sqlFInlineTable );
+            return new ParseResult<ISqlServerObject>( _a.ParseStatement );
         }
 
-        public ISqlServerParserError ParseStoredFunctionScalar( string text, out ISqlServerFunctionScalar sqlFScalar )
+        public ISqlServerParserResult<ISqlServerFunctionInlineTable> ParseFunctionInlineTable( string text )
         {
             _a.Reset( text );
-            return _a.ParseStatement( out sqlFScalar );
+            return new ParseResult<ISqlServerFunctionInlineTable>( _a.ParseStatement );
         }
 
-        public ISqlServerParserError ParseStoredFunctionTable( string text, out ISqlServerFunctionTable sqlFTable )
+        public ISqlServerParserResult<ISqlServerFunctionScalar> ParseFunctionScalar( string text )
         {
             _a.Reset( text );
-            return _a.ParseStatement( out sqlFTable );
+            return new ParseResult<ISqlServerFunctionScalar>( _a.ParseStatement );
         }
 
-        public ISqlServerParserError ParseStoredProcedure( string text, out ISqlServerStoredProcedure sqlProcedure )
+        public ISqlServerParserResult<ISqlServerFunctionTable> ParseFunctionTable( string text )
         {
             _a.Reset( text );
-            return _a.ParseStatement( out sqlProcedure );
+            return new ParseResult<ISqlServerFunctionTable>( _a.ParseStatement );
         }
+
+        public ISqlServerParserResult<ISqlServerStoredProcedure> ParseStoredProcedure( string text )
+        {
+            _a.Reset( text );
+            return new ParseResult<ISqlServerStoredProcedure>( _a.ParseStatement );
+        }
+
+        public ISqlServerParserResult<ISqlServerParsedText> Parse( string text )
+        {
+            _a.Reset( text );
+            return new ParseResult<ISqlServerParsedText>( _a.ParseStatement );
+        }
+
+        public ISqlServerParserResult<ISqlServerScript> ParseScript( string text )
+        {
+            _a.Reset( text );
+            return new ParseResult<ISqlServerScript>( _a.ParseStatement );
+        }
+
     }
 }

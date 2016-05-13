@@ -10,7 +10,8 @@ using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
-    public struct SqlTrivia
+
+    public struct SqlTrivia : ISqlServerComment
     {
         readonly SqlTokenType _tokenType;
         readonly string _text;
@@ -65,6 +66,10 @@ namespace CK.SqlServer.Parser
         /// the -- or /* */ characters do not appear.
         /// </summary>
         public string Text => _text ?? String.Empty;
+
+        bool ISqlServerComment.IsLineComment => TokenType == SqlTokenType.LineComment;
+
+        string ISqlServerComment.Text => _text;
 
         public override int GetHashCode()
         {

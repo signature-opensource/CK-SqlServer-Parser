@@ -33,8 +33,13 @@ namespace CK.SqlServer.Parser
         /// </summary>
         Statement,
         /// <summary>
-        /// Parses all possible statements.
+        /// Parses one (the only <see cref="ISqlStatement"/> is returned) or 
+        /// multiple statements (into a raw <see cref="SqlNodeList"/>).
         /// </summary>
-        AllStatements
-   }
+        OneOrMoreStatements,
+        /// <summary>
+        /// Parses a <see cref="SqlStatementList"/>.
+        /// </summary>
+        Script
+    }
 }

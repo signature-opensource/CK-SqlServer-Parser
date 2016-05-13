@@ -22,6 +22,8 @@ namespace CK.SqlServer.Parser
         {
             ISqlStatement e = IsNamedStatement( false );
             if( e != null || R.IsErrorOrEndOfInput ) return e;
+            // A "end" or "GO" we simply leave: end will ba handled by the current "begin" 
+            // and "GO" will be handled by ParseStatement.
             if( R.Current.TokenType == SqlTokenType.End || R.Current.TokenType == SqlTokenType.Go ) return null;
             ISqlNode n = IsAnyExpression( expected );
             if( n == null ) return null;
@@ -283,6 +285,10 @@ namespace CK.SqlServer.Parser
             }
             if( id.TokenType.IsStartStatement() )
             {
+                // Since "GO" is marked as a StartStatement, we 
+                // will emit here generic SqlNamedStatement for it.
+                // (The case where GO is inside a block has been 
+                // handled at the start of this method.) 
                 R.MoveNext();
                 return IsStatementStartedByIdentifier( id );
             }

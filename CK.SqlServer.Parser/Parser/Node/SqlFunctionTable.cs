@@ -167,10 +167,12 @@ namespace CK.SqlServer.Parser
             return withOptions ? Header.ToStringCompact() : _content.Skip( 1 ).Take( 6 ).ToStringCompact();
         }
 
-        void ISqlServerObject.Write( StringBuilder b )
+        IEnumerable<ISqlServerComment> ISqlServerParsedText.HeaderComments
         {
-            Write( SqlTextWriter.CreateDefault( b ) );
+            get { return FullLeadingTrivias.Where( t => t.TokenType != SqlTokenType.None ).Cast<ISqlServerComment>(); }
         }
+
+        void ISqlServerParsedText.Write( StringBuilder b ) => Write( SqlTextWriter.CreateDefault( b ) );
 
         ISqlServerAlterOrCreateStatement ISqlServerAlterOrCreateStatement.ToggleAlterKeyword()
         {

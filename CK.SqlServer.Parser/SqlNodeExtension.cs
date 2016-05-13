@@ -24,7 +24,6 @@ namespace CK.SqlServer.Parser
             }
         }
 
-
         /// <summary>
         /// Sets trivias around this node.
         /// </summary>

@@ -29,7 +29,7 @@ namespace CK.SqlServer.Transform.Tests
 
             static public List<SqlNodeLocation> GetAllLocations( 
                 string text, 
-                ParseMode mode = ParseMode.AllStatements,
+                ParseMode mode = ParseMode.OneOrMoreStatements,
                 bool getQualifiedNodeLocation = false,
                 bool buildQualifiedNodeLocation = false )
             {
@@ -69,7 +69,7 @@ namespace CK.SqlServer.Transform.Tests
         [TestCase( false )]
         public void multi_statements_locations( bool buildQualifiedNodeLocation )
         {
-            List<SqlNodeLocation> locs = AllLocations.GetAllLocations( "break; select 1; continue; select 2;", ParseMode.AllStatements, true, buildQualifiedNodeLocation );
+            List<SqlNodeLocation> locs = AllLocations.GetAllLocations( "break; select 1; continue; select 2;", ParseMode.OneOrMoreStatements, true, buildQualifiedNodeLocation );
             Assert.That( locs.Count, Is.EqualTo( 23 ) );
             Assert.That( locs[4].Node.ToString(), Is.EqualTo( "select 1;" ) );
             Assert.That( locs[5].Node.ToString(), Is.EqualTo( "select 1" ) );

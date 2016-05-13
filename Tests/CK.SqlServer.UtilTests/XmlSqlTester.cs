@@ -26,7 +26,7 @@ namespace CK.SqlServer.UtilTests
         public XmlSqlTester( XElement t )
         {
             TestElement = t;
-            Mode = t.AttributeEnum( "Mode", ParseMode.AllStatements );
+            Mode = t.AttributeEnum( "Mode", ParseMode.OneOrMoreStatements );
             // TrimEnd the text because the last trivia is skipped.
             Text = t.Element( "Text" ).Value.TrimEnd().NormalizeEOL();
             Description = t.Elements( "Description" ).Select( e => e.Value ).FirstOrDefault();

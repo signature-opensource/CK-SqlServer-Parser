@@ -21,9 +21,10 @@ namespace CK.SqlServer.Parser.Tests
         {
             string text = TestHelper.LoadTextFromParsingScripts( "AdventureWorks2012-FullSchema.sql" );
             ISqlNode e;
-            SqlAnalyser.ErrorResult r = SqlAnalyser.Parse( out e, ParseMode.AllStatements, text );
+            SqlAnalyser.ErrorResult r = SqlAnalyser.Parse( out e, ParseMode.OneOrMoreStatements, text );
             Assert.That( r.IsError, Is.False, r.ToString() );
             Assert.That( e.ToString( true, true ).NormalizeEOL(), Is.EqualTo( text ) );
+            Assert.That( e.ChildrenNodes.All( n => n is ISqlStatement) );
         }
 
         [TestCase( "sp_GetDDL.sql", 7 )]
@@ -32,7 +33,7 @@ namespace CK.SqlServer.Parser.Tests
         {
             string text = TestHelper.LoadTextFromParsingScripts( name );
             ISqlNode e;
-            SqlAnalyser.ErrorResult r = SqlAnalyser.Parse( out e, ParseMode.AllStatements, text );
+            SqlAnalyser.ErrorResult r = SqlAnalyser.Parse( out e, ParseMode.Script, text );
             Assert.That( r.IsError, Is.False, r.ToString() );
             Assert.That( e.ToString( true, true ).NormalizeEOL(), Is.EqualTo( text ) );
 
@@ -40,7 +41,7 @@ namespace CK.SqlServer.Parser.Tests
             string visitedString = visited.ToString();
             TestHelper.ConsoleMonitor.Trace().Send( visitedString );
 
-            Assert.That( ((SqlNodeList)e).Count, Is.EqualTo( numberOfStatement ) );
+            Assert.That( ((SqlStatementList)e).Count, Is.EqualTo( numberOfStatement ) );
         }
 
         [Test]

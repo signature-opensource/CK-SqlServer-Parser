@@ -17,7 +17,7 @@ namespace CK.SqlServer.Parser.Tests.Transform
         public void alter_or_create_can_be_toggled( string text )
         {
             ISqlServerObject sqlObject;
-            ISqlServerParserError r = new SqlAnalyser( "create " + text ).ParseStatement( out sqlObject );
+            var r = new SqlAnalyser( "create " + text ).ParseStatement( out sqlObject );
             Assert.That( !r.IsError );
             ISqlServerAlterOrCreateStatement st = sqlObject as ISqlServerAlterOrCreateStatement;
             Assert.That( st, Is.Not.Null );
@@ -27,7 +27,7 @@ namespace CK.SqlServer.Parser.Tests.Transform
             string alterV = stA.ToFullString();
             Assert.That( alterV, Is.EqualTo( "alter " + text ) );
 
-            ISqlServerParserError r2 = new SqlAnalyser( alterV ).ParseStatement( out sqlObject );
+            var r2 = new SqlAnalyser( alterV ).ParseStatement( out sqlObject );
             Assert.That( !r2.IsError );
             ISqlServerAlterOrCreateStatement st2 = sqlObject as ISqlServerAlterOrCreateStatement;
             string alter2V = st2.ToFullString();
@@ -44,7 +44,7 @@ namespace CK.SqlServer.Parser.Tests.Transform
         public void schema_can_be_set( string text, string schema, string resultStart )
         {
             ISqlServerObject sqlObject;
-            ISqlServerParserError r = new SqlAnalyser( text ).ParseStatement( out sqlObject );
+            var r = new SqlAnalyser( text ).ParseStatement( out sqlObject );
             Assert.That( !r.IsError );
             ISqlServerObject o2 = sqlObject.SetSchema( schema );
             Assert.That( o2.ToFullString(), Is.StringStarting( resultStart ) );

@@ -6,13 +6,14 @@ using System.Linq;
 using System.Text;
 using CK.Core;
 using System.Collections.Immutable;
+using CK.Text;
 
 namespace CK.SqlServer.Parser
 {
     /// <summary>
     /// List of possibly empty <see cref="ISqlStatement">statements</see>. 
     /// </summary>
-    public sealed class SqlStatementList : ASqlNodeList<ISqlStatement>, ISqlStatement
+    public sealed class SqlStatementList : ASqlNodeList<ISqlStatement>, ISqlStatement, ISqlServerScript
     {
         public SqlStatementList( IEnumerable<ISqlStatement> statements )
             : base( 0, statements )
@@ -30,6 +31,13 @@ namespace CK.SqlServer.Parser
         }
 
         SqlTokenTerminal ISqlStatement.StatementTerminator => null;
+
+        IEnumerable<ISqlServerComment> ISqlServerParsedText.HeaderComments
+        {
+            get { return FullLeadingTrivias.Where( t => t.TokenType != SqlTokenType.None ).Cast<ISqlServerComment>(); }
+        }
+
+        void ISqlServerParsedText.Write( StringBuilder b ) => Write( SqlTextWriter.CreateDefault( b ) );
 
         [DebuggerStepThrough]
         internal protected override ISqlNode Accept( SqlNodeVisitor visitor ) => visitor.Visit( this );

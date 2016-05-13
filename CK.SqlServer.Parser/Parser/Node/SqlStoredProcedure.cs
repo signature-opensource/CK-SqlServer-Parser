@@ -150,15 +150,14 @@ namespace CK.SqlServer.Parser
         [DebuggerStepThrough]
         internal protected override ISqlNode Accept( SqlNodeVisitor visitor ) => visitor.Visit( this );
 
+        IEnumerable<ISqlServerComment> ISqlServerParsedText.HeaderComments => FullLeadingTrivias.Cast<ISqlServerComment>();
+
         string ISqlServerObject.ToStringSignature( bool withOptions )
         {
             return withOptions ? Header.ToStringCompact() : _content.Skip( 1 ).Take( 3 ).ToStringCompact();
         }
 
-        void ISqlServerObject.Write( StringBuilder b )
-        {
-            Write( SqlTextWriter.CreateDefault( b ) );
-        }
+        void ISqlServerParsedText.Write( StringBuilder b ) => Write( SqlTextWriter.CreateDefault( b ) );
 
         ISqlServerAlterOrCreateStatement ISqlServerAlterOrCreateStatement.ToggleAlterKeyword()
         {

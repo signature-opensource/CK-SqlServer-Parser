@@ -13,7 +13,7 @@ namespace CK.SqlServer.Parser
     {
         readonly SqlTokenReader R;
 
-        public class ErrorResult : ISqlServerParserError
+        public class ErrorResult
         {
             readonly string _errorMessage;
             readonly string _headSource;
@@ -27,13 +27,13 @@ namespace CK.SqlServer.Parser
                 _headSource = headSource;
             }
 
-            public string ErrorMessage { get { return _errorMessage; } }
+            public string ErrorMessage => _errorMessage;
 
-            public string HeadSource { get { return _headSource; } }
+            public string HeadSource => _headSource;
 
             public override string ToString()
             {
-                return IsError ? String.Format( "Error: {0}\r\nText: {1}", _errorMessage, _headSource ) : "<success>";
+                return IsError ? string.Format( "Error: {0}\r\nText: {1}", _errorMessage, _headSource ) : "<success>";
             }
 
             static internal readonly ErrorResult NoError = new ErrorResult( null, null );
@@ -111,7 +111,7 @@ namespace CK.SqlServer.Parser
             return R.MoveNext();
         }
 
-        public ISqlNode Parse( ParseMode mode = ParseMode.AllStatements )
+        public ISqlNode Parse( ParseMode mode = ParseMode.OneOrMoreStatements )
         {
             switch( mode )
             {
@@ -119,13 +119,14 @@ namespace CK.SqlServer.Parser
                 case ParseMode.ExtendedExpression: return IsExtendedExpression( true );
                 case ParseMode.AnyExpression: return IsAnyExpression( true );
                 case ParseMode.Statement: return IsExtendedStatement( true );
+                case ParseMode.Script: return IsList( true, IsExtendedStatement, i => new SqlStatementList( i ) );
                 default:
-                {
-                    Debug.Assert( mode == ParseMode.AllStatements );
-                    List<ISqlNode> items = new List<ISqlNode>();
-                    if( !R.CollectUntil<SqlTokenError>( items, IsExtendedStatement, t => t.IsEndOfInput ) ) return null;
-                    return items.Count == 1 ? items[0] : new SqlNodeList( items );
-                } 
+                    {
+                        Debug.Assert( mode == ParseMode.OneOrMoreStatements );
+                        List<ISqlNode> items = new List<ISqlNode>();
+                        if( !R.CollectUntil<SqlTokenError>( items, IsExtendedStatement, t => t.IsEndOfInput ) ) return null;
+                        return items.Count == 1 ? items[0] : new SqlNodeList( items );
+                    }
             }
         }
 
