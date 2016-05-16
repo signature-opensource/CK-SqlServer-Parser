@@ -42,6 +42,9 @@ namespace CK.SqlServer.Transform
             _end = w == 0 ? beg : end;
         }
 
+        /// <summary>
+        /// Gets whether this is a 'point' (i.e. <see cref="Beg"/> == <see cref="End"/>) rather than an actual range.
+        /// </summary>
         public bool IsLocation => _beg == _end;
 
         int ISqlNodeLocationRange.Count => 1;

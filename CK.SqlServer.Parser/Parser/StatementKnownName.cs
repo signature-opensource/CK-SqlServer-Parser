@@ -42,6 +42,8 @@ namespace CK.SqlServer.Parser
         /// <summary>
         /// General statement name.
         /// </summary>
-        Unknown
+        Unknown,
+        // This is not Sql :)
+        CreateTransformer,
     }
 }

@@ -20,7 +20,7 @@ namespace CK.SqlServer.Transform
 
         /// <summary>
         /// Initializes a new <see cref="SqlNodeScopeBuilder"/> that, by default, merges emitted 
-        /// directly subsequent ranges (ie. [1,8[ and [8,12[ are meged as [1,12[). 
+        /// directly subsequent ranges (ie. [1,8[ and [8,12[ are merged as [1,12[). 
         /// </summary>
         /// <param name="autoMergeSubsequent">False to emit unmerged subsequent ranges.</param>
         public SqlNodeScopeBuilder( bool autoMergeSubsequent = true )

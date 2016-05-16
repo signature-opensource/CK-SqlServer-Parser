@@ -8,7 +8,11 @@ using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
-    public sealed class SqlFunctionInlineTable : SqlNonToken, ISqlNamedStatement, ISqlServerFunctionInlineTable, ISqlParameterListHolder
+    public sealed class SqlFunctionInlineTable : SqlNonToken, 
+                                                    ISqlNamedStatement, 
+                                                    ISqlFullNameHolder,
+                                                    ISqlParameterListHolder, 
+                                                    ISqlServerFunctionInlineTable
     {
         readonly SNode<
             SqlTokenIdentifier,
@@ -106,7 +110,7 @@ namespace CK.SqlServer.Parser
         /// <summary>
         /// Gets the full name of the function (may start with the Schema).
         /// </summary>
-        public string SchemaName => FullName.ToString();
+        public string SchemaName => FullName.ToStringHyperCompact();
 
         /// <summary>
         /// Gets the name of the function (may start with the Schema).

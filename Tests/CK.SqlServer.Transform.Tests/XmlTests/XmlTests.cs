@@ -74,7 +74,7 @@ namespace CK.SqlServer.Transform.Tests.XmlTests
             SqlAnalyser a = new SqlAnalyser( "@ZoneId int = 0" );
 
             SqlParameter pZoneId = a.IsParameter( true );
-            t.Visit( new AddParameter( pZoneId, null, "@GroupIdResult" ) );
+            t.Visit( new AddParameter( new[] { pZoneId }, null, "@GroupIdResult" ) );
 
             ISqlNodeLocationRange ifStatements = t.BuildRange( new SqlNodeScopePredicate( n => n is SqlIf ) );
             SqlNodeLocation headLoc = ifStatements.First.End;

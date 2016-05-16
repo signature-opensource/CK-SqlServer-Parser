@@ -54,7 +54,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="CK.SqlServer.Parser.Model, Version=3.0.0.0, Culture=neutral, PublicKeyToken=731c291b31fb8d27, processorArchitecture=MSIL">
-      <HintPath>..\packages\CK.SqlServer.Parser.Model.3.0.0-b\lib\net45\CK.SqlServer.Parser.Model.dll</HintPath>
+      <HintPath>..\packages\CK.SqlServer.Parser.Model.3.0.0-g\lib\net45\CK.SqlServer.Parser.Model.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="CK.Text, Version=1.0.0.0, Culture=neutral, PublicKeyToken=731c291b31fb8d27, processorArchitecture=MSIL">
@@ -84,8 +84,9 @@
     <Compile Include="Parser\CUD\SqlUpdateStatement.cs" />
     <Compile Include="Parser\CUD\SqlMergeStatement.cs" />
     <Compile Include="Parser\CUD\SqlOutputClause.cs" />
-    <Compile Include="Parser\Node\ISqlParameterListHolder.cs" />
+    <Compile Include="Parser\Node\ISqlEnclosable.cs" />
     <Compile Include="Parser\Node\ISqlExecuteStatement.cs" />
+    <Compile Include="Parser\Node\ISqlFullNameHolder.cs" />
     <Compile Include="Parser\Node\SqlBasicValue.cs" />
     <Compile Include="Parser\Node\SqlFunctionTable.cs" />
     <Compile Include="Parser\Node\SqlGoto.cs" />
@@ -103,7 +104,7 @@
     <Compile Include="Parser\Node\SqlWithParOptions.cs" />
     <Compile Include="Parser\Node\ISqlStructurallyEnclosed.cs" />
     <Compile Include="Parser\Node\ISqlNamedStatement.cs" />
-    <Compile Include="Parser\Node\ISqlEnclosable.cs" />
+    <Compile Include="Parser\Node\ISqlParameterListHolder.cs" />
     <Compile Include="Parser\Node\SqlExecuteStatement.cs" />
     <Compile Include="Parser\Node\SqlMultiCommaList.cs" />
     <Compile Include="Parser\Node\SqlTableValues.cs" />
@@ -128,8 +129,13 @@
     <Compile Include="Parser\Node\SqlCallParameter.cs" />
     <Compile Include="Parser\Select\SelectFor.cs" />
     <Compile Include="Parser\Select\SelectOperatorKind.cs" />
+    <Compile Include="Parser\SqlAnalyser.Transformer.cs" />
     <Compile Include="Parser\SqlAnalyser.Statement.cs" />
     <Compile Include="Parser\StatementKnownName.cs" />
+    <Compile Include="Parser\TransformNode\ISqlTransformStatement.cs" />
+    <Compile Include="Parser\TransformNode\SqlTransformer.cs" />
+    <Compile Include="Parser\TransformNode\SqlTransformStatementList.cs" />
+    <Compile Include="Parser\TransformNode\SqlTAddParameter.cs" />
     <Compile Include="SNode.cs" />
     <Compile Include="Parser\Node\SqlPar.cs" />
     <Compile Include="SqlNode.Util.cs" />
@@ -210,6 +216,7 @@
     <Compile Include="Tokenizer\Token\Terminal\SqlTokenDot.cs" />
     <Compile Include="Tokenizer\Token\Terminal\SqlTokenComma.cs" />
     <Compile Include="Visitor\ISqlTextWriter.cs" />
+    <Compile Include="Visitor\SqlINodeVisitor.Transformer.cs" />
     <Compile Include="Visitor\SqlINodeVisitor.cs" />
     <Compile Include="Parser\SqlTokenReader.cs" />
     <Compile Include="SqlNode.cs" />
@@ -244,6 +251,7 @@
       <SubType>Designer</SubType>
     </None>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\SimpleGitVersionTask.0.14.1\Build\SimpleGitVersionTask.targets" Condition="Exists('..\packages\SimpleGitVersionTask.0.14.1\Build\SimpleGitVersionTask.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

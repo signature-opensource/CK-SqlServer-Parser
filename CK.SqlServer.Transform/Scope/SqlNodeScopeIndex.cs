@@ -10,7 +10,7 @@ namespace CK.SqlServer.Transform
 {
 
     /// <summary>
-    /// Checks the number of ranges.
+    /// Filters a subset of ranges based on an index and an a count.
     /// </summary>
     public class SqlNodeScopeIndex : SqlNodeScopeBuilder
     {

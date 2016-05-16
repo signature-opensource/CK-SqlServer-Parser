@@ -311,6 +311,12 @@ namespace CK.SqlServer.Parser
         public static readonly SqlTokenIdentifier Grant;
         public static readonly SqlTokenIdentifier Deny;
 
+        // Transformer language extension...
+        public static readonly SqlTokenIdentifier Transformer;
+        public static readonly SqlTokenIdentifier Parameter;
+        public static readonly SqlTokenIdentifier After;
+        public static readonly SqlTokenIdentifier Before;
+
         static Dictionary<string, SqlTokenType> _keywords;
         static Dictionary<SqlTokenType, string> _typeToString;
 
@@ -680,6 +686,11 @@ namespace CK.SqlServer.Parser
             Restore			= RegKeyword( "restore", SqlTokenType.Restore );
             Grant			= RegKeyword( "grant", SqlTokenType.Grant );
             Deny			= RegKeyword( "deny", SqlTokenType.Deny );
+
+            Transformer = RegKeyword( "transformer", SqlTokenType.Transformer );
+            Parameter = RegKeyword( "parameter", SqlTokenType.Parameter );
+            After = RegKeyword( "after", SqlTokenType.After );
+            Before = RegKeyword( "before", SqlTokenType.Before );
 
             Debug.Assert( (int)SqlTokenType.AssignOperatorCount == 9 );
             Assign				    = RegTerminal( SqlTokenType.Assign, "=" );

@@ -6,7 +6,7 @@ using System.Diagnostics;
 
 namespace CK.SqlServer.Parser
 {
-    public class SqlNodeVisitor
+    public partial class SqlNodeVisitor
     {
         /// <summary>
         /// Main entry point that calls the protected virtual <see cref="VisitItem"/>.

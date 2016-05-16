@@ -527,6 +527,13 @@ namespace CK.SqlServer.Parser
         Called          = IdentifierStandard | 35,
         NativeCompilation = IdentifierStandard | 36,
         Server          = IdentifierStandard | 37,
+
+        // This is not sql :)
+        Transformer = IdentifierStandard | 38,
+        Parameter = IdentifierStandard | 39,
+        After = IdentifierStandard | 40,
+        Before = IdentifierStandard | 41,
+
         #endregion
 
         #region IdentifierSpecial values

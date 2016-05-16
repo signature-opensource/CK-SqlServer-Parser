@@ -44,6 +44,12 @@ namespace CK.SqlServer.Parser
             return new ParseResult<ISqlServerObject>( _a.ParseStatement );
         }
 
+        public ISqlServerParserResult<ISqlServerTransformer> ParseTransformer( string text )
+        {
+            _a.Reset( text );
+            return new ParseResult<ISqlServerTransformer>( _a.ParseStatement );
+        }
+
         public ISqlServerParserResult<ISqlServerFunctionInlineTable> ParseFunctionInlineTable( string text )
         {
             _a.Reset( text );

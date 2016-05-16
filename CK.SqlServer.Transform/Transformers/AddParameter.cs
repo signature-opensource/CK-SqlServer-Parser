@@ -10,11 +10,22 @@ namespace CK.SqlServer.Transform.Transformers
 {
     public class AddParameter : SqlNodeLocationVisitor
     {
-        readonly SqlParameter _param;
+        readonly IEnumerable<SqlParameter> _param;
         readonly string _paramNameBefore;
         readonly string _paramNameAfter;
 
-        public AddParameter( SqlParameter param, string paramNameBefore = null, string paramNameAfter = null )
+        /// <summary>
+        /// Initializes a new <see cref="AddParameter"/> visitor that can insert one or more parameters
+        /// into any <see cref="SqlParameterList"/>.
+        /// Note that <paramref name="paramNameBefore"/> is the parameter that WILL BE BEFORE the inserted parameters 
+        /// (and <paramref name="paramNameAfter"/> WILL APPEAR AFTER the inserted parameters).
+        /// When both <paramref name="paramNameBefore"/> and <paramref name="paramNameAfter"/> are defined,
+        /// the latter is ignored.
+        /// </summary>
+        /// <param name="param">The parameters to insert.</param>
+        /// <param name="paramNameBefore">Optional name of the parameter that will be before the new ones.</param>
+        /// <param name="paramNameAfter">Optional name of the parameter that will be after the new ones.</param>
+        public AddParameter( IEnumerable<SqlParameter> param, string paramNameBefore = null, string paramNameAfter = null )
         {
             _param = param;
             _paramNameBefore = paramNameBefore;
@@ -29,7 +40,11 @@ namespace CK.SqlServer.Transform.Transformers
                             ? e.IndexOf( p => p.Name == _paramNameAfter ) 
                             : e.Count);
             StopVisit();
-            return e.InsertAt( idx, _param );
+            foreach( var p in _param )
+            {
+                e = e.InsertAt( idx++, p );
+            }
+            return e;
         }
     }
 }

@@ -123,6 +123,10 @@ namespace CK.SqlServer.Parser
                 {
                     return MatchTrigger( id );
                 }
+                if( R.Current.TokenType == SqlTokenType.Transformer )
+                {
+                    return MatchTransformer( id );
+                }
                 return IsStatementStartedByIdentifier( id );
             }
             if( id.TokenType == SqlTokenType.If )
@@ -1018,12 +1022,12 @@ namespace CK.SqlServer.Parser
             return null;
         }
 
-        SqlParameterList IsParameterList( Parenthesis parenthesis )
+        SqlParameterList IsParameterList( Parenthesis parenthesis, int minCount = 0 )
         {
             SqlTokenOpenPar openPar;
             SqlTokenClosePar closePar;
             List<ISqlNode> items = new List<ISqlNode>();
-            if( !R.CollectCommaList( items, out openPar, out closePar, IsParameter, 0, parenthesis ) ) return null;
+            if( !R.CollectCommaList( items, out openPar, out closePar, IsParameter, minCount, parenthesis ) ) return null;
             return new SqlParameterList( openPar, items, closePar );
         }
 

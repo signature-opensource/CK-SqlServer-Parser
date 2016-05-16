@@ -33,6 +33,64 @@ namespace CK.SqlServer.Transform
         public IActivityMonitor Monitor => _monitor;
 
         /// <summary>
+        /// Applies a <see cref="SqlTransformer"/> to <see cref="Node"/>.
+        /// </summary>
+        /// <param name="transformer">The transformer. Can not be null.</param>
+        /// <returns>True on success, false on error.</returns>
+        public bool Apply( SqlTransformer transformer )
+        {
+            if( transformer == null ) throw new ArgumentNullException( nameof( transformer ) );
+            SqlNodeScopePredicate target = null;
+            if( transformer.TargetFullName != null )
+            {
+                target = new SqlNodeScopePredicate( n => n is ISqlFullNameHolder && ((ISqlFullNameHolder)n).FullName.ToStringHyperCompact() == transformer.TargetFullName.ToStringHyperCompact() );
+            }
+            foreach( ISqlTransformStatement t in transformer.Body )
+            {
+                SqlNodeLocationVisitor v = CreateVisitorFrom( t );
+                if( Apply( v, target ) )
+                {
+                    Monitor.Trace().Send( $"Successfully applied '{t.ToStringHyperCompact()}'" );
+                }
+                else
+                {
+                    using( Monitor.OpenError().Send( $"Failed to apply '{t.ToStringHyperCompact()}' to:" ) )
+                    {
+                        Monitor.Trace().Send( Node.ToString( true ) );
+                    }
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        private static SqlNodeLocationVisitor CreateVisitorFrom( ISqlTransformStatement t)
+        {
+            var addParam = t as SqlTAddParameter;
+            #region SqlTAddParameter
+            if( addParam != null )
+            {
+                // When we write "add parameter @P int before @E" then @E must appear AFTER the
+                // inserted parameters. 
+                string pBefore = null, pAfter = null;
+                if( addParam.AfterOrBeforeT != null )
+                {
+                    if( addParam.AfterOrBeforeT.IsToken( SqlTokenType.After ) )
+                    {
+                        pBefore = addParam.ParameterName.Name;
+                    }
+                    else
+                    {
+                        pAfter = addParam.ParameterName.Name;
+                    }
+                }
+                return new Transformers.AddParameter( addParam.Parameters, pBefore, pAfter );
+            }
+            #endregion
+            throw new NotSupportedException( $"Transform statement '{t.ToStringHyperCompact()}' not supported." );
+        }
+
+        /// <summary>
         /// Visits the root node with a location-aware visitor.
         /// If the visitor alters the structure, the <see cref="Node"/> is updated.
         /// </summary>
@@ -56,7 +114,7 @@ namespace CK.SqlServer.Transform
             return success;
         }
 
-        /// <summary>
+       /// <summary>
         /// Visits the root node with a simple, non location-aware, visitor. No range filtering is supported.
         /// If the visitor alters the structure, the <see cref="Node"/> is updated.
         /// </summary>
