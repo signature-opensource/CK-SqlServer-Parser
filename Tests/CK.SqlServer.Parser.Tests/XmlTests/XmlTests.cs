@@ -34,6 +34,7 @@ namespace CK.SqlServer.Parser.Tests.XmlTests
         [TestCase( "Multi Statements.xml" )]
         [TestCase( "Not so Simple Procedures.xml" )]
         [TestCase( "OpenXml.xml" )]
+        [TestCase( "Other Procedures.xml" )]
         [TestCase( "Sequence.xml" )]
         [TestCase( "Simple expressions.xml" )]
         [TestCase( "Simple Procedures.xml" )]

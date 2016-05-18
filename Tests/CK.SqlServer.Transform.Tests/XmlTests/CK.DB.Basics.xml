@@ -104,7 +104,7 @@
       --<Extension Name="Group.PreCreate" />
 
       exec CK.sActorCreate @ActorId, @GroupIdResult output;
-      insert into CK.tGroup( GroupId, ZoneId ) values( @GroupIdResult, @ZoneId );
+      insert into CK.tGroup( GroupId ) values( @GroupIdResult );
 
       --<Extension Name="Group.PostCreate" />
 
