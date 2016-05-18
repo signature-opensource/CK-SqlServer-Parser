@@ -36,20 +36,27 @@ namespace CK.SqlServer.Transform
         /// Applies a <see cref="SqlTransformer"/> to <see cref="Node"/>.
         /// </summary>
         /// <param name="transformer">The transformer. Can not be null.</param>
+        /// <param name="scope">An optional scope for the transformation.</param>
         /// <returns>True on success, false on error.</returns>
-        public bool Apply( SqlTransformer transformer )
+        public bool Apply( SqlTransformer transformer, SqlNodeScopeBuilder scope = null )
         {
             if( transformer == null ) throw new ArgumentNullException( nameof( transformer ) );
-            SqlNodeScopePredicate target = null;
             if( transformer.TargetFullName != null )
             {
-                target = new SqlNodeScopePredicate( n => n is ISqlFullNameHolder && ((ISqlFullNameHolder)n).FullName.ToStringHyperCompact() == transformer.TargetFullName.ToStringHyperCompact() );
+                var target = new SqlNodeScopePredicate( n => n is ISqlFullNameHolder && ((ISqlFullNameHolder)n).FullName.ToStringHyperCompact() == transformer.TargetFullName.ToStringHyperCompact() );
+                if( scope == null ) scope = target;
+                else
+                {
+                    scope = new SqlNodeScopeIntersect( scope, target );
+                }
             }
+            bool needReparse = false;
             foreach( ISqlTransformStatement t in transformer.Body )
             {
                 SqlNodeLocationVisitor v = CreateVisitorFrom( t );
-                if( Apply( v, target ) )
+                if( Apply( v, scope ) )
                 {
+                    needReparse |= v.HasUnParsedText;
                     Monitor.Trace().Send( $"Successfully applied '{t.ToStringHyperCompact()}'" );
                 }
                 else
@@ -61,10 +68,25 @@ namespace CK.SqlServer.Transform
                     return false;
                 }
             }
+            if( needReparse )
+            {
+                using( _monitor.OpenTrace().Send( "Parsing transfomrmation result." ) )
+                {
+                    string text = _root.Node.ToString( true, true );
+                    ISqlNode newOne;
+                    var result = SqlAnalyser.Parse( out newOne, ParseMode.OneOrMoreStatements, text );
+                    if( result.IsError )
+                    {
+                        _monitor.Error().Send( result.ErrorMessage );
+                        return false;
+                    }
+                    _root = new LocationRoot( newOne, false );
+                }
+            }
             return true;
         }
 
-        private static SqlNodeLocationVisitor CreateVisitorFrom( ISqlTransformStatement t)
+        private static SqlNodeLocationVisitor CreateVisitorFrom( ISqlTransformStatement t )
         {
             var addParam = t as SqlTAddParameter;
             #region SqlTAddParameter
@@ -87,6 +109,11 @@ namespace CK.SqlServer.Transform
                 return new Transformers.AddParameter( addParam.Parameters, pBefore, pAfter );
             }
             #endregion
+            var insert = t as SqlTInsert;
+            if( insert != null )
+            {
+                return new Transformers.InsertUnParsedTextAroundTrivia( insert );
+            }
             throw new NotSupportedException( $"Transform statement '{t.ToStringHyperCompact()}' not supported." );
         }
 
@@ -108,6 +135,7 @@ namespace CK.SqlServer.Transform
             bool success = true;
             using( _monitor.OnError( () => success = false ) )
             {
+                if( transformer.Monitor == null ) transformer.Monitor = _monitor;
                 ISqlNode r = transformer.VisitRoot( _root, filter );
                 if( r != _root.Node && success ) _root = new LocationRoot( r, false );
             }

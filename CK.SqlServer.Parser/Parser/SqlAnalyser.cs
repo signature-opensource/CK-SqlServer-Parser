@@ -123,11 +123,27 @@ namespace CK.SqlServer.Parser
                 default:
                     {
                         Debug.Assert( mode == ParseMode.OneOrMoreStatements );
-                        List<ISqlNode> items = new List<ISqlNode>();
-                        if( !R.CollectUntil<SqlTokenError>( items, IsExtendedStatement, t => t.IsEndOfInput ) ) return null;
-                        return items.Count == 1 ? items[0] : new SqlNodeList( items );
+                        return IsOneOrMoreStatements( false );
                     }
             }
+        }
+
+        /// <summary>
+        /// Returns either one <see cref="IsExtendedStatement"/> if only one statement id found or 
+        /// a <see cref="SqlNodeList"/> of ExtendedStatement.
+        /// </summary>
+        /// <param name="expected">True to set an error if no statements are parsed.</param>
+        /// <returns>The parsed node.</returns>
+        public ISqlNode IsOneOrMoreStatements( bool expected )
+        {
+            List<ISqlNode> items = new List<ISqlNode>();
+            if( !R.CollectUntil<SqlToken>( items, IsExtendedStatement, R.GetDepthBasedStopper() ) ) return null;
+            if( expected && items.Count == 0 )
+            {
+                R.SetCurrentError( "Expected one or more statement." );
+                return null;
+            }
+            return items.Count == 1 ? items[0] : new SqlNodeList( items );
         }
 
         public override string ToString()

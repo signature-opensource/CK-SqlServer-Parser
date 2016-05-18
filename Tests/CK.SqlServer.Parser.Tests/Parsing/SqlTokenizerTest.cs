@@ -424,5 +424,27 @@ identifer2";
             Assert.That( tokens[2].TokenType, Is.EqualTo( SqlTokenType.EndOfInput ) );
 
         }
+
+        [TestCase( "[A[x]]]", "A[x]" )]
+        [TestCase( @"""A""""x""""""", @"A""x""" )]
+        [TestCase( @"'A''x'''", @"A'x'" )]
+        public void strings_and_quoted_identifiers_are_funny_beasts( string text, string result )
+        {
+            text = text.Replace( "x", Environment.NewLine + "x" + Environment.NewLine );
+            result = result.Replace( "x", Environment.NewLine + "x" + Environment.NewLine );
+            SqlTokenizer p = new SqlTokenizer();
+            var t = p.Parse( text ).Single( x => x.TokenType != SqlTokenType.EndOfInput );
+            Assert.That( t, Is.InstanceOf<SqlTokenIdentifier>().Or.InstanceOf<SqlTokenLiteralString>() );
+            if( t is SqlTokenIdentifier )
+            {
+                var id = (SqlTokenIdentifier)t;
+                Assert.That( id.Name, Is.EqualTo( result ) );
+            }
+            else
+            {
+                var str = (SqlTokenLiteralString)t;
+                Assert.That( str.Value, Is.EqualTo( result ) );
+            }
+        }
     }
 }

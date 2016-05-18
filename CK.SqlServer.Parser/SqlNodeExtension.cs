@@ -78,7 +78,7 @@ namespace CK.SqlServer.Parser
         /// <param name="this">This node.</param>
         /// <param name="predicate">The predicate.</param>
         /// <returns>A new immutable object or this if no change occurred.</returns>
-        static public T ExtractLeadingTrivias<T>( this T @this, Func<SqlTrivia, bool> predicate ) where T : ISqlNode
+        static public T ExtractLeadingTrivias<T>( this T @this, Func<SqlTrivia, int, bool> predicate ) where T : ISqlNode
         {
             return (T)((SqlNode)(object)@this).DoExtractLeadingTrivias( predicate );
         }
@@ -90,7 +90,7 @@ namespace CK.SqlServer.Parser
         /// <param name="this">This node.</param>
         /// <param name="predicate">The predicate.</param>
         /// <returns>A new immutable object or this if no change occurred.</returns>
-        static public T ExtractTrailingTrivias<T>( this T @this, Func<SqlTrivia, bool> predicate ) where T : ISqlNode
+        static public T ExtractTrailingTrivias<T>( this T @this, Func<SqlTrivia, int, bool> predicate ) where T : ISqlNode
         {
             return (T)((SqlNode)(object)@this).DoExtractTrailingTrivias( predicate );
         }
@@ -125,6 +125,17 @@ namespace CK.SqlServer.Parser
         static public T LiftTrailingTrivias<T>( this T @this ) where T : ISqlNode
         {
             return (T)((SqlNode)(object)@this).DoLiftTrailingTrivias();
+        }
+
+        /// <summary>
+        /// Sets or removes/clears one or more children in raw children (see <see cref="ISqlNode.GetRawContent"/>).
+        /// </summary>
+        /// <param name="this">This node.</param>
+        /// <param name="replacer">Mapping function. Must rturn null to remove or clear the node.</param>
+        /// <returns>A new immutable object or this node if no change occurred.</returns>
+        static public T ReplaceContentNode<T>( this T @this, Func<ISqlNode, int, ISqlNode> replacer ) where T : ISqlNode
+        {
+            return (T)((SqlNode)(object)@this).DoReplaceContentNode( replacer );
         }
 
         /// <summary>

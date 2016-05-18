@@ -527,12 +527,14 @@ namespace CK.SqlServer.Parser
         Called          = IdentifierStandard | 35,
         NativeCompilation = IdentifierStandard | 36,
         Server          = IdentifierStandard | 37,
+        Last            = IdentifierStandard | 38,
 
         // This is not sql :)
-        Transformer = IdentifierStandard | 38,
-        Parameter = IdentifierStandard | 39,
-        After = IdentifierStandard | 40,
-        Before = IdentifierStandard | 41,
+        Transformer = IdentifierStandard | 39,
+        Parameter = IdentifierStandard | 40,
+        After = IdentifierStandard | 41,
+        Before = IdentifierStandard | 42,
+        Single = IdentifierStandard | 43,
 
         #endregion
 

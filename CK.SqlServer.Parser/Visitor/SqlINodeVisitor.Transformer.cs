@@ -13,5 +13,9 @@ namespace CK.SqlServer.Parser
         internal protected virtual ISqlNode Visit( SqlTransformStatementList e ) => VisitStandard( e );
 
         internal protected virtual ISqlNode Visit( SqlTAddParameter e ) => VisitStandard( e );
+
+        internal protected virtual ISqlNode Visit( SqlTInsert e ) => VisitStandard( e );
+
+        internal protected virtual ISqlNode Visit( SqlTLocation e ) => VisitStandard( e );
     }
 }

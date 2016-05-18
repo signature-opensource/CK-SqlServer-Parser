@@ -120,7 +120,7 @@ namespace CK.SqlServer.Parser
             where TR : ISqlNode
         {
             ISqlNode r = right;
-            left = left.ExtractTrailingTrivias( t =>
+            left = left.ExtractTrailingTrivias( (t,idx) =>
             {
                 if( t.TokenType == SqlTokenType.None )
                 {
@@ -145,7 +145,7 @@ namespace CK.SqlServer.Parser
             where TR : ISqlNode
         {
             ISqlNode l = left;
-            right = right.ExtractLeadingTrivias( t =>
+            right = right.ExtractLeadingTrivias( (t,idx) =>
             {
                 if( t.TokenType == SqlTokenType.None )
                 {

@@ -22,13 +22,26 @@ namespace CK.SqlServer.Transform.Tests.XmlTests
             public readonly Func<ISqlNode,ISqlNode> Transformer;
             public readonly string ResultText;
 
-            public XmlSqlTesterWithTransform( XElement t )
-                : base( t )
+            public XmlSqlTesterWithTransform( XElement e )
+                : base( e )
             {
-                if( Description != null && Description.StartsWith( "CALL: " ) )
+                if( Description != null )
                 {
-                    var method = typeof(XmlTests).GetMethod( Description.Substring( 6 ).Trim() );
-                    Transformer = (Func<ISqlNode, ISqlNode>)method.CreateDelegate(typeof(Func<ISqlNode, ISqlNode>));
+                    if( Description.StartsWith( "CALL: " ) )
+                    {
+                        var method = typeof( XmlTests ).GetMethod( Description.Substring( 6 ).Trim() );
+                        Transformer = (Func<ISqlNode, ISqlNode>)method.CreateDelegate( typeof( Func<ISqlNode, ISqlNode> ) );
+                    }
+                    else
+                    {
+                        SqlTransformer t = ParseTransformer( Description );
+                        Transformer = n =>
+                        {
+                            SqlNodeTransformer host = new SqlNodeTransformer( n, TestHelper.ConsoleMonitor );
+                            Assert.That( host.Apply( t ) );
+                            return host.Node;
+                        };
+                    }
                 }
                 ResultText = ((string)TestElement.Element( "ResultText" ))?.TrimEnd().NormalizeEOL();
             }
@@ -55,9 +68,18 @@ namespace CK.SqlServer.Transform.Tests.XmlTests
                     {
                         Assert.That( actual, Is.EqualTo( expected ) );
                     }
-                    Assume.That( actualText, Is.EqualTo( ResultText ), "Rendering is not perfect..." );
+                    if( actualText != ResultText ) TestHelper.ConsoleMonitor.Warn().Send( "Rendering is not perfect..." );
                 }
                 return base.OnParsed( e );
+            }
+
+            static SqlTransformer ParseTransformer( string text )
+            {
+                var r = new SqlServerParser().Parse( text );
+                Assert.That( r.IsError, Is.False, r.ErrorMessage );
+                Assert.That( r.Result, Is.Not.Null );
+                Assert.That( r.Result, Is.InstanceOf<SqlTransformer>() );
+                return (SqlTransformer)r.Result;
             }
         }
         
@@ -79,8 +101,8 @@ namespace CK.SqlServer.Transform.Tests.XmlTests
             ISqlNodeLocationRange ifStatements = t.BuildRange( new SqlNodeScopePredicate( n => n is SqlIf ) );
             SqlNodeLocation headLoc = ifStatements.First.End;
             a.Reset( "if @ZoneId = 1 throw 50000, 'Zone.SystemZoneHasNoGroup', 1;" );
-            var guard = (ISqlStatement)a.Parse( ParseMode.Statement );
-            t.Visit( new InsertStatement( headLoc, guard ) );
+            var newGuard = (ISqlStatement)a.Parse( ParseMode.Statement );
+            t.Visit( new InsertStatement( headLoc, newGuard ) );
 
             t.Visit( new AddColumnInInsert( SqlTokenIdentifier.Create( "ZoneId" ), pZoneId.Variable.Identifier ) );
 

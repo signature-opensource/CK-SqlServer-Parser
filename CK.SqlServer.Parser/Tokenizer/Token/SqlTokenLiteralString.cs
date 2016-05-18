@@ -9,7 +9,7 @@ using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
-    public sealed class SqlTokenLiteralString : SqlTokenBaseLiteral
+    public sealed class SqlTokenLiteralString : SqlTokenBaseLiteral, ISqlHasStringValue
     {
         public SqlTokenLiteralString( SqlTokenType t, string value, ImmutableList<SqlTrivia> leadingTrivia = null, ImmutableList<SqlTrivia> trailingTrivia = null )
             : base( t, leadingTrivia, trailingTrivia )

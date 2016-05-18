@@ -3,50 +3,114 @@
 
   <Test>
     <Text>
-create procedure CK.sGroupCreate 
-(
-	@ActorId int,
-	@GroupIdResult int output
-)
-as begin
-  if @ActorId &lt;= 0 throw 50000, 'Security.AnonymousNotAllowed', 1;
+      create procedure CK.sGroupCreate
+      (
+      @ActorId int,
+      @GroupIdResult int output
+      )
+      as begin
+      if @ActorId &lt;= 0 throw 50000, 'Security.AnonymousNotAllowed', 1;
 
-  --[beginsp]
-	
-	--<Extension Name="Group.PreCreate" />
+      --[beginsp]
 
-	exec CK.sActorCreate @ActorId, @GroupIdResult output;
-	insert into CK.tGroup( GroupId ) values( @GroupIdResult );
+      --<Extension Name="Group.PreCreate" />
 
-	--<Extension Name="Group.PostCreate" />
+      exec CK.sActorCreate @ActorId, @GroupIdResult output;
+      insert into CK.tGroup( GroupId ) values( @GroupIdResult );
 
-	--[endsp]
-end
+      --<Extension Name="Group.PostCreate" />
+
+      --[endsp]
+      end
     </Text>
     <Description>CALL: GroupCreateToZone</Description>
     <ResultText>
-create procedure CK.sGroupCreate 
-(
-	@ActorId int,
-	@ZoneId int = 0,
-	@GroupIdResult int output
-)
-as 
-begin
-  if @ActorId &lt;= 0 throw 50000, 'Security.AnonymousNotAllowed', 1;
-  if @ZoneId = 1 throw 50000, 'Zone.SystemZoneHasNoGroup', 1;
+      create procedure CK.sGroupCreate
+      (
+      @ActorId int,
+      @ZoneId int = 0,
+      @GroupIdResult int output
+      )
+      as
+      begin
+      if @ActorId &lt;= 0 throw 50000, 'Security.AnonymousNotAllowed', 1;
+      if @ZoneId = 1 throw 50000, 'Zone.SystemZoneHasNoGroup', 1;
 
-	--[beginsp]
-	
-	--<Extension Name="Group.PreCreate" />
+      --[beginsp]
 
-	exec CK.sActorCreate @ActorId, @GroupIdResult output;
-	insert into CK.tGroup( GroupId, ZoneId ) values( @GroupIdResult, @ZoneId );
+      --<Extension Name="Group.PreCreate" />
 
-	--<Extension Name="Group.PostCreate" />
+      exec CK.sActorCreate @ActorId, @GroupIdResult output;
+      insert into CK.tGroup( GroupId, ZoneId ) values( @GroupIdResult, @ZoneId );
 
-	--[endsp]
-end
+      --<Extension Name="Group.PostCreate" />
+
+      --[endsp]
+      end
     </ResultText>
   </Test>
+  
+  <Test>
+    <Text>
+      create procedure CK.sGroupCreate
+      (
+        @ActorId int,
+        @GroupIdResult int output
+      )
+      as begin
+      if @ActorId &lt;= 0 throw 50000, 'Security.AnonymousNotAllowed', 1;
+
+      --[beginsp]
+
+      --<Extension Name="Group.PreCreate" />
+
+      exec CK.sActorCreate @ActorId, @GroupIdResult output;
+      insert into CK.tGroup( GroupId ) values( @GroupIdResult );
+
+      --<Extension Name="Group.PostCreate" />
+
+      --[endsp]
+      end
+    </Text>
+    <Description>
+      create transformer on CK.sGroupCreate
+      as
+      begin
+        add parameter @ZoneId int = 0 before @GroupIdResult;
+        insert 
+          (
+            -- from Zone...
+            if @ZoneId = 1 throw 50000, 'Zone.SystemZoneHasNoGroup', 1; 
+          ) 
+          before "--[beginsp]";
+          -- add column( ZoneId ) values( @ZoneId ) in 
+      end
+    </Description>
+    <ResultText>
+      create procedure CK.sGroupCreate
+      (
+        @ActorId int,
+        @ZoneId int = 0,
+        @GroupIdResult int output
+      )
+      as
+      begin
+      if @ActorId &lt;= 0 throw 50000, 'Security.AnonymousNotAllowed', 1;
+      -- from Zone...
+      if @ZoneId = 1 throw 50000, 'Zone.SystemZoneHasNoGroup', 1;
+
+      --[beginsp]
+
+      --<Extension Name="Group.PreCreate" />
+
+      exec CK.sActorCreate @ActorId, @GroupIdResult output;
+      insert into CK.tGroup( GroupId, ZoneId ) values( @GroupIdResult, @ZoneId );
+
+      --<Extension Name="Group.PostCreate" />
+
+      --[endsp]
+      end
+    </ResultText>
+  </Test>
+
 </Tests>

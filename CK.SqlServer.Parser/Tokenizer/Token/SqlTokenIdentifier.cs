@@ -12,7 +12,7 @@ namespace CK.SqlServer.Parser
     /// <summary>
     /// Token for identifiers.
     /// </summary>
-    public sealed class SqlTokenIdentifier : SqlToken, ISqlIdentifier, IReadOnlyList<ISqlIdentifier>
+    public sealed class SqlTokenIdentifier : SqlToken, ISqlIdentifier, IReadOnlyList<ISqlIdentifier>, ISqlHasStringValue
     {
         readonly string _name;
 
@@ -72,7 +72,13 @@ namespace CK.SqlServer.Parser
         /// <summary>
         /// Gets the identifier string (without quotes or brackets if this is quoted).
         /// </summary>
-        public string Name => _name; 
+        public string Name => _name;
+
+        /// <summary>
+        /// Gets the string value (i.e. the <see cref="Name"/>).
+        /// This unifies the [] and "" quoted identifiers with '' litteral strings.
+        /// </summary>
+        string ISqlHasStringValue.Value => _name;
 
         /// <summary>
         /// Sets this identifier name.

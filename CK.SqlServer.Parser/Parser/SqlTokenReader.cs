@@ -41,8 +41,8 @@ namespace CK.SqlServer.Parser
         public Predicate<SqlToken> GetDepthBasedStopper()
         {
             int curDepth = _parenthesisDepth;
-            if( curDepth == 0 ) return SqlToken.IsTerminator;
-            return t => _parenthesisDepth == curDepth ? t.TokenType == SqlTokenType.ClosePar : false;
+            if( curDepth == 0 ) return SqlToken.IsTerminatorOrEndOfInput;
+            return t => t.TokenType == SqlTokenType.EndOfInput || (_parenthesisDepth == curDepth ? t.TokenType == SqlTokenType.ClosePar : false);
         }
 
         public IDisposable SetAssignmentContext( bool assignment )

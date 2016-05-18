@@ -74,14 +74,14 @@ namespace CK.SqlServer.Parser
         #endregion
 
         /// <summary>
-        /// True if the <see cref="SqlToken"/> is the terminator statement ';'.
+        /// True if the <see cref="SqlToken"/> is the terminator statement ';' or the end of input.
         /// </summary>
         /// <param name="t">Token to test.</param>
-        /// <returns>Whether the token is the statement terminator.</returns>
-        static public bool IsTerminator( SqlToken t )
+        /// <returns>Whether the token is the statement terminator or the end of imput.</returns>
+        static public bool IsTerminatorOrEndOfInput( SqlToken t )
         {
             Debug.Assert( t != null );
-            return t.TokenType == SqlTokenType.SemiColon;
+            return t.TokenType == SqlTokenType.EndOfInput || t.TokenType == SqlTokenType.SemiColon;
         }
 
         /// <summary>

@@ -72,8 +72,62 @@ namespace CK.SqlServer.Parser
                     }
                 }
             }
+            else if( R.IsToken( out initT, SqlTokenType.Insert, false ) )
+            {
+                SqlTokenOpenPar openPar;
+                if( !R.IsToken( out openPar, true ) ) return null;
+
+                ISqlNode content;
+                content = IsOneOrMoreStatements( false );
+
+                if( content == null ) return null;
+                SqlTokenClosePar closePar;
+                if( !R.IsToken( out closePar, true ) ) return null;
+
+                SqlTLocation loc = IsSqlTLocation( true );
+                if( loc == null ) return null;
+
+                return new SqlTInsert( initT, openPar, content, closePar, loc, GetOptionalTerminator());
+            }
             if( expected ) R.SetCurrentError( "Expected transform statement." );
             return null;
+        }
+
+        SqlTLocation IsSqlTLocation( bool expected )
+        {
+            SqlTokenIdentifier beforeOrAfterT;
+            if( !R.IsToken( out beforeOrAfterT, SqlTokenType.Before, false ) && !R.IsToken( out beforeOrAfterT, SqlTokenType.After, expected ) ) return null;
+            SqlTokenIdentifier firstOrLastOrSingle;
+            SqlTokenTerminal plusOrMinusT = null;
+            SqlTokenLiteralInteger offset = null;
+            if( R.IsToken( out firstOrLastOrSingle, SqlTokenType.First, false ) )
+            {
+                if( R.IsToken( out plusOrMinusT, SqlTokenType.Plus, false ) )
+                {
+                    if( !R.IsToken( out offset, true ) ) return null;
+                }
+            }
+            else if( R.IsToken( out firstOrLastOrSingle, SqlTokenType.Last, false ) )
+            {
+                if( R.IsToken( out plusOrMinusT, SqlTokenType.Minus, false ) )
+                {
+                    if( !R.IsToken( out offset, true ) ) return null;
+                }
+            }
+            else R.IsToken( out firstOrLastOrSingle, SqlTokenType.Single, false );
+
+            var text = R.Current as ISqlHasStringValue;
+            if( text != null )
+            {
+                R.MoveNext();
+            }
+            else
+            {
+                R.SetCurrentError( @"A [...] or ""..."" or '...' string is expected." );
+                return null;
+            }
+
+            return new SqlTLocation( beforeOrAfterT, firstOrLastOrSingle, plusOrMinusT, offset, text );
         }
     }
 

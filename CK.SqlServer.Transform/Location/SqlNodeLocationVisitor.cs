@@ -165,7 +165,9 @@ namespace CK.SqlServer.Transform
         }
 
         readonly VContext _context;
+        bool _hasUnParsedText;
         bool _stop;
+
 
         /// <summary>
         /// Initializes a new location visitor.
@@ -222,8 +224,9 @@ namespace CK.SqlServer.Transform
         protected override ISqlNode VisitTypeDeclStandard( ISqlUnifiedTypeDecl e ) => VisitStandard( e );
 
         /// <summary>
-        /// Overridden to update <see cref="VisitContext"/>, call <see cref="BeforeVisitItem"/>, 
-        /// call the visit itself (base method), call <see cref="AfterVisitItem"/> and restore VisitContext.
+        /// Overridden to update <see cref="VisitContext"/> and check scope. If the node is in the scope,
+        /// calls <see cref="BeforeVisitItem"/>, call the visit itself (base method), call <see cref="AfterVisitItem"/> 
+        /// and restore VisitContext.
         /// </summary>
         /// <param name="e">The node to visit.</param>
         /// <returns>The visited result node.</returns>
@@ -245,6 +248,11 @@ namespace CK.SqlServer.Transform
         }
 
         /// <summary>
+        /// Gets whether unparsed text has been injected during the transformation.
+        /// </summary>
+        public bool HasUnParsedText => _hasUnParsedText;
+
+        /// <summary>
         /// Called by <see cref="VisitItem"/> before the visit. 
         /// The <see cref="VisitContext"/> is bound to the node that will be visited.
         /// </summary>
@@ -252,10 +260,7 @@ namespace CK.SqlServer.Transform
         /// <returns>
         /// True (the default) to visit the children. False to skip the visit of the current node. 
         /// </returns>
-        protected virtual bool BeforeVisitItem()
-        {
-            return true;
-        }
+        protected virtual bool BeforeVisitItem() => true;
 
         /// <summary>
         /// Called by <see cref="VisitItem(ISqlNode)"/> after the visit.
@@ -265,15 +270,17 @@ namespace CK.SqlServer.Transform
         /// The visited node (same as <see cref="VisitContext"/>.VisitedNode if no mutation occurred).
         /// </param>
         /// <returns>The visitResult node.</returns>
-        protected virtual ISqlNode AfterVisitItem( ISqlNode visitResult )
-        {
-            return visitResult;
-        }
+        protected virtual ISqlNode AfterVisitItem( ISqlNode visitResult ) => visitResult;
 
         /// <summary>
         /// Calling this method stops the visit.
         /// </summary>
-        protected void StopVisit() => _stop = true;
+        /// <param name="hasUnParsedText">Optionally sets <see cref="HasUnParsedText"/> to true.</param>
+        protected void StopVisit( bool hasUnParsedText = false )
+        {
+            _hasUnParsedText |= hasUnParsedText;
+            _stop = true;
+        }
 
         /// <summary>
         /// Gets whether <see cref="StopVisit"/> has been called.

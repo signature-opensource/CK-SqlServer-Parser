@@ -167,7 +167,7 @@ namespace CK.SqlServer.Parser
                     : this;
         }
 
-        internal ISqlNode DoExtractTrailingTrivias( Func<SqlTrivia, bool> predicate )
+        internal ISqlNode DoExtractTrailingTrivias( Func<SqlTrivia, int, bool> predicate )
         {
             int nb = TrailingTrivias.Count;
             int keep;
@@ -175,8 +175,7 @@ namespace CK.SqlServer.Parser
             {
                 foreach( var t in TrailingTrivias.Reverse() )
                 {
-                    if( !predicate( t ) ) break;
-                    --keep;
+                    if( !predicate( t, --keep ) ) break;
                 }
             }
             if( keep == 0 )
@@ -202,15 +201,16 @@ namespace CK.SqlServer.Parser
             return this;
         }
 
-        internal ISqlNode DoExtractLeadingTrivias( Func<SqlTrivia, bool> filter )
+        internal ISqlNode DoExtractLeadingTrivias( Func<SqlTrivia,int, bool> filter )
         {
             int nb = LeadingTrivias.Count;
             int keep;
             if( (keep = nb) != 0 )
             {
+                int idx = 0;
                 foreach( var t in LeadingTrivias )
                 {
-                    if( !filter( t ) ) break;
+                    if( !filter( t, idx++ ) ) break;
                     --keep;
                 }
             }
@@ -247,6 +247,31 @@ namespace CK.SqlServer.Parser
         {
             var c = RawReplaceContentNode( GetRawContent(), i, child );
             return c != null ? DoClone( LeadingTrivias, c, TrailingTrivias ) : this;
+        }
+
+        internal ISqlNode DoReplaceContentNode( Func<ISqlNode, int, ISqlNode> replacer )
+        {
+            bool change = false;
+            var list = GetRawContent();
+            for( int i = 0; i < list.Count; ++i )
+            {
+                var current = list[i];
+                var replaced = replacer( current, i );
+                if( replaced != null || list is ISqlNode[] )
+                {
+                    if( current != replaced )
+                    {
+                        change = true;
+                        list[i] = replaced;
+                    }
+                }
+                else
+                {
+                    change = true;
+                    list.RemoveAt( i-- );
+                }
+            }
+            return change ? DoClone( LeadingTrivias, list, TrailingTrivias ) : this;
         }
 
         internal ISqlNode DoReplaceContentNode( int i1, ISqlNode child1, int i2, ISqlNode child2 )

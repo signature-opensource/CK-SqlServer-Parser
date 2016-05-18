@@ -2,7 +2,7 @@
 <Tests>
 
   
-    <Test>
+  <Test>
     <Text>
       break;
       select 1;

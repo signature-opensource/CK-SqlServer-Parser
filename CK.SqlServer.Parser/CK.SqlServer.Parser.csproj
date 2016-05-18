@@ -133,6 +133,8 @@
     <Compile Include="Parser\SqlAnalyser.Statement.cs" />
     <Compile Include="Parser\StatementKnownName.cs" />
     <Compile Include="Parser\TransformNode\ISqlTransformStatement.cs" />
+    <Compile Include="Parser\TransformNode\SqlTLocation.cs" />
+    <Compile Include="Parser\TransformNode\SqlTInsert.cs" />
     <Compile Include="Parser\TransformNode\SqlTransformer.cs" />
     <Compile Include="Parser\TransformNode\SqlTransformStatementList.cs" />
     <Compile Include="Parser\TransformNode\SqlTAddParameter.cs" />
@@ -210,6 +212,7 @@
     <Compile Include="Parser\SqlAnalyser.Expression.Select.cs" />
     <Compile Include="Parser\SqlAnalyser.LowLevel.cs" />
     <Compile Include="SqlNonToken.cs" />
+    <Compile Include="Tokenizer\ISqlHasStringValue.cs" />
     <Compile Include="Tokenizer\Token\SqlTokenExtension.cs" />
     <Compile Include="Tokenizer\Token\Terminal\ISqlTokenIdentifierSeparator.cs" />
     <Compile Include="Tokenizer\Token\Terminal\SqlTokenDoubleColon.cs" />

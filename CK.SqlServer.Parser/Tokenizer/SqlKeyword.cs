@@ -133,6 +133,8 @@ namespace CK.SqlServer.Parser
         public static readonly SqlTokenIdentifier Called;
         public static readonly SqlTokenIdentifier NativeCompilation;
         public static readonly SqlTokenIdentifier Server;
+        public static readonly SqlTokenIdentifier Last;
+
         public static readonly SqlTokenIdentifier Or;
         public static readonly SqlTokenIdentifier And;
         public static readonly SqlTokenIdentifier Not;
@@ -316,6 +318,7 @@ namespace CK.SqlServer.Parser
         public static readonly SqlTokenIdentifier Parameter;
         public static readonly SqlTokenIdentifier After;
         public static readonly SqlTokenIdentifier Before;
+        public static readonly SqlTokenIdentifier Single;
 
         static Dictionary<string, SqlTokenType> _keywords;
         static Dictionary<SqlTokenType, string> _typeToString;
@@ -497,9 +500,10 @@ namespace CK.SqlServer.Parser
             Called              = RegKeyword( "called", SqlTokenType.Called );
             NativeCompilation   = RegKeyword( "native_compilation", SqlTokenType.NativeCompilation );
             Server              = RegKeyword( "server", SqlTokenType.Server );
+            Last                = RegKeyword( "last", SqlTokenType.Last );
 
             // LogicalOperator (they are reserved keywords).
-            Or              = RegKeyword( "or", SqlTokenType.Or );
+            Or = RegKeyword( "or", SqlTokenType.Or );
             And             = RegKeyword( "and", SqlTokenType.And );
             Not             = RegKeyword( "not", SqlTokenType.Not );
             // CompareOperator (they are reserved keywords).
@@ -691,6 +695,7 @@ namespace CK.SqlServer.Parser
             Parameter = RegKeyword( "parameter", SqlTokenType.Parameter );
             After = RegKeyword( "after", SqlTokenType.After );
             Before = RegKeyword( "before", SqlTokenType.Before );
+            Single = RegKeyword( "single", SqlTokenType.Single );
 
             Debug.Assert( (int)SqlTokenType.AssignOperatorCount == 9 );
             Assign				    = RegTerminal( SqlTokenType.Assign, "=" );

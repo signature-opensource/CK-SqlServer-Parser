@@ -29,7 +29,9 @@ namespace CK.SqlServer.Parser
         /// </summary>
         AnyExpression,
         /// <summary>
-        /// A statement can be a select or any sql statement. GO is considered a statement.
+        /// A statement can be a select or any sql statement (actually any totally unknown sequence
+        /// will be returned as a <see cref="SqlUnnamedStatement"/>). 
+        /// GO is considered a statement.
         /// </summary>
         Statement,
         /// <summary>

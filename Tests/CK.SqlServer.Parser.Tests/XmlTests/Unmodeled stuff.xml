@@ -3,7 +3,7 @@
 
   <Test>
     <Text>A B</Text>
-    <Description>UnnamedStatement is the "catch all" structure when parsing in "All" mode.</Description>
+    <Description>UnnamedStatement is the "catch all" structure when parsing in "OneOrMoreStatements" mode.</Description>
     <Xml>
       <Sql>
         <UnnamedStatement>
@@ -24,7 +24,7 @@
 
   <Test>
     <Text>A, B</Text>
-    <Description>Content .</Description>
+    <Description>Content is a SqlCommaList.</Description>
     <Xml>
       <Sql>
         <UnnamedStatement>
@@ -45,7 +45,7 @@
 
   <Test>
     <Text>break; continue 3+5 ; A, B</Text>
-    <Description>Two statements and an UnnamedStatement one.</Description>
+    <Description>Two statements and an UnnamedStatement.</Description>
     <Xml>
       <Sql>
         <NodeList>
@@ -148,5 +148,95 @@
     </Xml>
   </Test>
 
+  <Test>
+    <Text>A B; C D, X print continue; e f; 878 @x 10.32</Text>
+    <Description>Thanks to OneOrMoreStatements, one cas parse almost everything that looks like a statement.</Description>
+    <Xml>
+      <Sql>
+        <NodeList>
+          <Item>
+            <UnnamedStatement HasTerminator="true">
+              <Content>
+                <NodeList>
+                  <Item>
+                    <Identifier>A</Identifier>
+                  </Item>
+                  <Item>
+                    <Identifier>B</Identifier>
+                  </Item>
+                </NodeList>
+              </Content>
+            </UnnamedStatement>
+          </Item>
+          <Item>
+            <UnnamedStatement>
+              <Content>
+                <CommaList>
+                  <Item>
+                    <NodeList>
+                      <Item>
+                        <Identifier>C</Identifier>
+                      </Item>
+                      <Item>
+                        <Identifier>D</Identifier>
+                      </Item>
+                    </NodeList>
+                  </Item>
+                  <Item>
+                    <Identifier>X</Identifier>
+                  </Item>
+                </CommaList>
+              </Content>
+            </UnnamedStatement>
+          </Item>
+          <Item>
+            <Statement StatementName="print">
+              <Content>
+                <NodeList />
+              </Content>
+            </Statement>
+          </Item>
+          <Item>
+            <Statement StatementName="continue" HasTerminator="true">
+              <Content>
+                <NodeList />
+              </Content>
+            </Statement>
+          </Item>
+          <Item>
+            <UnnamedStatement HasTerminator="true">
+              <Content>
+                <NodeList>
+                  <Item>
+                    <Identifier>e</Identifier>
+                  </Item>
+                  <Item>
+                    <Identifier>f</Identifier>
+                  </Item>
+                </NodeList>
+              </Content>
+            </UnnamedStatement>
+          </Item>
+          <Item>
+            <UnnamedStatement>
+              <Content>
+                <NodeList>
+                  <Item>
+                    <LiteralInteger>878</LiteralInteger>
+                  </Item>
+                  <Item>
+                    <Identifier IsVariable="true">@x</Identifier>
+                  </Item>
+                  <Item>
+                    <LiteralDecimal>10.32</LiteralDecimal>
+                  </Item>
+                </NodeList>
+              </Content>
+            </UnnamedStatement>
+          </Item>
+        </NodeList>
+      </Sql>
+    </Xml>
+  </Test>
 
 </Tests>
