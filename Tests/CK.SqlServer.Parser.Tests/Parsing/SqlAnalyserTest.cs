@@ -184,6 +184,7 @@ namespace CK.SqlServer.Parser.Tests
             return s;
         }
 
+        [Explicit]
         [TestCase( null )]
         public void parse_all_stored_procedures_from_database( string connectionString )
         {
