@@ -23,6 +23,8 @@ namespace CK.SqlServer.Parser
             Debug.Assert( t != SqlTokenType.OpenPar || GetType().Name == "SqlTokenOpenPar" );
             Debug.Assert( t != SqlTokenType.ClosePar || GetType().Name == "SqlTokenClosePar" );
             Debug.Assert( t != SqlTokenType.DoubleColons || GetType().Name == "SqlTokenDoubleColon" );
+            Debug.Assert( t != SqlTokenType.DoubleDots || GetType().Name == "SqlTokenMultiDots" );
+            Debug.Assert( t != SqlTokenType.TripleDots || GetType().Name == "SqlTokenMultiDots" );
         }
 
         protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IList<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
@@ -40,6 +42,8 @@ namespace CK.SqlServer.Parser
                 case SqlTokenType.Dot: return new SqlTokenDot( lead, tail );
                 case SqlTokenType.Comma: return new SqlTokenComma( lead, tail );
                 case SqlTokenType.DoubleColons: return new SqlTokenDoubleColon( lead, tail );
+                case SqlTokenType.DoubleDots:
+                case SqlTokenType.TripleDots: return new SqlTokenMultiDots( t, lead, tail );
             }
             return new SqlTokenTerminal( t, lead, tail );
         }

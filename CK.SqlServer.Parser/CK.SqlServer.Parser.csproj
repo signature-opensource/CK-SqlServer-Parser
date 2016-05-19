@@ -216,6 +216,7 @@
     <Compile Include="Tokenizer\ISqlHasStringValue.cs" />
     <Compile Include="Tokenizer\Token\SqlTokenExtension.cs" />
     <Compile Include="Tokenizer\Token\Terminal\ISqlTokenIdentifierSeparator.cs" />
+    <Compile Include="Tokenizer\Token\Terminal\SqlTokenMultiDots.cs" />
     <Compile Include="Tokenizer\Token\Terminal\SqlTokenDoubleColon.cs" />
     <Compile Include="Tokenizer\Token\Terminal\SqlTokenDot.cs" />
     <Compile Include="Tokenizer\Token\Terminal\SqlTokenComma.cs" />

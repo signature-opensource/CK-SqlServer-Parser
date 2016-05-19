@@ -436,6 +436,14 @@ namespace CK.SqlServer.Parser
                     if( Read( '>' ) ) return (int)SqlTokenType.NotEqualTo;
                     return (int)SqlTokenType.Less;
                 case '.':
+                    if( Read( '.' ) )
+                    {
+                        if( Read( '.' ) )
+                        {
+                            return (int)SqlTokenType.TripleDots;
+                        }
+                        return (int)SqlTokenType.DoubleDots;
+                    }
                     // A numeric can start with a dot.
                     ic = FromDecDigit( Peek() );
                     if( ic >= 0 )

@@ -367,6 +367,15 @@ namespace CK.SqlServer.Parser
         /// Triple Question mark (???) does not belong to the T-Sql terminals.
         /// </summary>
         TripleQuestionMark = IsPunctuation | 8,
+        /// <summary>
+        /// The .. is used in dbname..object and this select the default schema of the current user.
+        /// </summary>
+        DoubleDots = IsPunctuation | OpLevel15 | 9,
+        /// <summary>
+        /// The .. is used in servername...object and this select the default database and schema of the user.
+        /// </summary>
+        TripleDots = IsPunctuation | OpLevel15 | 10,
+
         #endregion
 
         /// <summary>

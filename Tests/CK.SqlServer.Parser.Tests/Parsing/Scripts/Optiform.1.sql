@@ -1,4 +1,704 @@
-﻿         -- =============================================    
+﻿          -- =============================================
+         -- Author:		Say
+         -- Create date: 18 avril 2007
+         -- Description:	Proc‚dure stock‚e principal, pour la gestion ETEBAC
+         -- Modified: 
+         -- Description: 
+         -- =============================================
+         -- Modified:	24/10/2008 ASD
+         -- Description:	Ajout du ALT/CPRO r‚cup‚r‚ du FAF en l'‚tat
+         -- =============================================
+         -- Modified :	13/01/2012 by ASD
+         -- Description:	ajout des activit‚s 10-50 (lignes en dur) -> … refactorer vers plus dynamique
+         -- =============================================
+         -- Modified:	31/07/2012 DSZ
+         -- Description: 13550 ajout du pr‚lŠvement automatique (@CAS_A_FAIRE = 'PRAC')
+         -- passage de 0 en @ID_ACTIVITE pour traiter toutes les activit‚s, au lieu de multiplier les lignes et union
+         -- perf: suppresion des tables temporaires qui ne servent … rien.
+         -- =============================================
+         -- Modified:	21/09/2012 DSZ
+         -- Description: 14002 : traitement de @ETEBAC_COL = 2 qui genere les PRAC
+         -- =============================================
+         -- Modified:	24/10/2012 SBR
+         -- Description: passage de 0 au paramŠtre @ID_SUBVENTION pour traiter toutes les subventions
+         -- =============================================
+         -- Modified:	30/10/2012 SBR
+         -- Description: Annulation passage de 0 aux paramŠtres @ID_ACTIVITE et @ID_SUBVENTION car anomalie de fonctionnement
+         -- =============================================
+         -- Modified:	31/10/2012 DSZ
+         -- Description: Annulation passage de 0 refaite proprement. suppression des tables temporaires qui empenchait la PS de fonctionner
+         -- =============================================
+         -- Modified:	18/11/2013 DSZ
+         -- Description: 16397 : activit‚ = 0 signifie toutes les activit‚s. A ne pas confondre avec activit‚= null !
+         --                      ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED traite correctement le cas de id_activite = 0 
+         -- =============================================
+         
+         
+         CREATE PROCEDURE [dbo].[ETEBAC__CREATION]
+         	@MODE_TABLE			TINYINT,		/* 1 retourne en table,	autrement en une ligne */
+         	@ETEBAC_PEC_EXT		TINYINT,		/* 1 retourne la PEC Externe, autrement PEC interne */
+         	@ETEBAC_COL			TINYINT,		/* 1 retourne la COL (OVIC), 2 retourne les COL-PRAC, autrement rien */
+         	@ETEBAC_ALT			TINYINT			/* 1 retourne la PRO, autrement rien */
+         AS
+         
+         BEGIN
+         	IF (@MODE_TABLE = 1)
+         	BEGIN
+         
+         		IF (@ETEBAC_PEC_EXT = 1)
+         		BEGIN
+         			SET @ETEBAC_COL = 0
+         			/* REGL = PEC externe */
+         						select * from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('REGL', 1, null, null)
+         			UNION ALL	select * from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('REGL', 0, null, null)
+         		END
+         		IF (@ETEBAC_PEC_EXT = 0)
+         		BEGIN
+         			/* OVIP = PEC ordre virement interne */
+         			-- ici activite = entre 1 et 5
+         			-- subvention = 1, 2, 3 ou 4
+         			SET @ETEBAC_COL = 0
+         			
+         						select * from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIP', 1, 0, null)
+         			UNION ALL	select * from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIP', 0, 0, null)
+         			
+         			--			select * from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIP', 1, 1, null)
+         			--UNION ALL	select * from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIP', 1, 2, null)
+         			--UNION ALL	select * from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIP', 1, 3, null)
+         			--UNION ALL	select * from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIP', 1, 4, null)
+         			--UNION ALL	select * from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIP', 1, 5, null)
+         			--UNION ALL	select * from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIP', 1, 6, null)	
+         
+         			--UNION ALL   select * from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIP', 0, 1, null)
+         			--UNION ALL	select * from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIP', 0, 2, null)
+         			--UNION ALL	select * from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIP', 0, 3, null)
+         			--UNION ALL	select * from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIP', 0, 4, null)
+         			--UNION ALL	select * from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIP', 0, 5, null)
+         			--UNION ALL	select * from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIP', 0, 6, null)
+         
+         			UNION ALL	select * from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIP', 1, null, 1)
+         			UNION ALL	select * from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIP', 1, null, 2)
+         			UNION ALL	select * from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIP', 1, null, 3)
+         			UNION ALL	select * from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIP', 1, null, 4)
+         			UNION ALL	select * from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIP', 1, null, 5)
+         
+         			UNION ALL	select * from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIP', 0, null, 1)
+         			UNION ALL	select * from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIP', 0, null, 2)
+         			UNION ALL	select * from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIP', 0, null, 3)
+         			UNION ALL	select * from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIP', 0, null, 4)
+         			UNION ALL	select * from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIP', 0, null, 5)
+         		END
+         
+         		IF (@ETEBAC_COL = 1)
+         		BEGIN 
+         			/* OVIC = COL */
+         			-- ici activite = toutes existantes dans la table
+         						select * from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIC', 1, 0, null)
+         			UNION ALL	select * from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIC', 0, 0, null)
+         			/*
+         						select * from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIC', 1, 1, null)
+         			UNION ALL	select * from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIC', 1, 2, null)
+         			UNION ALL	select * from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIC', 1, 3, null)
+         			UNION ALL	select * from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIC', 1, 4, null)
+         			UNION ALL	select * from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIC', 1, 5, null)
+         			UNION ALL	select * from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIC', 1, 6, null)
+         
+         			UNION ALL	select * from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIC', 0, 1, null)
+         			UNION ALL	select * from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIC', 0, 2, null)
+         			UNION ALL	select * from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIC', 0, 3, null)
+         			UNION ALL	select * from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIC', 0, 4, null)
+         			UNION ALL	select * from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIC', 0, 5, null)
+         			UNION ALL	select * from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIC', 0, 6, null) */
+         			
+         
+         		END	
+         		if (@ETEBAC_COL = 2)
+         		BEGIN
+         			/*PRAC = COL */
+         			--toutes activit‚s une par une 
+         						select * from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('PRAC', 1, 0, null)
+         			UNION ALL	select * from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('PRAC', 0, 0, null)
+         						/*select * from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('PRAC', 1, 1, null)
+         			UNION ALL	select * from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('PRAC', 1, 2, null)
+         			UNION ALL	select * from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('PRAC', 1, 3, null)
+         			UNION ALL	select * from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('PRAC', 1, 4, null)
+         			UNION ALL	select * from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('PRAC', 1, 5, null)
+         			UNION ALL	select * from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('PRAC', 1, 6, null)
+         
+         			UNION ALL	select * from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('PRAC', 0, 1, null)
+         			UNION ALL	select * from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('PRAC', 0, 2, null)
+         			UNION ALL	select * from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('PRAC', 0, 3, null)
+         			UNION ALL	select * from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('PRAC', 0, 4, null)
+         			UNION ALL	select * from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('PRAC', 0, 5, null)
+         			UNION ALL	select * from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('PRAC', 0, 6, null)*/
+         			
+         		END
+         		-- AJOUT
+         		IF (@ETEBAC_ALT = 1)
+         		BEGIN
+         			/* REGP = PRO */
+         			--activite PRO = 3
+         						select * from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('REGP', 1, 3, null)
+         			UNION ALL	select * from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('REGP', 0, 3, null)
+         
+         		END
+         	END
+         		
+         	
+         	/********************************************************************************************/
+         	/****************                 MODE LIGNE           **************************************/
+         	/********************************************************************************************/
+         	
+         	ELSE
+         	BEGIN
+         		IF (@ETEBAC_PEC_EXT = 1)
+         		/* REGL = PEC externe */
+         		BEGIN
+         			SET @ETEBAC_COL = 0
+         
+         						select A+ B1+ B2+ B3+ C11+ C12+ C13+ C14+ C2+ D11+ D12+ D2+ D3+ D4+ E1+ E2+ E3+ FT+ G1+ G2 as LIGNE,
+         								ID, TIME_STAMP
+         							from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('REGL', 1, null, null)
+         			UNION ALL	select A+ B1+ B2+ B3+ C11+ C12+ C13+ C14+ C2+ D11+ D12+ D2+ D3+ D4+ E1+ E2+ E3+ FT+ G1+ G2 as LIGNE,
+         								ID, TIME_STAMP
+         							from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('REGL', 0, null, null)
+         		END
+         		IF (@ETEBAC_PEC_EXT = 0)
+         		/* OVIP = PEC ordre virement interne */
+         		BEGIN
+         			SET @ETEBAC_COL = 0
+         
+         			--EXT ET ACTIVITES => toutes les activit‚s => id = 0
+         			            select A+ B1+ B2+ B3+ C11+ C12+ C13+ C14+ C2+ D11+ D12+ D2+ D3+ D4+ E1+ E2+ E3+ FT+ G1+ G2 as LIGNE,
+         								ID, TIME_STAMP
+         							from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIP', 1, 0, null)
+         			UNION ALL	select A+ B1+ B2+ B3+ C11+ C12+ C13+ C14+ C2+ D11+ D12+ D2+ D3+ D4+ E1+ E2+ E3+ FT+ G1+ G2 as LIGNE,
+         								ID, TIME_STAMP
+         							from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIP', 0, 0, null)
+         							
+         							
+         							
+         							
+         							
+         			--            select A+ B1+ B2+ B3+ C11+ C12+ C13+ C14+ C2+ D11+ D12+ D2+ D3+ D4+ E1+ E2+ E3+ FT+ G1+ G2 as LIGNE,
+         			--					ID, TIME_STAMP
+         			--				from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIP', 1, 1, null)
+         			--UNION ALL	select A+ B1+ B2+ B3+ C11+ C12+ C13+ C14+ C2+ D11+ D12+ D2+ D3+ D4+ E1+ E2+ E3+ FT+ G1+ G2 as LIGNE,
+         			--					ID, TIME_STAMP
+         			--				from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIP', 1, 2, null)
+         			--UNION ALL	select A+ B1+ B2+ B3+ C11+ C12+ C13+ C14+ C2+ D11+ D12+ D2+ D3+ D4+ E1+ E2+ E3+ FT+ G1+ G2 as LIGNE,
+         			--					ID, TIME_STAMP
+         			--				from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIP', 1, 3, null)
+         			--UNION ALL	select A+ B1+ B2+ B3+ C11+ C12+ C13+ C14+ C2+ D11+ D12+ D2+ D3+ D4+ E1+ E2+ E3+ FT+ G1+ G2 as LIGNE,
+         			--					ID, TIME_STAMP
+         			--				from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIP', 1, 4, null)
+         			--UNION ALL	select A+ B1+ B2+ B3+ C11+ C12+ C13+ C14+ C2+ D11+ D12+ D2+ D3+ D4+ E1+ E2+ E3+ FT+ G1+ G2 as LIGNE,
+         			--					ID, TIME_STAMP
+         			--				from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIP', 1, 5, null)
+         			--UNION ALL	select A+ B1+ B2+ B3+ C11+ C12+ C13+ C14+ C2+ D11+ D12+ D2+ D3+ D4+ E1+ E2+ E3+ FT+ G1+ G2 as LIGNE,
+         			--					ID, TIME_STAMP
+         			--				from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIP', 1, 6, null)
+         							
+         			--UNION ALL	select A+ B1+ B2+ B3+ C11+ C12+ C13+ C14+ C2+ D11+ D12+ D2+ D3+ D4+ E1+ E2+ E3+ FT+ G1+ G2 as LIGNE,
+         			--					ID, TIME_STAMP
+         			--				from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIP', 0, 1, null)
+         			--UNION ALL	select A+ B1+ B2+ B3+ C11+ C12+ C13+ C14+ C2+ D11+ D12+ D2+ D3+ D4+ E1+ E2+ E3+ FT+ G1+ G2 as LIGNE,
+         			--					ID, TIME_STAMP
+         			--				from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIP', 0, 2, null)
+         			--UNION ALL	select A+ B1+ B2+ B3+ C11+ C12+ C13+ C14+ C2+ D11+ D12+ D2+ D3+ D4+ E1+ E2+ E3+ FT+ G1+ G2 as LIGNE,
+         			--					ID, TIME_STAMP
+         			--				from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIP', 0, 3, null)
+         			--UNION ALL	select A+ B1+ B2+ B3+ C11+ C12+ C13+ C14+ C2+ D11+ D12+ D2+ D3+ D4+ E1+ E2+ E3+ FT+ G1+ G2 as LIGNE,
+         			--					ID, TIME_STAMP
+         			--				from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIP', 0, 4, null)
+         			--UNION ALL	select A+ B1+ B2+ B3+ C11+ C12+ C13+ C14+ C2+ D11+ D12+ D2+ D3+ D4+ E1+ E2+ E3+ FT+ G1+ G2 as LIGNE,
+         			--					ID, TIME_STAMP
+         			--				from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIP', 0, 5, null)
+         			--UNION ALL	select A+ B1+ B2+ B3+ C11+ C12+ C13+ C14+ C2+ D11+ D12+ D2+ D3+ D4+ E1+ E2+ E3+ FT+ G1+ G2 as LIGNE,
+         			--					ID, TIME_STAMP
+         			--				from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIP', 0, 6, null)
+         
+         
+         --EXT ET SUBVENTIONS
+         
+         			UNION ALL select A+ B1+ B2+ B3+ C11+ C12+ C13+ C14+ C2+ D11+ D12+ D2+ D3+ D4+ E1+ E2+ E3+ FT+ G1+ G2 as LIGNE,
+         								ID, TIME_STAMP
+         							from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIP', 1, null, 1)
+         
+         			UNION ALL select A+ B1+ B2+ B3+ C11+ C12+ C13+ C14+ C2+ D11+ D12+ D2+ D3+ D4+ E1+ E2+ E3+ FT+ G1+ G2 as LIGNE,
+         								ID, TIME_STAMP
+         							from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIP', 1, null, 2)
+         							
+         			UNION ALL select A+ B1+ B2+ B3+ C11+ C12+ C13+ C14+ C2+ D11+ D12+ D2+ D3+ D4+ E1+ E2+ E3+ FT+ G1+ G2 as LIGNE,
+         								ID, TIME_STAMP
+         							from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIP', 1, null, 3)
+         			UNION ALL select A+ B1+ B2+ B3+ C11+ C12+ C13+ C14+ C2+ D11+ D12+ D2+ D3+ D4+ E1+ E2+ E3+ FT+ G1+ G2 as LIGNE,
+         								ID, TIME_STAMP
+         							from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIP', 1, null, 4)
+         			UNION ALL select A+ B1+ B2+ B3+ C11+ C12+ C13+ C14+ C2+ D11+ D12+ D2+ D3+ D4+ E1+ E2+ E3+ FT+ G1+ G2 as LIGNE,
+         								ID, TIME_STAMP
+         							from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIP', 1, null, 5)
+         
+         --non EXT ET SUBVENTIONS
+         			UNION ALL select A+ B1+ B2+ B3+ C11+ C12+ C13+ C14+ C2+ D11+ D12+ D2+ D3+ D4+ E1+ E2+ E3+ FT+ G1+ G2 as LIGNE,
+         								ID, TIME_STAMP
+         							from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIP', 0, null, 1)
+         			UNION ALL select A+ B1+ B2+ B3+ C11+ C12+ C13+ C14+ C2+ D11+ D12+ D2+ D3+ D4+ E1+ E2+ E3+ FT+ G1+ G2 as LIGNE,
+         								ID, TIME_STAMP
+         							from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIP', 0, null, 2)
+         			UNION ALL select A+ B1+ B2+ B3+ C11+ C12+ C13+ C14+ C2+ D11+ D12+ D2+ D3+ D4+ E1+ E2+ E3+ FT+ G1+ G2 as LIGNE,
+         								ID, TIME_STAMP
+         							from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIP', 0, null, 3)
+         			UNION ALL select A+ B1+ B2+ B3+ C11+ C12+ C13+ C14+ C2+ D11+ D12+ D2+ D3+ D4+ E1+ E2+ E3+ FT+ G1+ G2 as LIGNE,
+         								ID, TIME_STAMP
+         							from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIP', 0, null, 4)
+         			UNION ALL select A+ B1+ B2+ B3+ C11+ C12+ C13+ C14+ C2+ D11+ D12+ D2+ D3+ D4+ E1+ E2+ E3+ FT+ G1+ G2 as LIGNE,
+         								ID, TIME_STAMP
+         							from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIP', 0, null, 5)
+         		END
+         
+         		IF (@ETEBAC_COL = 1)
+         		/* OVIC = COL */
+         		BEGIN
+         --EXT ET ACTIVITES => toutes les activit‚s => id = 0
+         						select A+ B1+ B2+ B3+ C11+ C12+ C13+ C14+ C2+ D11+ D12+ D2+ D3+ D4+ E1+ E2+ E3+ FT+ G1+ G2 as LIGNE,
+         								ID, TIME_STAMP
+         							from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIC', 1, 0, null)
+         			--			select A+ B1+ B2+ B3+ C11+ C12+ C13+ C14+ C2+ D11+ D12+ D2+ D3+ D4+ E1+ E2+ E3+ FT+ G1+ G2 as LIGNE,
+         			--					ID, TIME_STAMP
+         			--				from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIC', 1, 1, null)
+         			--UNION ALL	select A+ B1+ B2+ B3+ C11+ C12+ C13+ C14+ C2+ D11+ D12+ D2+ D3+ D4+ E1+ E2+ E3+ FT+ G1+ G2 as LIGNE,
+         			--					ID, TIME_STAMP
+         			--				from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIC', 1, 2, null)
+         			--UNION ALL	select A+ B1+ B2+ B3+ C11+ C12+ C13+ C14+ C2+ D11+ D12+ D2+ D3+ D4+ E1+ E2+ E3+ FT+ G1+ G2 as LIGNE,
+         			--					ID, TIME_STAMP
+         			--				from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIC', 1, 3, null)
+         			--UNION ALL	select A+ B1+ B2+ B3+ C11+ C12+ C13+ C14+ C2+ D11+ D12+ D2+ D3+ D4+ E1+ E2+ E3+ FT+ G1+ G2 as LIGNE,
+         			--					ID, TIME_STAMP
+         			--				from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIC', 1, 4, null)
+         			--UNION ALL	select A+ B1+ B2+ B3+ C11+ C12+ C13+ C14+ C2+ D11+ D12+ D2+ D3+ D4+ E1+ E2+ E3+ FT+ G1+ G2 as LIGNE,
+         			--					ID, TIME_STAMP
+         			--				from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIC', 1, 5, null)
+         			--UNION ALL	select A+ B1+ B2+ B3+ C11+ C12+ C13+ C14+ C2+ D11+ D12+ D2+ D3+ D4+ E1+ E2+ E3+ FT+ G1+ G2 as LIGNE,
+         			--					ID, TIME_STAMP
+         			--				from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIC', 1, 6, null)
+         
+         --non EXT ET ACTIVITES => toutes les activit‚s => id = 0
+         			UNION ALL	select A+ B1+ B2+ B3+ C11+ C12+ C13+ C14+ C2+ D11+ D12+ D2+ D3+ D4+ E1+ E2+ E3+ FT+ G1+ G2 as LIGNE,
+         								ID, TIME_STAMP
+         							from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIC', 0, 0, null)
+         							
+         			--UNION ALL	select A+ B1+ B2+ B3+ C11+ C12+ C13+ C14+ C2+ D11+ D12+ D2+ D3+ D4+ E1+ E2+ E3+ FT+ G1+ G2 as LIGNE,
+         			--					ID, TIME_STAMP
+         			--				from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIC', 0, 1, null)
+         			
+         			--UNION ALL   select A+ B1+ B2+ B3+ C11+ C12+ C13+ C14+ C2+ D11+ D12+ D2+ D3+ D4+ E1+ E2+ E3+ FT+ G1+ G2 as LIGNE,
+         			--					ID, TIME_STAMP
+         			--				from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIC', 0, 2, null)
+         			
+         			--UNION ALL   select A+ B1+ B2+ B3+ C11+ C12+ C13+ C14+ C2+ D11+ D12+ D2+ D3+ D4+ E1+ E2+ E3+ FT+ G1+ G2 as LIGNE,
+         			--					ID, TIME_STAMP
+         			--				from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIC', 0, 3, null)
+         			--UNION ALL   select A+ B1+ B2+ B3+ C11+ C12+ C13+ C14+ C2+ D11+ D12+ D2+ D3+ D4+ E1+ E2+ E3+ FT+ G1+ G2 as LIGNE,
+         			--					ID, TIME_STAMP
+         			--				from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIC', 0, 4, null)
+         			
+         			--UNION ALL select A+ B1+ B2+ B3+ C11+ C12+ C13+ C14+ C2+ D11+ D12+ D2+ D3+ D4+ E1+ E2+ E3+ FT+ G1+ G2 as LIGNE,
+         			--					ID, TIME_STAMP
+         			--				from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIC', 0, 5, null)
+         			--UNION ALL select A+ B1+ B2+ B3+ C11+ C12+ C13+ C14+ C2+ D11+ D12+ D2+ D3+ D4+ E1+ E2+ E3+ FT+ G1+ G2 as LIGNE,
+         			--					ID, TIME_STAMP
+         			--				from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('OVIC', 0, 6, null)
+         		END
+         		IF (@ETEBAC_COL = 2) --PRAC
+         		BEGIN
+         			--toutes les activit‚s
+         			
+         			select A+ B1+ B2+ B3+ C11+ C12+ C13+ C14+ C2+ D11+ D12+ D2+ D3+ D4+ E1+ E2+ E3+ FT+ G1+ G2 as LIGNE,
+         								ID, TIME_STAMP
+         							from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('PRAC', 1, 0, null)
+         						UNION ALL
+         			select A+ B1+ B2+ B3+ C11+ C12+ C13+ C14+ C2+ D11+ D12+ D2+ D3+ D4+ E1+ E2+ E3+ FT+ G1+ G2 as LIGNE,
+         								ID, TIME_STAMP
+         							from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('PRAC', 0, 0, null)				
+         			
+         			--select A+ B1+ B2+ B3+ C11+ C12+ C13+ C14+ C2+ D11+ D12+ D2+ D3+ D4+ E1+ E2+ E3+ FT+ G1+ G2 as LIGNE,
+         			--					ID, TIME_STAMP
+         			--				from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('PRAC', 1, 1, null)
+         			--UNION ALL
+         			--select A+ B1+ B2+ B3+ C11+ C12+ C13+ C14+ C2+ D11+ D12+ D2+ D3+ D4+ E1+ E2+ E3+ FT+ G1+ G2 as LIGNE,
+         			--					ID, TIME_STAMP
+         			--				from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('PRAC', 1, 2, null)
+         			--UNION ALL
+         			--select A+ B1+ B2+ B3+ C11+ C12+ C13+ C14+ C2+ D11+ D12+ D2+ D3+ D4+ E1+ E2+ E3+ FT+ G1+ G2 as LIGNE,
+         			--					ID, TIME_STAMP
+         			--				from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('PRAC', 1, 3, null)
+         			--UNION ALL
+         			--select A+ B1+ B2+ B3+ C11+ C12+ C13+ C14+ C2+ D11+ D12+ D2+ D3+ D4+ E1+ E2+ E3+ FT+ G1+ G2 as LIGNE,
+         			--					ID, TIME_STAMP
+         			--				from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('PRAC', 1, 4, null)
+         			--UNION ALL
+         			--select A+ B1+ B2+ B3+ C11+ C12+ C13+ C14+ C2+ D11+ D12+ D2+ D3+ D4+ E1+ E2+ E3+ FT+ G1+ G2 as LIGNE,
+         			--					ID, TIME_STAMP
+         			--				from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('PRAC', 1, 5, null)
+         			--select A+ B1+ B2+ B3+ C11+ C12+ C13+ C14+ C2+ D11+ D12+ D2+ D3+ D4+ E1+ E2+ E3+ FT+ G1+ G2 as LIGNE,
+         			--					ID, TIME_STAMP
+         			--				from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('PRAC', 1, 6, null)
+         			
+         			--UNION ALL
+         			--select A+ B1+ B2+ B3+ C11+ C12+ C13+ C14+ C2+ D11+ D12+ D2+ D3+ D4+ E1+ E2+ E3+ FT+ G1+ G2 as LIGNE,
+         			--					ID, TIME_STAMP
+         			--				from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('PRAC', 0, 1, null)
+         			--UNION ALL
+         			--select A+ B1+ B2+ B3+ C11+ C12+ C13+ C14+ C2+ D11+ D12+ D2+ D3+ D4+ E1+ E2+ E3+ FT+ G1+ G2 as LIGNE,
+         			--					ID, TIME_STAMP
+         			--				from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('PRAC', 0, 2, null)
+         			--UNION ALL
+         			--select A+ B1+ B2+ B3+ C11+ C12+ C13+ C14+ C2+ D11+ D12+ D2+ D3+ D4+ E1+ E2+ E3+ FT+ G1+ G2 as LIGNE,
+         			--					ID, TIME_STAMP
+         			--				from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('PRAC', 0, 3, null)				
+         			--UNION ALL
+         			--select A+ B1+ B2+ B3+ C11+ C12+ C13+ C14+ C2+ D11+ D12+ D2+ D3+ D4+ E1+ E2+ E3+ FT+ G1+ G2 as LIGNE,
+         			--					ID, TIME_STAMP
+         			--				from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('PRAC', 0, 4, null)
+         			--UNION ALL
+         			--select A+ B1+ B2+ B3+ C11+ C12+ C13+ C14+ C2+ D11+ D12+ D2+ D3+ D4+ E1+ E2+ E3+ FT+ G1+ G2 as LIGNE,
+         			--					ID, TIME_STAMP
+         			--				from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('PRAC', 0, 5, null)								
+         			--select A+ B1+ B2+ B3+ C11+ C12+ C13+ C14+ C2+ D11+ D12+ D2+ D3+ D4+ E1+ E2+ E3+ FT+ G1+ G2 as LIGNE,
+         			--					ID, TIME_STAMP
+         			--				from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('PRAC', 0, 6, null)								
+         		
+         		
+         			
+         		END
+         
+         		IF (@ETEBAC_ALT = 1)
+         		/* REGP = PRO */
+         		--activite PRO = 3
+         		BEGIN
+         
+         			select A+ B1+ B2+ B3+ C11+ C12+ C13+ C14+ C2+ D11+ D12+ D2+ D3+ D4+ E1+ E2+ E3+ FT+ G1+ G2 as LIGNE,
+         					ID, TIME_STAMP
+         				from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('REGP', 1, 3, null)
+         			UNION ALL 
+         			select A+ B1+ B2+ B3+ C11+ C12+ C13+ C14+ C2+ D11+ D12+ D2+ D3+ D4+ E1+ E2+ E3+ FT+ G1+ G2 as LIGNE,
+         					ID, TIME_STAMP
+         				from ETEBAC__01_ENSEMBLE_TETE_CORPS_PIED('REGP', 0, 3, null)
+         		END
+         	END
+         END
+         
+GO
+        -- =============================================
+         -- Author       : SBRU
+         -- Create date  : 03/03/2008
+         -- Description  : Relance des contributions partiellement pay‚es
+         -- Modification	: Le XX/XX/XXXX par XXXX
+         -- =============================================
+         -- OPA 31/05/2013 : 15031 : SBR - suppression du type FLOAT et REAL dans le SQL : 2- FLOAT
+         -- =============================================
+         -- DSZ 25/09/2013 : 16177 : tau tva en decimal(10,5)
+         -- =============================================
+         CREATE PROCEDURE [dbo].[EDT_RELANCE_PARTIELLEMENT_PAYE]
+         	@ID_ETABLISSEMENT int,
+         	@ID_BENEFICIAIRE int,
+         	@TYPE_BENEFICIAIRE int,
+         	@ID_ADRESSE int,
+         	@ID_CONTACT int,
+         	@ID_PERIODE int,
+         	@BLN_SECRETAIRE_GENERAL tinyint
+         AS
+         	DECLARE @LibelleFonction varchar(50)
+         	DECLARE @RaisonSociale varchar(50)
+         	DECLARE @annee varchar(4)
+         
+         	select @annee = cast(num_annee as varchar(4)) from periode where id_periode = @ID_PERIODE
+         
+         	SELECT
+         			VISU_GLOBALE_ADHERENT_PERIODE.id_adherent, 
+         			VISU_GLOBALE_ADHERENT_PERIODE.lib_raison_sociale, 
+         			VISU_GLOBALE_ADHERENT_PERIODE.ID_ETABLISSEMENT_BENEFICIAIRE, 
+         			VISU_GLOBALE_ADHERENT_PERIODE.id_periode, 
+         			VISU_GLOBALE_ADHERENT_PERIODE.id_activite, 
+         			VISU_GLOBALE_ADHERENT_PERIODE.libl_activite, 
+         			VISU_GLOBALE_ADHERENT_PERIODE.cod_periode, 
+         			VISU_GLOBALE_ADHERENT_PERIODE.num_annee, 
+         			VISU_GLOBALE_ADHERENT_PERIODE.masse_salariale, 
+         			VISU_GLOBALE_ADHERENT_PERIODE.TAU_GLO_APPEL, 
+         			VISU_GLOBALE_ADHERENT_PERIODE.DEDUCTION_MNT_HT, 
+         			VISU_GLOBALE_ADHERENT_PERIODE.VERSE_HT, 
+         			VISU_GLOBALE_ADHERENT_PERIODE.REVERSE_HT, 
+         			VISU_GLOBALE_ADHERENT_PERIODE.TAU_TVA,
+         			(MASSE_SALARIALE * TAU_GLO_APPEL/100) - DEDUCTION_MNT_HT + REVERSE_HT							as TOTAL_DU_HT,
+         			(MASSE_SALARIALE * TAU_GLO_APPEL/100) - DEDUCTION_MNT_HT - VERSE_HT + REVERSE_HT				as RESTANT_DU_HT,
+         			((MASSE_SALARIALE * TAU_GLO_APPEL/100) - DEDUCTION_MNT_HT - VERSE_HT + REVERSE_HT) * TAU_TVA	as RESTANT_DU_TVA,
+         			(MASSE_SALARIALE * TAU_GLO_APPEL/100 - DEDUCTION_MNT_HT - VERSE_HT + REVERSE_HT) +
+         			((MASSE_SALARIALE * TAU_GLO_APPEL/100 - DEDUCTION_MNT_HT - VERSE_HT + REVERSE_HT) * TAU_TVA)	as RESTANT_DU_TTC
+         
+         	INTO	#TMP_VISU_GLOBALE
+         	FROM
+         			VISU_GLOBALE_ADHERENT_PERIODE
+         	JOIN	ADHERENT 
+         	ON		ADHERENT.ID_ADHERENT = VISU_GLOBALE_ADHERENT_PERIODE.ID_ADHERENT
+         	AND		ADHERENT.ID_ETABLISSEMENT_PRINCIPAL = @ID_ETABLISSEMENT
+         	WHERE
+         			ID_PERIODE = @ID_PERIODE
+         --	AND		VISU_GLOBALE_ADHERENT_PERIODE.TAU_APPELE > 0 
+         	AND		TAU_GLO_APPEL > 0
+         	GROUP BY
+         			VISU_GLOBALE_ADHERENT_PERIODE.id_adherent, 
+         			VISU_GLOBALE_ADHERENT_PERIODE.lib_raison_sociale, 
+         			VISU_GLOBALE_ADHERENT_PERIODE.ID_ETABLISSEMENT_BENEFICIAIRE, 
+         			VISU_GLOBALE_ADHERENT_PERIODE.id_periode, 
+         			VISU_GLOBALE_ADHERENT_PERIODE.id_activite, 
+         			VISU_GLOBALE_ADHERENT_PERIODE.libl_activite, 
+         			VISU_GLOBALE_ADHERENT_PERIODE.cod_periode, 
+         			VISU_GLOBALE_ADHERENT_PERIODE.num_annee, 
+         			VISU_GLOBALE_ADHERENT_PERIODE.masse_salariale, 
+         			VISU_GLOBALE_ADHERENT_PERIODE.TAU_GLO_APPEL, 
+         --			VISU_GLOBALE_ADHERENT_PERIODE.TAU_APPELE, 
+         			VISU_GLOBALE_ADHERENT_PERIODE.DEDUCTION_MNT_HT, 
+         			VISU_GLOBALE_ADHERENT_PERIODE.VERSE_HT, 
+         			VISU_GLOBALE_ADHERENT_PERIODE.REVERSE_HT, 
+         			VISU_GLOBALE_ADHERENT_PERIODE.TAU_TVA
+         	
+         	DECLARE @TAU_TVA decimal(10,5);
+         
+         	select top 1 @TAU_TVA=TAU_TVA from #TMP_VISU_GLOBALE;
+         
+         
+         	-- GENERATION XML
+         	WITH XMLNAMESPACES (
+         		DEFAULT 'RELANCE_PARTIELLEMENT_PAYE'
+         	)
+         	-- Construction du flux XML
+         	SELECT
+         		
+         			 --R‚cup‚ration des informations sur le contact
+         			 dbo.GetXmlBenefiaireContact(@ID_BENEFICIAIRE, @TYPE_BENEFICIAIRE, @ID_ADRESSE, @ID_CONTACT) as BENEFICIAIRE,
+         
+         			(
+         				SELECT 
+         					ADHERENT.COD_ADHERENT	as COD_ADHERENT,
+         					dbo.GetFullDate(getDate()) as DATE,
+         			(
+         				SELECT top 1
+         						dbo.GetContactSalutation(@ID_CONTACT, 1)
+         				FROM	CIVILITE
+         				FOR XML PATH('POLITESSE_HAUT'), TYPE
+         			)
+         				FROM
+         					ADHERENT
+         				WHERE
+         					ADHERENT.ID_ETABLISSEMENT_PRINCIPAL = @ID_ETABLISSEMENT
+         				FOR XML RAW('ENTETE'), ELEMENTS, TYPE
+         			),
+         	
+         			(
+         				SELECT
+         						@annee as ANNEE,
+         					
+         				-- R‚cup‚ration des sommes dues par activit‚
+         				(
+         					SELECT
+         							VENTILATION.LIBL_ACTIVITE as LIB_ACTIVITE,
+         							dbo.GetFrenchCurrencyFormat(VENTILATION.TOTAL_DU_HT)	as TOTAL_DU_HT,						
+         							dbo.GetFrenchCurrencyFormat(VENTILATION.VERSE_HT)		as MONTANT_VERSE_HT
+         					FROM
+         							#TMP_VISU_GLOBALE as VENTILATION
+         					FOR XML AUTO, ELEMENTS, TYPE
+         				),
+         				-- R‚cup‚ration des sommes dues au total
+         				(
+         					SELECT
+         							dbo.GetFrenchCurrencyFormat(cast(sum(RESTANT_DU_HT) as money))	as TOTAL_DU_HT,
+         							dbo.GetFrenchCurrencyFormat(cast((@TAU_TVA * 100) as money))	as TVA,
+         							dbo.GetFrenchCurrencyFormat(cast(sum(RESTANT_DU_TVA) as money))	as MONTANT_TVA,
+         							dbo.GetFrenchCurrencyFormat(cast(sum(RESTANT_DU_TTC) as money))	as MONTANT_TTC						
+         					FROM
+         							#TMP_VISU_GLOBALE as TOTAL_DU
+         					FOR XML AUTO, ELEMENTS, TYPE
+         				),
+         				(
+         					SELECT top 1
+         							dbo.GetContactSalutation(@ID_CONTACT, 1)
+         					FROM	CIVILITE
+         					FOR XML PATH('POLITESSE_BAS'), TYPE
+         				)
+         
+         				FROM
+         					ADHERENT
+         				WHERE
+         					ADHERENT.ID_ETABLISSEMENT_PRINCIPAL = @ID_ETABLISSEMENT
+         				FOR XML RAW('CORPS'), ELEMENTS, TYPE
+         			),
+         			(
+         				SELECT top 1
+         						NOM_PNM_DIRECTEUR
+         				FROM	PARAMETRES
+         				FOR XML RAW('SIGNATURE'), ELEMENTS, TYPE
+         			)
+         
+         	FROM
+         			ADHERENT
+         	JOIN	ETABLISSEMENT			
+         	ON		ADHERENT.ID_ETABLISSEMENT_PRINCIPAL = ETABLISSEMENT.ID_ETABLISSEMENT
+         	JOIN	ADRESSE					
+         	ON		ADHERENT.ID_ADRESSE_PRINCIPALE = ADRESSE.ID_ADRESSE
+         	JOIN	AGENCE					
+         	ON		AGENCE.ID_AGENCE = ADHERENT.ID_AGENCE
+         	WHERE
+         			ADHERENT.ID_ETABLISSEMENT_PRINCIPAL = @ID_ETABLISSEMENT
+         	FOR XML RAW('LETTRE'), ELEMENTS
+
+GO
+
+CREATE PROCEDURE [dbo].[MVT_BUDGETAIRE_COLLECTE_IMPAYE]
+          @ID_EVENEMENT INT
+         AS
+         /* *****************************************************************************************
+         -- Auteur   : MBL
+         -- Date Creation : 11/12/2014
+         
+         -- Role    : Cr‚ation de mouvements Budg‚taires d'impay‚ permettant d'annuler le versement initial
+         ***************************************************************************************** */
+         BEGIN
+          DECLARE
+           @ID_COMPTE    INT,
+           @ID_ENVELOPPE   INT,
+           @MNT_MVT_BUDGETAIRE  DECIMAL(18,2),
+           @P_E_R     VARCHAR,
+           @N_R     VARCHAR,
+           @ID_PERIODE_FISC  INT,
+           @ID_PERIODE_CPT   INT,
+           @LIBL_MVT_BUDGETAIRE VARCHAR (60),
+           @ID_ACTIVITE   INT,
+           @ID_ADHERENT   INT,
+           @ID_GROUPE    INT,
+           @ID_ETABLISSEMENT  INT,
+           @ID_TYPE_FINANCEMENT INT,
+           @ID_TYPE_MOUVEMENT  INT,
+           @ID_DISPOSITIF   INT = NULL,
+           @ID_MODULE_PEC   INT = NULL,
+           @ID_VERSEMENT   INT,
+           @DAT_EVENEMENT   DATETIME,
+           @COD_TYPE_EVENEMENT  VARCHAR(8),
+           @ID_EVENEMENT_VERSEMENT INT 
+         
+          SELECT
+           @ID_VERSEMENT = ID_VERSEMENT , 
+           @DAT_EVENEMENT = DAT_EVENEMENT
+          FROM
+           EVENEMENT
+          WHERE
+           ID_EVENEMENT = @ID_EVENEMENT
+         
+          -- Recherche de l'evenement initialement associe … l'impay‚
+          SELECT
+           @ID_EVENEMENT_VERSEMENT = ID_EVENEMENT
+          FROM
+           EVENEMENT
+           INNER JOIN TYPE_EVENEMENT
+            ON TYPE_EVENEMENT.ID_TYPE_EVENEMENT = EVENEMENT.ID_TYPE_EVENEMENT
+          WHERE
+           ID_VERSEMENT = @ID_VERSEMENT
+           AND COD_TYPE_EVENEMENT = 'VERSEMEN'
+          
+          DECLARE CU_MVT_VERSEMENT CURSOR FOR
+          SELECT
+           ID_COMPTE,
+           ID_ENVELOPPE,
+           MNT_MVT_BUDGETAIRE,
+           P_E_R,
+           N_R,
+           ID_PERIODE_FISC,
+           ID_PERIODE_CPT,
+           LIBL_MVT_BUDGETAIRE,
+           ID_ACTIVITE,
+           ID_ADHERENT,
+           ID_GROUPE,
+           ID_ETABLISSEMENT,
+           ID_TYPE_FINANCEMENT
+          FROM
+           MVT_BUDGETAIRE
+          WHERE
+           ID_EVENEMENT = @ID_EVENEMENT_VERSEMENT
+          
+          OPEN
+           CU_MVT_VERSEMENT 
+          FETCH
+           CU_MVT_VERSEMENT 
+          INTO
+           @ID_COMPTE,
+           @ID_ENVELOPPE,
+           @MNT_MVT_BUDGETAIRE,
+           @P_E_R,
+           @N_R,
+           @ID_PERIODE_FISC,
+           @ID_PERIODE_CPT,
+           @LIBL_MVT_BUDGETAIRE,
+           @ID_ACTIVITE,
+           @ID_ADHERENT,
+           @ID_GROUPE,
+           @ID_ETABLISSEMENT,
+           @ID_TYPE_FINANCEMENT
+          
+          WHILE (@@FETCH_STATUS <> -1)
+          BEGIN
+           SET @ID_TYPE_MOUVEMENT = 10 -- Mouvement d'alimentation du Compte Adh‚rent
+           SET @LIBL_MVT_BUDGETAIRE = REPLACE(@LIBL_MVT_BUDGETAIRE, 'Versement', 'Impay‚')
+           
+           IF (PATINDEX('%Impay‚%', @LIBL_MVT_BUDGETAIRE) =0)
+           BEGIN
+            SET @LIBL_MVT_BUDGETAIRE = LEFT('Impay‚ ' + @LIBL_MVT_BUDGETAIRE, 60)
+           END
+           
+           SET @MNT_MVT_BUDGETAIRE = - @MNT_MVT_BUDGETAIRE
+           
+           EXEC dbo.INS_MVT_BUDGETAIRE
+            @ID_TYPE_MOUVEMENT = @ID_TYPE_MOUVEMENT,
+            @ID_EVENEMENT = @ID_EVENEMENT,
+            @ID_COMPTE = @ID_COMPTE,
+            @ID_ENVELOPPE   = @ID_ENVELOPPE,
+            @MNT_MVT_BUDGETAIRE = @MNT_MVT_BUDGETAIRE,
+            @P_E_R = @P_E_R,
+            @DAT_MVT_BUDGETAIRE = @DAT_EVENEMENT,
+            @N_R = @N_R,
+            @ID_PERIODE_FISC = @ID_PERIODE_FISC,
+            @ID_PERIODE_CPT = @ID_PERIODE_CPT,
+            @LIBL_MVT_BUDGETAIRE = @LIBL_MVT_BUDGETAIRE,
+            @ID_ACTIVITE = @ID_ACTIVITE,
+            @ID_ADHERENT = @ID_ADHERENT,
+            @ID_GROUPE = @ID_GROUPE,
+            @ID_ETABLISSEMENT = @ID_ETABLISSEMENT,
+            @ID_TYPE_FINANCEMENT = @ID_TYPE_FINANCEMENT,
+            @ID_DISPOSITIF = NULL,
+            @ID_MODULE_PEC = NULL
+           
+           FETCH
+            CU_MVT_VERSEMENT
+           INTO
+            @ID_COMPTE,
+            @ID_ENVELOPPE,
+            @MNT_MVT_BUDGETAIRE,
+            @P_E_R,
+            @N_R,
+            @ID_PERIODE_FISC,
+            @ID_PERIODE_CPT,
+            @LIBL_MVT_BUDGETAIRE,
+            @ID_ACTIVITE,
+            @ID_ADHERENT,
+            @ID_GROUPE,
+            @ID_ETABLISSEMENT,
+            @ID_TYPE_FINANCEMENT
+          END
+          CLOSE CU_MVT_VERSEMENT
+          DEALLOCATE CU_MVT_VERSEMENT
+         END
+
+
+         -- =============================================    
          -- Author  : XXX    
          -- Create date : XX XXX XXX    
          -- comment  : # lecture groupe pour les sous type de cout    
@@ -2311,313 +3011,7 @@ CREATE PROCEDURE [BATCH_TRANSFERT_PRESCRIPTION_COMPTE_PLAN_OBLIGATOIRE]
          
          	FROM	#TMP_CONTRAT_PRO as LETTRE
          	FOR XML AUTO, ELEMENTS
-         END
-         
-         -- =============================================
-         -- Author       : SBRU
-         -- Create date  : 03/03/2008
-         -- Description  : Relance des contributions partiellement pay‚es
-         -- Modification	: Le XX/XX/XXXX par XXXX
-         -- =============================================
-         -- OPA 31/05/2013 : 15031 : SBR - suppression du type FLOAT et REAL dans le SQL : 2- FLOAT
-         -- =============================================
-         -- DSZ 25/09/2013 : 16177 : tau tva en decimal(10,5)
-         -- =============================================
-         CREATE PROCEDURE [dbo].[EDT_RELANCE_PARTIELLEMENT_PAYE]
-         	@ID_ETABLISSEMENT int,
-         	@ID_BENEFICIAIRE int,
-         	@TYPE_BENEFICIAIRE int,
-         	@ID_ADRESSE int,
-         	@ID_CONTACT int,
-         	@ID_PERIODE int,
-         	@BLN_SECRETAIRE_GENERAL tinyint
-         AS
-         	DECLARE @LibelleFonction varchar(50)
-         	DECLARE @RaisonSociale varchar(50)
-         	DECLARE @annee varchar(4)
-         
-         	select @annee = cast(num_annee as varchar(4)) from periode where id_periode = @ID_PERIODE
-         
-         	SELECT
-         			VISU_GLOBALE_ADHERENT_PERIODE.id_adherent, 
-         			VISU_GLOBALE_ADHERENT_PERIODE.lib_raison_sociale, 
-         			VISU_GLOBALE_ADHERENT_PERIODE.ID_ETABLISSEMENT_BENEFICIAIRE, 
-         			VISU_GLOBALE_ADHERENT_PERIODE.id_periode, 
-         			VISU_GLOBALE_ADHERENT_PERIODE.id_activite, 
-         			VISU_GLOBALE_ADHERENT_PERIODE.libl_activite, 
-         			VISU_GLOBALE_ADHERENT_PERIODE.cod_periode, 
-         			VISU_GLOBALE_ADHERENT_PERIODE.num_annee, 
-         			VISU_GLOBALE_ADHERENT_PERIODE.masse_salariale, 
-         			VISU_GLOBALE_ADHERENT_PERIODE.TAU_GLO_APPEL, 
-         			VISU_GLOBALE_ADHERENT_PERIODE.DEDUCTION_MNT_HT, 
-         			VISU_GLOBALE_ADHERENT_PERIODE.VERSE_HT, 
-         			VISU_GLOBALE_ADHERENT_PERIODE.REVERSE_HT, 
-         			VISU_GLOBALE_ADHERENT_PERIODE.TAU_TVA,
-         			(MASSE_SALARIALE * TAU_GLO_APPEL/100) - DEDUCTION_MNT_HT + REVERSE_HT							as TOTAL_DU_HT,
-         			(MASSE_SALARIALE * TAU_GLO_APPEL/100) - DEDUCTION_MNT_HT - VERSE_HT + REVERSE_HT				as RESTANT_DU_HT,
-         			((MASSE_SALARIALE * TAU_GLO_APPEL/100) - DEDUCTION_MNT_HT - VERSE_HT + REVERSE_HT) * TAU_TVA	as RESTANT_DU_TVA,
-         			(MASSE_SALARIALE * TAU_GLO_APPEL/100 - DEDUCTION_MNT_HT - VERSE_HT + REVERSE_HT) +
-         			((MASSE_SALARIALE * TAU_GLO_APPEL/100 - DEDUCTION_MNT_HT - VERSE_HT + REVERSE_HT) * TAU_TVA)	as RESTANT_DU_TTC
-         
-         	INTO	#TMP_VISU_GLOBALE
-         	FROM
-         			VISU_GLOBALE_ADHERENT_PERIODE
-         	JOIN	ADHERENT 
-         	ON		ADHERENT.ID_ADHERENT = VISU_GLOBALE_ADHERENT_PERIODE.ID_ADHERENT
-         	AND		ADHERENT.ID_ETABLISSEMENT_PRINCIPAL = @ID_ETABLISSEMENT
-         	WHERE
-         			ID_PERIODE = @ID_PERIODE
-         --	AND		VISU_GLOBALE_ADHERENT_PERIODE.TAU_APPELE > 0 
-         	AND		TAU_GLO_APPEL > 0
-         	GROUP BY
-         			VISU_GLOBALE_ADHERENT_PERIODE.id_adherent, 
-         			VISU_GLOBALE_ADHERENT_PERIODE.lib_raison_sociale, 
-         			VISU_GLOBALE_ADHERENT_PERIODE.ID_ETABLISSEMENT_BENEFICIAIRE, 
-         			VISU_GLOBALE_ADHERENT_PERIODE.id_periode, 
-         			VISU_GLOBALE_ADHERENT_PERIODE.id_activite, 
-         			VISU_GLOBALE_ADHERENT_PERIODE.libl_activite, 
-         			VISU_GLOBALE_ADHERENT_PERIODE.cod_periode, 
-         			VISU_GLOBALE_ADHERENT_PERIODE.num_annee, 
-         			VISU_GLOBALE_ADHERENT_PERIODE.masse_salariale, 
-         			VISU_GLOBALE_ADHERENT_PERIODE.TAU_GLO_APPEL, 
-         --			VISU_GLOBALE_ADHERENT_PERIODE.TAU_APPELE, 
-         			VISU_GLOBALE_ADHERENT_PERIODE.DEDUCTION_MNT_HT, 
-         			VISU_GLOBALE_ADHERENT_PERIODE.VERSE_HT, 
-         			VISU_GLOBALE_ADHERENT_PERIODE.REVERSE_HT, 
-         			VISU_GLOBALE_ADHERENT_PERIODE.TAU_TVA
-         	
-         	DECLARE @TAU_TVA decimal(10,5);
-         
-         	select top 1 @TAU_TVA=TAU_TVA from #TMP_VISU_GLOBALE;
-         
-         
-         	-- GENERATION XML
-         	WITH XMLNAMESPACES (
-         		DEFAULT 'RELANCE_PARTIELLEMENT_PAYE'
-         	)
-         	-- Construction du flux XML
-         	SELECT
-         		
-         			 --R‚cup‚ration des informations sur le contact
-         			 dbo.GetXmlBenefiaireContact(@ID_BENEFICIAIRE, @TYPE_BENEFICIAIRE, @ID_ADRESSE, @ID_CONTACT) as BENEFICIAIRE,
-         
-         			(
-         				SELECT 
-         					ADHERENT.COD_ADHERENT	as COD_ADHERENT,
-         					dbo.GetFullDate(getDate()) as DATE,
-         			(
-         				SELECT top 1
-         						dbo.GetContactSalutation(@ID_CONTACT, 1)
-         				FROM	CIVILITE
-         				FOR XML PATH('POLITESSE_HAUT'), TYPE
-         			)
-         				FROM
-         					ADHERENT
-         				WHERE
-         					ADHERENT.ID_ETABLISSEMENT_PRINCIPAL = @ID_ETABLISSEMENT
-         				FOR XML RAW('ENTETE'), ELEMENTS, TYPE
-         			),
-         	
-         			(
-         				SELECT
-         						@annee as ANNEE,
-         					
-         				-- R‚cup‚ration des sommes dues par activit‚
-         				(
-         					SELECT
-         							VENTILATION.LIBL_ACTIVITE as LIB_ACTIVITE,
-         							dbo.GetFrenchCurrencyFormat(VENTILATION.TOTAL_DU_HT)	as TOTAL_DU_HT,						
-         							dbo.GetFrenchCurrencyFormat(VENTILATION.VERSE_HT)		as MONTANT_VERSE_HT
-         					FROM
-         							#TMP_VISU_GLOBALE as VENTILATION
-         					FOR XML AUTO, ELEMENTS, TYPE
-         				),
-         				-- R‚cup‚ration des sommes dues au total
-         				(
-         					SELECT
-         							dbo.GetFrenchCurrencyFormat(cast(sum(RESTANT_DU_HT) as money))	as TOTAL_DU_HT,
-         							dbo.GetFrenchCurrencyFormat(cast((@TAU_TVA * 100) as money))	as TVA,
-         							dbo.GetFrenchCurrencyFormat(cast(sum(RESTANT_DU_TVA) as money))	as MONTANT_TVA,
-         							dbo.GetFrenchCurrencyFormat(cast(sum(RESTANT_DU_TTC) as money))	as MONTANT_TTC						
-         					FROM
-         							#TMP_VISU_GLOBALE as TOTAL_DU
-         					FOR XML AUTO, ELEMENTS, TYPE
-         				),
-         				(
-         					SELECT top 1
-         							dbo.GetContactSalutation(@ID_CONTACT, 1)
-         					FROM	CIVILITE
-         					FOR XML PATH('POLITESSE_BAS'), TYPE
-         				)
-         
-         				FROM
-         					ADHERENT
-         				WHERE
-         					ADHERENT.ID_ETABLISSEMENT_PRINCIPAL = @ID_ETABLISSEMENT
-         				FOR XML RAW('CORPS'), ELEMENTS, TYPE
-         			),
-         			(
-         				SELECT top 1
-         						NOM_PNM_DIRECTEUR
-         				FROM	PARAMETRES
-         				FOR XML RAW('SIGNATURE'), ELEMENTS, TYPE
-         			)
-         
-         	FROM
-         			ADHERENT
-         	JOIN	ETABLISSEMENT			
-         	ON		ADHERENT.ID_ETABLISSEMENT_PRINCIPAL = ETABLISSEMENT.ID_ETABLISSEMENT
-         	JOIN	ADRESSE					
-         	ON		ADHERENT.ID_ADRESSE_PRINCIPALE = ADRESSE.ID_ADRESSE
-         	JOIN	AGENCE					
-         	ON		AGENCE.ID_AGENCE = ADHERENT.ID_AGENCE
-         	WHERE
-         			ADHERENT.ID_ETABLISSEMENT_PRINCIPAL = @ID_ETABLISSEMENT
-         	FOR XML RAW('LETTRE'), ELEMENTS
-         
-
-CREATE PROCEDURE [dbo].[MVT_BUDGETAIRE_COLLECTE_IMPAYE]
-          @ID_EVENEMENT INT
-         AS
-         /* *****************************************************************************************
-         -- Auteur   : MBL
-         -- Date Creation : 11/12/2014
-         
-         -- Role    : Cr‚ation de mouvements Budg‚taires d'impay‚ permettant d'annuler le versement initial
-         ***************************************************************************************** */
-         BEGIN
-          DECLARE
-           @ID_COMPTE    INT,
-           @ID_ENVELOPPE   INT,
-           @MNT_MVT_BUDGETAIRE  DECIMAL(18,2),
-           @P_E_R     VARCHAR,
-           @N_R     VARCHAR,
-           @ID_PERIODE_FISC  INT,
-           @ID_PERIODE_CPT   INT,
-           @LIBL_MVT_BUDGETAIRE VARCHAR (60),
-           @ID_ACTIVITE   INT,
-           @ID_ADHERENT   INT,
-           @ID_GROUPE    INT,
-           @ID_ETABLISSEMENT  INT,
-           @ID_TYPE_FINANCEMENT INT,
-           @ID_TYPE_MOUVEMENT  INT,
-           @ID_DISPOSITIF   INT = NULL,
-           @ID_MODULE_PEC   INT = NULL,
-           @ID_VERSEMENT   INT,
-           @DAT_EVENEMENT   DATETIME,
-           @COD_TYPE_EVENEMENT  VARCHAR(8),
-           @ID_EVENEMENT_VERSEMENT INT 
-         
-          SELECT
-           @ID_VERSEMENT = ID_VERSEMENT , 
-           @DAT_EVENEMENT = DAT_EVENEMENT
-          FROM
-           EVENEMENT
-          WHERE
-           ID_EVENEMENT = @ID_EVENEMENT
-         
-          -- Recherche de l'evenement initialement associe … l'impay‚
-          SELECT
-           @ID_EVENEMENT_VERSEMENT = ID_EVENEMENT
-          FROM
-           EVENEMENT
-           INNER JOIN TYPE_EVENEMENT
-            ON TYPE_EVENEMENT.ID_TYPE_EVENEMENT = EVENEMENT.ID_TYPE_EVENEMENT
-          WHERE
-           ID_VERSEMENT = @ID_VERSEMENT
-           AND COD_TYPE_EVENEMENT = 'VERSEMEN'
-          
-          DECLARE CU_MVT_VERSEMENT CURSOR FOR
-          SELECT
-           ID_COMPTE,
-           ID_ENVELOPPE,
-           MNT_MVT_BUDGETAIRE,
-           P_E_R,
-           N_R,
-           ID_PERIODE_FISC,
-           ID_PERIODE_CPT,
-           LIBL_MVT_BUDGETAIRE,
-           ID_ACTIVITE,
-           ID_ADHERENT,
-           ID_GROUPE,
-           ID_ETABLISSEMENT,
-           ID_TYPE_FINANCEMENT
-          FROM
-           MVT_BUDGETAIRE
-          WHERE
-           ID_EVENEMENT = @ID_EVENEMENT_VERSEMENT
-          
-          OPEN
-           CU_MVT_VERSEMENT 
-          FETCH
-           CU_MVT_VERSEMENT 
-          INTO
-           @ID_COMPTE,
-           @ID_ENVELOPPE,
-           @MNT_MVT_BUDGETAIRE,
-           @P_E_R,
-           @N_R,
-           @ID_PERIODE_FISC,
-           @ID_PERIODE_CPT,
-           @LIBL_MVT_BUDGETAIRE,
-           @ID_ACTIVITE,
-           @ID_ADHERENT,
-           @ID_GROUPE,
-           @ID_ETABLISSEMENT,
-           @ID_TYPE_FINANCEMENT
-          
-          WHILE (@@FETCH_STATUS <> -1)
-          BEGIN
-           SET @ID_TYPE_MOUVEMENT = 10 -- Mouvement d'alimentation du Compte Adh‚rent
-           SET @LIBL_MVT_BUDGETAIRE = REPLACE(@LIBL_MVT_BUDGETAIRE, 'Versement', 'Impay‚')
-           
-           IF (PATINDEX('%Impay‚%', @LIBL_MVT_BUDGETAIRE) =0)
-           BEGIN
-            SET @LIBL_MVT_BUDGETAIRE = LEFT('Impay‚ ' + @LIBL_MVT_BUDGETAIRE, 60)
-           END
-           
-           SET @MNT_MVT_BUDGETAIRE = - @MNT_MVT_BUDGETAIRE
-           
-           EXEC dbo.INS_MVT_BUDGETAIRE
-            @ID_TYPE_MOUVEMENT = @ID_TYPE_MOUVEMENT,
-            @ID_EVENEMENT = @ID_EVENEMENT,
-            @ID_COMPTE = @ID_COMPTE,
-            @ID_ENVELOPPE   = @ID_ENVELOPPE,
-            @MNT_MVT_BUDGETAIRE = @MNT_MVT_BUDGETAIRE,
-            @P_E_R = @P_E_R,
-            @DAT_MVT_BUDGETAIRE = @DAT_EVENEMENT,
-            @N_R = @N_R,
-            @ID_PERIODE_FISC = @ID_PERIODE_FISC,
-            @ID_PERIODE_CPT = @ID_PERIODE_CPT,
-            @LIBL_MVT_BUDGETAIRE = @LIBL_MVT_BUDGETAIRE,
-            @ID_ACTIVITE = @ID_ACTIVITE,
-            @ID_ADHERENT = @ID_ADHERENT,
-            @ID_GROUPE = @ID_GROUPE,
-            @ID_ETABLISSEMENT = @ID_ETABLISSEMENT,
-            @ID_TYPE_FINANCEMENT = @ID_TYPE_FINANCEMENT,
-            @ID_DISPOSITIF = NULL,
-            @ID_MODULE_PEC = NULL
-           
-           FETCH
-            CU_MVT_VERSEMENT
-           INTO
-            @ID_COMPTE,
-            @ID_ENVELOPPE,
-            @MNT_MVT_BUDGETAIRE,
-            @P_E_R,
-            @N_R,
-            @ID_PERIODE_FISC,
-            @ID_PERIODE_CPT,
-            @LIBL_MVT_BUDGETAIRE,
-            @ID_ACTIVITE,
-            @ID_ADHERENT,
-            @ID_GROUPE,
-            @ID_ETABLISSEMENT,
-            @ID_TYPE_FINANCEMENT
-          END
-          CLOSE CU_MVT_VERSEMENT
-          DEALLOCATE CU_MVT_VERSEMENT
-         END
+         END       
 
 
          CREATE PROCEDURE [dbo].[LEC_DET_CONTACT_ADH_MBL]
@@ -2716,6 +3110,8 @@ CREATE PROCEDURE [dbo].[MVT_BUDGETAIRE_COLLECTE_IMPAYE]
          		ORDER BY NR31.BLN_PRINCIPAL DESC
          	END
          	*/
+
+GO
          
          CREATE PROCEDURE [dbo].[MAJ_ENVELOPPES]
           @ANNEE INT
@@ -3251,7 +3647,7 @@ CREATE PROCEDURE [dbo].[MVT_BUDGETAIRE_COLLECTE_IMPAYE]
          	END
          	*/
          
-
+GO
 
          -- =============================================
          -- Author:		XX
@@ -4670,7 +5066,7 @@ CREATE PROCEDURE [dbo].[MVT_BUDGETAIRE_COLLECTE_ABONDEMENT_COMPTE]
          
          END
          
-         
+ GO        
          
          -- =============================================
          -- Author:		KW
@@ -4726,4 +5122,8 @@ CREATE PROCEDURE [dbo].[MVT_BUDGETAIRE_COLLECTE_ABONDEMENT_COMPTE]
          	SELECT 'Return Value' = COALESCE(@NB,0)
          END
          
-         
+create procedure CKParser.TheEnd 
+as 
+begin         
+	print 'Everything worked';
+end

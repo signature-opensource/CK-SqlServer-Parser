@@ -14,6 +14,8 @@ namespace CK.SqlServer.Parser
 
         public static readonly SqlTokenDot Dot;
         public static readonly SqlTokenDoubleColon DoubleColon;
+        public static readonly SqlTokenMultiDots DoubleDots;
+        public static readonly SqlTokenMultiDots TripleDots;
         public static readonly SqlTokenComma Comma;
         public static readonly SqlTokenComma CommaOneSpace;
         public static readonly SqlTokenTerminal SemiColon;
@@ -742,6 +744,8 @@ namespace CK.SqlServer.Parser
             QuestionMark = RegTerminal( SqlTokenType.QuestionMark, "?" );
             DoubleQuestionMark = RegTerminal( SqlTokenType.DoubleQuestionMark, "??" );
             TripleQuestionMark = RegTerminal( SqlTokenType.TripleQuestionMark, "???" );
+            DoubleDots = (SqlTokenMultiDots)RegTerminal( SqlTokenType.DoubleDots, ".." );
+            TripleDots = (SqlTokenMultiDots)RegTerminal( SqlTokenType.TripleDots, "..." );
 
             OpenPar = (SqlTokenOpenPar)RegTerminal( SqlTokenType.OpenPar, "(" );
             ClosePar = (SqlTokenClosePar)RegTerminal( SqlTokenType.ClosePar, ")" );

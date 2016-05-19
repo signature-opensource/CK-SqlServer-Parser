@@ -104,7 +104,13 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Parsing\Scripts\Outside Begin End.sql" />
+    <Content Include="Parsing\Scripts\Optiform.5.sql" />
+    <Content Include="Parsing\Scripts\Optiform.4.sql" />
+    <Content Include="Parsing\Scripts\Optiform.3.sql" />
+    <Content Include="Parsing\Scripts\Optiform.2.sql" />
     <Content Include="Parsing\Scripts\Optiform.1.sql" />
+    <Content Include="Parsing\Scripts\Optiform.6.sql" />
     <Content Include="Parsing\Scripts\sp_GetDDL.sql" />
     <Content Include="Parsing\Scripts\SQLDOM_core_persist_927.sql" />
     <Content Include="Parsing\Scripts\sStoredProcedureInputOutput.sql" />

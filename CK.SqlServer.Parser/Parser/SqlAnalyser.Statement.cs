@@ -1152,10 +1152,12 @@ namespace CK.SqlServer.Parser
         }
 
         /// <summary>
-        /// A SqlDbType (int, sql_variant).
+        /// A SqlDbType (int, char, char(7), etc.).
+        /// Since char(...) or nchar(...) can be the function that returns the character, if allowCharOrNCharCall
+        /// is true, this return the SqlKoCall...
         /// </summary>
         /// <returns></returns>
-        ISqlUnifiedTypeDecl IsSqlDbTypeDecl()
+        ISqlNode IsSqlDbTypeDecl( bool allowCharOrNCharCall = false )
         {
             SqlTokenIdentifier id;
             if( R.IsToken( out id, t => t.TokenType != SqlTokenType.TableDbType && t.TokenType.IsDbType(), false )
@@ -1225,8 +1227,16 @@ namespace CK.SqlServer.Parser
                             return new SqlTypeDeclDecimal( id );
                         }
                     case SqlDbType.Char:
-                    case SqlDbType.VarChar:
                     case SqlDbType.NChar:
+                        {
+                            if( !allowCharOrNCharCall 
+                                || (R.Current.TokenType == SqlTokenType.OpenPar
+                                    && R.RawLookup.TokenType == SqlTokenType.Integer)) goto case SqlDbType.Float;
+                            if( R.Current.TokenType != SqlTokenType.OpenPar ) return new SqlTypeDeclWithSize( dbType, id );
+                            SqlEnclosedCommaList parameters = IsEnclosedCommaList( true );
+                            return new SqlKoCall( id, parameters );
+                        }
+                    case SqlDbType.VarChar:
                     case SqlDbType.NVarChar:
                     case SqlDbType.Binary:
                     case SqlDbType.VarBinary:
@@ -1266,7 +1276,7 @@ namespace CK.SqlServer.Parser
         /// <returns></returns>
         ISqlUnifiedTypeDecl IsTypeDecl( bool expected )
         {
-            ISqlUnifiedTypeDecl standard = IsSqlDbTypeDecl();
+            ISqlUnifiedTypeDecl standard = (ISqlUnifiedTypeDecl)IsSqlDbTypeDecl( false );
             if( standard != null ) return standard;
 
             SqlTypeDeclTable tableDecl = IsTypeDeclTable( false );

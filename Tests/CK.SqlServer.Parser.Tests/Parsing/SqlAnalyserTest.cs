@@ -30,7 +30,6 @@ namespace CK.SqlServer.Parser.Tests
 
         [TestCase( "sp_GetDDL.sql", 7 )]
         [TestCase( "SQLDOM_core_persist_927.sql", 86 )]
-        //[TestCase( "Optiform.1.sql", -1 )]
         public void The_big_scripts_are_correctlty_parsed( string name, int numberOfStatement )
         {
             string text = TestHelper.LoadTextFromParsingScripts( name );
@@ -46,6 +45,45 @@ namespace CK.SqlServer.Parser.Tests
             {
                 Assert.That( ((SqlStatementList)e).Count, Is.EqualTo( numberOfStatement ) );
             }
+        }
+
+        [TestCase( "Optiform.1.sql" )]
+        [TestCase( "Optiform.2.sql" )]
+        [TestCase( "Optiform.3.sql" )]
+        [TestCase( "Optiform.4.sql" )]
+        [TestCase( "Optiform.5.sql" )]
+        [TestCase( "Optiform.6.sql" )]
+        public void parsing_multiple_sp( string name )
+        {
+            var texts = Regex.Split( TestHelper.LoadTextFromParsingScripts( name ), "^\\s*GO", RegexOptions.Multiline );
+            var a = new SqlAnalyser();
+            ISqlServerStoredProcedure last = null;
+            ISqlStatement p;
+            foreach( var text in texts )
+            {
+                a.Reset( text );
+                while( (p = a.IsExtendedStatement( false )) != null )
+                {
+                    var proc = p as ISqlServerStoredProcedure;
+                    if( proc == null )
+                    {
+                        using( TestHelper.ConsoleMonitor.OpenError().Send( "Found a " + p.GetType().Name ) )
+                        {
+                            TestHelper.ConsoleMonitor.Trace().Send( p.ToString() );
+                            Assert.Fail( "Found a " + p.GetType().Name );
+                        }
+                    }
+                    last = proc;
+                    TestHelper.ConsoleMonitor.Trace().Send( "Success: " + proc.ToStringSignature( true ) );
+                }
+                var r = a.GetCurrentResult();
+                if( r.IsError )
+                {
+                    r.LogOnError( TestHelper.ConsoleMonitor );
+                    break;
+                }
+            }
+            Assert.That( last != null && last.SchemaName == "CKParser.TheEnd", "Not all have been processed." );
         }
 
         [Test]

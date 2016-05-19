@@ -76,6 +76,11 @@ namespace CK.SqlServer.Parser
         }
 
         /// <summary>
+        /// Gets the current result.
+        /// </summary>
+        public ErrorResult GetCurrentResult() => R.IsError ? CreateErrorResult() : ErrorResult.NoError;
+
+        /// <summary>
         /// Initializes a new <see cref="SqlAnalyser"/> bound to a new <see cref="SqlTokenizer"/> instance 
         /// on a text (<see cref="Reset"/> is automatically called).
         /// </summary>
