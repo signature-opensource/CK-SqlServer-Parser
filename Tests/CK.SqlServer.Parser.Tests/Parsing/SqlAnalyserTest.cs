@@ -184,7 +184,7 @@ namespace CK.SqlServer.Parser.Tests
             return s;
         }
 
-        [TestCase( "Server=.;Initial Catalog=CK_SqlServer_Setup_Engine_Tests;Trusted_Connection=True" )]
+        [TestCase( null )]
         public void parse_all_stored_procedures_from_database( string connectionString )
         {
             Assume.That( connectionString != null );
