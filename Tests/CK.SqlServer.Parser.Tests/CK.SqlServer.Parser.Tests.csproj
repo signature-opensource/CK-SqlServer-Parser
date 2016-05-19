@@ -104,6 +104,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Parsing\Scripts\Optiform.1.sql" />
     <Content Include="Parsing\Scripts\sp_GetDDL.sql" />
     <Content Include="Parsing\Scripts\SQLDOM_core_persist_927.sql" />
     <Content Include="Parsing\Scripts\sStoredProcedureInputOutput.sql" />
@@ -114,6 +115,7 @@
     <Content Include="XmlTests\GrantDenyRevoke.xml" />
     <Content Include="XmlTests\Delete.xml" />
     <Content Include="XmlTests\Other Procedures.xml" />
+    <Content Include="XmlTests\For Xml.xml" />
     <Content Include="XmlTests\Trigger.xml" />
     <Content Include="XmlTests\TryCatch.xml" />
     <Content Include="XmlTests\Merge.xml" />

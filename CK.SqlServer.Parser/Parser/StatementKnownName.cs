@@ -39,6 +39,7 @@ namespace CK.SqlServer.Parser
         SetOption,
         DeclareVariable,
         DeclareCursor,
+        WithForXml,
         /// <summary>
         /// General statement name.
         /// </summary>

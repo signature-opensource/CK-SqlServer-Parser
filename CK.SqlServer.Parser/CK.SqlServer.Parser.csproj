@@ -88,6 +88,7 @@
     <Compile Include="Parser\Node\ISqlExecuteStatement.cs" />
     <Compile Include="Parser\Node\ISqlFullNameHolder.cs" />
     <Compile Include="Parser\Node\SqlBasicValue.cs" />
+    <Compile Include="Parser\Node\SqlWithForXmlStatement.cs" />
     <Compile Include="Parser\Node\SqlFunctionTable.cs" />
     <Compile Include="Parser\Node\SqlGoto.cs" />
     <Compile Include="Parser\Node\SqlGrant.cs" />

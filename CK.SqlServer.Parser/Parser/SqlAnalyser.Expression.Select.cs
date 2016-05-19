@@ -40,7 +40,7 @@ namespace CK.SqlServer.Parser
                 if( c == SpecificationPart.From )
                 {
                     SqlTokenIdentifier partName = R.Read<SqlTokenIdentifier>();
-                    ISqlNode content = InternalIsExtendedExpression( true, SelectPartStopper );
+                    ISqlNode content = InternalParseNaouakInSelect();
                     if( content == null ) return null;
                     from = new SelectFrom( partName, content );
                     c = ToSpecificationPart( R.Current );
@@ -60,7 +60,7 @@ namespace CK.SqlServer.Parser
                     SqlTokenIdentifier having;
                     ISqlNode havingClause = null;
                     if( !R.IsToken( out by, SqlTokenType.By, true ) ) return null;
-                    if( (content = InternalIsExtendedExpression( true, SelectPartStopper )) == null ) return null;
+                    if( (content = InternalParseNaouakInSelect()) == null ) return null;
                     if( R.IsToken( out having, SqlTokenType.Having, false ) )
                     {
                         if( (havingClause = IsOneExpression( true )) == null ) return null;

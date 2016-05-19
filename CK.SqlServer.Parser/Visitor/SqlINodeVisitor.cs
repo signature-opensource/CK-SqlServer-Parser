@@ -308,6 +308,8 @@ namespace CK.SqlServer.Parser
 
         internal protected virtual ISqlNode Visit( SqlCTEStatement e ) => VisitStandard( e );
 
+        internal protected virtual ISqlNode Visit( SqlWithForXml e ) => VisitStandard( e );
+
         internal protected virtual ISqlNode Visit( SqlCTENameList e ) => VisitStandard( e );
 
         internal protected virtual ISqlNode Visit( SqlCTEName e ) => VisitStandard( e );

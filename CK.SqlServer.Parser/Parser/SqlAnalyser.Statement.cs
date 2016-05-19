@@ -31,7 +31,7 @@ namespace CK.SqlServer.Parser
                     ? (ISqlStatement)new SqlSelectStatement( n, GetOptionalTerminator() )
                     : new SqlUnnamedStatement( n, GetOptionalTerminator() );
         }
-
+         
         public ISqlNamedStatement IsNamedStatement( bool expected )
         {
             if( R.Current.TokenType == SqlTokenType.SemiColon )
@@ -272,6 +272,15 @@ namespace CK.SqlServer.Parser
             if( id.TokenType == SqlTokenType.With )
             {
                 R.MoveNext();
+                SqlTokenIdentifier xmlNameSpacesT;
+                if( R.IsToken( out xmlNameSpacesT, SqlTokenType.XmlNamespaces, false ) )
+                {
+                    SqlEnclosedCommaList ns = IsEnclosedCommaList( true );
+                    if( ns == null ) return null;
+                    ISqlNamedStatement statement = IsNamedStatement( true );
+                    if( statement == null ) return null;
+                    return new SqlWithForXml( id, xmlNameSpacesT, ns, statement );
+                }
                 SqlCTENameList names = IsCommaList( 1, IsSqlCTEName, i => new SqlCTENameList( i ) );
                 if( names == null ) return null;
                 ISqlNamedStatement s = IsNamedStatement( true );

@@ -246,7 +246,11 @@ namespace CK.SqlServer.Parser
 
         void HandleLineCol( int c )
         {
-            if( c == '\n' ) ++_lineHead;
+            if( c == '\n' )
+            {
+                ++_lineHead;
+                _colHead = 0;
+            }
             else if( c != '\r' ) ++_colHead;
         }
 

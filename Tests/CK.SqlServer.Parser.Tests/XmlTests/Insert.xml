@@ -1,5 +1,45 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <Tests>
+  <Test>
+    <Text>
+      IF @COD_TABLE_TAMPON = 'EDI_PEC_ST'
+      BEGIN
+         
+        INSERT INTO TMP02_EDI
+        SELECT 	data 
+        FROM
+        (
+         	SELECT DISTINCT NUM_LIGNE FROM EDI_LOG
+         	WHERE ID_LOT_IMPORT = @id_lot_import
+        ) LIGNE_REJETE
+        INNER JOIN
+        (
+         	SELECT row_number() OVER (order by getdate()) as NUM_LIGNE, data = RTRIM(LTRIM(data))
+         	FROM EDI_TAMPON_PEC
+        ) TAMPON
+        ON TAMPON.NUM_LIGNE = LIGNE_REJETE.NUM_LIGNE
+         
+      END
+    </Text>
+    <Description></Description>
+    <Xml>
+      <Statements>
+         <If>
+           <BeginEndBlock>
+             <StatementList>
+               <InsertStatement>
+                 <SelectSpec>
+                   <SelectSpec />
+                   <SelectSpec />
+                 </SelectSpec>
+               </InsertStatement>
+             </StatementList>
+           </BeginEndBlock>
+         </If>
+      </Statements>
+    </Xml>
+  </Test>
+
 
   <Test>
     <Text>

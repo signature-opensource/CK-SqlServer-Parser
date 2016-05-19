@@ -478,13 +478,15 @@ namespace CK.SqlServer.Parser
         //=========================================
         //=========================================
 
-        ISqlNode InternalIsExtendedExpression( bool expected, Predicate<SqlToken> stopperDefinition )
+        ISqlNode InternalParseNaouakInSelect()
         {
             List<ISqlNode> items = new List<ISqlNode>();
-            if( !R.CollectUntil( items, IsOneExpression, stopperDefinition ) ) return null;
+            int initPar = R.ParenthesisDepth;
+            Predicate<SqlToken> stop = t => R.ParenthesisDepth == initPar && SelectPartStopper( t );
+            if( !R.CollectUntil<SqlToken>( items, IsOneExpression, stop ) ) return null;
             if( items.Count == 0 )
             {
-                if( expected ) R.SetCurrentError( "Extended expression expected." );
+                R.SetCurrentError( "Extended expression expected." );
                 return null;
             }
             return items.Count == 1 ? items[0] : new SqlNodeList( items );

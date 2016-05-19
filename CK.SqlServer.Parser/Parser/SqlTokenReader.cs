@@ -333,14 +333,13 @@ namespace CK.SqlServer.Parser
                 SqlTokenComma comma;
                 while( IsToken( out comma, false ) )
                 {
-                    items.Add( comma );
-                    if( (item = matcher( true )) == null )
+                    item = matcher( false );
+                    if( item != null )
                     {
-                        if( !IsError ) SetCurrentError( "Expected: '{0}'.", typeof( T ).Name );
-                        break;
+                        ++collectedCount;
+                        items.Add( comma );
+                        items.Add( item );
                     }
-                    ++collectedCount;
-                    items.Add( item );
                 }
             }
             if( IsError || (hasPar && !IsToken( out closePar, true )) ) return false;

@@ -196,7 +196,7 @@ namespace CK.SqlServer.Parser
             }
             else if( keep != nb )
             {
-                return DoClone( LeadingTrivias, null, TrailingTrivias.RemoveRange( keep, nb - keep ) );
+                return DoClone( LeadingTrivias, null, TrailingTrivias.RemoveRange( nb - keep, keep ) );
             }
             return this;
         }

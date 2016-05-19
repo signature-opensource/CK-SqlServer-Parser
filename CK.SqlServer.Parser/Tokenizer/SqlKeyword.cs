@@ -134,6 +134,7 @@ namespace CK.SqlServer.Parser
         public static readonly SqlTokenIdentifier NativeCompilation;
         public static readonly SqlTokenIdentifier Server;
         public static readonly SqlTokenIdentifier Last;
+        public static readonly SqlTokenIdentifier XmlNamespaces;
 
         public static readonly SqlTokenIdentifier Or;
         public static readonly SqlTokenIdentifier And;
@@ -501,6 +502,7 @@ namespace CK.SqlServer.Parser
             NativeCompilation   = RegKeyword( "native_compilation", SqlTokenType.NativeCompilation );
             Server              = RegKeyword( "server", SqlTokenType.Server );
             Last                = RegKeyword( "last", SqlTokenType.Last );
+            XmlNamespaces       = RegKeyword( "xmlnamespaces", SqlTokenType.XmlNamespaces );
 
             // LogicalOperator (they are reserved keywords).
             Or = RegKeyword( "or", SqlTokenType.Or );

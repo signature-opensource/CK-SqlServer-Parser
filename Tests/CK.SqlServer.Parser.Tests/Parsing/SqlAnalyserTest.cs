@@ -9,6 +9,7 @@ using NUnit.Framework;
 using System.Xml.Linq;
 using CK.Core;
 using CK.SqlServer.UtilTests;
+using System.Data.SqlClient;
 
 namespace CK.SqlServer.Parser.Tests
 {
@@ -29,6 +30,7 @@ namespace CK.SqlServer.Parser.Tests
 
         [TestCase( "sp_GetDDL.sql", 7 )]
         [TestCase( "SQLDOM_core_persist_927.sql", 86 )]
+        //[TestCase( "Optiform.1.sql", -1 )]
         public void The_big_scripts_are_correctlty_parsed( string name, int numberOfStatement )
         {
             string text = TestHelper.LoadTextFromParsingScripts( name );
@@ -40,8 +42,10 @@ namespace CK.SqlServer.Parser.Tests
             XElement visited = new SqlToXmlStatementVisitor().ToXml( "Statements", e );
             string visitedString = visited.ToString();
             TestHelper.ConsoleMonitor.Trace().Send( visitedString );
-
-            Assert.That( ((SqlStatementList)e).Count, Is.EqualTo( numberOfStatement ) );
+            if( numberOfStatement != -1 )
+            {
+                Assert.That( ((SqlStatementList)e).Count, Is.EqualTo( numberOfStatement ) );
+            }
         }
 
         [Test]
@@ -142,5 +146,45 @@ namespace CK.SqlServer.Parser.Tests
             return s;
         }
 
+        [TestCase( "Server=.;Initial Catalog=CK_SqlServer_Setup_Engine_Tests;Trusted_Connection=True" )]
+        public void parse_all_stored_procedures_from_database( string connectionString )
+        {
+            Assume.That( connectionString != null );
+            using( var c = new SqlConnection( connectionString ) )
+            {
+                c.Open();
+                using( var cmd = new SqlCommand( $@"
+                            select s.name, p.name, OBJECT_DEFINITION(OBJECT_ID(s.name + '.' + p.name)) 
+	                            from sys.procedures p
+	                            inner join sys.schemas s on s.schema_id = p.schema_id", c ) )
+                {
+                    ISqlServerParser parser = new SqlServerParser();
+                    using( var r = cmd.ExecuteReader() )
+                    {
+                        while( r.Read() )
+                        {
+                            try
+                            {
+                                string schema = r.GetString( 0 );
+                                string name = r.GetString( 1 );
+                                string fullBody = r.GetString( 2 );
+                                var result = parser.ParseStoredProcedure( fullBody );
+                                if( result.IsError )
+                                {
+                                    result.LogOnError( TestHelper.ConsoleMonitor );
+                                    TestHelper.ConsoleMonitor.Trace().Send( fullBody );
+                                }
+                                else TestHelper.ConsoleMonitor.Trace().Send( "Successfuly parsed: " + result.Result.ToStringSignature( true ) );
+                            }
+                            catch( Exception ex )
+                            {
+                                TestHelper.ConsoleMonitor.Fatal().Send( ex );
+                            }
+                        }
+                    }
+                }
+            }
+
+        }
     }
 }
