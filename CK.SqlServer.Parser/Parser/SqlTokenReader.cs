@@ -398,6 +398,8 @@ namespace CK.SqlServer.Parser
 
         public void Reset( string text )
         {
+            _assignmentContext = false;
+            _parenthesisDepth = 0;
             _tokenizer.Reset( text );
             _rawLookup = _tokenizer.Token;
             _c = null;

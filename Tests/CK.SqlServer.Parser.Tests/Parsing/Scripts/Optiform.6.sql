@@ -1,4 +1,39 @@
- ----------------------------------------------
+          CREATE PROCEDURE [dbo].[UPD_PIECES_STAGIAIRE_NON_CONFORM]  
+         	@ID_MOTIF int,
+         	@ID_ARRIVEE_PIECE int,
+         	@BLN_ACTIF int
+         AS  
+         
+         BEGIN
+         	DECLARE @EXIST int
+         
+         	SELECT @EXIST = COUNT (*)
+         	FROM NR210
+         	WHERE ID_MOTIF_NON_CONFORM_PIECE = @ID_MOTIF
+         	AND ID_ARRIVEE_PIECE_PEC = @ID_ARRIVEE_PIECE
+         
+         	IF @EXIST <> 0
+         	BEGIN
+         		IF @BLN_ACTIF = 0
+         		BEGIN
+         			DELETE NR210
+         			WHERE ID_MOTIF_NON_CONFORM_PIECE = @ID_MOTIF
+         				AND ID_ARRIVEE_PIECE_PEC = @ID_ARRIVEE_PIECE
+         		END
+         	END
+         	ELSE
+         	BEGIN
+         		IF @BLN_ACTIF = 1 AND @ID_ARRIVEE_PIECE IS NOT NULL			
+         			INSERT INTO NR210
+         				(ID_MOTIF_NON_CONFORM_PIECE, ID_ARRIVEE_PIECE_PEC)
+         			VALUES
+         				(@ID_MOTIF, @ID_ARRIVEE_PIECE)
+         	END
+         
+         END
+GO
+
+----------------------------------------------
 -- Auteur		: SBR
 -- Date			: 05/07/2012
 -- Description	: Traitement d'une ligne de fichier EDI pass‚e en paramŠtre
@@ -31104,784 +31139,750 @@ GO
 GO
 
          
-         CREATE PROCEDURE [dbo].[UPD_PIECES_STAGIAIRE_NON_CONFORM]  
-         	@ID_MOTIF int,
-         	@ID_ARRIVEE_PIECE int,
-         	@BLN_ACTIF int
-         AS  
-         
-         BEGIN
-         	DECLARE @EXIST int
-         
-         	SELECT @EXIST = COUNT (*)
-         	FROM NR210
-         	WHERE ID_MOTIF_NON_CONFORM_PIECE = @ID_MOTIF
-         	AND ID_ARRIVEE_PIECE_PEC = @ID_ARRIVEE_PIECE
-         
-         	IF @EXIST <> 0
-         	BEGIN
-         		IF @BLN_ACTIF = 0
-         		BEGIN
-         			DELETE NR210
-         			WHERE ID_MOTIF_NON_CONFORM_PIECE = @ID_MOTIF
-         				AND ID_ARRIVEE_PIECE_PEC = @ID_ARRIVEE_PIECE
-         		END
-         	END
-         	ELSE
-         	BEGIN
-         		IF @BLN_ACTIF = 1 AND @ID_ARRIVEE_PIECE IS NOT NULL			
-         			INSERT INTO NR210
-         				(ID_MOTIF_NON_CONFORM_PIECE, ID_ARRIVEE_PIECE_PEC)
-         			VALUES
-         				(@ID_MOTIF, @ID_ARRIVEE_PIECE)
-         	END
-         
-         END
-         
-GO
-CREATE PROCEDURE [dbo].[BATCH_INS_MVT_BUDGETAIRE_CONTRAT_PRO] 
-          @ID_EVENEMENT int = NULL
-         AS 
-         
-         
-         
-         -- =============================================
-         -- Author  : MB
-         -- Create date : 12/03/2008
-         -- Description : insertion des mouvements budgetaires associes aux evenements budgetaires des contrats de professionnalisation
-         -- Ce batch est lance toutes les nuits
-         -- ---------------------------------------------
-         -- Author  : ASD-SBR
-         -- Modified date: 23/10/2008
-         -- Description : gestion du paramŠtre @ID_EVENEMENT=NULL si pas fourni dans le scheduler
-         -- ---------------------------------------------
-         -- Author  : RMA
-         -- Modified date: 24/10/2008
-         -- Description : Ajout ID_GROUPE
-         -- ---------------------------------------------
-         -- Author  : DCL
-         -- Modified date: 27/04/2009
-         -- Description : reglement PRO : separation ADH / OF (ano 11843)
-         -- RAF : desengagement ? evenemnt REGLTPRO ou REGLADH. reprise donn‚es...
-         -- ---------------------------------------------
-         -- Author  : DSZ
-         -- Modified date: 05/03/2010
-         -- Description : Ano 12261. Pour les cpro repris le mvt de cloture doit ˆtre du type E
-         -- ---------------------------------------------
-         -- Author  : MBT : Mohamed BENSLIMANE
-         -- Modified date: 12/03/2010
-         -- Description : EVOL 12271. Ajout de la partie cl“ture d'un module pro
-         -- ---------------------------------------------
-         -- Author  : ASD
-         -- Modified date: 03/11/2010
-         -- Description : ANO 12386. ne pas forcer le P_E_R a E en cloture de module
-         -- Description  : ne pas cloturer tous les modules en mˆme temps, mais uniquement ceux nouvellement clotur‚s !
-         -- ---------------------------------------------
-         -- Author  : ASD
-         -- Modified date: 09/06/2011
-         -- Description : ANO 12730. PERF : ajout de "top 1" dans les exists et not exists
-         --         et remplace AND ID_EVENEMENT = ISNULL(@ID_EVENEMENT, ID_EVENEMENT)
-         --           par  AND (@ID_EVENEMENT is null OR @ID_EVENEMENT = ID_EVENEMENT)
-         -- ---------------------------------------------
-         -- Author  : DSZ
-         -- Modified date: 28/09/2011
-         -- Description : 12881. Remplacement Adherent.Id_BRANCHE par salarie_pro.id_branche
-         -- (branche historis‚e dans le salari‚)
-         -- ---------------------------------------------
-         -- DSZ/LDE 02/04/2015 #808 Les mouvements budg‚taires de type D‚sengagement cr‚‚s … la suite d'un ‚vŠnement de cl“ture d'un module pro 
-         -- doivent comporter l'id_groupe. 
-         -- =============================================
-         
-          BEGIN
-          DECLARE 
-           @ID_TYPE_EVENEMENT    int,
-           @DAT_EVENEMENT     datetime,
-           @ID_CONTRAT_PRO     int,
-           @ID_MODULE_PRO     int,
-           @COD_TYPE_EVENEMENT    varchar(8),
-           @COD_CONTRAT_PRO    varchar(10),
-           @COD_MODULE_PRO     varchar(12),
-           @ID_TYPE_MOUVEMENT    int,
-           @P_E_R       varchar(1),
-           @LIBL_MVT_BUDGETAIRE   varchar(50),
-           @ID_ETABLISSEMENT    int, 
-           @ID_ADHERENT     int,
-           @ID_ENVELOPPE     int,
-           @ID_BRANCHE      int,
-           @ID_PERIODE      int,
-           @ID_DISPOSITIF     int,
-           @DAT_DEB_CONTRAT    datetime,
-           @DAT_MODIF      datetime,
-           @DAT_CLOTURE     datetime,
-           @ID_AGENCE      int,
-           @ID_ACTIVITE     int,
-           @ID_ENGAGEMENT_PRO    int,
-           @ID_SESSION_PRO     int,
-           @BLN_OK       tinyint,
-           @MNT_MODULE_HT     float,
-           @MNT_ATTESTE_HT     float,
-           @MNT_MVT_BUDGETAIRE    float,
-           @ID_MVT_BUDGETAIRE    int,
-           @BLN_ACTIF      tinyint,
-           @ID_TYPE_FORMATION    int,
-           @DAT_MVT      datetime,
-           @ID_REGLEMENT_PRO    int,
-           @ID_GROUPE      int
-           --DCL 27/04/2009
-           , @ID_REGLEMENT_PRO_ADH    int,
-           @ID_REGLEMENT_PRO_OF    int,
-           @MNT_VERSE_HT_ADH     float, -- au lieu de montant attest‚
-           @MNT_VERSE_HT_OF     float
-         
-          SET @ID_ACTIVITE = 3 -- Professionnalisation
-         
-          -- Selection des evenements associes au contrat de professionnalisation
-          -- pour lesquels aucun mouvement budgetaire n'a ete genere
-          DECLARE cu_evenement_contrat_pro SCROLL CURSOR FOR
-          SELECT ID_EVENEMENT, ID_TYPE_EVENEMENT, DAT_EVENEMENT, ID_CONTRAT_PRO, ID_MODULE_PRO, ID_ENGAGEMENT_PRO, ID_SESSION_PRO
-          FROM EVENEMENT
-          WHERE (ID_CONTRAT_PRO IS NOT NULL OR ID_MODULE_PRO IS NOT NULL)
-           --20110609 ajout ici de top 1 
-           AND NOT EXISTS (SELECT top 1 1 FROM MVT_BUDGETAIRE WHERE MVT_BUDGETAIRE.ID_EVENEMENT = EVENEMENT.ID_EVENEMENT )
-           --20110609 remplac‚ car trop trop long  : AND ID_EVENEMENT = ISNULL(@ID_EVENEMENT, ID_EVENEMENT)
-           AND (@ID_EVENEMENT is null OR @ID_EVENEMENT = ID_EVENEMENT)
-          UNION
-          --Selection des evenements de chiffrage associes a des modules dont les mouvements budgetaires previsionnels n'ont pas ete generes
-          SELECT DISTINCT ID_EVENEMENT, ID_TYPE_EVENEMENT, DAT_EVENEMENT, ID_CONTRAT_PRO, ID_MODULE_PRO, ID_ENGAGEMENT_PRO, ID_SESSION_PRO
-          FROM EVENEMENT
-          WHERE (ID_CONTRAT_PRO IS NOT NULL)--  20110609 inutile, la premiere clause suffit : OR ID_MODULE_PRO IS NOT NULL)
-           AND EXISTS (
-             --20110609 ajout ici de top 1 
-             SELECT top 1 ID_MODULE_PRO = ID_MODULE_PRO 
-             FROM MODULE_PRO 
-             WHERE EVENEMENT.ID_CONTRAT_PRO = MODULE_PRO.ID_CONTRAT_PRO
-             AND MODULE_PRO.BLN_ACTIF = 1 AND MODULE_PRO.ID_ENGAGEMENT_PRO is null
-             --20110609 ajout ici de top 1 
-             AND NOT EXISTS (SELECT top 1 1 FROM MVT_BUDGETAIRE WHERE MVT_BUDGETAIRE.ID_MODULE_PRO = MODULE_PRO.ID_MODULE_PRO AND P_E_R = 'P')
-             )
-           AND EVENEMENT.ID_TYPE_EVENEMENT = 18 -- Chiffrage contrat PRO
-           --20110609 remplac‚ car trop trop long  : AND ID_EVENEMENT = ISNULL(@ID_EVENEMENT, ID_EVENEMENT)
-           AND (@ID_EVENEMENT is null OR @ID_EVENEMENT = ID_EVENEMENT)
-          ORDER BY ID_EVENEMENT 
-         
-         
-         
-          OPEN cu_evenement_contrat_pro
-          FETCH cu_evenement_contrat_pro INTO @ID_EVENEMENT, @ID_TYPE_EVENEMENT, @DAT_EVENEMENT, @ID_CONTRAT_PRO, @ID_MODULE_PRO, @ID_ENGAGEMENT_PRO, @ID_SESSION_PRO
-         
-         
-          WHILE (@@fetch_status <> -1)
-          BEGIN
-         
-           SELECT @COD_TYPE_EVENEMENT = COD_TYPE_EVENEMENT
-           FROM TYPE_EVENEMENT
-           WHERE ID_TYPE_EVENEMENT = @ID_TYPE_EVENEMENT 
-         
-           SELECT @COD_CONTRAT_PRO = COD_CONTRAT_PRO    , 
-             @ID_ETABLISSEMENT = CONTRAT_PRO.ID_ETABLISSEMENT , 
-             @ID_GROUPE   = ETABLISSEMENT.ID_GROUPE  ,
-             @ID_ADHERENT  = ADHERENT.ID_ADHERENT   ,
-             @ID_AGENCE   = CONTRAT_PRO.ID_AGENCE   ,
-             @ID_BRANCHE   = SALARIE_PRO.ID_BRANCHE  ,
-             @DAT_DEB_CONTRAT = CONTRAT_PRO.DAT_DEB_CONTRAT ,
-             @DAT_MODIF   = CONTRAT_PRO.DAT_MODIF   ,
-             @DAT_CLOTURE  = CONTRAT_PRO.DAT_CLOTURE
-           FROM   CONTRAT_PRO
-            INNER JOIN ETABLISSEMENT ON CONTRAT_PRO.ID_ETABLISSEMENT = ETABLISSEMENT.ID_ETABLISSEMENT
-            INNER JOIN ADHERENT  ON ADHERENT.ID_ADHERENT = ETABLISSEMENT.ID_ADHERENT
-            INNER JOIN  SALARIE_PRO  ON SALARIE_PRO.ID_SALARIE_PRO = CONTRAT_PRO.ID_SALARIE_PRO
-           WHERE ID_CONTRAT_PRO = @ID_CONTRAT_PRO
-           
-           IF @ID_MODULE_PRO IS NOT NULL 
-           BEGIN
-            SELECT @COD_MODULE_PRO = COD_MODULE_PRO
-            FROM MODULE_PRO
-            WHERE ID_MODULE_PRO = @ID_MODULE_PRO
-           END
-         
-          /* ********************************************************** 
-          -- Chiffrage d'un contrat de professionnalisation
-          TYPE_EVENEMENT = 'CHIF_PRO'
-           ********************************************************** */
-           IF  @COD_TYPE_EVENEMENT = 'CHIF_PRO'   -- Chiffrage d'un contrat de professionnalisation
-           BEGIN
-            /*
-             Un mouvement pr‚visionnel est cr‚‚ pour tous les modules actifs associes au module 
-            */
-             
-            SELECT @ID_TYPE_MOUVEMENT = 18 --Mouvement Pr‚vision
-            SELECT @P_E_R = 'P'     -- Pr‚vision
-            SELECT @LIBL_MVT_BUDGETAIRE = 'Chiffrage Contrat PRO ' + CAST(@COD_CONTRAT_PRO AS VARCHAR)
-           
-            DECLARE cu_module_previsionnel SCROLL CURSOR FOR
-            SELECT MODULE_PRO.ID_CONTRAT_PRO, MODULE_PRO.ID_MODULE_PRO, MODULE_PRO.ID_PERIODE,  MODULE_PRO.MNT_MODULE_HT, MODULE_PRO.BLN_ACTIF, MODULE_PRO.ID_ENGAGEMENT_PRO, MODULE_PRO.ID_TYPE_FORMATION, TYPE_FORMATION.ID_DISPOSITIF
-            FROM    MODULE_PRO
-              INNER JOIN TYPE_FORMATION ON MODULE_PRO.ID_TYPE_FORMATION = TYPE_FORMATION.ID_TYPE_FORMATION
-            WHERE   ID_CONTRAT_PRO = @ID_CONTRAT_PRO 
-            --AND  MODULE_PRO.ID_ENGAGEMENT_PRO IS NULL
-            AND  MODULE_PRO.BLN_ACTIF = 1
-         
-         
-            
-            OPEN cu_module_previsionnel
-            FETCH cu_module_previsionnel INTO
-            @ID_CONTRAT_PRO, @ID_MODULE_PRO, @ID_PERIODE, @MNT_MODULE_HT, @BLN_ACTIF, @ID_ENGAGEMENT_PRO, @ID_TYPE_FORMATION, @ID_DISPOSITIF
-            WHILE (@@fetch_status <> -1)
-            BEGIN
-         
-             -- Determination de l'enveloppe a associe au module :
-             SELECT @ID_ENVELOPPE = ID_ENVELOPPE
-             FROM ENVELOPPE
-               INNER JOIN TYPE_ENVELOPPE ON ENVELOPPE.ID_TYPE_ENVELOPPE  = TYPE_ENVELOPPE.ID_TYPE_ENVELOPPE 
-             WHERE TYPE_ENVELOPPE.ID_DISPOSITIF = @ID_DISPOSITIF
-             AND  TYPE_ENVELOPPE.ID_AGENCE  = @ID_AGENCE
-             AND  TYPE_ENVELOPPE.ID_BRANCHE  = @ID_BRANCHE
-             AND  ENVELOPPE.ID_PERIODE   = @ID_PERIODE
-         
-             
-             -- Recherche du mouvement budgetaire previsionnel associe aux modules 
-             set @ID_MVT_BUDGETAIRE = null
-             SELECT @ID_MVT_BUDGETAIRE = ID_MVT_BUDGETAIRE, @MNT_MVT_BUDGETAIRE = MNT_MVT_BUDGETAIRE
-             FROM MVT_BUDGETAIRE
-             WHERE ID_EVENEMENT = @ID_EVENEMENT 
-             AND  ID_MODULE_PRO = @ID_MODULE_PRO
-             AND  P_E_R   = 'P'
-             
-             
-             IF @ID_MVT_BUDGETAIRE is null
-             BEGIN
-               INSERT INTO MVT_BUDGETAIRE 
-              ( 
-              ID_TYPE_MOUVEMENT, ID_EVENEMENT, P_E_R, MNT_MVT_BUDGETAIRE, ID_PERIODE_FISC, ID_PERIODE_CPT, DAT_MVT_BUDGETAIRE,
-              ID_ADHERENT, ID_ETABLISSEMENT, ID_GROUPE, ID_DISPOSITIF, LIBL_MVT_BUDGETAIRE, ID_ENVELOPPE, ID_CONTRAT_PRO, ID_MODULE_PRO, N_R, ID_ACTIVITE)
-              SELECT 
-              ID_TYPE_MOUVEMENT = @ID_TYPE_MOUVEMENT, ID_EVENEMENT = @ID_EVENEMENT, P_E_R = @P_E_R, MNT_MVT_BUDGETAIRE = @MNT_MODULE_HT, ID_PERIODE_FISC = @ID_PERIODE, ID_PERIODE_CPT = @ID_PERIODE, DAT_MVT_BUDGETAIRE = @DAT_EVENEMENT,
-              ID_ADHERENT = @ID_ADHERENT, ID_ETABLISSEMENT = @ID_ETABLISSEMENT, ID_GROUPE = @ID_GROUPE, ID_DISPOSITIF = @ID_DISPOSITIF, LIBL_MVT_BUDGETAIRE = @LIBL_MVT_BUDGETAIRE, @ID_ENVELOPPE, ID_CONTRAT_PRO = @ID_CONTRAT_PRO, ID_MODULE_PRO = @ID_MODULE_PRO, N_R = 'N', ID_ACTIVITE = @ID_ACTIVITE
-             END
-             ELSE
-             BEGIN
-              UPDATE MVT_BUDGETAIRE 
-              SET  MNT_MVT_BUDGETAIRE = @MNT_MODULE_HT
-              WHERE ID_MVT_BUDGETAIRE = @ID_MVT_BUDGETAIRE
-             END
-         
-             FETCH cu_module_previsionnel INTO
-             @ID_CONTRAT_PRO, @ID_MODULE_PRO, @ID_PERIODE, @MNT_MODULE_HT, @BLN_ACTIF, @ID_ENGAGEMENT_PRO, @ID_TYPE_FORMATION, @ID_DISPOSITIF
-            END
-            CLOSE cu_module_previsionnel
-            DEALLOCATE cu_module_previsionnel     
-           END
-         
-         
-          /* ********************************************************** 
-          -- Annulation d'un contrat de professionnalisation non encore engage 
-          TYPE_EVENEMENT = 'ANNCOPRO'
-           ********************************************************** */
-           IF  @COD_TYPE_EVENEMENT = 'ANNCOPRO'   
-           BEGIN
-            -- Suppression de tous les mouvements budgetaires previsionnles associes au contrat
-            DELETE FROM MVT_BUDGETAIRE 
-            WHERE ID_CONTRAT_PRO = @ID_CONTRAT_PRO
-            AND P_E_R = 'P'
-           END
-         
-         
-          /* ********************************************************** 
-          -- Engagement d'un contrat de professionnalisation
-          TYPE_EVENEMENT = 'ENGAGPRO'
-           ********************************************************** */
-           IF  @COD_TYPE_EVENEMENT = 'ENGAGPRO'   
-           BEGIN
-         
-            DECLARE cu_module_a_engager SCROLL CURSOR FOR
-            SELECT MODULE_PRO.ID_CONTRAT_PRO, MODULE_PRO.ID_MODULE_PRO, MODULE_PRO.ID_PERIODE,  MODULE_PRO.MNT_MODULE_HT, MODULE_PRO.BLN_ACTIF, MODULE_PRO.ID_ENGAGEMENT_PRO, MODULE_PRO.ID_TYPE_FORMATION, TYPE_FORMATION.ID_DISPOSITIF
-            FROM    MODULE_PRO
-              INNER JOIN TYPE_FORMATION ON MODULE_PRO.ID_TYPE_FORMATION = TYPE_FORMATION.ID_TYPE_FORMATION
-            WHERE   MODULE_PRO.ID_ENGAGEMENT_PRO = @ID_ENGAGEMENT_PRO
-            AND  MODULE_PRO.BLN_ACTIF = 1
-         
-         
-            OPEN cu_module_a_engager
-            FETCH cu_module_a_engager INTO
-            @ID_CONTRAT_PRO, @ID_MODULE_PRO, @ID_PERIODE, @MNT_MODULE_HT, @BLN_ACTIF, @ID_ENGAGEMENT_PRO, @ID_TYPE_FORMATION, @ID_DISPOSITIF
-            WHILE (@@fetch_status <> -1)
-            BEGIN
-         
-             -- Determination de l'enveloppe a associer au module :
-             SELECT @ID_ENVELOPPE = ID_ENVELOPPE
-             FROM ENVELOPPE
-               INNER JOIN TYPE_ENVELOPPE ON ENVELOPPE.ID_TYPE_ENVELOPPE  = TYPE_ENVELOPPE.ID_TYPE_ENVELOPPE 
-             WHERE TYPE_ENVELOPPE.ID_DISPOSITIF = @ID_DISPOSITIF
-             AND  TYPE_ENVELOPPE.ID_AGENCE  = @ID_AGENCE
-             AND  TYPE_ENVELOPPE.ID_BRANCHE  = @ID_BRANCHE
-             AND  ENVELOPPE.ID_PERIODE   = @ID_PERIODE
-         
-             
-             -- Recherche du mouvement budgetaire previsionnel associe aux modules a engager
-             SET @ID_MVT_BUDGETAIRE = null
-             SELECT @ID_MVT_BUDGETAIRE = ID_MVT_BUDGETAIRE, @MNT_MVT_BUDGETAIRE = MNT_MVT_BUDGETAIRE
-             FROM MVT_BUDGETAIRE
-             WHERE ID_MODULE_PRO = @ID_MODULE_PRO
-             AND  P_E_R   = 'P'
-             
-             
-             IF @ID_MVT_BUDGETAIRE is not null
-             BEGIN
-              SELECT @ID_TYPE_MOUVEMENT = 19 --Mouvement Annulation Pr‚vision
-              SELECT @P_E_R = 'P'     -- Pr‚vision
-              SELECT @LIBL_MVT_BUDGETAIRE = 'Annulation prevision Contrat PRO ' + CAST(@COD_CONTRAT_PRO AS VARCHAR)
-         
-               INSERT INTO MVT_BUDGETAIRE 
-              ( 
-              ID_TYPE_MOUVEMENT, ID_EVENEMENT, P_E_R, MNT_MVT_BUDGETAIRE, ID_PERIODE_FISC, ID_PERIODE_CPT, DAT_MVT_BUDGETAIRE,
-              ID_ADHERENT, ID_ETABLISSEMENT, ID_GROUPE, ID_DISPOSITIF, LIBL_MVT_BUDGETAIRE, ID_ENVELOPPE, ID_CONTRAT_PRO, ID_MODULE_PRO, N_R, ID_ACTIVITE)
-              SELECT 
-              ID_TYPE_MOUVEMENT = @ID_TYPE_MOUVEMENT, ID_EVENEMENT = @ID_EVENEMENT, P_E_R = @P_E_R, MNT_MVT_BUDGETAIRE = -@MNT_MVT_BUDGETAIRE, ID_PERIODE_FISC = @ID_PERIODE, ID_PERIODE_CPT = @ID_PERIODE, DAT_MVT_BUDGETAIRE = @DAT_EVENEMENT,
-              ID_ADHERENT = @ID_ADHERENT, ID_ETABLISSEMENT = @ID_ETABLISSEMENT, ID_GROUPE = @ID_GROUPE, ID_DISPOSITIF = @ID_DISPOSITIF, LIBL_MVT_BUDGETAIRE = @LIBL_MVT_BUDGETAIRE, @ID_ENVELOPPE, ID_CONTRAT_PRO = @ID_CONTRAT_PRO, ID_MODULE_PRO = @ID_MODULE_PRO, N_R = 'N', ID_ACTIVITE = @ID_ACTIVITE
-             END
-         
-             -- On engage les montants des modules pour lesquels le BAE a ete accorde
-             SELECT @ID_TYPE_MOUVEMENT = 20 --Mouvement d'Engagement
-             SELECT @P_E_R = 'E'     -- Engagement
-             SELECT @LIBL_MVT_BUDGETAIRE = 'Engagement Contrat PRO ' + CAST(@COD_CONTRAT_PRO AS VARCHAR)
-         
-             INSERT INTO MVT_BUDGETAIRE 
-             ( 
-             ID_TYPE_MOUVEMENT, ID_EVENEMENT, P_E_R, MNT_MVT_BUDGETAIRE, ID_PERIODE_FISC, ID_PERIODE_CPT, DAT_MVT_BUDGETAIRE,
-             ID_ADHERENT, ID_ETABLISSEMENT, ID_GROUPE, ID_DISPOSITIF, LIBL_MVT_BUDGETAIRE, ID_ENVELOPPE, ID_CONTRAT_PRO, ID_MODULE_PRO, N_R, ID_ACTIVITE)
-             SELECT 
-             ID_TYPE_MOUVEMENT = @ID_TYPE_MOUVEMENT, ID_EVENEMENT = @ID_EVENEMENT, P_E_R = @P_E_R, MNT_MVT_BUDGETAIRE = @MNT_MODULE_HT, ID_PERIODE_FISC = @ID_PERIODE, ID_PERIODE_CPT = @ID_PERIODE, DAT_MVT_BUDGETAIRE = @DAT_EVENEMENT,
-             ID_ADHERENT = @ID_ADHERENT, ID_ETABLISSEMENT = @ID_ETABLISSEMENT, ID_GROUPE = @ID_GROUPE, ID_DISPOSITIF = @ID_DISPOSITIF, LIBL_MVT_BUDGETAIRE = @LIBL_MVT_BUDGETAIRE, @ID_ENVELOPPE, ID_CONTRAT_PRO = @ID_CONTRAT_PRO, ID_MODULE_PRO = @ID_MODULE_PRO, N_R = 'N', ID_ACTIVITE = @ID_ACTIVITE
-         
-             FETCH cu_module_a_engager INTO
-             @ID_CONTRAT_PRO, @ID_MODULE_PRO, @ID_PERIODE, @MNT_MODULE_HT, @BLN_ACTIF, @ID_ENGAGEMENT_PRO, @ID_TYPE_FORMATION, @ID_DISPOSITIF
-            END
-            CLOSE cu_module_a_engager
-            DEALLOCATE cu_module_a_engager
-               
-           END
-         
-          /* ********************************************************** 
-          -- Annulation d'un module engage associe a un contrat de professionnalisation engage 
-          TYPE_EVENEMENT = 'DESMOPRO'
-          ********************************************************** */
-          IF  @COD_TYPE_EVENEMENT = 'DESMOPRO'   -- Annulation d'un module engage associe a un contrat de professionnalisation engage 
-           BEGIN
-         
-            SELECT @ID_CONTRAT_PRO = MODULE_PRO.ID_CONTRAT_PRO, @ID_PERIODE = MODULE_PRO.ID_PERIODE,  @MNT_MODULE_HT = MODULE_PRO.MNT_MODULE_HT, 
-              @BLN_ACTIF = MODULE_PRO.BLN_ACTIF, @ID_ENGAGEMENT_PRO = MODULE_PRO.ID_ENGAGEMENT_PRO, @ID_TYPE_FORMATION = MODULE_PRO.ID_TYPE_FORMATION, 
-              @ID_DISPOSITIF = TYPE_FORMATION.ID_DISPOSITIF
-            FROM    MODULE_PRO
-              INNER JOIN TYPE_FORMATION ON MODULE_PRO.ID_TYPE_FORMATION = TYPE_FORMATION.ID_TYPE_FORMATION
-            WHERE   MODULE_PRO.ID_MODULE_PRO = @ID_MODULE_PRO 
-         
-            -- Determination de l'enveloppe a associer au module :
-            SELECT @ID_ENVELOPPE = ID_ENVELOPPE
-            FROM ENVELOPPE
-              INNER JOIN TYPE_ENVELOPPE ON ENVELOPPE.ID_TYPE_ENVELOPPE  = TYPE_ENVELOPPE.ID_TYPE_ENVELOPPE 
-            WHERE TYPE_ENVELOPPE.ID_DISPOSITIF = @ID_DISPOSITIF
-            AND  TYPE_ENVELOPPE.ID_AGENCE  = @ID_AGENCE
-            AND  TYPE_ENVELOPPE.ID_BRANCHE  = @ID_BRANCHE
-            AND  ENVELOPPE.ID_PERIODE   = @ID_PERIODE
-            
-            -- Recherche du mouvement budgetaire previsionnel associe au module a desengager
-            SET @MNT_MVT_BUDGETAIRE = 0
-            SELECT @MNT_MVT_BUDGETAIRE = ISNULL(MNT_MVT_BUDGETAIRE, 0)
-            FROM MVT_BUDGETAIRE
-            WHERE ID_MODULE_PRO = @ID_MODULE_PRO
-            AND  P_E_R   = 'E'
-            
-            
-            IF @MNT_MVT_BUDGETAIRE > 0
-            BEGIN
-             -- Diminution de l'engagement a hauteur du montant du module desengage
-             SELECT @P_E_R = 'E'     -- Pr‚vision
-             SELECT @ID_TYPE_MOUVEMENT = 21 --Mouvement Annulation ENgagement
-             SELECT @LIBL_MVT_BUDGETAIRE = 'Desactivation module pro ' + CAST(@COD_MODULE_PRO AS VARCHAR)
-         
-             INSERT INTO MVT_BUDGETAIRE 
-             ( 
-             ID_TYPE_MOUVEMENT, ID_EVENEMENT, P_E_R, MNT_MVT_BUDGETAIRE, ID_PERIODE_FISC, ID_PERIODE_CPT, DAT_MVT_BUDGETAIRE,
-             ID_ADHERENT, ID_ETABLISSEMENT, ID_GROUPE, ID_DISPOSITIF, LIBL_MVT_BUDGETAIRE, ID_ENVELOPPE, ID_CONTRAT_PRO, ID_MODULE_PRO, N_R, ID_ACTIVITE)
-             SELECT 
-             ID_TYPE_MOUVEMENT = @ID_TYPE_MOUVEMENT, ID_EVENEMENT = @ID_EVENEMENT, P_E_R = @P_E_R, MNT_MVT_BUDGETAIRE = -@MNT_MVT_BUDGETAIRE, ID_PERIODE_FISC = @ID_PERIODE, ID_PERIODE_CPT = @ID_PERIODE, DAT_MVT_BUDGETAIRE = @DAT_EVENEMENT,
-             ID_ADHERENT = @ID_ADHERENT, ID_ETABLISSEMENT = @ID_ETABLISSEMENT, ID_GROUPE = @ID_GROUPE, ID_DISPOSITIF = @ID_DISPOSITIF, LIBL_MVT_BUDGETAIRE = @LIBL_MVT_BUDGETAIRE, @ID_ENVELOPPE, ID_CONTRAT_PRO = @ID_CONTRAT_PRO, ID_MODULE_PRO = @ID_MODULE_PRO, N_R = 'N', ID_ACTIVITE = @ID_ACTIVITE
-            END     
-           END
-         
-          /* ********************************************************** 
-          -- Validation du reglement d'un contrat professionnalisation
-          -- TYPE_EVENEMENT = 'REGLTPRO'
-         
-          -- DCL Comment : a supprimer … J+1 de la livraison du trigger reglement_pro__validation
-          ********************************************************** */
-           IF @COD_TYPE_EVENEMENT = 'REGLTPRO'   -- Validation du reglement d'un contrat professionnalisation
-           BEGIN
-             SELECT  @ID_CONTRAT_PRO = MODULE_PRO.ID_CONTRAT_PRO, @ID_PERIODE = MODULE_PRO.ID_PERIODE,  @MNT_ATTESTE_HT = SESSION_PRO.MNT_ATTESTE_HT, 
-               @ID_ENGAGEMENT_PRO = MODULE_PRO.ID_ENGAGEMENT_PRO, @ID_TYPE_FORMATION = MODULE_PRO.ID_TYPE_FORMATION, 
-               @ID_DISPOSITIF = TYPE_FORMATION.ID_DISPOSITIF, @ID_REGLEMENT_PRO = ISNULL(SESSION_PRO.ID_REGLEMENT_PRO_OF, SESSION_PRO.ID_REGLEMENT_PRO_ADH)
-             FROM    SESSION_PRO
-               INNER JOIN MODULE_PRO  ON MODULE_PRO.ID_MODULE_PRO = SESSION_PRO.ID_MODULE_PRO 
-               INNER JOIN TYPE_FORMATION ON MODULE_PRO.ID_TYPE_FORMATION = TYPE_FORMATION.ID_TYPE_FORMATION
-             WHERE   SESSION_PRO.ID_SESSION_PRO = @ID_SESSION_PRO
-         
-             -- Determination de l'enveloppe a associer au module :
-             SELECT @ID_ENVELOPPE = ID_ENVELOPPE
-             FROM ENVELOPPE
-               INNER JOIN TYPE_ENVELOPPE ON ENVELOPPE.ID_TYPE_ENVELOPPE  = TYPE_ENVELOPPE.ID_TYPE_ENVELOPPE 
-             WHERE TYPE_ENVELOPPE.ID_DISPOSITIF = @ID_DISPOSITIF
-             AND  TYPE_ENVELOPPE.ID_AGENCE  = @ID_AGENCE
-             AND  TYPE_ENVELOPPE.ID_BRANCHE  = @ID_BRANCHE
-             AND  ENVELOPPE.ID_PERIODE   = @ID_PERIODE
-         
-             -- Recherche de la date de reglement
-             SELECT @DAT_MVT = DAT_VALID_REGLEMENT
-             FROM REGLEMENT_PRO
-             WHERE ID_REGLEMENT_PRO = @ID_REGLEMENT_PRO 
-                
-             -- Recherche du mouvement budgetaire d'engagement associe au module a regler
-             SET @MNT_MVT_BUDGETAIRE = 0
-             SELECT @MNT_MVT_BUDGETAIRE = ISNULL(SUM(MNT_MVT_BUDGETAIRE), 0)
-             FROM MVT_BUDGETAIRE
-             WHERE ID_MODULE_PRO = @ID_MODULE_PRO
-             AND  ID_ENVELOPPE = @ID_ENVELOPPE
-             AND  P_E_R   = 'E'
-             
-             
-             IF @MNT_MVT_BUDGETAIRE > 0
-             BEGIN
-              -- Diminution de l'engagement a hauteur du montant du module regle dans la limite de l'engagement initial
-         
-              IF @MNT_ATTESTE_HT < @MNT_MVT_BUDGETAIRE
-              BEGIN
-               SET @MNT_MVT_BUDGETAIRE = @MNT_ATTESTE_HT 
-              END
-              
-              SELECT @P_E_R = 'E'     -- Pr‚vision
-              SELECT @ID_TYPE_MOUVEMENT = 21 --Mouvement Annulation Pr‚vision
-              SELECT @LIBL_MVT_BUDGETAIRE = 'Annul. engagement suite regl module pro ' + CAST(@COD_MODULE_PRO AS VARCHAR)
-         
-               INSERT INTO MVT_BUDGETAIRE 
-              ( 
-              ID_TYPE_MOUVEMENT, ID_EVENEMENT, P_E_R, MNT_MVT_BUDGETAIRE, 
-              ID_PERIODE_FISC, ID_PERIODE_CPT, DAT_MVT_BUDGETAIRE,
-              ID_ADHERENT, ID_ETABLISSEMENT, ID_GROUPE, ID_DISPOSITIF, LIBL_MVT_BUDGETAIRE, 
-              ID_ENVELOPPE, ID_CONTRAT_PRO, ID_MODULE_PRO, ID_SESSION_PRO, N_R, ID_ACTIVITE)
-              SELECT 
-              ID_TYPE_MOUVEMENT = @ID_TYPE_MOUVEMENT, ID_EVENEMENT = @ID_EVENEMENT, P_E_R = @P_E_R, MNT_MVT_BUDGETAIRE = -@MNT_MVT_BUDGETAIRE, 
-              ID_PERIODE_FISC = @ID_PERIODE, ID_PERIODE_CPT = @ID_PERIODE, DAT_MVT_BUDGETAIRE = @DAT_MVT,
-              ID_ADHERENT = @ID_ADHERENT, ID_ETABLISSEMENT = @ID_ETABLISSEMENT, ID_GROUPE = @ID_GROUPE, ID_DISPOSITIF = @ID_DISPOSITIF, LIBL_MVT_BUDGETAIRE = @LIBL_MVT_BUDGETAIRE, 
-              @ID_ENVELOPPE, ID_CONTRAT_PRO = @ID_CONTRAT_PRO, ID_MODULE_PRO = @ID_MODULE_PRO, ID_SESSION_PRO = @ID_SESSION_PRO, N_R = 'N', ID_ACTIVITE = @ID_ACTIVITE
-             END     
-         
-             -- On regle les montants attestes des differentes sessions reglees
-             SELECT @ID_TYPE_MOUVEMENT = 22 --Mouvement de Reglement
-             SELECT @P_E_R = 'R'     -- Reglement
-             SELECT @LIBL_MVT_BUDGETAIRE = 'Reglement Module PRO ' + CAST(@COD_MODULE_PRO AS VARCHAR)
-         
-             INSERT INTO MVT_BUDGETAIRE 
-             ( 
-             ID_TYPE_MOUVEMENT, ID_EVENEMENT, P_E_R, MNT_MVT_BUDGETAIRE, 
-             ID_PERIODE_FISC, ID_PERIODE_CPT, DAT_MVT_BUDGETAIRE,
-             ID_ADHERENT, ID_ETABLISSEMENT, ID_GROUPE, ID_DISPOSITIF, LIBL_MVT_BUDGETAIRE, 
-             ID_ENVELOPPE, ID_CONTRAT_PRO, ID_MODULE_PRO, ID_SESSION_PRO, N_R, ID_ACTIVITE)
-             SELECT 
-             ID_TYPE_MOUVEMENT = @ID_TYPE_MOUVEMENT, ID_EVENEMENT = @ID_EVENEMENT, P_E_R = @P_E_R, MNT_MVT_BUDGETAIRE = @MNT_ATTESTE_HT, 
-             ID_PERIODE_FISC = @ID_PERIODE, ID_PERIODE_CPT = @ID_PERIODE, DAT_MVT_BUDGETAIRE = @DAT_MVT,
-             ID_ADHERENT = @ID_ADHERENT, ID_ETABLISSEMENT = @ID_ETABLISSEMENT, ID_GROUPE = @ID_GROUPE, ID_DISPOSITIF = @ID_DISPOSITIF, LIBL_MVT_BUDGETAIRE = @LIBL_MVT_BUDGETAIRE, 
-             @ID_ENVELOPPE, ID_CONTRAT_PRO = @ID_CONTRAT_PRO, ID_MODULE_PRO = @ID_MODULE_PRO, ID_SESSION_PRO = @ID_SESSION_PRO, N_R = 'N', ID_ACTIVITE = @ID_ACTIVITE
-            
-           END
-          /* separation ADH / OF : ne devrait plus rester beaucoup de cas REGLTPRO*/ 
-           IF @COD_TYPE_EVENEMENT = 'REGLT_AD' -- Validation du reglement ADH d'un contrat professionnalisation
-           BEGIN
-             SELECT  @ID_CONTRAT_PRO = MODULE_PRO.ID_CONTRAT_PRO, @ID_PERIODE = MODULE_PRO.ID_PERIODE,  
-               @MNT_VERSE_HT_ADH = SESSION_PRO.mnt_verse_ht_adh,
-               @ID_ENGAGEMENT_PRO = MODULE_PRO.ID_ENGAGEMENT_PRO, @ID_TYPE_FORMATION = MODULE_PRO.ID_TYPE_FORMATION, 
-               @ID_DISPOSITIF = TYPE_FORMATION.ID_DISPOSITIF, @ID_REGLEMENT_PRO_ADH = SESSION_PRO.ID_REGLEMENT_PRO_ADH
-             FROM SESSION_PRO
-               INNER JOIN MODULE_PRO  ON MODULE_PRO.ID_MODULE_PRO = SESSION_PRO.ID_MODULE_PRO 
-               INNER JOIN TYPE_FORMATION ON MODULE_PRO.ID_TYPE_FORMATION = TYPE_FORMATION.ID_TYPE_FORMATION
-             WHERE   SESSION_PRO.ID_SESSION_PRO = @ID_SESSION_PRO
-         
-             -- Determination de l'enveloppe a associer au module :
-             SELECT @ID_ENVELOPPE = ID_ENVELOPPE
-             FROM ENVELOPPE
-               INNER JOIN TYPE_ENVELOPPE ON ENVELOPPE.ID_TYPE_ENVELOPPE  = TYPE_ENVELOPPE.ID_TYPE_ENVELOPPE 
-             WHERE TYPE_ENVELOPPE.ID_DISPOSITIF = @ID_DISPOSITIF
-             AND  TYPE_ENVELOPPE.ID_AGENCE  = @ID_AGENCE
-             AND  TYPE_ENVELOPPE.ID_BRANCHE  = @ID_BRANCHE
-             AND  ENVELOPPE.ID_PERIODE   = @ID_PERIODE
-         
-             -- Recherche de la date de reglement
-             SELECT @DAT_MVT = DAT_VALID_REGLEMENT
-             FROM REGLEMENT_PRO
-             WHERE ID_REGLEMENT_PRO = @ID_REGLEMENT_PRO_ADH 
-                
-             -- Recherche du mouvement budgetaire d'engagement associe au module a regler
-             SET @MNT_MVT_BUDGETAIRE = 0
-             SELECT @MNT_MVT_BUDGETAIRE = ISNULL(SUM(MNT_MVT_BUDGETAIRE), 0)
-             FROM MVT_BUDGETAIRE
-             WHERE ID_MODULE_PRO = @ID_MODULE_PRO
-             AND  ID_ENVELOPPE = @ID_ENVELOPPE
-             AND  P_E_R   = 'E'
-             
-          -- mvt_budgetaire OF+ADH?!   
-             IF @MNT_MVT_BUDGETAIRE > 0
-             BEGIN
-              -- Diminution de l'engagement a hauteur du montant du module regle dans la limite de l'engagement initial
-              IF @MNT_VERSE_HT_ADH  < @MNT_MVT_BUDGETAIRE
-              BEGIN
-               SET @MNT_MVT_BUDGETAIRE = @MNT_VERSE_HT_ADH 
-              END
-              
-              SELECT @P_E_R = 'E'     -- Pr‚vision
-              SELECT @ID_TYPE_MOUVEMENT = 21 --Mouvement Annulation Pr‚vision
-              SELECT @LIBL_MVT_BUDGETAIRE = 'Annul. engag. suite regl module pro ADH ' + CAST(@COD_MODULE_PRO AS VARCHAR)
-         
-               INSERT INTO MVT_BUDGETAIRE 
-              ( 
-              ID_TYPE_MOUVEMENT, ID_EVENEMENT, P_E_R, MNT_MVT_BUDGETAIRE, 
-              ID_PERIODE_FISC, ID_PERIODE_CPT, DAT_MVT_BUDGETAIRE,
-              ID_ADHERENT, ID_ETABLISSEMENT, ID_GROUPE, ID_DISPOSITIF, LIBL_MVT_BUDGETAIRE, 
-              ID_ENVELOPPE, ID_CONTRAT_PRO, ID_MODULE_PRO, ID_SESSION_PRO, N_R, ID_ACTIVITE)
-              SELECT 
-              ID_TYPE_MOUVEMENT = @ID_TYPE_MOUVEMENT, ID_EVENEMENT = @ID_EVENEMENT, P_E_R = @P_E_R, 
-              MNT_MVT_BUDGETAIRE = -@MNT_MVT_BUDGETAIRE, 
-              ID_PERIODE_FISC = @ID_PERIODE, ID_PERIODE_CPT = @ID_PERIODE, DAT_MVT_BUDGETAIRE = @DAT_MVT,
-              ID_ADHERENT = @ID_ADHERENT, ID_ETABLISSEMENT = @ID_ETABLISSEMENT, ID_GROUPE = @ID_GROUPE, ID_DISPOSITIF = @ID_DISPOSITIF, LIBL_MVT_BUDGETAIRE = @LIBL_MVT_BUDGETAIRE, 
-              @ID_ENVELOPPE, ID_CONTRAT_PRO = @ID_CONTRAT_PRO, ID_MODULE_PRO = @ID_MODULE_PRO, ID_SESSION_PRO = @ID_SESSION_PRO, N_R = 'N', ID_ACTIVITE = @ID_ACTIVITE
-             END     
-         
-             -- On regle les montants attestes des differentes sessions reglees
-             SELECT @ID_TYPE_MOUVEMENT = 22 --Mouvement de Reglement
-             SELECT @P_E_R = 'R'     -- Reglement
-             SELECT @LIBL_MVT_BUDGETAIRE = 'Reglement Module PRO ADH ' + CAST(@COD_MODULE_PRO AS VARCHAR)
-         
-             INSERT INTO MVT_BUDGETAIRE 
-             ( 
-             ID_TYPE_MOUVEMENT, ID_EVENEMENT, P_E_R, MNT_MVT_BUDGETAIRE, 
-             ID_PERIODE_FISC, ID_PERIODE_CPT, DAT_MVT_BUDGETAIRE,
-             ID_ADHERENT, ID_ETABLISSEMENT, ID_GROUPE, ID_DISPOSITIF, LIBL_MVT_BUDGETAIRE, 
-             ID_ENVELOPPE, ID_CONTRAT_PRO, ID_MODULE_PRO, ID_SESSION_PRO, N_R, ID_ACTIVITE)
-             SELECT 
-             ID_TYPE_MOUVEMENT = @ID_TYPE_MOUVEMENT, ID_EVENEMENT = @ID_EVENEMENT, P_E_R = @P_E_R, 
-             MNT_MVT_BUDGETAIRE = @MNT_VERSE_HT_ADH, 
-             ID_PERIODE_FISC = @ID_PERIODE, ID_PERIODE_CPT = @ID_PERIODE, DAT_MVT_BUDGETAIRE = @DAT_MVT,
-             ID_ADHERENT = @ID_ADHERENT, ID_ETABLISSEMENT = @ID_ETABLISSEMENT, ID_GROUPE = @ID_GROUPE, ID_DISPOSITIF = @ID_DISPOSITIF, LIBL_MVT_BUDGETAIRE = @LIBL_MVT_BUDGETAIRE, 
-             @ID_ENVELOPPE, ID_CONTRAT_PRO = @ID_CONTRAT_PRO, ID_MODULE_PRO = @ID_MODULE_PRO, ID_SESSION_PRO = @ID_SESSION_PRO, N_R = 'N', ID_ACTIVITE = @ID_ACTIVITE
-            
-           END
-          -- OF
-           IF @COD_TYPE_EVENEMENT = 'REGLT_OF'   -- Validation du reglement d'un contrat professionnalisation
-           BEGIN
-             SELECT  @ID_CONTRAT_PRO = MODULE_PRO.ID_CONTRAT_PRO, @ID_PERIODE = MODULE_PRO.ID_PERIODE,  
-               @MNT_VERSE_HT_OF = SESSION_PRO.MNT_verse_HT_OF, 
-               @ID_ENGAGEMENT_PRO = MODULE_PRO.ID_ENGAGEMENT_PRO, @ID_TYPE_FORMATION = MODULE_PRO.ID_TYPE_FORMATION, 
-               @ID_DISPOSITIF = TYPE_FORMATION.ID_DISPOSITIF, @ID_REGLEMENT_PRO_OF = SESSION_PRO.ID_REGLEMENT_PRO_OF
-             FROM SESSION_PRO
-               INNER JOIN MODULE_PRO  ON MODULE_PRO.ID_MODULE_PRO = SESSION_PRO.ID_MODULE_PRO 
-               INNER JOIN TYPE_FORMATION ON MODULE_PRO.ID_TYPE_FORMATION = TYPE_FORMATION.ID_TYPE_FORMATION
-             WHERE   SESSION_PRO.ID_SESSION_PRO = @ID_SESSION_PRO
-         
-             -- Determination de l'enveloppe a associer au module :
-             SELECT @ID_ENVELOPPE = ID_ENVELOPPE
-             FROM ENVELOPPE
-               INNER JOIN TYPE_ENVELOPPE ON ENVELOPPE.ID_TYPE_ENVELOPPE  = TYPE_ENVELOPPE.ID_TYPE_ENVELOPPE 
-             WHERE TYPE_ENVELOPPE.ID_DISPOSITIF = @ID_DISPOSITIF
-             AND  TYPE_ENVELOPPE.ID_AGENCE  = @ID_AGENCE
-             AND  TYPE_ENVELOPPE.ID_BRANCHE  = @ID_BRANCHE
-             AND  ENVELOPPE.ID_PERIODE   = @ID_PERIODE
-         
-             -- Recherche de la date de reglement
-             SELECT @DAT_MVT = DAT_VALID_REGLEMENT
-             FROM REGLEMENT_PRO
-             WHERE ID_REGLEMENT_PRO = @ID_REGLEMENT_PRO_OF
-                
-             -- Recherche du mouvement budgetaire d'engagement associe au module a regler
-             SET @MNT_MVT_BUDGETAIRE = 0
-             SELECT @MNT_MVT_BUDGETAIRE = ISNULL(SUM(MNT_MVT_BUDGETAIRE), 0)
-             FROM MVT_BUDGETAIRE
-             WHERE ID_MODULE_PRO = @ID_MODULE_PRO
-             AND  ID_ENVELOPPE = @ID_ENVELOPPE
-             AND  P_E_R   = 'E'
-             
-             
-             IF @MNT_MVT_BUDGETAIRE > 0
-             BEGIN
-              -- Diminution de l'engagement a hauteur du montant du module regle dans la limite de l'engagement initial
-         
-              If @MNT_VERSE_HT_OF < @MNT_MVT_BUDGETAIRE
-              BEGIN
-               SET @MNT_MVT_BUDGETAIRE = @MNT_VERSE_HT_OF 
-              END
-              
-              SELECT @P_E_R = 'E'     -- Pr‚vision
-              SELECT @ID_TYPE_MOUVEMENT = 21 --Mouvement Annulation Pr‚vision
-              SELECT @LIBL_MVT_BUDGETAIRE = 'Annul. engag. suite regl module pro OF ' + CAST(@COD_MODULE_PRO AS VARCHAR)
-         
-               INSERT INTO MVT_BUDGETAIRE 
-              ( 
-              ID_TYPE_MOUVEMENT, ID_EVENEMENT, P_E_R, MNT_MVT_BUDGETAIRE, 
-              ID_PERIODE_FISC, ID_PERIODE_CPT, DAT_MVT_BUDGETAIRE,
-              ID_ADHERENT, ID_ETABLISSEMENT, ID_GROUPE, ID_DISPOSITIF, LIBL_MVT_BUDGETAIRE, 
-              ID_ENVELOPPE, ID_CONTRAT_PRO, ID_MODULE_PRO, ID_SESSION_PRO, N_R, ID_ACTIVITE)
-              SELECT 
-              ID_TYPE_MOUVEMENT = @ID_TYPE_MOUVEMENT, ID_EVENEMENT = @ID_EVENEMENT, P_E_R = @P_E_R,
-              MNT_MVT_BUDGETAIRE = -@MNT_MVT_BUDGETAIRE,
-              ID_PERIODE_FISC = @ID_PERIODE, ID_PERIODE_CPT = @ID_PERIODE, DAT_MVT_BUDGETAIRE = @DAT_MVT,
-              ID_ADHERENT = @ID_ADHERENT, ID_ETABLISSEMENT = @ID_ETABLISSEMENT, ID_GROUPE = @ID_GROUPE, ID_DISPOSITIF = @ID_DISPOSITIF, LIBL_MVT_BUDGETAIRE = @LIBL_MVT_BUDGETAIRE, 
-              @ID_ENVELOPPE, ID_CONTRAT_PRO = @ID_CONTRAT_PRO, ID_MODULE_PRO = @ID_MODULE_PRO, ID_SESSION_PRO = @ID_SESSION_PRO, N_R = 'N', ID_ACTIVITE = @ID_ACTIVITE
-             END     
-         
-             -- On regle les montants attestes des differentes sessions reglees
-             SELECT @ID_TYPE_MOUVEMENT = 22 --Mouvement de Reglement
-             SELECT @P_E_R = 'R'     -- Reglement
-             SELECT @LIBL_MVT_BUDGETAIRE = 'Reglement Module PRO OF ' + CAST(@COD_MODULE_PRO AS VARCHAR)
-         
-             INSERT INTO MVT_BUDGETAIRE 
-             ( 
-             ID_TYPE_MOUVEMENT, ID_EVENEMENT, P_E_R, MNT_MVT_BUDGETAIRE, 
-             ID_PERIODE_FISC, ID_PERIODE_CPT, DAT_MVT_BUDGETAIRE,
-             ID_ADHERENT, ID_ETABLISSEMENT, ID_GROUPE, ID_DISPOSITIF, LIBL_MVT_BUDGETAIRE, 
-             ID_ENVELOPPE, ID_CONTRAT_PRO, ID_MODULE_PRO, ID_SESSION_PRO, N_R, ID_ACTIVITE)
-             SELECT 
-             ID_TYPE_MOUVEMENT = @ID_TYPE_MOUVEMENT, ID_EVENEMENT = @ID_EVENEMENT, P_E_R = @P_E_R, 
-             MNT_MVT_BUDGETAIRE =@MNT_VERSE_HT_OF,
-             ID_PERIODE_FISC = @ID_PERIODE, ID_PERIODE_CPT = @ID_PERIODE, DAT_MVT_BUDGETAIRE = @DAT_MVT,
-             ID_ADHERENT = @ID_ADHERENT, ID_ETABLISSEMENT = @ID_ETABLISSEMENT, ID_GROUPE = @ID_GROUPE, ID_DISPOSITIF = @ID_DISPOSITIF, LIBL_MVT_BUDGETAIRE = @LIBL_MVT_BUDGETAIRE, 
-             @ID_ENVELOPPE, ID_CONTRAT_PRO = @ID_CONTRAT_PRO, ID_MODULE_PRO = @ID_MODULE_PRO, ID_SESSION_PRO = @ID_SESSION_PRO, N_R = 'N', ID_ACTIVITE = @ID_ACTIVITE
-            END
-         
-          /* ********************************************************** 
-          -- Cloture d'un contrat de pro
-          -- TYPE_EVENEMENT = 'CLOT_PRO'
-          ********************************************************** */
-           IF  @COD_TYPE_EVENEMENT = 'CLOT_PRO'   -- Cloture d'un contrat de pro
-           BEGIN
-            
-            -- Recherche des reliquats de previsionnel et d'engagement sur le contrat a cloturer
-            DECLARE cu_contrat_a_cloturer  CURSOR FOR
-            SELECT ID_ENVELOPPE, ID_MODULE_PRO, ID_DISPOSITIF, ID_PERIODE_FISC, P_E_R, ISNULL(SUM(MNT_MVT_BUDGETAIRE), 0)
-            FROM MVT_BUDGETAIRE
-            WHERE P_E_R != 'R'
-            AND  ID_CONTRAT_PRO = @ID_CONTRAT_PRO 
-            GROUP BY ID_ENVELOPPE, ID_MODULE_PRO, ID_DISPOSITIF, ID_PERIODE_FISC, P_E_R
-            HAVING ABS(ISNULL(SUM(MNT_MVT_BUDGETAIRE), 0)) > 0.01
-            
-            declare @BLN_REPRISE_ADHOC tinyint
-            select @BLN_REPRISE_ADHOC= BLN_REPRISE_ADHOC 
-            from CONTRAT_PRO  
-            where ID_CONTRAT_PRO = @ID_CONTRAT_PRO 
-            OPEN cu_contrat_a_cloturer
-            FETCH cu_contrat_a_cloturer INTO 
-             @ID_ENVELOPPE, @ID_MODULE_PRO, @ID_DISPOSITIF, @ID_PERIODE, @P_E_R, @MNT_MVT_BUDGETAIRE
-         
-            WHILE (@@fetch_status <> -1)
-            BEGIN
-             
-              if @BLN_REPRISE_ADHOC = 1
-              set @P_E_R = 'E'
-             IF @P_E_R = 'P'
-             BEGIN
-              SELECT @ID_TYPE_MOUVEMENT = 19 --Mouvement Annulation Pr‚vision
-              SELECT @LIBL_MVT_BUDGETAIRE = 'Cloture Contrat PRO ' + CAST(@COD_CONTRAT_PRO AS VARCHAR)
-             END
-             IF @P_E_R = 'E'
-             BEGIN
-              SELECT @ID_TYPE_MOUVEMENT = 21 --Mouvement Annulation Engagement
-              SELECT @LIBL_MVT_BUDGETAIRE = 'Cloture Contrat PRO ' + CAST(@COD_CONTRAT_PRO AS VARCHAR)
-             END
-         
-             IF @ID_TYPE_MOUVEMENT IS NOT NULL
-             BEGIN
-              INSERT INTO MVT_BUDGETAIRE 
-              ( 
-              ID_TYPE_MOUVEMENT, ID_EVENEMENT, P_E_R, MNT_MVT_BUDGETAIRE, 
-              ID_PERIODE_FISC, ID_PERIODE_CPT, 
-              DAT_MVT_BUDGETAIRE,ID_ADHERENT, ID_ETABLISSEMENT, ID_GROUPE, ID_DISPOSITIF, 
-              LIBL_MVT_BUDGETAIRE, ID_ENVELOPPE, ID_CONTRAT_PRO, ID_MODULE_PRO, N_R, ID_ACTIVITE)
-              SELECT 
-              ID_TYPE_MOUVEMENT = @ID_TYPE_MOUVEMENT, ID_EVENEMENT = @ID_EVENEMENT, P_E_R = @P_E_R, MNT_MVT_BUDGETAIRE = -@MNT_MVT_BUDGETAIRE, 
-              ID_PERIODE_FISC = @ID_PERIODE, ID_PERIODE_CPT = @ID_PERIODE, 
-              DAT_MVT_BUDGETAIRE = @DAT_CLOTURE, ID_ADHERENT = @ID_ADHERENT, ID_ETABLISSEMENT = @ID_ETABLISSEMENT, ID_GROUPE = @ID_GROUPE, ID_DISPOSITIF = @ID_DISPOSITIF, 
-              LIBL_MVT_BUDGETAIRE = @LIBL_MVT_BUDGETAIRE, @ID_ENVELOPPE, ID_CONTRAT_PRO = @ID_CONTRAT_PRO, ID_MODULE_PRO = @ID_MODULE_PRO, N_R = 'N', ID_ACTIVITE = @ID_ACTIVITE
-             END
-         
-             FETCH cu_contrat_a_cloturer INTO 
-             @ID_ENVELOPPE, @ID_MODULE_PRO, @ID_DISPOSITIF, @ID_PERIODE, @P_E_R, @MNT_MVT_BUDGETAIRE
-            END
-         
-         
-            CLOSE cu_contrat_a_cloturer
-            DEALLOCATE cu_contrat_a_cloturer
-         
-         
-           END
-         
-          /* ********************************************************** 
-          -- MBT le 12/03/2010 EVOL 12271
-          -- Cloture d'un module pro
-          -- TYPE_EVENEMENT = 'CLOMOPRO'
-          ********************************************************** */
-           IF  @COD_TYPE_EVENEMENT = 'CLOMOPRO'   -- Cloture d'un module pro
-           BEGIN
-            
-            DECLARE @DAT_CLOTURE_MODULE DATETIME
-         
-            SELECT @DAT_CLOTURE_MODULE = DAT_CLOTURE FROM MODULE_PRO
-            WHERE ID_MODULE_PRO = @ID_MODULE_PRO
-         
-            -- Recherche des reliquats de previsionnel et d'engagement sur le module … cl“turer
-            DECLARE cu_module_a_cloturer  CURSOR FOR
-            SELECT ID_ENVELOPPE, ID_MODULE_PRO, ID_DISPOSITIF, ID_PERIODE_FISC, P_E_R, ISNULL(SUM(MNT_MVT_BUDGETAIRE), 0)
-            FROM MVT_BUDGETAIRE
-            WHERE P_E_R != 'R'
-            AND  ID_CONTRAT_PRO = @ID_CONTRAT_PRO 
-            -- 20101103 ajout ASD : restriction au module_pro
-            AND  ID_MODULE_PRO = @ID_MODULE_PRO 
-            GROUP BY ID_ENVELOPPE, ID_MODULE_PRO, ID_DISPOSITIF, ID_PERIODE_FISC, P_E_R
-         
-            OPEN cu_module_a_cloturer
-            FETCH cu_module_a_cloturer INTO 
-             @ID_ENVELOPPE, @ID_MODULE_PRO, @ID_DISPOSITIF, @ID_PERIODE, @P_E_R, @MNT_MVT_BUDGETAIRE
-         
-            WHILE (@@fetch_status <> -1)
-            BEGIN
-             
-             
-             SELECT @ID_TYPE_MOUVEMENT = 21 --Mouvement Annulation Engagement
-             SELECT @LIBL_MVT_BUDGETAIRE = 'Cl“ture Module PRO ' + CAST(@COD_MODULE_PRO AS VARCHAR)
-         
-              INSERT INTO MVT_BUDGETAIRE 
-              ( 
-              ID_TYPE_MOUVEMENT, ID_EVENEMENT, P_E_R, MNT_MVT_BUDGETAIRE, 
-              ID_PERIODE_FISC, DAT_MVT_BUDGETAIRE, ID_PERIODE_CPT, 
-              ID_ADHERENT, ID_ETABLISSEMENT, ID_DISPOSITIF, 
-              LIBL_MVT_BUDGETAIRE, ID_ENVELOPPE, ID_CONTRAT_PRO, 
-              ID_MODULE_PRO, ID_SESSION_PRO, ID_GROUPE)
-              VALUES
-              (
-              @ID_TYPE_MOUVEMENT, @ID_EVENEMENT, @P_E_R, -@MNT_MVT_BUDGETAIRE, 
-              @ID_PERIODE, @DAT_CLOTURE_MODULE, @ID_PERIODE, 
-              @ID_ADHERENT, @ID_ETABLISSEMENT, @ID_DISPOSITIF, 
-              @LIBL_MVT_BUDGETAIRE, @ID_ENVELOPPE, @ID_CONTRAT_PRO, 
-              @ID_MODULE_PRO, @ID_SESSION_PRO, @ID_GROUPE) 
-         
-             FETCH cu_module_a_cloturer INTO 
-             @ID_ENVELOPPE, @ID_MODULE_PRO, @ID_DISPOSITIF, @ID_PERIODE, @P_E_R, @MNT_MVT_BUDGETAIRE
-            END
-            CLOSE cu_module_a_cloturer
-            DEALLOCATE cu_module_a_cloturer
-           END
-           FETCH cu_evenement_contrat_pro INTO @ID_EVENEMENT, @ID_TYPE_EVENEMENT, @DAT_EVENEMENT, @ID_CONTRAT_PRO, @ID_MODULE_PRO, @ID_ENGAGEMENT_PRO, @ID_SESSION_PRO
-          END
-         
-          CLOSE cu_evenement_contrat_pro
-          DEALLOCATE cu_evenement_contrat_pro
-         
-         
-          END
+ALTER PROCEDURE [dbo].[BATCH_INS_MVT_BUDGETAIRE_CONTRAT_PRO] 
+ @ID_EVENEMENT int = NULL
+AS 
+
+
+
+-- =============================================
+-- Author  : MB
+-- Create date : 12/03/2008
+-- Description : insertion des mouvements budgetaires associes aux evenements budgetaires des contrats de professionnalisation
+-- Ce batch est lance toutes les nuits
+-- ---------------------------------------------
+-- Author  : ASD-SBR
+-- Modified date: 23/10/2008
+-- Description : gestion du paramètre @ID_EVENEMENT=NULL si pas fourni dans le scheduler
+-- ---------------------------------------------
+-- Author  : RMA
+-- Modified date: 24/10/2008
+-- Description : Ajout ID_GROUPE
+-- ---------------------------------------------
+-- Author  : DCL
+-- Modified date: 27/04/2009
+-- Description : reglement PRO : separation ADH / OF (ano 11843)
+-- RAF : desengagement ? evenemnt REGLTPRO ou REGLADH. reprise données...
+-- ---------------------------------------------
+-- Author  : DSZ
+-- Modified date: 05/03/2010
+-- Description : Ano 12261. Pour les cpro repris le mvt de cloture doit être du type E
+-- ---------------------------------------------
+-- Author  : MBT : Mohamed BENSLIMANE
+-- Modified date: 12/03/2010
+-- Description : EVOL 12271. Ajout de la partie clôture d'un module pro
+-- ---------------------------------------------
+-- Author  : ASD
+-- Modified date: 03/11/2010
+-- Description : ANO 12386. ne pas forcer le P_E_R a E en cloture de module
+-- Description  : ne pas cloturer tous les modules en même temps, mais uniquement ceux nouvellement cloturés !
+-- ---------------------------------------------
+-- Author  : ASD
+-- Modified date: 09/06/2011
+-- Description : ANO 12730. PERF : ajout de "top 1" dans les exists et not exists
+--         et remplace AND ID_EVENEMENT = ISNULL(@ID_EVENEMENT, ID_EVENEMENT)
+--           par  AND (@ID_EVENEMENT is null OR @ID_EVENEMENT = ID_EVENEMENT)
+-- ---------------------------------------------
+-- Author  : DSZ
+-- Modified date: 28/09/2011
+-- Description : 12881. Remplacement Adherent.Id_BRANCHE par salarie_pro.id_branche
+-- (branche historisée dans le salarié)
+-- ---------------------------------------------
+-- DSZ/LDE 02/04/2015 #808 Les mouvements budgétaires de type Désengagement créés à la suite d'un évènement de clôture d'un module pro 
+-- doivent comporter l'id_groupe. 
+-- =============================================
+
+ BEGIN
+ DECLARE 
+  @ID_TYPE_EVENEMENT    int,
+  @DAT_EVENEMENT     datetime,
+  @ID_CONTRAT_PRO     int,
+  @ID_MODULE_PRO     int,
+  @COD_TYPE_EVENEMENT    varchar(8),
+  @COD_CONTRAT_PRO    varchar(10),
+  @COD_MODULE_PRO     varchar(12),
+  @ID_TYPE_MOUVEMENT    int,
+  @P_E_R       varchar(1),
+  @LIBL_MVT_BUDGETAIRE   varchar(50),
+  @ID_ETABLISSEMENT    int, 
+  @ID_ADHERENT     int,
+  @ID_ENVELOPPE     int,
+  @ID_BRANCHE      int,
+  @ID_PERIODE      int,
+  @ID_DISPOSITIF     int,
+  @DAT_DEB_CONTRAT    datetime,
+  @DAT_MODIF      datetime,
+  @DAT_CLOTURE     datetime,
+  @ID_AGENCE      int,
+  @ID_ACTIVITE     int,
+  @ID_ENGAGEMENT_PRO    int,
+  @ID_SESSION_PRO     int,
+  @BLN_OK       tinyint,
+  @MNT_MODULE_HT     float,
+  @MNT_ATTESTE_HT     float,
+  @MNT_MVT_BUDGETAIRE    float,
+  @ID_MVT_BUDGETAIRE    int,
+  @BLN_ACTIF      tinyint,
+  @ID_TYPE_FORMATION    int,
+  @DAT_MVT      datetime,
+  @ID_REGLEMENT_PRO    int,
+  @ID_GROUPE      int
+  --DCL 27/04/2009
+  , @ID_REGLEMENT_PRO_ADH    int,
+  @ID_REGLEMENT_PRO_OF    int,
+  @MNT_VERSE_HT_ADH     float, -- au lieu de montant attesté
+  @MNT_VERSE_HT_OF     float
+
+ SET @ID_ACTIVITE = 3 -- Professionnalisation
+
+ -- Selection des evenements associes au contrat de professionnalisation
+ -- pour lesquels aucun mouvement budgetaire n'a ete genere
+ DECLARE cu_evenement_contrat_pro SCROLL CURSOR FOR
+ SELECT ID_EVENEMENT, ID_TYPE_EVENEMENT, DAT_EVENEMENT, ID_CONTRAT_PRO, ID_MODULE_PRO, ID_ENGAGEMENT_PRO, ID_SESSION_PRO
+ FROM EVENEMENT
+ WHERE (ID_CONTRAT_PRO IS NOT NULL OR ID_MODULE_PRO IS NOT NULL)
+  --20110609 ajout ici de top 1 
+  AND NOT EXISTS (SELECT top 1 1 FROM MVT_BUDGETAIRE WHERE MVT_BUDGETAIRE.ID_EVENEMENT = EVENEMENT.ID_EVENEMENT )
+  --20110609 remplacé car trop trop long  : AND ID_EVENEMENT = ISNULL(@ID_EVENEMENT, ID_EVENEMENT)
+  AND (@ID_EVENEMENT is null OR @ID_EVENEMENT = ID_EVENEMENT)
+ UNION
+ --Selection des evenements de chiffrage associes a des modules dont les mouvements budgetaires previsionnels n'ont pas ete generes
+ SELECT DISTINCT ID_EVENEMENT, ID_TYPE_EVENEMENT, DAT_EVENEMENT, ID_CONTRAT_PRO, ID_MODULE_PRO, ID_ENGAGEMENT_PRO, ID_SESSION_PRO
+ FROM EVENEMENT
+ WHERE (ID_CONTRAT_PRO IS NOT NULL)--  20110609 inutile, la premiere clause suffit : OR ID_MODULE_PRO IS NOT NULL)
+  AND EXISTS (
+    --20110609 ajout ici de top 1 
+    SELECT top 1 ID_MODULE_PRO = ID_MODULE_PRO 
+    FROM MODULE_PRO 
+    WHERE EVENEMENT.ID_CONTRAT_PRO = MODULE_PRO.ID_CONTRAT_PRO
+    AND MODULE_PRO.BLN_ACTIF = 1 AND MODULE_PRO.ID_ENGAGEMENT_PRO is null
+    --20110609 ajout ici de top 1 
+    AND NOT EXISTS (SELECT top 1 1 FROM MVT_BUDGETAIRE WHERE MVT_BUDGETAIRE.ID_MODULE_PRO = MODULE_PRO.ID_MODULE_PRO AND P_E_R = 'P')
+    )
+  AND EVENEMENT.ID_TYPE_EVENEMENT = 18 -- Chiffrage contrat PRO
+  --20110609 remplacé car trop trop long  : AND ID_EVENEMENT = ISNULL(@ID_EVENEMENT, ID_EVENEMENT)
+  AND (@ID_EVENEMENT is null OR @ID_EVENEMENT = ID_EVENEMENT)
+ ORDER BY ID_EVENEMENT 
+
+
+
+ OPEN cu_evenement_contrat_pro
+ FETCH cu_evenement_contrat_pro INTO @ID_EVENEMENT, @ID_TYPE_EVENEMENT, @DAT_EVENEMENT, @ID_CONTRAT_PRO, @ID_MODULE_PRO, @ID_ENGAGEMENT_PRO, @ID_SESSION_PRO
+
+
+ WHILE (@@fetch_status <> -1)
+ BEGIN
+
+  SELECT @COD_TYPE_EVENEMENT = COD_TYPE_EVENEMENT
+  FROM TYPE_EVENEMENT
+  WHERE ID_TYPE_EVENEMENT = @ID_TYPE_EVENEMENT 
+
+  SELECT @COD_CONTRAT_PRO = COD_CONTRAT_PRO    , 
+    @ID_ETABLISSEMENT = CONTRAT_PRO.ID_ETABLISSEMENT , 
+    @ID_GROUPE   = ETABLISSEMENT.ID_GROUPE  ,
+    @ID_ADHERENT  = ADHERENT.ID_ADHERENT   ,
+    @ID_AGENCE   = CONTRAT_PRO.ID_AGENCE   ,
+    @ID_BRANCHE   = SALARIE_PRO.ID_BRANCHE  ,
+    @DAT_DEB_CONTRAT = CONTRAT_PRO.DAT_DEB_CONTRAT ,
+    @DAT_MODIF   = CONTRAT_PRO.DAT_MODIF   ,
+    @DAT_CLOTURE  = CONTRAT_PRO.DAT_CLOTURE
+  FROM   CONTRAT_PRO
+   INNER JOIN ETABLISSEMENT ON CONTRAT_PRO.ID_ETABLISSEMENT = ETABLISSEMENT.ID_ETABLISSEMENT
+   INNER JOIN ADHERENT  ON ADHERENT.ID_ADHERENT = ETABLISSEMENT.ID_ADHERENT
+   INNER JOIN  SALARIE_PRO  ON SALARIE_PRO.ID_SALARIE_PRO = CONTRAT_PRO.ID_SALARIE_PRO
+  WHERE ID_CONTRAT_PRO = @ID_CONTRAT_PRO
+  
+  IF @ID_MODULE_PRO IS NOT NULL 
+  BEGIN
+   SELECT @COD_MODULE_PRO = COD_MODULE_PRO
+   FROM MODULE_PRO
+   WHERE ID_MODULE_PRO = @ID_MODULE_PRO
+  END
+
+ /* ********************************************************** 
+ -- Chiffrage d'un contrat de professionnalisation
+ TYPE_EVENEMENT = 'CHIF_PRO'
+  ********************************************************** */
+  IF  @COD_TYPE_EVENEMENT = 'CHIF_PRO'   -- Chiffrage d'un contrat de professionnalisation
+  BEGIN
+   /*
+    Un mouvement prévisionnel est créé pour tous les modules actifs associes au module 
+   */
+    
+   SELECT @ID_TYPE_MOUVEMENT = 18 --Mouvement Prévision
+   SELECT @P_E_R = 'P'     -- Prévision
+   SELECT @LIBL_MVT_BUDGETAIRE = 'Chiffrage Contrat PRO ' + CAST(@COD_CONTRAT_PRO AS VARCHAR)
+  
+   DECLARE cu_module_previsionnel SCROLL CURSOR FOR
+   SELECT MODULE_PRO.ID_CONTRAT_PRO, MODULE_PRO.ID_MODULE_PRO, MODULE_PRO.ID_PERIODE,  MODULE_PRO.MNT_MODULE_HT, MODULE_PRO.BLN_ACTIF, MODULE_PRO.ID_ENGAGEMENT_PRO, MODULE_PRO.ID_TYPE_FORMATION, TYPE_FORMATION.ID_DISPOSITIF
+   FROM    MODULE_PRO
+     INNER JOIN TYPE_FORMATION ON MODULE_PRO.ID_TYPE_FORMATION = TYPE_FORMATION.ID_TYPE_FORMATION
+   WHERE   ID_CONTRAT_PRO = @ID_CONTRAT_PRO 
+   --AND  MODULE_PRO.ID_ENGAGEMENT_PRO IS NULL
+   AND  MODULE_PRO.BLN_ACTIF = 1
+
+
+   
+   OPEN cu_module_previsionnel
+   FETCH cu_module_previsionnel INTO
+   @ID_CONTRAT_PRO, @ID_MODULE_PRO, @ID_PERIODE, @MNT_MODULE_HT, @BLN_ACTIF, @ID_ENGAGEMENT_PRO, @ID_TYPE_FORMATION, @ID_DISPOSITIF
+   WHILE (@@fetch_status <> -1)
+   BEGIN
+
+    -- Determination de l'enveloppe a associe au module :
+    SELECT @ID_ENVELOPPE = ID_ENVELOPPE
+    FROM ENVELOPPE
+      INNER JOIN TYPE_ENVELOPPE ON ENVELOPPE.ID_TYPE_ENVELOPPE  = TYPE_ENVELOPPE.ID_TYPE_ENVELOPPE 
+    WHERE TYPE_ENVELOPPE.ID_DISPOSITIF = @ID_DISPOSITIF
+    AND  TYPE_ENVELOPPE.ID_AGENCE  = @ID_AGENCE
+    AND  TYPE_ENVELOPPE.ID_BRANCHE  = @ID_BRANCHE
+    AND  ENVELOPPE.ID_PERIODE   = @ID_PERIODE
+
+    
+    -- Recherche du mouvement budgetaire previsionnel associe aux modules 
+    set @ID_MVT_BUDGETAIRE = null
+    SELECT @ID_MVT_BUDGETAIRE = ID_MVT_BUDGETAIRE, @MNT_MVT_BUDGETAIRE = MNT_MVT_BUDGETAIRE
+    FROM MVT_BUDGETAIRE
+    WHERE ID_EVENEMENT = @ID_EVENEMENT 
+    AND  ID_MODULE_PRO = @ID_MODULE_PRO
+    AND  P_E_R   = 'P'
+    
+    
+    IF @ID_MVT_BUDGETAIRE is null
+    BEGIN
+      INSERT INTO MVT_BUDGETAIRE 
+     ( 
+     ID_TYPE_MOUVEMENT, ID_EVENEMENT, P_E_R, MNT_MVT_BUDGETAIRE, ID_PERIODE_FISC, ID_PERIODE_CPT, DAT_MVT_BUDGETAIRE,
+     ID_ADHERENT, ID_ETABLISSEMENT, ID_GROUPE, ID_DISPOSITIF, LIBL_MVT_BUDGETAIRE, ID_ENVELOPPE, ID_CONTRAT_PRO, ID_MODULE_PRO, N_R, ID_ACTIVITE)
+     SELECT 
+     ID_TYPE_MOUVEMENT = @ID_TYPE_MOUVEMENT, ID_EVENEMENT = @ID_EVENEMENT, P_E_R = @P_E_R, MNT_MVT_BUDGETAIRE = @MNT_MODULE_HT, ID_PERIODE_FISC = @ID_PERIODE, ID_PERIODE_CPT = @ID_PERIODE, DAT_MVT_BUDGETAIRE = @DAT_EVENEMENT,
+     ID_ADHERENT = @ID_ADHERENT, ID_ETABLISSEMENT = @ID_ETABLISSEMENT, ID_GROUPE = @ID_GROUPE, ID_DISPOSITIF = @ID_DISPOSITIF, LIBL_MVT_BUDGETAIRE = @LIBL_MVT_BUDGETAIRE, @ID_ENVELOPPE, ID_CONTRAT_PRO = @ID_CONTRAT_PRO, ID_MODULE_PRO = @ID_MODULE_PRO, N_R = 'N', ID_ACTIVITE = @ID_ACTIVITE
+    END
+    ELSE
+    BEGIN
+     UPDATE MVT_BUDGETAIRE 
+     SET  MNT_MVT_BUDGETAIRE = @MNT_MODULE_HT
+     WHERE ID_MVT_BUDGETAIRE = @ID_MVT_BUDGETAIRE
+    END
+
+    FETCH cu_module_previsionnel INTO
+    @ID_CONTRAT_PRO, @ID_MODULE_PRO, @ID_PERIODE, @MNT_MODULE_HT, @BLN_ACTIF, @ID_ENGAGEMENT_PRO, @ID_TYPE_FORMATION, @ID_DISPOSITIF
+   END
+   CLOSE cu_module_previsionnel
+   DEALLOCATE cu_module_previsionnel     
+  END
+
+
+ /* ********************************************************** 
+ -- Annulation d'un contrat de professionnalisation non encore engage 
+ TYPE_EVENEMENT = 'ANNCOPRO'
+  ********************************************************** */
+  IF  @COD_TYPE_EVENEMENT = 'ANNCOPRO'   
+  BEGIN
+   -- Suppression de tous les mouvements budgetaires previsionnles associes au contrat
+   DELETE FROM MVT_BUDGETAIRE 
+   WHERE ID_CONTRAT_PRO = @ID_CONTRAT_PRO
+   AND P_E_R = 'P'
+  END
+
+
+ /* ********************************************************** 
+ -- Engagement d'un contrat de professionnalisation
+ TYPE_EVENEMENT = 'ENGAGPRO'
+  ********************************************************** */
+  IF  @COD_TYPE_EVENEMENT = 'ENGAGPRO'   
+  BEGIN
+
+   DECLARE cu_module_a_engager SCROLL CURSOR FOR
+   SELECT MODULE_PRO.ID_CONTRAT_PRO, MODULE_PRO.ID_MODULE_PRO, MODULE_PRO.ID_PERIODE,  MODULE_PRO.MNT_MODULE_HT, MODULE_PRO.BLN_ACTIF, MODULE_PRO.ID_ENGAGEMENT_PRO, MODULE_PRO.ID_TYPE_FORMATION, TYPE_FORMATION.ID_DISPOSITIF
+   FROM    MODULE_PRO
+     INNER JOIN TYPE_FORMATION ON MODULE_PRO.ID_TYPE_FORMATION = TYPE_FORMATION.ID_TYPE_FORMATION
+   WHERE   MODULE_PRO.ID_ENGAGEMENT_PRO = @ID_ENGAGEMENT_PRO
+   AND  MODULE_PRO.BLN_ACTIF = 1
+
+
+   OPEN cu_module_a_engager
+   FETCH cu_module_a_engager INTO
+   @ID_CONTRAT_PRO, @ID_MODULE_PRO, @ID_PERIODE, @MNT_MODULE_HT, @BLN_ACTIF, @ID_ENGAGEMENT_PRO, @ID_TYPE_FORMATION, @ID_DISPOSITIF
+   WHILE (@@fetch_status <> -1)
+   BEGIN
+
+    -- Determination de l'enveloppe a associer au module :
+    SELECT @ID_ENVELOPPE = ID_ENVELOPPE
+    FROM ENVELOPPE
+      INNER JOIN TYPE_ENVELOPPE ON ENVELOPPE.ID_TYPE_ENVELOPPE  = TYPE_ENVELOPPE.ID_TYPE_ENVELOPPE 
+    WHERE TYPE_ENVELOPPE.ID_DISPOSITIF = @ID_DISPOSITIF
+    AND  TYPE_ENVELOPPE.ID_AGENCE  = @ID_AGENCE
+    AND  TYPE_ENVELOPPE.ID_BRANCHE  = @ID_BRANCHE
+    AND  ENVELOPPE.ID_PERIODE   = @ID_PERIODE
+
+    
+    -- Recherche du mouvement budgetaire previsionnel associe aux modules a engager
+    SET @ID_MVT_BUDGETAIRE = null
+    SELECT @ID_MVT_BUDGETAIRE = ID_MVT_BUDGETAIRE, @MNT_MVT_BUDGETAIRE = MNT_MVT_BUDGETAIRE
+    FROM MVT_BUDGETAIRE
+    WHERE ID_MODULE_PRO = @ID_MODULE_PRO
+    AND  P_E_R   = 'P'
+    
+    
+    IF @ID_MVT_BUDGETAIRE is not null
+    BEGIN
+     SELECT @ID_TYPE_MOUVEMENT = 19 --Mouvement Annulation Prévision
+     SELECT @P_E_R = 'P'     -- Prévision
+     SELECT @LIBL_MVT_BUDGETAIRE = 'Annulation prevision Contrat PRO ' + CAST(@COD_CONTRAT_PRO AS VARCHAR)
+
+      INSERT INTO MVT_BUDGETAIRE 
+     ( 
+     ID_TYPE_MOUVEMENT, ID_EVENEMENT, P_E_R, MNT_MVT_BUDGETAIRE, ID_PERIODE_FISC, ID_PERIODE_CPT, DAT_MVT_BUDGETAIRE,
+     ID_ADHERENT, ID_ETABLISSEMENT, ID_GROUPE, ID_DISPOSITIF, LIBL_MVT_BUDGETAIRE, ID_ENVELOPPE, ID_CONTRAT_PRO, ID_MODULE_PRO, N_R, ID_ACTIVITE)
+     SELECT 
+     ID_TYPE_MOUVEMENT = @ID_TYPE_MOUVEMENT, ID_EVENEMENT = @ID_EVENEMENT, P_E_R = @P_E_R, MNT_MVT_BUDGETAIRE = -@MNT_MVT_BUDGETAIRE, ID_PERIODE_FISC = @ID_PERIODE, ID_PERIODE_CPT = @ID_PERIODE, DAT_MVT_BUDGETAIRE = @DAT_EVENEMENT,
+     ID_ADHERENT = @ID_ADHERENT, ID_ETABLISSEMENT = @ID_ETABLISSEMENT, ID_GROUPE = @ID_GROUPE, ID_DISPOSITIF = @ID_DISPOSITIF, LIBL_MVT_BUDGETAIRE = @LIBL_MVT_BUDGETAIRE, @ID_ENVELOPPE, ID_CONTRAT_PRO = @ID_CONTRAT_PRO, ID_MODULE_PRO = @ID_MODULE_PRO, N_R = 'N', ID_ACTIVITE = @ID_ACTIVITE
+    END
+
+    -- On engage les montants des modules pour lesquels le BAE a ete accorde
+    SELECT @ID_TYPE_MOUVEMENT = 20 --Mouvement d'Engagement
+    SELECT @P_E_R = 'E'     -- Engagement
+    SELECT @LIBL_MVT_BUDGETAIRE = 'Engagement Contrat PRO ' + CAST(@COD_CONTRAT_PRO AS VARCHAR)
+
+    INSERT INTO MVT_BUDGETAIRE 
+    ( 
+    ID_TYPE_MOUVEMENT, ID_EVENEMENT, P_E_R, MNT_MVT_BUDGETAIRE, ID_PERIODE_FISC, ID_PERIODE_CPT, DAT_MVT_BUDGETAIRE,
+    ID_ADHERENT, ID_ETABLISSEMENT, ID_GROUPE, ID_DISPOSITIF, LIBL_MVT_BUDGETAIRE, ID_ENVELOPPE, ID_CONTRAT_PRO, ID_MODULE_PRO, N_R, ID_ACTIVITE)
+    SELECT 
+    ID_TYPE_MOUVEMENT = @ID_TYPE_MOUVEMENT, ID_EVENEMENT = @ID_EVENEMENT, P_E_R = @P_E_R, MNT_MVT_BUDGETAIRE = @MNT_MODULE_HT, ID_PERIODE_FISC = @ID_PERIODE, ID_PERIODE_CPT = @ID_PERIODE, DAT_MVT_BUDGETAIRE = @DAT_EVENEMENT,
+    ID_ADHERENT = @ID_ADHERENT, ID_ETABLISSEMENT = @ID_ETABLISSEMENT, ID_GROUPE = @ID_GROUPE, ID_DISPOSITIF = @ID_DISPOSITIF, LIBL_MVT_BUDGETAIRE = @LIBL_MVT_BUDGETAIRE, @ID_ENVELOPPE, ID_CONTRAT_PRO = @ID_CONTRAT_PRO, ID_MODULE_PRO = @ID_MODULE_PRO, N_R = 'N', ID_ACTIVITE = @ID_ACTIVITE
+
+    FETCH cu_module_a_engager INTO
+    @ID_CONTRAT_PRO, @ID_MODULE_PRO, @ID_PERIODE, @MNT_MODULE_HT, @BLN_ACTIF, @ID_ENGAGEMENT_PRO, @ID_TYPE_FORMATION, @ID_DISPOSITIF
+   END
+   CLOSE cu_module_a_engager
+   DEALLOCATE cu_module_a_engager
+      
+  END
+
+ /* ********************************************************** 
+ -- Annulation d'un module engage associe a un contrat de professionnalisation engage 
+ TYPE_EVENEMENT = 'DESMOPRO'
+ ********************************************************** */
+ IF  @COD_TYPE_EVENEMENT = 'DESMOPRO'   -- Annulation d'un module engage associe a un contrat de professionnalisation engage 
+  BEGIN
+
+   SELECT @ID_CONTRAT_PRO = MODULE_PRO.ID_CONTRAT_PRO, @ID_PERIODE = MODULE_PRO.ID_PERIODE,  @MNT_MODULE_HT = MODULE_PRO.MNT_MODULE_HT, 
+     @BLN_ACTIF = MODULE_PRO.BLN_ACTIF, @ID_ENGAGEMENT_PRO = MODULE_PRO.ID_ENGAGEMENT_PRO, @ID_TYPE_FORMATION = MODULE_PRO.ID_TYPE_FORMATION, 
+     @ID_DISPOSITIF = TYPE_FORMATION.ID_DISPOSITIF
+   FROM    MODULE_PRO
+     INNER JOIN TYPE_FORMATION ON MODULE_PRO.ID_TYPE_FORMATION = TYPE_FORMATION.ID_TYPE_FORMATION
+   WHERE   MODULE_PRO.ID_MODULE_PRO = @ID_MODULE_PRO 
+
+   -- Determination de l'enveloppe a associer au module :
+   SELECT @ID_ENVELOPPE = ID_ENVELOPPE
+   FROM ENVELOPPE
+     INNER JOIN TYPE_ENVELOPPE ON ENVELOPPE.ID_TYPE_ENVELOPPE  = TYPE_ENVELOPPE.ID_TYPE_ENVELOPPE 
+   WHERE TYPE_ENVELOPPE.ID_DISPOSITIF = @ID_DISPOSITIF
+   AND  TYPE_ENVELOPPE.ID_AGENCE  = @ID_AGENCE
+   AND  TYPE_ENVELOPPE.ID_BRANCHE  = @ID_BRANCHE
+   AND  ENVELOPPE.ID_PERIODE   = @ID_PERIODE
+   
+   -- Recherche du mouvement budgetaire previsionnel associe au module a desengager
+   SET @MNT_MVT_BUDGETAIRE = 0
+   SELECT @MNT_MVT_BUDGETAIRE = ISNULL(MNT_MVT_BUDGETAIRE, 0)
+   FROM MVT_BUDGETAIRE
+   WHERE ID_MODULE_PRO = @ID_MODULE_PRO
+   AND  P_E_R   = 'E'
+   
+   
+   IF @MNT_MVT_BUDGETAIRE > 0
+   BEGIN
+    -- Diminution de l'engagement a hauteur du montant du module desengage
+    SELECT @P_E_R = 'E'     -- Prévision
+    SELECT @ID_TYPE_MOUVEMENT = 21 --Mouvement Annulation ENgagement
+    SELECT @LIBL_MVT_BUDGETAIRE = 'Desactivation module pro ' + CAST(@COD_MODULE_PRO AS VARCHAR)
+
+    INSERT INTO MVT_BUDGETAIRE 
+    ( 
+    ID_TYPE_MOUVEMENT, ID_EVENEMENT, P_E_R, MNT_MVT_BUDGETAIRE, ID_PERIODE_FISC, ID_PERIODE_CPT, DAT_MVT_BUDGETAIRE,
+    ID_ADHERENT, ID_ETABLISSEMENT, ID_GROUPE, ID_DISPOSITIF, LIBL_MVT_BUDGETAIRE, ID_ENVELOPPE, ID_CONTRAT_PRO, ID_MODULE_PRO, N_R, ID_ACTIVITE)
+    SELECT 
+    ID_TYPE_MOUVEMENT = @ID_TYPE_MOUVEMENT, ID_EVENEMENT = @ID_EVENEMENT, P_E_R = @P_E_R, MNT_MVT_BUDGETAIRE = -@MNT_MVT_BUDGETAIRE, ID_PERIODE_FISC = @ID_PERIODE, ID_PERIODE_CPT = @ID_PERIODE, DAT_MVT_BUDGETAIRE = @DAT_EVENEMENT,
+    ID_ADHERENT = @ID_ADHERENT, ID_ETABLISSEMENT = @ID_ETABLISSEMENT, ID_GROUPE = @ID_GROUPE, ID_DISPOSITIF = @ID_DISPOSITIF, LIBL_MVT_BUDGETAIRE = @LIBL_MVT_BUDGETAIRE, @ID_ENVELOPPE, ID_CONTRAT_PRO = @ID_CONTRAT_PRO, ID_MODULE_PRO = @ID_MODULE_PRO, N_R = 'N', ID_ACTIVITE = @ID_ACTIVITE
+   END     
+  END
+
+ /* ********************************************************** 
+ -- Validation du reglement d'un contrat professionnalisation
+ -- TYPE_EVENEMENT = 'REGLTPRO'
+
+ -- DCL Comment : a supprimer à J+1 de la livraison du trigger reglement_pro__validation
+ ********************************************************** */
+  IF @COD_TYPE_EVENEMENT = 'REGLTPRO'   -- Validation du reglement d'un contrat professionnalisation
+  BEGIN
+    SELECT  @ID_CONTRAT_PRO = MODULE_PRO.ID_CONTRAT_PRO, @ID_PERIODE = MODULE_PRO.ID_PERIODE,  @MNT_ATTESTE_HT = SESSION_PRO.MNT_ATTESTE_HT, 
+      @ID_ENGAGEMENT_PRO = MODULE_PRO.ID_ENGAGEMENT_PRO, @ID_TYPE_FORMATION = MODULE_PRO.ID_TYPE_FORMATION, 
+      @ID_DISPOSITIF = TYPE_FORMATION.ID_DISPOSITIF, @ID_REGLEMENT_PRO = ISNULL(SESSION_PRO.ID_REGLEMENT_PRO_OF, SESSION_PRO.ID_REGLEMENT_PRO_ADH)
+    FROM    SESSION_PRO
+      INNER JOIN MODULE_PRO  ON MODULE_PRO.ID_MODULE_PRO = SESSION_PRO.ID_MODULE_PRO 
+      INNER JOIN TYPE_FORMATION ON MODULE_PRO.ID_TYPE_FORMATION = TYPE_FORMATION.ID_TYPE_FORMATION
+    WHERE   SESSION_PRO.ID_SESSION_PRO = @ID_SESSION_PRO
+
+    -- Determination de l'enveloppe a associer au module :
+    SELECT @ID_ENVELOPPE = ID_ENVELOPPE
+    FROM ENVELOPPE
+      INNER JOIN TYPE_ENVELOPPE ON ENVELOPPE.ID_TYPE_ENVELOPPE  = TYPE_ENVELOPPE.ID_TYPE_ENVELOPPE 
+    WHERE TYPE_ENVELOPPE.ID_DISPOSITIF = @ID_DISPOSITIF
+    AND  TYPE_ENVELOPPE.ID_AGENCE  = @ID_AGENCE
+    AND  TYPE_ENVELOPPE.ID_BRANCHE  = @ID_BRANCHE
+    AND  ENVELOPPE.ID_PERIODE   = @ID_PERIODE
+
+    -- Recherche de la date de reglement
+    SELECT @DAT_MVT = DAT_VALID_REGLEMENT
+    FROM REGLEMENT_PRO
+    WHERE ID_REGLEMENT_PRO = @ID_REGLEMENT_PRO 
+       
+    -- Recherche du mouvement budgetaire d'engagement associe au module a regler
+    SET @MNT_MVT_BUDGETAIRE = 0
+    SELECT @MNT_MVT_BUDGETAIRE = ISNULL(SUM(MNT_MVT_BUDGETAIRE), 0)
+    FROM MVT_BUDGETAIRE
+    WHERE ID_MODULE_PRO = @ID_MODULE_PRO
+    AND  ID_ENVELOPPE = @ID_ENVELOPPE
+    AND  P_E_R   = 'E'
+    
+    
+    IF @MNT_MVT_BUDGETAIRE > 0
+    BEGIN
+     -- Diminution de l'engagement a hauteur du montant du module regle dans la limite de l'engagement initial
+
+     IF @MNT_ATTESTE_HT < @MNT_MVT_BUDGETAIRE
+     BEGIN
+      SET @MNT_MVT_BUDGETAIRE = @MNT_ATTESTE_HT 
+     END
+     
+     SELECT @P_E_R = 'E'     -- Prévision
+     SELECT @ID_TYPE_MOUVEMENT = 21 --Mouvement Annulation Prévision
+     SELECT @LIBL_MVT_BUDGETAIRE = 'Annul. engagement suite regl module pro ' + CAST(@COD_MODULE_PRO AS VARCHAR)
+
+      INSERT INTO MVT_BUDGETAIRE 
+     ( 
+     ID_TYPE_MOUVEMENT, ID_EVENEMENT, P_E_R, MNT_MVT_BUDGETAIRE, 
+     ID_PERIODE_FISC, ID_PERIODE_CPT, DAT_MVT_BUDGETAIRE,
+     ID_ADHERENT, ID_ETABLISSEMENT, ID_GROUPE, ID_DISPOSITIF, LIBL_MVT_BUDGETAIRE, 
+     ID_ENVELOPPE, ID_CONTRAT_PRO, ID_MODULE_PRO, ID_SESSION_PRO, N_R, ID_ACTIVITE)
+     SELECT 
+     ID_TYPE_MOUVEMENT = @ID_TYPE_MOUVEMENT, ID_EVENEMENT = @ID_EVENEMENT, P_E_R = @P_E_R, MNT_MVT_BUDGETAIRE = -@MNT_MVT_BUDGETAIRE, 
+     ID_PERIODE_FISC = @ID_PERIODE, ID_PERIODE_CPT = @ID_PERIODE, DAT_MVT_BUDGETAIRE = @DAT_MVT,
+     ID_ADHERENT = @ID_ADHERENT, ID_ETABLISSEMENT = @ID_ETABLISSEMENT, ID_GROUPE = @ID_GROUPE, ID_DISPOSITIF = @ID_DISPOSITIF, LIBL_MVT_BUDGETAIRE = @LIBL_MVT_BUDGETAIRE, 
+     @ID_ENVELOPPE, ID_CONTRAT_PRO = @ID_CONTRAT_PRO, ID_MODULE_PRO = @ID_MODULE_PRO, ID_SESSION_PRO = @ID_SESSION_PRO, N_R = 'N', ID_ACTIVITE = @ID_ACTIVITE
+    END     
+
+    -- On regle les montants attestes des differentes sessions reglees
+    SELECT @ID_TYPE_MOUVEMENT = 22 --Mouvement de Reglement
+    SELECT @P_E_R = 'R'     -- Reglement
+    SELECT @LIBL_MVT_BUDGETAIRE = 'Reglement Module PRO ' + CAST(@COD_MODULE_PRO AS VARCHAR)
+
+    INSERT INTO MVT_BUDGETAIRE 
+    ( 
+    ID_TYPE_MOUVEMENT, ID_EVENEMENT, P_E_R, MNT_MVT_BUDGETAIRE, 
+    ID_PERIODE_FISC, ID_PERIODE_CPT, DAT_MVT_BUDGETAIRE,
+    ID_ADHERENT, ID_ETABLISSEMENT, ID_GROUPE, ID_DISPOSITIF, LIBL_MVT_BUDGETAIRE, 
+    ID_ENVELOPPE, ID_CONTRAT_PRO, ID_MODULE_PRO, ID_SESSION_PRO, N_R, ID_ACTIVITE)
+    SELECT 
+    ID_TYPE_MOUVEMENT = @ID_TYPE_MOUVEMENT, ID_EVENEMENT = @ID_EVENEMENT, P_E_R = @P_E_R, MNT_MVT_BUDGETAIRE = @MNT_ATTESTE_HT, 
+    ID_PERIODE_FISC = @ID_PERIODE, ID_PERIODE_CPT = @ID_PERIODE, DAT_MVT_BUDGETAIRE = @DAT_MVT,
+    ID_ADHERENT = @ID_ADHERENT, ID_ETABLISSEMENT = @ID_ETABLISSEMENT, ID_GROUPE = @ID_GROUPE, ID_DISPOSITIF = @ID_DISPOSITIF, LIBL_MVT_BUDGETAIRE = @LIBL_MVT_BUDGETAIRE, 
+    @ID_ENVELOPPE, ID_CONTRAT_PRO = @ID_CONTRAT_PRO, ID_MODULE_PRO = @ID_MODULE_PRO, ID_SESSION_PRO = @ID_SESSION_PRO, N_R = 'N', ID_ACTIVITE = @ID_ACTIVITE
+   
+  END
+ /* separation ADH / OF : ne devrait plus rester beaucoup de cas REGLTPRO*/ 
+  IF @COD_TYPE_EVENEMENT = 'REGLT_AD' -- Validation du reglement ADH d'un contrat professionnalisation
+  BEGIN
+    SELECT  @ID_CONTRAT_PRO = MODULE_PRO.ID_CONTRAT_PRO, @ID_PERIODE = MODULE_PRO.ID_PERIODE,  
+      @MNT_VERSE_HT_ADH = SESSION_PRO.mnt_verse_ht_adh,
+      @ID_ENGAGEMENT_PRO = MODULE_PRO.ID_ENGAGEMENT_PRO, @ID_TYPE_FORMATION = MODULE_PRO.ID_TYPE_FORMATION, 
+      @ID_DISPOSITIF = TYPE_FORMATION.ID_DISPOSITIF, @ID_REGLEMENT_PRO_ADH = SESSION_PRO.ID_REGLEMENT_PRO_ADH
+    FROM SESSION_PRO
+      INNER JOIN MODULE_PRO  ON MODULE_PRO.ID_MODULE_PRO = SESSION_PRO.ID_MODULE_PRO 
+      INNER JOIN TYPE_FORMATION ON MODULE_PRO.ID_TYPE_FORMATION = TYPE_FORMATION.ID_TYPE_FORMATION
+    WHERE   SESSION_PRO.ID_SESSION_PRO = @ID_SESSION_PRO
+
+    -- Determination de l'enveloppe a associer au module :
+    SELECT @ID_ENVELOPPE = ID_ENVELOPPE
+    FROM ENVELOPPE
+      INNER JOIN TYPE_ENVELOPPE ON ENVELOPPE.ID_TYPE_ENVELOPPE  = TYPE_ENVELOPPE.ID_TYPE_ENVELOPPE 
+    WHERE TYPE_ENVELOPPE.ID_DISPOSITIF = @ID_DISPOSITIF
+    AND  TYPE_ENVELOPPE.ID_AGENCE  = @ID_AGENCE
+    AND  TYPE_ENVELOPPE.ID_BRANCHE  = @ID_BRANCHE
+    AND  ENVELOPPE.ID_PERIODE   = @ID_PERIODE
+
+    -- Recherche de la date de reglement
+    SELECT @DAT_MVT = DAT_VALID_REGLEMENT
+    FROM REGLEMENT_PRO
+    WHERE ID_REGLEMENT_PRO = @ID_REGLEMENT_PRO_ADH 
+       
+    -- Recherche du mouvement budgetaire d'engagement associe au module a regler
+    SET @MNT_MVT_BUDGETAIRE = 0
+    SELECT @MNT_MVT_BUDGETAIRE = ISNULL(SUM(MNT_MVT_BUDGETAIRE), 0)
+    FROM MVT_BUDGETAIRE
+    WHERE ID_MODULE_PRO = @ID_MODULE_PRO
+    AND  ID_ENVELOPPE = @ID_ENVELOPPE
+    AND  P_E_R   = 'E'
+    
+ -- mvt_budgetaire OF+ADH?!   
+    IF @MNT_MVT_BUDGETAIRE > 0
+    BEGIN
+     -- Diminution de l'engagement a hauteur du montant du module regle dans la limite de l'engagement initial
+     IF @MNT_VERSE_HT_ADH  < @MNT_MVT_BUDGETAIRE
+     BEGIN
+      SET @MNT_MVT_BUDGETAIRE = @MNT_VERSE_HT_ADH 
+     END
+     
+     SELECT @P_E_R = 'E'     -- Prévision
+     SELECT @ID_TYPE_MOUVEMENT = 21 --Mouvement Annulation Prévision
+     SELECT @LIBL_MVT_BUDGETAIRE = 'Annul. engag. suite regl module pro ADH ' + CAST(@COD_MODULE_PRO AS VARCHAR)
+
+      INSERT INTO MVT_BUDGETAIRE 
+     ( 
+     ID_TYPE_MOUVEMENT, ID_EVENEMENT, P_E_R, MNT_MVT_BUDGETAIRE, 
+     ID_PERIODE_FISC, ID_PERIODE_CPT, DAT_MVT_BUDGETAIRE,
+     ID_ADHERENT, ID_ETABLISSEMENT, ID_GROUPE, ID_DISPOSITIF, LIBL_MVT_BUDGETAIRE, 
+     ID_ENVELOPPE, ID_CONTRAT_PRO, ID_MODULE_PRO, ID_SESSION_PRO, N_R, ID_ACTIVITE)
+     SELECT 
+     ID_TYPE_MOUVEMENT = @ID_TYPE_MOUVEMENT, ID_EVENEMENT = @ID_EVENEMENT, P_E_R = @P_E_R, 
+     MNT_MVT_BUDGETAIRE = -@MNT_MVT_BUDGETAIRE, 
+     ID_PERIODE_FISC = @ID_PERIODE, ID_PERIODE_CPT = @ID_PERIODE, DAT_MVT_BUDGETAIRE = @DAT_MVT,
+     ID_ADHERENT = @ID_ADHERENT, ID_ETABLISSEMENT = @ID_ETABLISSEMENT, ID_GROUPE = @ID_GROUPE, ID_DISPOSITIF = @ID_DISPOSITIF, LIBL_MVT_BUDGETAIRE = @LIBL_MVT_BUDGETAIRE, 
+     @ID_ENVELOPPE, ID_CONTRAT_PRO = @ID_CONTRAT_PRO, ID_MODULE_PRO = @ID_MODULE_PRO, ID_SESSION_PRO = @ID_SESSION_PRO, N_R = 'N', ID_ACTIVITE = @ID_ACTIVITE
+    END     
+
+    -- On regle les montants attestes des differentes sessions reglees
+    SELECT @ID_TYPE_MOUVEMENT = 22 --Mouvement de Reglement
+    SELECT @P_E_R = 'R'     -- Reglement
+    SELECT @LIBL_MVT_BUDGETAIRE = 'Reglement Module PRO ADH ' + CAST(@COD_MODULE_PRO AS VARCHAR)
+
+    INSERT INTO MVT_BUDGETAIRE 
+    ( 
+    ID_TYPE_MOUVEMENT, ID_EVENEMENT, P_E_R, MNT_MVT_BUDGETAIRE, 
+    ID_PERIODE_FISC, ID_PERIODE_CPT, DAT_MVT_BUDGETAIRE,
+    ID_ADHERENT, ID_ETABLISSEMENT, ID_GROUPE, ID_DISPOSITIF, LIBL_MVT_BUDGETAIRE, 
+    ID_ENVELOPPE, ID_CONTRAT_PRO, ID_MODULE_PRO, ID_SESSION_PRO, N_R, ID_ACTIVITE)
+    SELECT 
+    ID_TYPE_MOUVEMENT = @ID_TYPE_MOUVEMENT, ID_EVENEMENT = @ID_EVENEMENT, P_E_R = @P_E_R, 
+    MNT_MVT_BUDGETAIRE = @MNT_VERSE_HT_ADH, 
+    ID_PERIODE_FISC = @ID_PERIODE, ID_PERIODE_CPT = @ID_PERIODE, DAT_MVT_BUDGETAIRE = @DAT_MVT,
+    ID_ADHERENT = @ID_ADHERENT, ID_ETABLISSEMENT = @ID_ETABLISSEMENT, ID_GROUPE = @ID_GROUPE, ID_DISPOSITIF = @ID_DISPOSITIF, LIBL_MVT_BUDGETAIRE = @LIBL_MVT_BUDGETAIRE, 
+    @ID_ENVELOPPE, ID_CONTRAT_PRO = @ID_CONTRAT_PRO, ID_MODULE_PRO = @ID_MODULE_PRO, ID_SESSION_PRO = @ID_SESSION_PRO, N_R = 'N', ID_ACTIVITE = @ID_ACTIVITE
+   
+  END
+ -- OF
+  IF @COD_TYPE_EVENEMENT = 'REGLT_OF'   -- Validation du reglement d'un contrat professionnalisation
+  BEGIN
+    SELECT  @ID_CONTRAT_PRO = MODULE_PRO.ID_CONTRAT_PRO, @ID_PERIODE = MODULE_PRO.ID_PERIODE,  
+      @MNT_VERSE_HT_OF = SESSION_PRO.MNT_verse_HT_OF, 
+      @ID_ENGAGEMENT_PRO = MODULE_PRO.ID_ENGAGEMENT_PRO, @ID_TYPE_FORMATION = MODULE_PRO.ID_TYPE_FORMATION, 
+      @ID_DISPOSITIF = TYPE_FORMATION.ID_DISPOSITIF, @ID_REGLEMENT_PRO_OF = SESSION_PRO.ID_REGLEMENT_PRO_OF
+    FROM SESSION_PRO
+      INNER JOIN MODULE_PRO  ON MODULE_PRO.ID_MODULE_PRO = SESSION_PRO.ID_MODULE_PRO 
+      INNER JOIN TYPE_FORMATION ON MODULE_PRO.ID_TYPE_FORMATION = TYPE_FORMATION.ID_TYPE_FORMATION
+    WHERE   SESSION_PRO.ID_SESSION_PRO = @ID_SESSION_PRO
+
+    -- Determination de l'enveloppe a associer au module :
+    SELECT @ID_ENVELOPPE = ID_ENVELOPPE
+    FROM ENVELOPPE
+      INNER JOIN TYPE_ENVELOPPE ON ENVELOPPE.ID_TYPE_ENVELOPPE  = TYPE_ENVELOPPE.ID_TYPE_ENVELOPPE 
+    WHERE TYPE_ENVELOPPE.ID_DISPOSITIF = @ID_DISPOSITIF
+    AND  TYPE_ENVELOPPE.ID_AGENCE  = @ID_AGENCE
+    AND  TYPE_ENVELOPPE.ID_BRANCHE  = @ID_BRANCHE
+    AND  ENVELOPPE.ID_PERIODE   = @ID_PERIODE
+
+    -- Recherche de la date de reglement
+    SELECT @DAT_MVT = DAT_VALID_REGLEMENT
+    FROM REGLEMENT_PRO
+    WHERE ID_REGLEMENT_PRO = @ID_REGLEMENT_PRO_OF
+       
+    -- Recherche du mouvement budgetaire d'engagement associe au module a regler
+    SET @MNT_MVT_BUDGETAIRE = 0
+    SELECT @MNT_MVT_BUDGETAIRE = ISNULL(SUM(MNT_MVT_BUDGETAIRE), 0)
+    FROM MVT_BUDGETAIRE
+    WHERE ID_MODULE_PRO = @ID_MODULE_PRO
+    AND  ID_ENVELOPPE = @ID_ENVELOPPE
+    AND  P_E_R   = 'E'
+    
+    
+    IF @MNT_MVT_BUDGETAIRE > 0
+    BEGIN
+     -- Diminution de l'engagement a hauteur du montant du module regle dans la limite de l'engagement initial
+
+     If @MNT_VERSE_HT_OF < @MNT_MVT_BUDGETAIRE
+     BEGIN
+      SET @MNT_MVT_BUDGETAIRE = @MNT_VERSE_HT_OF 
+     END
+     
+     SELECT @P_E_R = 'E'     -- Prévision
+     SELECT @ID_TYPE_MOUVEMENT = 21 --Mouvement Annulation Prévision
+     SELECT @LIBL_MVT_BUDGETAIRE = 'Annul. engag. suite regl module pro OF ' + CAST(@COD_MODULE_PRO AS VARCHAR)
+
+      INSERT INTO MVT_BUDGETAIRE 
+     ( 
+     ID_TYPE_MOUVEMENT, ID_EVENEMENT, P_E_R, MNT_MVT_BUDGETAIRE, 
+     ID_PERIODE_FISC, ID_PERIODE_CPT, DAT_MVT_BUDGETAIRE,
+     ID_ADHERENT, ID_ETABLISSEMENT, ID_GROUPE, ID_DISPOSITIF, LIBL_MVT_BUDGETAIRE, 
+     ID_ENVELOPPE, ID_CONTRAT_PRO, ID_MODULE_PRO, ID_SESSION_PRO, N_R, ID_ACTIVITE)
+     SELECT 
+     ID_TYPE_MOUVEMENT = @ID_TYPE_MOUVEMENT, ID_EVENEMENT = @ID_EVENEMENT, P_E_R = @P_E_R,
+     MNT_MVT_BUDGETAIRE = -@MNT_MVT_BUDGETAIRE,
+     ID_PERIODE_FISC = @ID_PERIODE, ID_PERIODE_CPT = @ID_PERIODE, DAT_MVT_BUDGETAIRE = @DAT_MVT,
+     ID_ADHERENT = @ID_ADHERENT, ID_ETABLISSEMENT = @ID_ETABLISSEMENT, ID_GROUPE = @ID_GROUPE, ID_DISPOSITIF = @ID_DISPOSITIF, LIBL_MVT_BUDGETAIRE = @LIBL_MVT_BUDGETAIRE, 
+     @ID_ENVELOPPE, ID_CONTRAT_PRO = @ID_CONTRAT_PRO, ID_MODULE_PRO = @ID_MODULE_PRO, ID_SESSION_PRO = @ID_SESSION_PRO, N_R = 'N', ID_ACTIVITE = @ID_ACTIVITE
+    END     
+
+    -- On regle les montants attestes des differentes sessions reglees
+    SELECT @ID_TYPE_MOUVEMENT = 22 --Mouvement de Reglement
+    SELECT @P_E_R = 'R'     -- Reglement
+    SELECT @LIBL_MVT_BUDGETAIRE = 'Reglement Module PRO OF ' + CAST(@COD_MODULE_PRO AS VARCHAR)
+
+    INSERT INTO MVT_BUDGETAIRE 
+    ( 
+    ID_TYPE_MOUVEMENT, ID_EVENEMENT, P_E_R, MNT_MVT_BUDGETAIRE, 
+    ID_PERIODE_FISC, ID_PERIODE_CPT, DAT_MVT_BUDGETAIRE,
+    ID_ADHERENT, ID_ETABLISSEMENT, ID_GROUPE, ID_DISPOSITIF, LIBL_MVT_BUDGETAIRE, 
+    ID_ENVELOPPE, ID_CONTRAT_PRO, ID_MODULE_PRO, ID_SESSION_PRO, N_R, ID_ACTIVITE)
+    SELECT 
+    ID_TYPE_MOUVEMENT = @ID_TYPE_MOUVEMENT, ID_EVENEMENT = @ID_EVENEMENT, P_E_R = @P_E_R, 
+    MNT_MVT_BUDGETAIRE =@MNT_VERSE_HT_OF,
+    ID_PERIODE_FISC = @ID_PERIODE, ID_PERIODE_CPT = @ID_PERIODE, DAT_MVT_BUDGETAIRE = @DAT_MVT,
+    ID_ADHERENT = @ID_ADHERENT, ID_ETABLISSEMENT = @ID_ETABLISSEMENT, ID_GROUPE = @ID_GROUPE, ID_DISPOSITIF = @ID_DISPOSITIF, LIBL_MVT_BUDGETAIRE = @LIBL_MVT_BUDGETAIRE, 
+    @ID_ENVELOPPE, ID_CONTRAT_PRO = @ID_CONTRAT_PRO, ID_MODULE_PRO = @ID_MODULE_PRO, ID_SESSION_PRO = @ID_SESSION_PRO, N_R = 'N', ID_ACTIVITE = @ID_ACTIVITE
+   END
+
+ /* ********************************************************** 
+ -- Cloture d'un contrat de pro
+ -- TYPE_EVENEMENT = 'CLOT_PRO'
+ ********************************************************** */
+  IF  @COD_TYPE_EVENEMENT = 'CLOT_PRO'   -- Cloture d'un contrat de pro
+  BEGIN
+   
+   -- Recherche des reliquats de previsionnel et d'engagement sur le contrat a cloturer
+   DECLARE cu_contrat_a_cloturer  CURSOR FOR
+   SELECT ID_ENVELOPPE, ID_MODULE_PRO, ID_DISPOSITIF, ID_PERIODE_FISC, P_E_R, ISNULL(SUM(MNT_MVT_BUDGETAIRE), 0)
+   FROM MVT_BUDGETAIRE
+   WHERE P_E_R != 'R'
+   AND  ID_CONTRAT_PRO = @ID_CONTRAT_PRO 
+   GROUP BY ID_ENVELOPPE, ID_MODULE_PRO, ID_DISPOSITIF, ID_PERIODE_FISC, P_E_R
+   HAVING ABS(ISNULL(SUM(MNT_MVT_BUDGETAIRE), 0)) > 0.01
+   
+   declare @BLN_REPRISE_ADHOC tinyint
+   select @BLN_REPRISE_ADHOC= BLN_REPRISE_ADHOC 
+   from CONTRAT_PRO  
+   where ID_CONTRAT_PRO = @ID_CONTRAT_PRO 
+   OPEN cu_contrat_a_cloturer
+   FETCH cu_contrat_a_cloturer INTO 
+    @ID_ENVELOPPE, @ID_MODULE_PRO, @ID_DISPOSITIF, @ID_PERIODE, @P_E_R, @MNT_MVT_BUDGETAIRE
+
+   WHILE (@@fetch_status <> -1)
+   BEGIN
+    
+     if @BLN_REPRISE_ADHOC = 1
+     set @P_E_R = 'E'
+    IF @P_E_R = 'P'
+    BEGIN
+     SELECT @ID_TYPE_MOUVEMENT = 19 --Mouvement Annulation Prévision
+     SELECT @LIBL_MVT_BUDGETAIRE = 'Cloture Contrat PRO ' + CAST(@COD_CONTRAT_PRO AS VARCHAR)
+    END
+    IF @P_E_R = 'E'
+    BEGIN
+     SELECT @ID_TYPE_MOUVEMENT = 21 --Mouvement Annulation Engagement
+     SELECT @LIBL_MVT_BUDGETAIRE = 'Cloture Contrat PRO ' + CAST(@COD_CONTRAT_PRO AS VARCHAR)
+    END
+
+    IF @ID_TYPE_MOUVEMENT IS NOT NULL
+    BEGIN
+     INSERT INTO MVT_BUDGETAIRE 
+     ( 
+     ID_TYPE_MOUVEMENT, ID_EVENEMENT, P_E_R, MNT_MVT_BUDGETAIRE, 
+     ID_PERIODE_FISC, ID_PERIODE_CPT, 
+     DAT_MVT_BUDGETAIRE,ID_ADHERENT, ID_ETABLISSEMENT, ID_GROUPE, ID_DISPOSITIF, 
+     LIBL_MVT_BUDGETAIRE, ID_ENVELOPPE, ID_CONTRAT_PRO, ID_MODULE_PRO, N_R, ID_ACTIVITE)
+     SELECT 
+     ID_TYPE_MOUVEMENT = @ID_TYPE_MOUVEMENT, ID_EVENEMENT = @ID_EVENEMENT, P_E_R = @P_E_R, MNT_MVT_BUDGETAIRE = -@MNT_MVT_BUDGETAIRE, 
+     ID_PERIODE_FISC = @ID_PERIODE, ID_PERIODE_CPT = @ID_PERIODE, 
+     DAT_MVT_BUDGETAIRE = @DAT_CLOTURE, ID_ADHERENT = @ID_ADHERENT, ID_ETABLISSEMENT = @ID_ETABLISSEMENT, ID_GROUPE = @ID_GROUPE, ID_DISPOSITIF = @ID_DISPOSITIF, 
+     LIBL_MVT_BUDGETAIRE = @LIBL_MVT_BUDGETAIRE, @ID_ENVELOPPE, ID_CONTRAT_PRO = @ID_CONTRAT_PRO, ID_MODULE_PRO = @ID_MODULE_PRO, N_R = 'N', ID_ACTIVITE = @ID_ACTIVITE
+    END
+
+    FETCH cu_contrat_a_cloturer INTO 
+    @ID_ENVELOPPE, @ID_MODULE_PRO, @ID_DISPOSITIF, @ID_PERIODE, @P_E_R, @MNT_MVT_BUDGETAIRE
+   END
+
+
+   CLOSE cu_contrat_a_cloturer
+   DEALLOCATE cu_contrat_a_cloturer
+
+
+  END
+
+ /* ********************************************************** 
+ -- MBT le 12/03/2010 EVOL 12271
+ -- Cloture d'un module pro
+ -- TYPE_EVENEMENT = 'CLOMOPRO'
+ ********************************************************** */
+  IF  @COD_TYPE_EVENEMENT = 'CLOMOPRO'   -- Cloture d'un module pro
+  BEGIN
+   
+   DECLARE @DAT_CLOTURE_MODULE DATETIME
+
+   SELECT @DAT_CLOTURE_MODULE = DAT_CLOTURE FROM MODULE_PRO
+   WHERE ID_MODULE_PRO = @ID_MODULE_PRO
+
+   -- Recherche des reliquats de previsionnel et d'engagement sur le module à clôturer
+   DECLARE cu_module_a_cloturer  CURSOR FOR
+   SELECT ID_ENVELOPPE, ID_MODULE_PRO, ID_DISPOSITIF, ID_PERIODE_FISC, P_E_R, ISNULL(SUM(MNT_MVT_BUDGETAIRE), 0)
+   FROM MVT_BUDGETAIRE
+   WHERE P_E_R != 'R'
+   AND  ID_CONTRAT_PRO = @ID_CONTRAT_PRO 
+   -- 20101103 ajout ASD : restriction au module_pro
+   AND  ID_MODULE_PRO = @ID_MODULE_PRO 
+   GROUP BY ID_ENVELOPPE, ID_MODULE_PRO, ID_DISPOSITIF, ID_PERIODE_FISC, P_E_R
+
+   OPEN cu_module_a_cloturer
+   FETCH cu_module_a_cloturer INTO 
+    @ID_ENVELOPPE, @ID_MODULE_PRO, @ID_DISPOSITIF, @ID_PERIODE, @P_E_R, @MNT_MVT_BUDGETAIRE
+
+   WHILE (@@fetch_status <> -1)
+   BEGIN
+    
+    
+    SELECT @ID_TYPE_MOUVEMENT = 21 --Mouvement Annulation Engagement
+    SELECT @LIBL_MVT_BUDGETAIRE = 'Clôture Module PRO ' + CAST(@COD_MODULE_PRO AS VARCHAR)
+
+     INSERT INTO MVT_BUDGETAIRE 
+     ( 
+     ID_TYPE_MOUVEMENT, ID_EVENEMENT, P_E_R, MNT_MVT_BUDGETAIRE, 
+     ID_PERIODE_FISC, DAT_MVT_BUDGETAIRE, ID_PERIODE_CPT, 
+     ID_ADHERENT, ID_ETABLISSEMENT, ID_DISPOSITIF, 
+     LIBL_MVT_BUDGETAIRE, ID_ENVELOPPE, ID_CONTRAT_PRO, 
+     ID_MODULE_PRO, ID_SESSION_PRO, ID_GROUPE)
+     VALUES
+     (
+     @ID_TYPE_MOUVEMENT, @ID_EVENEMENT, @P_E_R, -@MNT_MVT_BUDGETAIRE, 
+     @ID_PERIODE, @DAT_CLOTURE_MODULE, @ID_PERIODE, 
+     @ID_ADHERENT, @ID_ETABLISSEMENT, @ID_DISPOSITIF, 
+     @LIBL_MVT_BUDGETAIRE, @ID_ENVELOPPE, @ID_CONTRAT_PRO, 
+     @ID_MODULE_PRO, @ID_SESSION_PRO, @ID_GROUPE) 
+
+    FETCH cu_module_a_cloturer INTO 
+    @ID_ENVELOPPE, @ID_MODULE_PRO, @ID_DISPOSITIF, @ID_PERIODE, @P_E_R, @MNT_MVT_BUDGETAIRE
+   END
+   CLOSE cu_module_a_cloturer
+   DEALLOCATE cu_module_a_cloturer
+  END
+  FETCH cu_evenement_contrat_pro INTO @ID_EVENEMENT, @ID_TYPE_EVENEMENT, @DAT_EVENEMENT, @ID_CONTRAT_PRO, @ID_MODULE_PRO, @ID_ENGAGEMENT_PRO, @ID_SESSION_PRO
+ END
+
+ CLOSE cu_evenement_contrat_pro
+ DEALLOCATE cu_evenement_contrat_pro
+
+
+ END
+
 GO
  -- =============================================
          -- Author		:	SAFIYULLA

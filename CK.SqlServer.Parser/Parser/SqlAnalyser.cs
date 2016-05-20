@@ -112,6 +112,7 @@ namespace CK.SqlServer.Parser
 
         public bool Reset( string text )
         {
+            _statementLevel = 0;
             R.Reset( text );
             return R.MoveNext();
         }
