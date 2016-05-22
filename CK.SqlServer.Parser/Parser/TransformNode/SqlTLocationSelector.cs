@@ -17,25 +17,25 @@ namespace CK.SqlServer.Parser
             SqlTokenLiteralInteger,
             ISqlNode> _content;
 
-        public SqlTLocationSelector( SqlTokenIdentifier firtOrLastOrSingle, SqlTokenTerminal plusOrMinusT, SqlTokenLiteralInteger offset, ISqlNode rangeOrString )
+        public SqlTLocationSelector( SqlTokenIdentifier firtOrLastOrSingleOrAll, SqlTokenTerminal plusOrMinusT, SqlTokenLiteralInteger offset, ISqlNode rangeOrString )
             : base( null, null )
         {
-            _content = new SNode<SqlTokenIdentifier, SqlTokenTerminal, SqlTokenLiteralInteger, ISqlNode>( firtOrLastOrSingle, plusOrMinusT, offset, rangeOrString );
+            _content = new SNode<SqlTokenIdentifier, SqlTokenTerminal, SqlTokenLiteralInteger, ISqlNode>( firtOrLastOrSingleOrAll, plusOrMinusT, offset, rangeOrString );
             CheckContent();
         }
 
         void CheckContent()
         {
-            Helper.CheckNullableToken( FirstOrLastOrSingleT, nameof( FirstOrLastOrSingleT ), SqlTokenType.First, SqlTokenType.Last, SqlTokenType.Single );
-            if( FirstOrLastOrSingleT != null )
+            Helper.CheckToken( FirstOrLastOrSingleOrAllT, nameof( FirstOrLastOrSingleOrAllT ), SqlTokenType.First, SqlTokenType.Last, SqlTokenType.Single, SqlTokenType.All );
+            if( FirstOrLastOrSingleOrAllT != null )
             {
-                if( FirstOrLastOrSingleT.TokenType == SqlTokenType.Single )
+                if( FirstOrLastOrSingleOrAllT.TokenType == SqlTokenType.Single || FirstOrLastOrSingleOrAllT.TokenType == SqlTokenType.All )
                 {
-                    if( PlusOrMinusT != null || Offset != null ) throw new ArgumentException( "Invalid offset after 'single'." );
+                    if( PlusOrMinusT != null || Offset != null ) throw new ArgumentException( "Invalid offset after 'single' or 'all'." );
                 }
                 else if( Offset != null )
                 {
-                    if( FirstOrLastOrSingleT.TokenType == SqlTokenType.Last )
+                    if( FirstOrLastOrSingleOrAllT.TokenType == SqlTokenType.Last )
                     {
                         if( PlusOrMinusT == null || PlusOrMinusT.TokenType == SqlTokenType.Plus )
                         {
@@ -74,7 +74,7 @@ namespace CK.SqlServer.Parser
 
         public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
 
-        public SqlTokenIdentifier FirstOrLastOrSingleT => _content.V1;
+        public SqlTokenIdentifier FirstOrLastOrSingleOrAllT => _content.V1;
 
         public SqlTokenTerminal PlusOrMinusT => _content.V2;
 

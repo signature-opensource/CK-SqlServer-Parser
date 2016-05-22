@@ -98,26 +98,27 @@ namespace CK.SqlServer.Parser
 
         SqlTLocationSelector IsSqlTLocation( bool expected )
         {
-            SqlTokenIdentifier firstOrLastOrSingle;
+            SqlTokenIdentifier firstOrLastOrSingleOrAll;
             SqlTokenTerminal plusOrMinusT = null;
             SqlTokenLiteralInteger offset = null;
-            if( R.IsToken( out firstOrLastOrSingle, SqlTokenType.First, false ) )
+            if( R.IsToken( out firstOrLastOrSingleOrAll, SqlTokenType.First, false ) )
             {
                 if( R.IsToken( out plusOrMinusT, SqlTokenType.Plus, false ) )
                 {
                     if( !R.IsToken( out offset, true ) ) return null;
                 }
             }
-            else if( R.IsToken( out firstOrLastOrSingle, SqlTokenType.Last, false ) )
+            else if( R.IsToken( out firstOrLastOrSingleOrAll, SqlTokenType.Last, false ) )
             {
                 if( R.IsToken( out plusOrMinusT, SqlTokenType.Minus, false ) )
                 {
                     if( !R.IsToken( out offset, true ) ) return null;
                 }
             }
-            else if( !R.IsToken( out firstOrLastOrSingle, SqlTokenType.Single, false ) )
+            else if( !R.IsToken( out firstOrLastOrSingleOrAll, SqlTokenType.Single, false ) 
+                     && !R.IsToken( out firstOrLastOrSingleOrAll, SqlTokenType.All, false ) )
             {
-                if( expected ) R.SetCurrentError( "Expected: first [+n] | last [-n] | single." );
+                if( expected ) R.SetCurrentError( "Expected: first [+n] | last [-n] | single | all." );
                 return null;
             }
             var text = R.Current as ISqlHasStringValue;
@@ -131,7 +132,7 @@ namespace CK.SqlServer.Parser
                 return null;
             }
 
-            return new SqlTLocationSelector( firstOrLastOrSingle, plusOrMinusT, offset, text );
+            return new SqlTLocationSelector( firstOrLastOrSingleOrAll, plusOrMinusT, offset, text );
         }
     }
 

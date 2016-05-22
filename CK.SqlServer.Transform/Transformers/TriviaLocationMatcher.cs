@@ -43,6 +43,7 @@ namespace CK.SqlServer.Transform.Transformers
         Match _success;
         int _remainingMatchCount;
         bool _hasError;
+        bool _all;
 
         public TriviaLocationMatcher( SqlTInsert ins )
         {
@@ -56,13 +57,16 @@ namespace CK.SqlServer.Transform.Transformers
             _matcher = trivia => trivia.TokenType == SqlTokenType.LineComment && trivia.Text == lineComment;
 
             int index = 0;
-            if( ins.Location.FirstOrLastOrSingleT != null )
+            if( ins.Location.FirstOrLastOrSingleOrAllT.TokenType == SqlTokenType.All )
             {
-                _checkSingle = ins.Location.FirstOrLastOrSingleT.TokenType == SqlTokenType.Single;
-                _fromFirst = _checkSingle || ins.Location.FirstOrLastOrSingleT.TokenType == SqlTokenType.First;
+                _fromFirst = _all = true;
+            }
+            else
+            {
+                _checkSingle = ins.Location.FirstOrLastOrSingleOrAllT.TokenType == SqlTokenType.Single;
+                _fromFirst = _checkSingle || ins.Location.FirstOrLastOrSingleOrAllT.TokenType == SqlTokenType.First;
                 if( ins.Location.Offset != null ) index = ins.Location.Offset.Value;
             }
-            else _fromFirst = true;
 
             if( _fromFirst ) _remainingMatchCount = index;
             else _fromLast = new FIFOBuffer<Match>( index + 1 );
@@ -90,7 +94,7 @@ namespace CK.SqlServer.Transform.Transformers
                         _hasError = true;
                         monitor.Error().Send( $"Multiple match found for: '{InsertClause.ToStringHyperCompact()}'." );
                     }
-                    else if( --_remainingMatchCount == -1 )
+                    else if( _all || --_remainingMatchCount == -1 )
                     {
                         _success = m;
                         return true;
@@ -104,7 +108,7 @@ namespace CK.SqlServer.Transform.Transformers
             return false;
         }
 
-        public bool CanStop => _hasError || (_success.Node != null && !_checkSingle);
+        public bool CanStop => _hasError || (_success.Node != null && !_checkSingle && !_all);
 
         public bool RequiresConclude => !_fromFirst;
 

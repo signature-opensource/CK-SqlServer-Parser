@@ -5,17 +5,65 @@
     <Text>
       create procedure CK.sTest as
       begin
-        declare @1 int;
-        --[multiple]
-        declare @2 int;
-        --[unique1]
-        declare @3 int;
-        --[multiple]
-        declare @4 int;
-        --[unique1]
-        declare @5 int;
-        --[multiple]
-        declare @6 int;
+      declare @1 int;
+      --[multiple]
+      declare @2 int;
+      --[unique1]
+      declare @3 int;
+      --[multiple]
+      declare @4 int;
+      --[unique1]
+      declare @5 int;
+      --[multiple]
+      declare @6 int;
+      end
+    </Text>
+    <Description>
+      create transformer as
+      begin
+      insert
+      (
+      set @1 = 0;
+      )
+      after all "--[multiple]";
+      end
+    </Description>
+    <ResultText>
+      create procedure CK.sTest as
+      begin
+      declare @1 int;
+      --[multiple]
+      set @1 = 0;
+      declare @2 int;
+      --[unique1]
+      declare @3 int;
+      --[multiple]
+      set @1 = 0;
+      declare @4 int;
+      --[unique1]
+      declare @5 int;
+      --[multiple]
+      set @1 = 0;
+      declare @6 int;
+      end
+    </ResultText>
+  </Test>
+
+  <Test>
+    <Text>
+      create procedure CK.sTest as
+      begin
+      declare @1 int;
+      --[multiple]
+      declare @2 int;
+      --[unique1]
+      declare @3 int;
+      --[multiple]
+      declare @4 int;
+      --[unique1]
+      declare @5 int;
+      --[multiple]
+      declare @6 int;
       end
     </Text>
     <Description>
@@ -51,17 +99,17 @@
     <Text>
       create procedure CK.sTest as
       begin
-      declare @1 int;
-      --[multiple]
-      declare @2 int;
-      --[unique1]
-      declare @3 int;
-      --[multiple]
-      declare @4 int;
-      --[unique1]
-      declare @5 int;
-      --[multiple]
-      declare @6 int;
+        declare @1 int;
+        --[multiple]
+        declare @2 int;
+        --[unique1]
+        declare @3 int;
+        --[multiple]
+        declare @4 int;
+        --[unique1]
+        declare @5 int;
+        --[multiple]
+        declare @6 int;
       end
     </Text>
     <Description>
@@ -77,18 +125,18 @@
     <ResultText>
       create procedure CK.sTest as
       begin
-      declare @1 int;
-      --[multiple]
-      declare @2 int;
-      --[unique1]
-      declare @3 int;
-      --[multiple]
-      declare @4 int;
-      --[unique1]
-      declare @5 int;
-      set @1 = 0;
-      --[multiple]
-      declare @6 int;
+        declare @1 int;
+        --[multiple]
+        declare @2 int;
+        --[unique1]
+        declare @3 int;
+        --[multiple]
+        declare @4 int;
+        --[unique1]
+        declare @5 int;
+        set @1 = 0;
+        --[multiple]
+        declare @6 int;
       end
     </ResultText>
   </Test>
