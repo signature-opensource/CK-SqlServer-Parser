@@ -47,7 +47,7 @@ namespace CK.SqlServer.Transform.Transformers
         public TriviaLocationMatcher( SqlTInsert ins )
         {
             InsertClause = ins;
-            if( ins.Location.IsBefore ) _before = ins.TextContent;
+            if( ins.IsBefore ) _before = ins.TextContent;
             else _after = ins.TextContent;
 
             ISqlHasStringValue t = (ISqlHasStringValue)ins.Location.RangeOrString;
@@ -90,7 +90,7 @@ namespace CK.SqlServer.Transform.Transformers
                         _hasError = true;
                         monitor.Error().Send( $"Multiple match found for: '{InsertClause.ToStringHyperCompact()}'." );
                     }
-                    else if( --_remainingMatchCount < 0 )
+                    else if( --_remainingMatchCount == -1 )
                     {
                         _success = m;
                         return true;

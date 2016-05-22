@@ -283,6 +283,11 @@ namespace CK.SqlServer.Transform
         }
 
         /// <summary>
+        /// Sets <see cref="HasUnParsedText"/> to true.
+        /// </summary>
+        protected void SetHasUnParsedText() => _hasUnParsedText = true;
+
+        /// <summary>
         /// Gets whether <see cref="StopVisit"/> has been called.
         /// </summary>
         protected bool IsStoppedVisit => _stop;

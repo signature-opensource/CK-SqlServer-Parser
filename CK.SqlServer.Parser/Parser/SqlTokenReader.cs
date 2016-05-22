@@ -215,7 +215,7 @@ namespace CK.SqlServer.Parser
                 t = Read<T>();
                 return true;
             }
-            if( expected ) SetCurrentError( "Expected  '{0}' token.", type );
+            if( expected ) SetCurrentError( $"Expected  '{SqlKeyword.ToString(type)}' token." );
             t = null;
             return false;
         }

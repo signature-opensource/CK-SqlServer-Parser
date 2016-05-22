@@ -68,6 +68,7 @@
       insert into CK.tGroup( GroupId ) values( @GroupIdResult );
 
       --<Extension Name="Group.PostCreate" />
+      --[beginsp]
 
       --[endsp]
       end
@@ -82,7 +83,7 @@
             -- from Zone...
             if @ZoneId = 1 throw 50000, 'Zone.SystemZoneHasNoGroup', 1; 
           ) 
-          before "--[beginsp]";
+          before first "--[beginsp]";
           -- add column( ZoneId ) values( @ZoneId ) in 
       end
     </Description>

@@ -19,13 +19,14 @@ namespace CK.SqlServer.Parser
             SqlTokenOpenPar,
             ISqlNode,
             SqlTokenClosePar,
-            SqlTLocation,
+            SqlTokenIdentifier,
+            SqlTLocationSelector,
             SqlTokenTerminal> _content;
 
-        public SqlTInsert( SqlTokenIdentifier insertT, SqlTokenOpenPar openPar, ISqlNode content, SqlTokenClosePar closePar, SqlTLocation location, SqlTokenTerminal terminator )
+        public SqlTInsert( SqlTokenIdentifier insertT, SqlTokenOpenPar openPar, ISqlNode content, SqlTokenClosePar closePar, SqlTokenIdentifier afterOrBeforeT, SqlTLocationSelector location, SqlTokenTerminal terminator )
             : base( null, null )
         {
-            _content = new SNode<SqlTokenIdentifier, SqlTokenOpenPar, ISqlNode, SqlTokenClosePar, SqlTLocation, SqlTokenTerminal>( insertT, openPar, content, closePar, location, terminator );
+            _content = new SNode<SqlTokenIdentifier, SqlTokenOpenPar, ISqlNode, SqlTokenClosePar, SqlTokenIdentifier, SqlTLocationSelector, SqlTokenTerminal>( insertT, openPar, content, closePar, afterOrBeforeT, location, terminator );
             CheckContent();
         }
 
@@ -35,6 +36,7 @@ namespace CK.SqlServer.Parser
             Helper.CheckNotNull( OpenPar, nameof( OpenPar ) );
             Helper.CheckNotNull( Content, nameof( Content ) );
             Helper.CheckNotNull( ClosePar, nameof( ClosePar ) );
+            Helper.CheckToken( AfterOrBeforeT, nameof( AfterOrBeforeT ), SqlTokenType.After, SqlTokenType.Before );
             Helper.CheckNotNull( Location, nameof( Location ) );
         }
 
@@ -44,7 +46,7 @@ namespace CK.SqlServer.Parser
             if( items == null ) _content = o._content;
             else
             {
-                _content = new SNode<SqlTokenIdentifier, SqlTokenOpenPar, ISqlNode, SqlTokenClosePar, SqlTLocation, SqlTokenTerminal>( items );
+                _content = new SNode<SqlTokenIdentifier, SqlTokenOpenPar, ISqlNode, SqlTokenClosePar, SqlTokenIdentifier, SqlTLocationSelector, SqlTokenTerminal>( items );
                 CheckContent();
             }
         }
@@ -68,9 +70,16 @@ namespace CK.SqlServer.Parser
 
         public SqlTokenClosePar ClosePar => _content.V4;
 
-        public SqlTLocation Location => _content.V5;
+        public SqlTokenIdentifier AfterOrBeforeT => _content.V5;
 
-        public SqlTokenTerminal StatementTerminator => _content.V6;
+        /// <summary>
+        /// Gets whether this is "before...".  Otherwise it is "after...".
+        /// </summary>
+        public bool IsBefore => AfterOrBeforeT.TokenType == SqlTokenType.Before;
+
+        public SqlTLocationSelector Location => _content.V6;
+
+        public SqlTokenTerminal StatementTerminator => _content.V7;
 
         [DebuggerStepThrough]
         internal protected override ISqlNode Accept( SqlNodeVisitor visitor ) => visitor.Visit( this );

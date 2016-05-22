@@ -85,6 +85,7 @@ namespace CK.SqlServer.Transform.Tests.XmlTests
         
 
         [TestCase( "CK.DB.Basics.xml" )]
+        [TestCase( "Insert location selector.xml" )]
         public void file_test( string fileName )
         {
             XmlSqlTester.RunAllTests( fileName, e => new XmlSqlTesterWithTransform( e ) );

@@ -98,6 +98,7 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="XmlTests\Insert location selector.xml" />
     <Content Include="XmlTests\CK.DB.Basics.xml" />
   </ItemGroup>
   <ItemGroup>

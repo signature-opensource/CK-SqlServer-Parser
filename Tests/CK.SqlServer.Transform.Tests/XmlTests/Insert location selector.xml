@@ -1,0 +1,188 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Tests>
+
+  <Test>
+    <Text>
+      create procedure CK.sTest as
+      begin
+        declare @1 int;
+        --[multiple]
+        declare @2 int;
+        --[unique1]
+        declare @3 int;
+        --[multiple]
+        declare @4 int;
+        --[unique1]
+        declare @5 int;
+        --[multiple]
+        declare @6 int;
+      end
+    </Text>
+    <Description>
+      create transformer as
+      begin
+      insert
+      (
+      set @1 = 0;
+      )
+      after first+1 "--[multiple]";
+      end
+    </Description>
+    <ResultText>
+      create procedure CK.sTest as
+      begin
+      declare @1 int;
+      --[multiple]
+      declare @2 int;
+      --[unique1]
+      declare @3 int;
+      --[multiple]
+      set @1 = 0;
+      declare @4 int;
+      --[unique1]
+      declare @5 int;
+      --[multiple]
+      declare @6 int;
+      end
+    </ResultText>
+  </Test>
+
+  <Test>
+    <Text>
+      create procedure CK.sTest as
+      begin
+      declare @1 int;
+      --[multiple]
+      declare @2 int;
+      --[unique1]
+      declare @3 int;
+      --[multiple]
+      declare @4 int;
+      --[unique1]
+      declare @5 int;
+      --[multiple]
+      declare @6 int;
+      end
+    </Text>
+    <Description>
+      create transformer as
+      begin
+      insert
+      (
+      set @1 = 0;
+      )
+      before last "--[multiple]";
+      end
+    </Description>
+    <ResultText>
+      create procedure CK.sTest as
+      begin
+      declare @1 int;
+      --[multiple]
+      declare @2 int;
+      --[unique1]
+      declare @3 int;
+      --[multiple]
+      declare @4 int;
+      --[unique1]
+      declare @5 int;
+      set @1 = 0;
+      --[multiple]
+      declare @6 int;
+      end
+    </ResultText>
+  </Test>
+
+  <Test>
+    <Text>
+      create procedure CK.sTest as
+      begin
+      declare @1 int;
+      --[multiple]
+      declare @2 int;
+      --[unique1]
+      declare @3 int;
+      --[multiple]
+      declare @4 int;
+      --[unique1]
+      declare @5 int;
+      --[multiple]
+      declare @6 int;
+      end
+    </Text>
+    <Description>
+      create transformer as
+      begin
+      insert
+      (
+      set @1 = 0;
+      )
+      after last-1 "--[multiple]";
+      end
+    </Description>
+    <ResultText>
+      create procedure CK.sTest as
+      begin
+      declare @1 int;
+      --[multiple]
+      declare @2 int;
+      --[unique1]
+      declare @3 int;
+      --[multiple]
+      set @1 = 0;
+      declare @4 int;
+      --[unique1]
+      declare @5 int;
+      --[multiple]
+      declare @6 int;
+      end
+    </ResultText>
+  </Test>
+
+  <Test>
+    <Text>
+      create procedure CK.sTest as
+      begin
+      declare @1 int;
+      --[multiple]
+      declare @2 int;
+      --[unique1]
+      declare @3 int;
+      --[multiple]
+      declare @4 int;
+      --[unique1]
+      declare @5 int;
+      --[multiple]
+      declare @6 int;
+      end
+    </Text>
+    <Description>
+      create transformer as
+      begin
+      insert
+      (
+      set @1 = 0;
+      )
+      before first "--[multiple]";
+      end
+    </Description>
+    <ResultText>
+      create procedure CK.sTest as
+      begin
+      declare @1 int;
+      set @1 = 0;
+      --[multiple]
+      declare @2 int;
+      --[unique1]
+      declare @3 int;
+      --[multiple]
+      declare @4 int;
+      --[unique1]
+      declare @5 int;
+      --[multiple]
+      declare @6 int;
+      end
+    </ResultText>
+  </Test>
+
+</Tests>

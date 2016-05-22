@@ -9,25 +9,23 @@ using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
-    public sealed class SqlTLocation : SqlNonToken
+    public sealed class SqlTLocationSelector : SqlNonToken
     {
         readonly SNode<
-            SqlTokenIdentifier,
             SqlTokenIdentifier,
             SqlTokenTerminal,
             SqlTokenLiteralInteger,
             ISqlNode> _content;
 
-        public SqlTLocation( SqlTokenIdentifier beforeOrAfterT, SqlTokenIdentifier firtOrLastOrSingle, SqlTokenTerminal plusOrMinusT, SqlTokenLiteralInteger offset, ISqlNode rangeOrString )
+        public SqlTLocationSelector( SqlTokenIdentifier firtOrLastOrSingle, SqlTokenTerminal plusOrMinusT, SqlTokenLiteralInteger offset, ISqlNode rangeOrString )
             : base( null, null )
         {
-            _content = new SNode<SqlTokenIdentifier, SqlTokenIdentifier, SqlTokenTerminal, SqlTokenLiteralInteger, ISqlNode>( beforeOrAfterT, firtOrLastOrSingle, plusOrMinusT, offset, rangeOrString );
+            _content = new SNode<SqlTokenIdentifier, SqlTokenTerminal, SqlTokenLiteralInteger, ISqlNode>( firtOrLastOrSingle, plusOrMinusT, offset, rangeOrString );
             CheckContent();
         }
 
         void CheckContent()
         {
-            Helper.CheckToken( AfterOrBeforeT, nameof( AfterOrBeforeT ), SqlTokenType.After, SqlTokenType.Before );
             Helper.CheckNullableToken( FirstOrLastOrSingleT, nameof( FirstOrLastOrSingleT ), SqlTokenType.First, SqlTokenType.Last, SqlTokenType.Single );
             if( FirstOrLastOrSingleT != null )
             {
@@ -56,43 +54,36 @@ namespace CK.SqlServer.Parser
             Helper.CheckNotNull( RangeOrString, nameof( RangeOrString ) );
         }
 
-        SqlTLocation( SqlTLocation o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
+        SqlTLocationSelector( SqlTLocationSelector o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
             : base( leading, trailing )
         {
             if( items == null ) _content = o._content;
             else
             {
-                _content = new SNode<SqlTokenIdentifier, SqlTokenIdentifier, SqlTokenTerminal, SqlTokenLiteralInteger, ISqlNode>( items );
+                _content = new SNode<SqlTokenIdentifier, SqlTokenTerminal, SqlTokenLiteralInteger, ISqlNode>( items );
                 CheckContent();
             }
         }
 
         protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IList<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
         {
-            return new SqlTLocation( this, leading, content, trailing );
+            return new SqlTLocationSelector( this, leading, content, trailing );
         }
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
 
         public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
 
-        public SqlTokenIdentifier AfterOrBeforeT => _content.V1;
+        public SqlTokenIdentifier FirstOrLastOrSingleT => _content.V1;
 
-        /// <summary>
-        /// Gets whteher this is "before...".  Otherwise it is "after...".
-        /// </summary>
-        public bool IsBefore => AfterOrBeforeT.TokenType == SqlTokenType.Before;
+        public SqlTokenTerminal PlusOrMinusT => _content.V2;
 
-        public SqlTokenIdentifier FirstOrLastOrSingleT => _content.V2;
-
-        public SqlTokenTerminal PlusOrMinusT => _content.V3;
-
-        public SqlTokenLiteralInteger Offset => _content.V4;
+        public SqlTokenLiteralInteger Offset => _content.V3;
 
         /// <summary>
         /// Gets a <see cref="SqlTokenLiteralString"/> or a range.
         /// </summary>
-        public ISqlNode RangeOrString => _content.V5;
+        public ISqlNode RangeOrString => _content.V4;
 
         [DebuggerStepThrough]
         internal protected override ISqlNode Accept( SqlNodeVisitor visitor ) => visitor.Visit( this );

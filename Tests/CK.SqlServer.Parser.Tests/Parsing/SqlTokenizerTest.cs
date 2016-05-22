@@ -142,6 +142,12 @@ namespace CK.SqlServer.Parser.Tests
             Assert.That( SqlKeyword.ToString( SqlTokenType.DateTimeDbType ), Is.EqualTo( "datetime" ) );
             Assert.That( SqlKeyword.ToString( SqlTokenType.DateTime2DbType ), Is.EqualTo( "datetime2" ) );
 
+            Assert.That( SqlKeyword.ToString( SqlTokenType.All ), Is.EqualTo( "all" ) );
+            Assert.That( SqlKeyword.ToString( SqlTokenType.Authorization ), Is.EqualTo( "authorization" ) );
+            Assert.That( SqlKeyword.ToString( SqlTokenType.Rows ), Is.EqualTo( "rows" ) );
+            Assert.That( SqlKeyword.ToString( SqlTokenType.Insert ), Is.EqualTo( "insert" ) );
+            Assert.That( SqlKeyword.ToString( SqlTokenType.IdentityInsert ), Is.EqualTo( "identity_insert" ) );
+
             Assert.That( SqlKeyword.ToString( SqlTokenType.String ), Is.EqualTo( "¤String" ) );
             Assert.That( SqlKeyword.ToString( SqlTokenType.UnicodeString ), Is.EqualTo( "¤UnicodeString" ) );
             Assert.That( SqlKeyword.ToString( SqlTokenType.StarComment ), Is.EqualTo( "¤StarComment" ) );
@@ -152,6 +158,11 @@ namespace CK.SqlServer.Parser.Tests
             Assert.That( SqlKeyword.ToString( SqlTokenType.Binary ), Is.EqualTo( "¤Binary" ) );
             Assert.That( SqlKeyword.ToString( SqlTokenType.Decimal ), Is.EqualTo( "¤Decimal" ) );
             Assert.That( SqlKeyword.ToString( SqlTokenType.Money ), Is.EqualTo( "¤Money" ) );
+
+            Assert.That( SqlKeyword.ToString( SqlTokenType.GreaterOrEqual ), Is.EqualTo( ">=" ) );
+            Assert.That( SqlKeyword.ToString( SqlTokenType.Different ), Is.EqualTo( "!=" ) );
+            Assert.That( SqlKeyword.ToString( SqlTokenType.Assign ), Is.EqualTo( "=" ) );
+            Assert.That( SqlKeyword.ToString( SqlTokenType.Equal ), Is.EqualTo( "=" ) );
         }
 
         [Test]

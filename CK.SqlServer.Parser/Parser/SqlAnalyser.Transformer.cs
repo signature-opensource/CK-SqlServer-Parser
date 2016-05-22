@@ -84,19 +84,20 @@ namespace CK.SqlServer.Parser
                 SqlTokenClosePar closePar;
                 if( !R.IsToken( out closePar, true ) ) return null;
 
-                SqlTLocation loc = IsSqlTLocation( true );
+                SqlTokenIdentifier beforeOrAfterT;
+                if( !R.IsToken( out beforeOrAfterT, SqlTokenType.Before, false ) && !R.IsToken( out beforeOrAfterT, SqlTokenType.After, true ) ) return null;
+
+                SqlTLocationSelector loc = IsSqlTLocation( true );
                 if( loc == null ) return null;
 
-                return new SqlTInsert( initT, openPar, content, closePar, loc, GetOptionalTerminator());
+                return new SqlTInsert( initT, openPar, content, closePar, beforeOrAfterT, loc, GetOptionalTerminator());
             }
             if( expected ) R.SetCurrentError( "Expected transform statement." );
             return null;
         }
 
-        SqlTLocation IsSqlTLocation( bool expected )
+        SqlTLocationSelector IsSqlTLocation( bool expected )
         {
-            SqlTokenIdentifier beforeOrAfterT;
-            if( !R.IsToken( out beforeOrAfterT, SqlTokenType.Before, false ) && !R.IsToken( out beforeOrAfterT, SqlTokenType.After, expected ) ) return null;
             SqlTokenIdentifier firstOrLastOrSingle;
             SqlTokenTerminal plusOrMinusT = null;
             SqlTokenLiteralInteger offset = null;
@@ -114,8 +115,11 @@ namespace CK.SqlServer.Parser
                     if( !R.IsToken( out offset, true ) ) return null;
                 }
             }
-            else R.IsToken( out firstOrLastOrSingle, SqlTokenType.Single, false );
-
+            else if( !R.IsToken( out firstOrLastOrSingle, SqlTokenType.Single, false ) )
+            {
+                if( expected ) R.SetCurrentError( "Expected: first [+n] | last [-n] | single." );
+                return null;
+            }
             var text = R.Current as ISqlHasStringValue;
             if( text != null )
             {
@@ -123,11 +127,11 @@ namespace CK.SqlServer.Parser
             }
             else
             {
-                R.SetCurrentError( @"A [...] or ""..."" or '...' string is expected." );
+                R.SetCurrentError( @"Expected: string litteral [...] or ""..."" or '...'." );
                 return null;
             }
 
-            return new SqlTLocation( beforeOrAfterT, firstOrLastOrSingle, plusOrMinusT, offset, text );
+            return new SqlTLocationSelector( firstOrLastOrSingle, plusOrMinusT, offset, text );
         }
     }
 

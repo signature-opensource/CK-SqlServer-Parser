@@ -29,6 +29,7 @@ namespace CK.SqlServer.Transform.Transformers
                 _foundNode = VisitContext.VisitedNode;
             }
             if( _matcher.CanStop ) StopVisit( true );
+            else SetHasUnParsedText();
             // If we called StopVisit, returning true below does not trigger
             // the visit of the children.
             return true;

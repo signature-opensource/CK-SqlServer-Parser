@@ -134,7 +134,7 @@
     <Compile Include="Parser\SqlAnalyser.Statement.cs" />
     <Compile Include="Parser\StatementKnownName.cs" />
     <Compile Include="Parser\TransformNode\ISqlTransformStatement.cs" />
-    <Compile Include="Parser\TransformNode\SqlTLocation.cs" />
+    <Compile Include="Parser\TransformNode\SqlTLocationSelector.cs" />
     <Compile Include="Parser\TransformNode\SqlTInsert.cs" />
     <Compile Include="Parser\TransformNode\SqlTransformer.cs" />
     <Compile Include="Parser\TransformNode\SqlTransformStatementList.cs" />
