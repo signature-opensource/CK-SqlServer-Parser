@@ -3,77 +3,10 @@
           @DAT_DEBUT DATETIME,  
           @DAT_FIN DATETIME
          AS
-         -- =============================================  
-         -- Author:  MBL  
-         -- Create date: xx xxx 2007  
-         -- Description: Cr‚ation  
-         -- =============================================  
-         -- Author:  ASD/SAFI  
-         -- Create date: 22-10-2008  
-         -- Description: SI groupe demande, on verifie d'abord que des ‚tablissements (pas des adherent)  
-         --    sont associ‚s a ce groupe et en gestion de groupe */  
-         -- =============================================  
-         -- Author:  SAFI  
-         -- Create date: 28-10-2008  
-         -- Description: Adding total for each coloumns  
-         -- =============================================  
-         -- Author:  SAFI  
-         -- Create date: 05-01-2009  
-         -- Description: Make an empty select for the adherent   
-         -- does not contain etablissement pr.  
-         -- =============================================  
-         -- Author:  ASD/SAFI  
-         -- Create date: 22-01-2009  
-         -- Description: Modification are made to calculate the Sold Final and initial  
-         -- =============================================  
-         -- Author:  SAFI  
-         -- Create date: 23-01-2009  
-         -- Description: New Coloumn for COD_GROUPE  
-         --    Plus Les Correction des Comments     
-         -- =============================================  
-         -- Author:  SAFI  
-         -- Create date: 06-04-2009  
-         -- Description: New Columns for num siret and ville of the etablissement         
-         -- =============================================  
-         -- Author:  SAFI  
-         -- Create date: 20-04-2009  
-         -- Description: Set Patindex for removing CEDEX from LIB Ville         
-         -- =============================================  
-         -- Author:  SAFI  
-         -- Create date: 12/02/2010 : 12300  
-         -- Description: CHANGE LES CALCUL DE MNT INITIAL ET FINAL   
-         -- =============================================  
-         -- Safi Modifier : 12300  
-         -- Problem : si le date debut et date fin sont meme, ps ne fonctionne pas!  
-         -- Correction : GetShortDate() pour date debut et date fin   
-         -- DSZ 25/05/10: + DateAdd partout sur la condition de date fin  
-         -- =============================================  
-         -- DSZ 02/06/2010 12300: GetShortDate() incorrect, suppression et remplacer par convert  
-         --il ne faut jamais utiliser GetShortDate pour comparer les dates: il ne compare que les jours!  
-         --(format texte)  
-         -- =============================================  
-         -- Author:  SAFI :  12548  
-         -- Create date: 2010/11/17  
-         -- Description: Supprission de la colonne id_adherent   
-         --    dans la table de COMPTE  
-         -- =============================================  
-         -- Le 23/03/2011 par SBR: La taille du champ LIBL_MVT_BUDGETAIRE de la table #TMP_MVT passe de varchar(50)  … varchar(60) pour mise en conformit? avec les donn?es sous-jacentes  
-         -- =============================================  
-         -- Le 12/09/2011 DSZ: nettoyage et ajout de NOLOCK. 12859  
-         -- =============================================  
-         -- Le 07/12/11 DSZ : EVOL 10-50. recup de cod_activite pour libelle du periode.  
-         -- =============================================  
-         -- Le 12/01/12 SBR : Suppression de la clause NOLOCK. Ajout de l'option MAXDOP 1 pour emp‚cher la parall‚lisation.  
-         -- =============================================  
-         -- Le 25/07/12 DSZ : 13734 : afichage mvts FMS (sans etablissement)  
-         -- =============================================  
-         -- Le 30/09/13 DSZ : 16200 : un select en trop
-         -- =============================================
-         -- HBO : #681 : Ajustement de la logique pour pouvoir calculer les soldes de compte
-         -- =============================================  
+
          BEGIN
           SET NOCOUNT ON
-         
+
           DECLARE
            @LIB_RAISON_SOCIALE VARCHAR(50),
            @ID     INT,
@@ -85,8 +18,7 @@
            @P_E_R    VARCHAR(1),
            @P_E_R_SAV   VARCHAR(1),
            @COD_GROUPE   VARCHAR(8)
-         
-          /* SI groupe demande, on verifie d'abord que des ‚tblissements sont associ‚s a ce groupe et en gestion de groupe */
+
           IF (@ID_GROUPE IS NOT NULL)
           BEGIN
            SELECT
@@ -96,7 +28,7 @@
             GROUPE
            WHERE
             ID_GROUPE = @ID_GROUPE
-          
+
            SELECT DISTINCT
             COMPTE.ID_GROUPE,
             LIB_RAISON_SOCIALE = @LIB_RAISON_SOCIALE,
@@ -120,11 +52,10 @@
              ON COMPTE.ID_PERIODE = PERIODE.ID_PERIODE
            WHERE
             COMPTE.ID_GROUPE = @ID_GROUPE
-            --AND convert(varchar(8), DAT_MVT_BUDGETAIRE, 112)>= convert(varchar(8), @DAT_DEBUT, 112)
+
             AND convert(varchar(8), DAT_MVT_BUDGETAIRE, 112)<= convert(varchar(8), @DAT_FIN, 112)
            OPTION(MAXDOP 1)
-         
-           -- Calcul des montants initiaux sur les differents comptes (somme des mouvements avant la date de prise en compte)
+
            SELECT
             MVT.ID_TYPE_FINANCEMENT,
             SUM
@@ -190,7 +121,7 @@
             AND convert(varchar(8), DAT_MVT_BUDGETAIRE, 112)<= convert(varchar(8), @DAT_FIN, 112)
            GROUP BY
             MVT.ID_TYPE_FINANCEMENT
-         
+
            UPDATE
             #TMP_CPT_INIT
            SET
@@ -204,7 +135,7 @@
             #TMP_SOLDES
            WHERE
             #TMP_CPT_INIT.ID_TYPE_FINANCEMENT = #TMP_SOLDES.ID_TYPE_FINANCEMENT
-         
+
            CREATE TABLE #TMP_MVT
            (
             ID      INT NOT NULL IDENTITY,
@@ -225,8 +156,7 @@
             LIB_VIL_CEDEX   VARCHAR(50),
             ID_TYPE_FINANCEMENT  INT
            )
-         
-           /* Recuperation des mouvements entre les 2 tables dans une table temporaire */
+
            INSERT INTO #TMP_MVT
            (
             COD_MODULE_PEC,
@@ -301,7 +231,7 @@
             AND convert(varchar(8), DAT_MVT_BUDGETAIRE, 112)>= convert(varchar(8), @DAT_DEBUT, 112)
             AND convert(varchar(8), DAT_MVT_BUDGETAIRE, 112)<= convert(varchar(8), @DAT_FIN, 112)
            OPTION(MAXDOP 1)
-           
+
            SELECT DISTINCT
             (SELECT MAX(ID_COMPTE) FROM #TMP_CPT_INIT TMP WHERE #TMP_CPT_INIT.ID_TYPE_FINANCEMENT = TMP.ID_TYPE_FINANCEMENT GROUP BY TMP.ID_TYPE_FINANCEMENT)AS ID_COMPTE,
             #TMP_CPT_INIT.ID_TYPE_FINANCEMENT
@@ -314,7 +244,7 @@
            GROUP BY
             ID_COMPTE,
             ID_TYPE_FINANCEMENT
-            
+
            INSERT INTO #TMP_MVT
            (
             ID_COMPTE,
@@ -345,7 +275,7 @@
             ID_COMPTE,
             #TMP_COMPTES.ID_TYPE_FINANCEMENT,
             LIBL_TYPE_FINANCEMENT
-         
+
            SELECT
             ID_GROUPE = #TMP_CPT_INIT.ID_GROUPE,
             ID_ADHERENT = #TMP_MVT.ID_ADHERENT,
@@ -388,36 +318,14 @@
           END
          END
 
-		 -- =============================================
-         -- Author:		Say
-         -- Create date: 27 avril 2007
-         -- Description:	cr‚ation des ordres de virements internes collectes pour les virements qui ne sont pas versements / ou des versements
-         -- ---------------------------------------------
-         -- Author:		Say
-         -- Create date: 20 juin 2007
-         -- Description:	Mise … 0 du ID_TYPE_VERSEMENT quand l'ID_VIREMENT_INTERNE_COLLECTE est null dans #TMP_PI
-         -- ---------------------------------------------
-         -- Author:		WOOLLAMS & VAROTEAUX
-         -- Create date: 25 juin 2007
-         -- Description:	Suppression de la modification pr‚c‚dente
-         --				Ajout d'un regroupement pour la g‚n‚ration des VIREMENT_INTERNE_COLLECTE par ID_ACTIVITE
-         --					-> Trop de VIREMENT_INTERNE_COLLECTE de cr‚‚s qui ne ressortent pas car ils ne sont pas tous associ‚s … un POSTE_IMPUTATION
-         -- =============================================
-         -- DSZ 23/07/2010 12454
-         -- condition sur ID_TYPE_VERSEMENT -> BLN_VERSEMENT_INITIAL et BLN_VERSEMENT
-         -- =============================================
-         -- ASD DSZ 07/10/2010 12515 PROD OVIC sans rattachement PI
-         -- =============================================
          CREATE PROCEDURE INS_VIREMENT_INTERNE_COLLECTE__ET__UPD_POSTE_IMPUTATION
          	@MODE_NON_VERSEMENT		INT
-         	/* 1 mode non versement - 0 mode versement */
+
          AS
          BEGIN
          	DECLARE
          		@LAST_ID_OVIC	INT
-         	---- DEBUG MODE
-         	--	BEGIN TRAN TRANSACTION_TEST
-         	----
+
          	SELECT
          		POSTE_IMPUTATION.ID_POSTE_IMPUTATION,
          		POSTE_IMPUTATION.ID_ACTIVITE,
@@ -429,34 +337,29 @@
          		POSTE_IMPUTATION.TIME_STAMP,
          		POSTE_IMPUTATION.ID_VIREMENT_INTERNE_COLLECTE_IMPAYE,
          		CASE
-         		--	r‚cup‚ration des impay‚s (multiplication par -1 pour les d‚compter en n‚gatifs)
+
          			WHEN ID_VIREMENT_INTERNE_COLLECTE	IS NOT NULL
          				THEN	POSTE_IMPUTATION.MNT_TTC*(-1)
          			ELSE													POSTE_IMPUTATION.MNT_TTC
          		END															AS MNT_TTC,
-         		-- COMMMENT ASD DSZ 20101007
-         		/*=========================================================
-         		case
-         		when ID_VIREMENT_INTERNE_COLLECTE	IS NOT NULL	then	null
-         		else													POSTE_VERSEMENT.ID_TYPE_VERSEMENT
-         		end															as ID_TYPE_VERSEMENT,
-         		=========================================================*/
-         		--ajout DSZ 12454
+
+         		
+
          		CASE
-         		-- ADD ASD DSZ 20101007
+
          			WHEN ID_VIREMENT_INTERNE_COLLECTE	IS NOT NULL
          				THEN	NULL
          			WHEN TYPE_VERSEMENT.BLN_VERSEMENT_INITIAL = 1
-         				THEN 1 --versement initial
+         				THEN 1 
          			WHEN TYPE_VERSEMENT.BLN_VERSEMENT_INITIAL = 0 AND TYPE_VERSEMENT.BLN_VERSEMENT = 1
-         				THEN 2 --r‚gul
-         			ELSE  3 --reversement									
+         				THEN 2 
+         			ELSE  3 
          		END															AS TYPE_VERS
          	INTO
          		#TMP_PI
          	FROM
          		POSTE_IMPUTATION
-         		INNER JOIN POSTE_VERSEMENT ON POSTE_IMPUTATION.ID_POSTE_VERSEMENT=POSTE_VERSEMENT.ID_POSTE_VERSEMENT --ajout DSZ 12454
+         		INNER JOIN POSTE_VERSEMENT ON POSTE_IMPUTATION.ID_POSTE_VERSEMENT=POSTE_VERSEMENT.ID_POSTE_VERSEMENT 
          		INNER JOIN TYPE_VERSEMENT ON POSTE_VERSEMENT.ID_TYPE_VERSEMENT=TYPE_VERSEMENT.ID_TYPE_VERSEMENT
          		INNER JOIN VERSEMENT ON VERSEMENT.ID_VERSEMENT=POSTE_VERSEMENT.ID_VERSEMENT
          		LEFT JOIN BORDEREAU ON VERSEMENT.ID_BORDEREAU=BORDEREAU.ID_BORDEREAU
@@ -467,46 +370,38 @@
          		AND
          		(
          			@MODE_NON_VERSEMENT							= 0
-         			-- modif DSZ 12454
-         			--POSTE_VERSEMENT.ID_TYPE_VERSEMENT			in (1, 2, 3, 4)	AND	-- versement
+
          			AND TYPE_VERSEMENT.BLN_VERSEMENT_INITIAL		= 1
          			AND ID_VIREMENT_INTERNE_COLLECTE				IS NULL
          			AND BORDEREAU.ID_LOT_REMISE_BANCAIRE			IS NOT NULL
-         		
+
          			OR @MODE_NON_VERSEMENT							= 1
-         			-- modif DSZ 12454
-         			--POSTE_VERSEMENT.ID_TYPE_VERSEMENT			in (5, 6)	AND	-- 5 : regul et 6 : reveresement
+
          			AND TYPE_VERSEMENT.BLN_VERSEMENT_INITIAL		= 0
-         			-- r‚gul, revers
+
          			AND ID_VIREMENT_INTERNE_COLLECTE				IS NULL
-            
+
          			OR @MODE_NON_VERSEMENT							= 1
          			AND VERSEMENT.ID_STATUT_VERSEMENT				= 7
          			AND ID_VIREMENT_INTERNE_COLLECTE_IMPAYE			IS NULL
          			AND ID_VIREMENT_INTERNE_COLLECTE				IS NOT NULL
          		)
          	ORDER BY
-         		/*============================================
-         		COMMMENT ASD DSZ 20101007 : ID_TYPE_VERSEMENT,
-         		============================================*/
-         		ID_ACTIVITE, ID_POSTE_IMPUTATION
          		
+         		ID_ACTIVITE, ID_POSTE_IMPUTATION
+
          	IF EXISTS (SELECT ID_POSTE_IMPUTATION FROM #TMP_PI)
          	BEGIN
-         		---- DEBUG MODE
-         		--select * from #TMP_PI
-         		----
+
          		SELECT TOP 1
          			@LAST_ID_OVIC = ID_VIREMENT_INTERNE_COLLECTE
          		FROM
          			VIREMENT_INTERNE_COLLECTE
          		ORDER BY
          			ID_VIREMENT_INTERNE_COLLECTE DESC
-         			
+
          		SELECT
-         			/*====================================================
-         			COMMMENT ASD DSZ 20101007 : #TMP_PI.ID_TYPE_VERSEMENT,
-         			====================================================*/
+         			
          			#TMP_PI.ID_ACTIVITE,
          			NULL							AS DAT_EDIT_VIREMENT_INTERNE_COLLECTE,
          			NULL							AS DAT_COMPTA_VIREMENT_INTERNE_COLLECTE,
@@ -518,21 +413,16 @@
          		FROM
          			#TMP_PI
          		GROUP BY
-         			/*============================================
-         			COMMMENT ASD DSZ 20101007 : ID_TYPE_VERSEMENT,
-         			============================================*/
+         			
          			ID_ACTIVITE,
          			TYPE_VERS
          		ORDER BY
-         			/*============================================
-         			COMMMENT ASD DSZ 20101007 : ID_TYPE_VERSEMENT,
-         			============================================*/
+         			
          			ID_ACTIVITE, TYPE_VERS
-         
+
          		IF @MODE_NON_VERSEMENT = 1
          		BEGIN
-         			-- INSERTION IMP ---------------------------------------------------------------------------------------------------------
-         			-- ======================================================================================================================
+
          			INSERT INTO
          				VIREMENT_INTERNE_COLLECTE
          				(
@@ -551,13 +441,9 @@
          			FROM
          				#TMP_OVIC
          			WHERE
-         				-- ASD DSZ 20101007
-         				-- ID_TYPE_VERSEMENT is null
-         				-- replaced by
+
          				TYPE_VERS IS NULL
-         				--SELECT * FROM VIREMENT_INTERNE_COLLECTE WHERE ID_VIREMENT_INTERNE_COLLECTE > @LAST_ID_OVIC
-         				-- MAJ -------------------------------------------------------------------------------------------------------------------
-         				
+
          			UPDATE
          				POSTE_IMPUTATION
          			SET
@@ -568,30 +454,19 @@
          			WHERE
          				POSTE_IMPUTATION.ID_POSTE_IMPUTATION					= #TMP_PI.ID_POSTE_IMPUTATION
          				AND POSTE_IMPUTATION.TIME_STAMP								= #TMP_PI.TIME_STAMP
-         				-- ASD DSZ 20101007
-         				-- #TMP_PI.ID_TYPE_VERSEMENT is null
-         				-- replaced by
+
          				AND	#TMP_PI.TYPE_VERS											IS NULL
          				AND VIREMENT_INTERNE_COLLECTE.ID_VIREMENT_INTERNE_COLLECTE	> @LAST_ID_OVIC
-         				
-         			---- DEBUG MODE
-         			/*========================================================================================
-         			SELECT POSTE_IMPUTATION.* FROM POSTE_IMPUTATION
-         			INNER JOIN #TMP_PI	ON POSTE_IMPUTATION.ID_POSTE_IMPUTATION	= #TMP_PI.ID_POSTE_IMPUTATION
-         			WHERE POSTE_IMPUTATION.ID_VIREMENT_INTERNE_COLLECTE_IMPAYE	> @LAST_ID_OVIC
-         			========================================================================================*/
-         			--SELECT * FROM VIREMENT_INTERNE_COLLECTE WHERE ID_VIREMENT_INTERNE_COLLECTE > @LAST_ID_OVIC
-         			----
-         			-- INSERTION REGUL ------------------------------------------------------------------------------------------------------
-         			-- ======================================================================================================================
-         				
+
+         			
+
          			SELECT TOP 1
          				@LAST_ID_OVIC = ID_VIREMENT_INTERNE_COLLECTE
          			FROM
          				VIREMENT_INTERNE_COLLECTE
          			ORDER BY
          				ID_VIREMENT_INTERNE_COLLECTE DESC
-         				
+
          			INSERT INTO
          				VIREMENT_INTERNE_COLLECTE
          				(
@@ -610,12 +485,9 @@
          			FROM
          				#TMP_OVIC
          			WHERE
-         				--modif DSZ 12454
-         				--ID_TYPE_VERSEMENT = 5
-         				TYPE_VERS = 2 --r‚gul
-         				--SELECT * FROM VIREMENT_INTERNE_COLLECTE WHERE ID_VIREMENT_INTERNE_COLLECTE > @LAST_ID_OVIC
-         				-- MAJ -------------------------------------------------------------------------------------------------------------------
-         				
+
+         				TYPE_VERS = 2 
+
          			UPDATE
          				POSTE_IMPUTATION
          			SET
@@ -626,29 +498,19 @@
          			WHERE
          				POSTE_IMPUTATION.ID_POSTE_IMPUTATION					= #TMP_PI.ID_POSTE_IMPUTATION
          				AND POSTE_IMPUTATION.TIME_STAMP								= #TMP_PI.TIME_STAMP
-         				--modif DSZ 12454
-         				--#TMP_PI.ID_TYPE_VERSEMENT										= 5		
+
          				AND TYPE_VERS = 2
          				AND VIREMENT_INTERNE_COLLECTE.ID_VIREMENT_INTERNE_COLLECTE	> @LAST_ID_OVIC
-         					
-         			---- DEBUG MODE
-         			/*========================================================================================
-         			SELECT POSTE_IMPUTATION.* FROM POSTE_IMPUTATION
-         			INNER JOIN #TMP_PI	ON POSTE_IMPUTATION.ID_POSTE_IMPUTATION	= #TMP_PI.ID_POSTE_IMPUTATION
-         			WHERE POSTE_IMPUTATION.ID_VIREMENT_INTERNE_COLLECTE_IMPAYE	> @LAST_ID_OVIC
-         			========================================================================================*/
-         			--SELECT * FROM VIREMENT_INTERNE_COLLECTE WHERE ID_VIREMENT_INTERNE_COLLECTE > @LAST_ID_OVIC
-         			----
-         			-- INSERTION REV ---------------------------------------------------------------------------------------------------------
-         			-- ======================================================================================================================
-         				
+
+         			
+
          			SELECT TOP 1
          				@LAST_ID_OVIC = ID_VIREMENT_INTERNE_COLLECTE
          			FROM 
          				VIREMENT_INTERNE_COLLECTE
          			ORDER BY
          				ID_VIREMENT_INTERNE_COLLECTE DESC
-         				
+
          			INSERT INTO
          				VIREMENT_INTERNE_COLLECTE
          				(
@@ -667,11 +529,9 @@
          			FROM
          				#TMP_OVIC
          			WHERE
-         				--modif DSZ 12454
-         				--ID_TYPE_VERSEMENT = 6
-         				TYPE_VERS = 3 --reversement
-         				
-         			-- MAJ -------------------------------------------------------------------------------------------------------------------
+
+         				TYPE_VERS = 3 
+
          			UPDATE
          				POSTE_IMPUTATION
          			SET
@@ -682,25 +542,17 @@
          			WHERE
          				POSTE_IMPUTATION.ID_POSTE_IMPUTATION					= #TMP_PI.ID_POSTE_IMPUTATION
          				AND POSTE_IMPUTATION.TIME_STAMP								= #TMP_PI.TIME_STAMP
-         				--modif DSZ 12454
-         				--ID_TYPE_VERSEMENT										= 6									AND
+
          				AND TYPE_VERS												= 3
-         				--reversement	
+
          				AND	VIREMENT_INTERNE_COLLECTE.ID_VIREMENT_INTERNE_COLLECTE	> @LAST_ID_OVIC
-         				
-         			---- DEBUG MODE
-         			/*========================================================================================
-         			SELECT POSTE_IMPUTATION.* FROM POSTE_IMPUTATION
-         			INNER JOIN #TMP_PI	ON POSTE_IMPUTATION.ID_POSTE_IMPUTATION	= #TMP_PI.ID_POSTE_IMPUTATION
-         			WHERE POSTE_IMPUTATION.ID_VIREMENT_INTERNE_COLLECTE_IMPAYE	> @LAST_ID_OVIC
-         			========================================================================================*/
-         			--SELECT * FROM VIREMENT_INTERNE_COLLECTE WHERE ID_VIREMENT_INTERNE_COLLECTE > @LAST_ID_OVIC
-         			----
+
+         			
+
          		END
          		ELSE
          		BEGIN
-         			-- INSERTION VERS -------------------------------------------------------------------------------------------------------
-         			-- ======================================================================================================================
+
          			SELECT TOP 1
          				@LAST_ID_OVIC = ID_VIREMENT_INTERNE_COLLECTE
          			FROM
@@ -728,12 +580,7 @@
          				DAT_EDIT_VIREMENT_INTERNE_COLLECTE,
          				DAT_COMPTA_VIREMENT_INTERNE_COLLECTE,
          				DAT_GENERATION_SEPA
-         				
-         			---- DEBUG MODE
-         			--select * from VIREMENT_INTERNE_COLLECTE order by ID_VIREMENT_INTERNE_COLLECTE desc
-         			--
-         				
-         			-- MAJ -------------------------------------------------------------------------------------------------------------------
+
          			UPDATE
          				POSTE_IMPUTATION
          			SET
@@ -746,16 +593,9 @@
          				AND POSTE_IMPUTATION.TIME_STAMP								= #TMP_PI.TIME_STAMP
          				AND VIREMENT_INTERNE_COLLECTE.ID_VIREMENT_INTERNE_COLLECTE	> @LAST_ID_OVIC
          		END
-         			
-         		---- DEBUG MODE
-         		-- RESULTAT FINAL
-         		/*=======================================================================================
-         		SELECT POSTE_IMPUTATION.* FROM POSTE_IMPUTATION
-         		INNER JOIN #TMP_PI	ON POSTE_IMPUTATION.ID_POSTE_IMPUTATION	= #TMP_PI.ID_POSTE_IMPUTATION
-         		order by POSTE_IMPUTATION.ID_VIREMENT_INTERNE_COLLECTE
-         		=======================================================================================*/
-         		--	ROLLBACK TRANSACTION TRANSACTION_TEST
-         			
+
+         		
+
          		SELECT
          			'Return Value' = 1
          	END
@@ -764,9 +604,8 @@
          		SELECT
          			'Return Value' = 0
          	END
-         ----
-         END
 
+         END
 
 CREATE PROCEDURE [dbo].[LEC_GRP_COMPTE_GROUPE_ADHERENT]
          @ID_GROUPE integer,
@@ -774,30 +613,10 @@ CREATE PROCEDURE [dbo].[LEC_GRP_COMPTE_GROUPE_ADHERENT]
          @DAT_DEBUT datetime,
          @DAT_FIN datetime
          AS
-         -----------------------------
-         -- Safi Modifier : 12300
-         -- Changer les calcul de Solde initial et solde final
-         -----------------------------
-         -- Safi Modifier : 12300
-         -- Problem : si le date debut et date fin sont meme, ps ne fonctionne pas!
-         -- Correction : GetShortDate() pour date debut et date fin 
-         -----------------------------
-         -- DSZ 02/06/2010 12300: GetShortDate() incorrect, suppression et remplacer par convert
-         --il ne faut jamais utiliser GetShortDate pour comparer les dates: il ne compare que les jours!
-         --(format texte)
-         -- =============================================
-         -- Author:  SAFI :  12548
-         -- Create date: 2010/11/17
-         -- Description: Supprission de la colonne id_adherent 
-         --    dans la table de COMPTE
-         -- =============================================
-         -- DSZ 24/07/2012 13734 permettre l'affichage des mouvements FMS (sans adherent)
-         -- =============================================
-         -- OPA 31/05/2013 : 15031 : SBR - suppression du type FLOAT et REAL dans le SQL : 2- FLOAT
-         -- =============================================
+
          BEGIN
           SET NOCOUNT ON
-         
+
           DECLARE
            @LIB_RAISON_SOCIALE VARCHAR(50),
            @ID     INT, 
@@ -807,9 +626,9 @@ CREATE PROCEDURE [dbo].[LEC_GRP_COMPTE_GROUPE_ADHERENT]
            @MNT_SOLDE   DECIMAL(18,2),
            @BLN_OK    TINYINT,
            @MNT_SOLDE_SAV  DECIMAL(18,2)
-         
+
           SET @BLN_OK = 0
-          /* SI groupe demande, on verifie d'abord que des adherents sont associes a ce groupe et en gestion de groupe */
+
           IF (@ID_GROUPE IS NOT NULL)
           BEGIN
            IF EXISTS (SELECT 1 FROM ADHERENT WHERE ID_GROUPE = @ID_GROUPE AND BLN_GESTION_GROUPE = 1)
@@ -823,13 +642,13 @@ CREATE PROCEDURE [dbo].[LEC_GRP_COMPTE_GROUPE_ADHERENT]
              ID_GROUPE = @ID_GROUPE
            END
           END 
-         
+
           IF @BLN_OK = 1
           BEGIN
-           --- Getting all the Compte Disponible for the GROUPE AND for the given periode
+
            SELECT DISTINCT
             COMPTE.ID_GROUPE,
-            LIB_RAISON_SOCIALE = @LIB_RAISON_SOCIALE, ---- this is from Lib of GROUPE
+            LIB_RAISON_SOCIALE = @LIB_RAISON_SOCIALE, 
             COMPTE.ID_COMPTE,
             COMPTE.ID_TYPE_FINANCEMENT,
             PERIODE.ID_PERIODE,
@@ -850,7 +669,7 @@ CREATE PROCEDURE [dbo].[LEC_GRP_COMPTE_GROUPE_ADHERENT]
             AND MVT_BUDGETAIRE.P_E_R = 'R'
             AND CONVERT(VARCHAR(8), DAT_MVT_BUDGETAIRE, 112)>= CONVERT(VARCHAR(8), @DAT_DEBUT, 112)
             AND CONVERT(VARCHAR(8), DAT_MVT_BUDGETAIRE, 112)<= CONVERT(VARCHAR(8), @DAT_FIN, 112)
-           
+
            CREATE TABLE #TMP_MVT
            (
             ID integer not null identity,
@@ -868,8 +687,7 @@ CREATE PROCEDURE [dbo].[LEC_GRP_COMPTE_GROUPE_ADHERENT]
             MNT_SOLDE decimal(18,2),
             MNT_SOLDE_FINAL decimal(18,2)
            )
-         
-           /* Recuperation des mouvements entre les 2 tables dans une table temporaire */
+
            INSERT INTO #TMP_MVT
            ( ID_COMPTE,  
             ID_ADHERENT, 
@@ -927,32 +745,31 @@ CREATE PROCEDURE [dbo].[LEC_GRP_COMPTE_GROUPE_ADHERENT]
             COMPTE.ID_TYPE_FINANCEMENT,
             NUM_ANNEE,
             DAT_MVT_BUDGETAIRE
-         
+
            UPDATE
             #TMP_CPT_INIT 
            SET MNT_INITIAL = dbo.GetSoldeDeGroupe(@DAT_DEBUT,@ID_GROUPE)
-         
+
            UPDATE  #TMP_MVT 
            SET #TMP_MVT.MNT_SOLDE_FINAL = dbo.GetSoldeDeGroupe(@DAT_FIN,@ID_GROUPE)
-         
-           /* Recalcul des soldes intermediaires  sur les differents mouvements */
+
            DECLARE cu_solde CURSOR FOR 
            SELECT ID, ID_COMPTE, MNT_MVT
            FROM #TMP_MVT
            ORDER BY ID
-         
+
            OPEN cu_solde
-         
+
            SET @ID_COMPTE_SAV = 0
            FETCH cu_solde INTO
            @ID, @ID_COMPTE, @MNT_MVT
-         
+
            WHILE (@@fetch_status <> -1)
            BEGIN
-         
+
             IF @ID_COMPTE_SAV <> @ID_COMPTE
             BEGIN
-             /* Recherche du montant initial du nouveau compte */
+
              SELECT @MNT_SOLDE = MNT_INITIAL - @MNT_MVT
              FROM #TMP_CPT_INIT
              WHERE ID_COMPTE = @ID_COMPTE
@@ -963,40 +780,37 @@ CREATE PROCEDURE [dbo].[LEC_GRP_COMPTE_GROUPE_ADHERENT]
              FROM #TMP_MVT
              WHERE ID = @ID - 1
             END
-         
+
             UPDATE #TMP_MVT SET MNT_SOLDE = @MNT_SOLDE WHERE ID = @ID
-            
+
             SET @ID_COMPTE_SAV = @ID_COMPTE
             SET @MNT_SOLDE_SAV = @MNT_SOLDE
-         
+
             FETCH cu_solde INTO
             @ID, @ID_COMPTE, @MNT_MVT
-         
+
             IF @ID_COMPTE_SAV <> @ID_COMPTE OR (@@fetch_status = -1)
             BEGIN
-             /* Actualisation du compte final de l'ancien compte */
+
              UPDATE #TMP_CPT_INIT
              SET MNT_FINAL = @MNT_SOLDE_SAV
              WHERE ID_COMPTE = @ID_COMPTE_SAV
             END
            END
-         
+
            CLOSE cu_solde 
            DEALLOCATE cu_solde 
-           /* Fin Recalcul des soldes intermediaires  */
-           /* Ajustement des mouvements negatifs par rapport au sens :
-           Un credit avec un montant negatif devient un debit positif
-           Un debit avec un montant positif devient un credit positif
-           */
-         
+
+           
+
            UPDATE #TMP_MVT 
            SET MNT_CREDIT = 0, MNT_DEBIT = -1 * MNT_CREDIT
            WHERE MNT_CREDIT < 0
-         
+
            UPDATE #TMP_MVT 
            SET MNT_DEBIT = 0, MNT_CREDIT = -1 * MNT_DEBIT
            WHERE MNT_DEBIT < 0
-         
+
            SELECT
             ID_GROUPE = #TMP_CPT_INIT.ID_GROUPE, 
             ID_ADHERENT = #TMP_MVT.ID_ADHERENT, 
@@ -1018,7 +832,7 @@ CREATE PROCEDURE [dbo].[LEC_GRP_COMPTE_GROUPE_ADHERENT]
           END
           ELSE
           BEGIN
-           -- Pas dans un cas OK
+
            SELECT
             ID_GROUPE = NULL,
             ID_ADHERENT = NULL,
@@ -1038,12 +852,6 @@ CREATE PROCEDURE [dbo].[LEC_GRP_COMPTE_GROUPE_ADHERENT]
           END
          END
 
-
-         -- ============================================= 
-         -- Author:		DSZ
-         -- Create date: 28/11/2012
-         -- Description:	insert into r22 bis effectif from extranet
-         -- ============================================= 
          CREATE PROCEDURE INS_R22_BIS_EXTRANET 
          	@ID_ETABLISSEMENT int, 
          	@COD_EFFECTIF varchar(8) ,
@@ -1064,21 +872,11 @@ CREATE PROCEDURE [dbo].[LEC_GRP_COMPTE_GROUPE_ADHERENT]
          			   ,(SELECT id_periode from PERIODE where COD_PERIODE = @ANNEE and ID_TYPE_PERIODE = 1)
          			   ,@ID_ETABLISSEMENT
          			   ,@EFFECTIF)
-         	
+
          END
-         
-		-- =============================================
-         -- SAFI : Rename LIB_COMPTE_BANQUE for Transit and Activite
-         -- 18/01/2011 : 12622 
-         --------------------------------------------------------------
-         -- DSZ 03/12/12 : 14425 : renommage agence IDF en NE
-         ----------------------------------------------  
-         -- OPA 31/05/2013 : 15031 : SBR - suppression du type FLOAT et REAL dans le SQL : 2- FLOAT
-         -- =============================================
-         -- HBO - 141113 - M16371: Lot 1 - Modification structure de donn‚es / proc‚dures stock‚es
-         -- =============================================
+
          CREATE PROCEDURE LEC_GRP_ORDRE_VIREMENT_VERSEMENT
-         	@TYPE_ETAT INTEGER, --Etat = 1 (jamais edit)
+         	@TYPE_ETAT INTEGER, 
          	@DATE_DEBUT datetime,
          	@DATE_FIN datetime
          AS  
@@ -1091,7 +889,7 @@ CREATE PROCEDURE [dbo].[LEC_GRP_COMPTE_GROUPE_ADHERENT]
          			DAT_COMPTA_VIREMENT_INTERNE_COLLECTE Datetime,
          			MNT_VIREMENT_INTERNE_COLLECTE decimal(18,2)			
          		)
-         		
+
          		IF (@TYPE_ETAT = 1)
          			BEGIN
          				INSERT INTO #TEMP
@@ -1108,11 +906,11 @@ CREATE PROCEDURE [dbo].[LEC_GRP_COMPTE_GROUPE_ADHERENT]
          				WHERE
          					POSTE_VERSEMENT.ID_TYPE_VERSEMENT IN (1,2,3,4)
          					AND VIREMENT_INTERNE_COLLECTE.DAT_EDIT_VIREMENT_INTERNE_COLLECTE IS NULL
-         				
+
          				UPDATE VIREMENT_INTERNE_COLLECTE
          				SET VIREMENT_INTERNE_COLLECTE.DAT_EDIT_VIREMENT_INTERNE_COLLECTE = getDate()
          				where VIREMENT_INTERNE_COLLECTE.ID_VIREMENT_INTERNE_COLLECTE in (select ID_VIREMENT_INTERNE_COLLECTE from #TEMP)
-         
+
          				UPDATE #TEMP
          				SET DAT_EDIT_VIREMENT_INTERNE_COLLECTE = getDate()
          			END
@@ -1131,12 +929,11 @@ CREATE PROCEDURE [dbo].[LEC_GRP_COMPTE_GROUPE_ADHERENT]
          					LEFT OUTER JOIN POSTE_VERSEMENT ON POSTE_IMPUTATION.ID_POSTE_VERSEMENT = POSTE_VERSEMENT.ID_POSTE_VERSEMENT
          				WHERE
          					POSTE_VERSEMENT.ID_TYPE_VERSEMENT IN (1,2,3,4)
-         					--AND (RTRIM(@DATE_DEBUT) IS NULL OR (DAT_EDIT_VIREMENT_INTERNE_COLLECTE > = @DATE_DEBUT))
-         					--AND (RTRIM(@DATE_FIN) IS NULL OR ( DAT_EDIT_VIREMENT_INTERNE_COLLECTE <= @DATE_FIN))
+
          					AND (@DATE_DEBUT IS NULL OR DATEDIFF(DAY,DAT_EDIT_VIREMENT_INTERNE_COLLECTE,@DATE_DEBUT) <= 0) 
          					AND	(@DATE_FIN  IS NULL OR DATEDIFF(DAY,DAT_EDIT_VIREMENT_INTERNE_COLLECTE,@DATE_FIN ) >= 0)
          			END
-         		
+
          		SELECT
          			#TEMP.ID_VIREMENT_INTERNE_COLLECTE,
          			#TEMP.MNT_VIREMENT_INTERNE_COLLECTE,
@@ -1173,67 +970,9 @@ CREATE PROCEDURE [dbo].[LEC_GRP_COMPTE_GROUPE_ADHERENT]
           @TYPE_EVENEMENT  INT,
           @SANS_DIFF   INT
          AS
-         -- =============================================
-         --Author:  
-         --Creation date: 
-         --Comment: 
-         -- =============================================
-         --Author:  ASD
-         --Modified date: 16/07/2009
-         --Comment: Correction Mantis 12151 : ajout de deux /100 oubli‚s sur le TAU_FRAIS_GESTION
-         -- =============================================
-         --Author:  SAFI
-         --Modified date: 30/12/2009
-         --Comment: Correction Evol 339 : Modifier les libell‚ mvts budg‚taires pour ‚ch‚anciers
-         --   mettre : "Ech‚ancier pr‚visionnel"
-         -- =============================================
-         --Author:  SAFI
-         --Modified date: 28/01/2010
-         --Comment: Ano id 12285: Reforme professionnelle : FPSPP
-         -- =============================================
-         -- DSZ 09/02/2010 Corrections FPSPP
-         -- =============================================
-         -- SAFI Ajouter 05/03/2010 12315
-         -- Correction de lib mvt budgetaire pour la taille .
-         -- =================================================
-         -- DSZ 05/05/2010 ANO 12329
-         -- Evol regularisations: utliser GRP_TYPE_VERSEMENT (=VERSEMENT_ORIGINE)
-         -- =================================================
-         -- SAFI 25/05/2010 ANO 12330
-         -- Le generation des mvt budgetaire-FPSPP est limit‚ pour le activite = 1: 
-         -- donc le g‚n‚ration des mvts de FPSPP, est ouvert pour touts les  type de 
-         -- versement ainsi que les activit‚s, si le montant est diff‚rent de z‚ro.
-         -- ==========================================================================
-         -- ASD + DSZ 25/05/2010 12330
-         -- frais de gestion se calculent sur le montant total moins FPSPP
-         -- ==========================================================================
-         -- DSZ 01/06/10 : Suppresion de la derniere modif de Safi . Voir 12285
-         -- Les mvt bugt sur FPSPP ne concernent que l'activit‚ 1 !
-         -- DSZ 02/06/2010 : pareil pour la partie versement tardif, voir 12384
-         -- ==========================================================================
-         -- SAFI 03/06/2010 : 12385
-         -- SUPPRISSION DE LA CONTROL SUR VERSEMENT_ORIGINE = 'O' POUR FPSPP REGUL POSITIF
-         -- et ajouter VV ou VO pour indiquer la type de versement de origine.
-         -- 08/06/2010 : Alimentation Pot Mut  >> Alim. Pot Mut
-         --    Pr‚visionnel >> Pr‚v. 
-         -- <AJOTUER VERSEMENT_ORIGINE : 08/06/2010>
-         -- ==========================================================================
-         -- DSZ 09/12/2011 : 13060 evol 10-50
-         -- ==========================================================================
-         -- DSZ 05/07/2012 : 13660 traitement de la branche plasturgie
-         -- attention changement de paramŠtre de BATCH_MVT_BUDGETAIRE_CREATION_COMPTE
-         -- ==========================================================================
-         -- DSZ 25/07/2012 : 13698: prendre en compte l'activite 2 (-10)
-         -- ==========================================================================
-         -- DSZ 04/12/2012 : 14439: typage des envelopes de pot de mut par activit‚
-         ------------------------------------------------------------
-         -- ASD 07/01/2013 14822 : remplacer la condition !=3 par cod_type_activite = plan 
-         -- ==========================================================================
-         
-         
-         
+
          BEGIN
-         
+
           DECLARE
             @ID_TYPE_ENVELOPPE    INT,
             @ID_TYPE_MVT_COLLECTE   INT,
@@ -1244,17 +983,9 @@ CREATE PROCEDURE [dbo].[LEC_GRP_COMPTE_GROUPE_ADHERENT]
             @ID_TYPE_FINANCEMENT_FRAIS  INT,
             @ID_TYPE_FINANCEMENT_COMPTE  INT,
             @ID_TYPE_FINANCEMENT_MUT  INT,
-            @P_E_R       varchar(1), -- Marqueur Pr‚visionnel/Engag‚/R‚alis‚   
+            @P_E_R       varchar(1), 
             @ID_TYPE_MVT_MUT_FPSPP   INT   
-         
-         
-         
-         -- ##########################################################################################
-         -- # VALIDATION DES PARAMÔTRES D'ENTRE
-         -- ##########################################################################################
-         
-         
-         
+
           IF @SANS_DIFF not in (0, 1) OR @TYPE_EVENEMENT not in (1, 5, 13)
           BEGIN
            PRINT N'
@@ -1263,89 +994,40 @@ CREATE PROCEDURE [dbo].[LEC_GRP_COMPTE_GROUPE_ADHERENT]
            - TYPE_VERSEMENT  1 evenement versement ou
                  5 evenement r‚gularisation montant positif ou
                 13 evenement versement differe
-         
+
            >> cette option n est valable que pour TYPE_VERSEMENT = 1
            - DIFF     0 pour versement differe ou
                  1 pour non differe
-         
+
          >> Fin de la transaction.'
            RETURN (SELECT 'Return Value' = -1)
           END
-         
-         
-         
-         -- #########################################################################################
-         -- # TRANSACTION
-         -- #########################################################################################
-         
-         
-         
+
           BEGIN TRY
            BEGIN TRAN TRANSACTION_MVT_BUDGETAIRE
-         
-         
-         
-         -- #########################################################################################
-         
-         
-         
-           -- >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-           -- D‚termination du marqueur Pr‚visionnel/Engag‚/R‚alis‚
-           -- -----------------------------------------------------
-         
-           SET  @P_E_R = 'R' -- Cas g‚n‚ral
-         
+
+           SET  @P_E_R = 'R' 
+
            IF @TYPE_EVENEMENT = 13
            BEGIN
-            SET @P_E_R = 'P' -- Versement diff‚r‚
+            SET @P_E_R = 'P' 
            END
-         
-           -- <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-         
-         
-         
-           -- >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-           -- Cr‚ation des comptes
-           -- --------------------
-         
+
            print 'Cr‚ation des comptes'
            exec BATCH_MVT_BUDGETAIRE_CREATION_COMPTE  @TYPE_EVENEMENT, @SANS_DIFF, 1
            print 'Cr‚ation des comptes - fin'
-         
-           -- <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-         
-         
-         
-         -- #########################################################################################
-         
-         
-         
-         -- TRAITEMENT DES VERSEMENTS 'NORMAUX'
-         -- ==================================
-         
-           -- >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-           -- Initialisation pr‚alable des variables dans le cas d'un versement 'normal'
-           -- --------------------------------------------------------------------------
-         
+
            SET  @ID_TYPE_ENVELOPPE    = 6 
-           SET  @ID_TYPE_MVT_COLLECTE   = 6  --Enveloppe Collecte
-           SET  @ID_TYPE_MVT_FRAIS    = 9  --pour les frais
-           SET  @ID_TYPE_MVT_COMPTE    = 10 --que pour activite P10+
-           SET     @ID_TYPE_MVT_MUT    = 11 --Fond Mut
+           SET  @ID_TYPE_MVT_COLLECTE   = 6  
+           SET  @ID_TYPE_MVT_FRAIS    = 9  
+           SET  @ID_TYPE_MVT_COMPTE    = 10 
+           SET     @ID_TYPE_MVT_MUT    = 11 
            SET  @ID_TYPE_FINANCEMENT_COLLECTE = NULL
            SET  @ID_TYPE_FINANCEMENT_FRAIS  = NULL
            SET  @ID_TYPE_FINANCEMENT_COMPTE  = 1
            SET     @ID_TYPE_FINANCEMENT_MUT  = NULL
-           SET  @ID_TYPE_MVT_MUT_FPSPP   = 23 --Fond Mut FPSPP
-         
-           -- <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-         
-         
-         
-           -- >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-           -- Obtention des donn‚es
-           -- ---------------------
-         
+           SET  @ID_TYPE_MVT_MUT_FPSPP   = 23 
+
            SELECT
             *
            INTO
@@ -1354,16 +1036,8 @@ CREATE PROCEDURE [dbo].[LEC_GRP_COMPTE_GROUPE_ADHERENT]
             BATCH_MVT_BUDGETAIRE_OBTENTION_DONNEES(@TYPE_EVENEMENT, 1, @SANS_DIFF)
            WHERE
             @TYPE_EVENEMENT <> 5 OR MNT_HT > 0
-         
-           -- <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-         
-         
-         
-           -- >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-           -- S‚lection des lignes relatives aux enveloppes de collecte
-           -- ---------------------------------------------------------
-         
-           SELECT  --POUR LE CAS1 (Collecte)
+
+           SELECT  
             M.*
            INTO 
             #TMP_DONNEES_OBTENUES_NORMAL_COL
@@ -1375,15 +1049,9 @@ CREATE PROCEDURE [dbo].[LEC_GRP_COMPTE_GROUPE_ADHERENT]
             TYPE_ENVELOPPE.ID_ACTIVITE = M.ID_ACTIVITE
             AND
             TYPE_ENVELOPPE.BLN_COLLECTE = 1
-         
-           -- <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-         
-           print 'R‚cup‚ration des informations -- fin'
-         
-           -- >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-           -- Pr‚paration des mouvements budg‚taires vers les enveloppes de collecte
-           -- ----------------------------------------------------------------------
-         
+
+           print 'R‚cup‚ration des informations'
+
            SELECT
             ID_ACTIVITE,
             ID_PERIODE                    as ID_PERIODE_FISC,
@@ -1420,15 +1088,9 @@ CREATE PROCEDURE [dbo].[LEC_GRP_COMPTE_GROUPE_ADHERENT]
             #TMP_MVT_BUDGETAIRE_NORMAL
            FROM
             #TMP_DONNEES_OBTENUES_NORMAL_COL
-         
-           -- <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-         
+
            UNION ALL
-         
-           -- >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-           -- Pr‚paration des mouvements budg‚taires vers les enveloppes de frais
-           -- -------------------------------------------------------------------
-         
+
            SELECT
             M.ID_ACTIVITE,
             M.ID_PERIODE       as ID_PERIODE_FISC,
@@ -1465,18 +1127,12 @@ CREATE PROCEDURE [dbo].[LEC_GRP_COMPTE_GROUPE_ADHERENT]
             AND 
             TYPE_ENVELOPPE.BLN_FRAIS_GESTION_COLLECTE = 1        
            where
-           M.ID_ACTIVITE  in (select id_activite from GET_IDS_ACTIVITE_BY_COD_TYPE_ACTIVITE('PLAN')) --14822  -- 14822 ex Plan 10-50 DSZ 13060
+           M.ID_ACTIVITE  in (select id_activite from GET_IDS_ACTIVITE_BY_COD_TYPE_ACTIVITE('PLAN')) 
             AND
-            VERSEMENT_ORIGINE = 'V'  --volontaire uniquement
-           
-           -- <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-         
+            VERSEMENT_ORIGINE = 'V'  
+
            UNION ALL
-         
-           -- >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-           -- Pr‚paration des mouvements budg‚taires vers les comptes de groupes
-           -- ------------------------------------------------------------------
-         
+
            SELECT
             #TMP_DONNEES_OBTENUES_NORMAL.ID_ACTIVITE,
             ID_PERIODE        as ID_PERIODE_FISC,
@@ -1490,7 +1146,7 @@ CREATE PROCEDURE [dbo].[LEC_GRP_COMPTE_GROUPE_ADHERENT]
             'N'          as ID_N_R,
             DAT_EVENEMENT       as DAT_MVT_BUDGETAIRE,
             ID_EVENEMENT,
-            @ID_TYPE_MVT_COMPTE      as ID_TYPE_MOUVEMENT,  -- = 10
+            @ID_TYPE_MVT_COMPTE      as ID_TYPE_MOUVEMENT,  
             cast(ROUND(ABS(MNT_HT - DONT_REGLE_FPSPP)- (
                   (ABS(MNT_HT - DONT_REGLE_FPSPP) * TAU_FRAIS_GESTION / 100) 
                   + (ABS(MNT_HT - DONT_REGLE_FPSPP) * PRC_MUTUALISATION_VERSEMENT_RELIQUAT)
@@ -1512,17 +1168,11 @@ CREATE PROCEDURE [dbo].[LEC_GRP_COMPTE_GROUPE_ADHERENT]
             #TMP_DONNEES_OBTENUES_NORMAL
             inner join TYPE_ENVELOPPE on (TYPE_ENVELOPPE.ID_TYPE_ENVELOPPE = #TMP_DONNEES_OBTENUES_NORMAL.ID_TYPE_ENVELOPPE)
             where
-            #TMP_DONNEES_OBTENUES_NORMAL.ID_ACTIVITE   in (select id_activite from GET_IDS_ACTIVITE_BY_COD_TYPE_ACTIVITE('PLAN')) --14822  -- Plan 10-50 DSZ 13060
+            #TMP_DONNEES_OBTENUES_NORMAL.ID_ACTIVITE   in (select id_activite from GET_IDS_ACTIVITE_BY_COD_TYPE_ACTIVITE('PLAN')) 
             and TYPE_ENVELOPPE.BLN_FRAIS_GESTION_COLLECTE = 1
-         
-           -- <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-         
+
            UNION ALL
-         
-           -- >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-           -- Pr‚paration des mouvements budg‚taires vers les pot de mut.
-           -- -----------------------------------------------------------
-         
+
            SELECT
             M.ID_ACTIVITE,
             ID_PERIODE        as ID_PERIODE_FISC,
@@ -1536,8 +1186,8 @@ CREATE PROCEDURE [dbo].[LEC_GRP_COMPTE_GROUPE_ADHERENT]
             'N'          as ID_N_R,
             DAT_EVENEMENT       as DAT_MVT_BUDGETAIRE,
             ID_EVENEMENT,
-            @ID_TYPE_MVT_MUT      as ID_TYPE_MOUVEMENT,   -- 11
-            cast(ROUND(((ABS(MNT_HT- DONT_REGLE_FPSPP) * PRC_MUTUALISATION_VERSEMENT_RELIQUAT)), 2) as float) -- SAFI : SUPP DE DONT_REGLE_FPSPP
+            @ID_TYPE_MVT_MUT      as ID_TYPE_MOUVEMENT,   
+            cast(ROUND(((ABS(MNT_HT- DONT_REGLE_FPSPP) * PRC_MUTUALISATION_VERSEMENT_RELIQUAT)), 2) as float) 
                       as MNT_MVT_BUDGETAIRE,
             ID_ENVELOPPE,
             null         as ID_COMPTE,
@@ -1546,7 +1196,7 @@ CREATE PROCEDURE [dbo].[LEC_GRP_COMPTE_GROUPE_ADHERENT]
              when (@SANS_DIFF = 1)  then 'V'+ VERSEMENT_ORIGINE +' Alim. Pot Mut ' + convert(char(4), NUM_ANNEE)
              when (@SANS_DIFF = 0 AND ID_MODE_VERSEMENT <> 3)  then 'V'+ VERSEMENT_ORIGINE +' Alim. Pot Mut diff‚r‚ ' + NUM_CHEQUE + ' Collecte ' + convert(char(4), NUM_ANNEE)
              when (@SANS_DIFF = 0 AND ID_MODE_VERSEMENT = 3)   then 'V'+ VERSEMENT_ORIGINE +' Alim. Pot Mut Ech‚ancier pr‚v. ' + NUM_CHEQUE + ' Collecte ' + convert(char(4), NUM_ANNEE)
-         
+
             end          as LIBL_MVT_BUDGETAIRE,
             NUM_ANNEE,
             NUM_CHEQUE,
@@ -1560,19 +1210,12 @@ CREATE PROCEDURE [dbo].[LEC_GRP_COMPTE_GROUPE_ADHERENT]
             and
             TYPE_ENVELOPPE.ID_ACTIVITE is null
            where
-           M.ID_ACTIVITE  in (select id_activite from GET_IDS_ACTIVITE_BY_COD_TYPE_ACTIVITE('PLAN')) --14822
+           M.ID_ACTIVITE  in (select id_activite from GET_IDS_ACTIVITE_BY_COD_TYPE_ACTIVITE('PLAN')) 
             AND
             VERSEMENT_ORIGINE = 'O'
-         
-           -- <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-          
-           -- <SAFI AJOUTER REFORM FPSPP 28/01/2010> 
+
            UNION ALL
-         
-           -- >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-           -- Pr‚paration des mouvements budg‚taires vers les pot de mut - FPSPP.
-           -- ---------------------------------------------------------------------------------
-         
+
            SELECT
             M.ID_ACTIVITE,
             ID_PERIODE        as ID_PERIODE_FISC,
@@ -1586,7 +1229,7 @@ CREATE PROCEDURE [dbo].[LEC_GRP_COMPTE_GROUPE_ADHERENT]
             'N'          as ID_N_R,
             DAT_EVENEMENT       as DAT_MVT_BUDGETAIRE,
             ID_EVENEMENT,
-            @ID_TYPE_MVT_MUT_FPSPP     as ID_TYPE_MOUVEMENT,   -- 23
+            @ID_TYPE_MVT_MUT_FPSPP     as ID_TYPE_MOUVEMENT,   
             CAST(ROUND(ABS(DONT_REGLE_FPSPP), 2) as float) as MNT_MVT_BUDGETAIRE,
             ID_ENVELOPPE,
             null         as ID_COMPTE,
@@ -1595,7 +1238,7 @@ CREATE PROCEDURE [dbo].[LEC_GRP_COMPTE_GROUPE_ADHERENT]
              when (@SANS_DIFF = 1)  then 'V'+ VERSEMENT_ORIGINE +' Alim. Pot Mut FPSPP' + convert(char(4), NUM_ANNEE)
              when (@SANS_DIFF = 0 AND ID_MODE_VERSEMENT <> 3)  then 'V'+ VERSEMENT_ORIGINE +' Alim. Pot Mut diff‚r‚ FPSPP' + NUM_CHEQUE + ' Collecte ' + convert(char(4), NUM_ANNEE)
              when (@SANS_DIFF = 0 AND ID_MODE_VERSEMENT = 3)   then 'V'+ VERSEMENT_ORIGINE +' Alim. Pot Mut Ech‚ancier pr‚. FPSPP' + NUM_CHEQUE + ' Collecte ' + convert(char(4), NUM_ANNEE)
-         
+
             end          as LIBL_MVT_BUDGETAIRE,
             NUM_ANNEE,
             NUM_CHEQUE,
@@ -1609,25 +1252,10 @@ CREATE PROCEDURE [dbo].[LEC_GRP_COMPTE_GROUPE_ADHERENT]
             and
             TYPE_ENVELOPPE.ID_ACTIVITE is null
            where
-            M.ID_ACTIVITE  in (select id_activite from GET_IDS_ACTIVITE_BY_COD_TYPE_ACTIVITE('PLAN')) --14822  -- Plan 10-50 DSZ 13060
-         
-         
-           -- <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-         
-         
+            M.ID_ACTIVITE  in (select id_activite from GET_IDS_ACTIVITE_BY_COD_TYPE_ACTIVITE('PLAN')) 
+
            print 'fin versement'
-         
-         -- #########################################################################################
-         
-         
-         
-         -- TRAITEMENT DES VERSEMENTS 'TARDIFS'
-         -- ===================================
-         
-           -- >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-           -- Initialisation pr‚alable des variables dans le cas d'un versement 'tardif'
-           -- --------------------------------------------------------------------------
-         
+
            SET  @ID_TYPE_ENVELOPPE    = 6
            SET  @ID_TYPE_MVT_COLLECTE   = 7
            SET  @ID_TYPE_MVT_FRAIS    = 9
@@ -1638,14 +1266,7 @@ CREATE PROCEDURE [dbo].[LEC_GRP_COMPTE_GROUPE_ADHERENT]
            SET  @ID_TYPE_FINANCEMENT_COMPTE  = 1
            SET  @ID_TYPE_FINANCEMENT_MUT  = NULL
            SET  @ID_TYPE_MVT_MUT_FPSPP   = 23
-         
-           -- <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-         
-         
-           -- >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-           -- Obtention des donn‚es
-           -- ---------------------
-         
+
            SELECT
             *
            INTO 
@@ -1654,15 +1275,7 @@ CREATE PROCEDURE [dbo].[LEC_GRP_COMPTE_GROUPE_ADHERENT]
             BATCH_MVT_BUDGETAIRE_OBTENTION_DONNEES(@TYPE_EVENEMENT, 2, @SANS_DIFF)
            WHERE
             @TYPE_EVENEMENT <> 5 OR MNT_HT > 0
-         
-           -- <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-         
-         
-         
-           -- >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-           -- S‚lection des lignes relatives aux enveloppes de collecte
-           -- ---------------------------------------------------------
-         
+
            SELECT
             M.*
            INTO 
@@ -1675,15 +1288,9 @@ CREATE PROCEDURE [dbo].[LEC_GRP_COMPTE_GROUPE_ADHERENT]
             TYPE_ENVELOPPE.ID_ACTIVITE = M.ID_ACTIVITE
             AND
             TYPE_ENVELOPPE.BLN_COLLECTE = 1      
-         
-           -- <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-         
+
            print 'R‚cup‚ration des informations - fin'
-         
-           -- >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-           -- Pr‚paration des mouvements budg‚taires vers les enveloppes de collecte
-           -- ----------------------------------------------------------------------
-         
+
            SELECT
             ID_ACTIVITE,
             ID_PERIODE        as ID_PERIODE_FISC,
@@ -1697,7 +1304,7 @@ CREATE PROCEDURE [dbo].[LEC_GRP_COMPTE_GROUPE_ADHERENT]
             'N'          as ID_N_R,
             DAT_EVENEMENT       as DAT_MVT_BUDGETAIRE,
             ID_EVENEMENT,
-            @ID_TYPE_MVT_COLLECTE     as ID_TYPE_MOUVEMENT,  -- 7
+            @ID_TYPE_MVT_COLLECTE     as ID_TYPE_MOUVEMENT,  
             cast(ROUND(ABS(MNT_HT), 2) as float) as MNT_MVT_BUDGETAIRE,
             ID_ENVELOPPE,
             null         as ID_COMPTE,
@@ -1711,22 +1318,16 @@ CREATE PROCEDURE [dbo].[LEC_GRP_COMPTE_GROUPE_ADHERENT]
             end     as LIBL_MVT_BUDGETAIRE,  
             NUM_ANNEE,
             NUM_CHEQUE,
-            -- <SAFI AJOTUER VERSEMENT_ORIGINE : 08/06/2010>
+
             VERSEMENT_ORIGINE as VERSEMENT_ORIGINE
-            -- </SAFI AJOTUER VERSEMENT_ORIGINE : 08/06/2010>
+
            INTO
             #TMP_MVT_BUDGETAIRE_TARDIF
            FROM
             #TMP_DONNEES_OBTENUES_TARDIF_COL
-         
-           -- <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-         
+
            UNION ALL
-         
-           -- >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-           -- Pr‚paration des mouvements budg‚taires vers les enveloppes de frais
-           -- -------------------------------------------------------------------
-         
+
            SELECT
             M.ID_ACTIVITE,
             M.ID_PERIODE       as ID_PERIODE_FISC,
@@ -1740,8 +1341,8 @@ CREATE PROCEDURE [dbo].[LEC_GRP_COMPTE_GROUPE_ADHERENT]
             'N'          as ID_N_R,
             DAT_EVENEMENT       as DAT_MVT_BUDGETAIRE,
             ID_EVENEMENT,
-            @ID_TYPE_MVT_FRAIS      as ID_TYPE_MOUVEMENT,  -- 9
-            -- retrait FPSPP DSZ 03/06/2010 12384
+            @ID_TYPE_MVT_FRAIS      as ID_TYPE_MOUVEMENT,  
+
             cast(ROUND(ABS(MNT_HT - DONT_REGLE_FPSPP)*TAU_FRAIS_GESTION / 100, 2) as decimal(18,2)) 
                       as MNT_MVT_BUDGETAIRE,
             ID_ENVELOPPE,
@@ -1752,9 +1353,9 @@ CREATE PROCEDURE [dbo].[LEC_GRP_COMPTE_GROUPE_ADHERENT]
             end          as LIBL_MVT_BUDGETAIRE,
             NUM_ANNEE,
             NUM_CHEQUE,
-            -- <SAFI AJOTUER VERSEMENT_ORIGINE : 08/06/2010>
+
             VERSEMENT_ORIGINE as VERSEMENT_ORIGINE
-            -- </SAFI AJOTUER VERSEMENT_ORIGINE : 08/06/2010>
+
            FROM
             #TMP_DONNEES_OBTENUES_TARDIF as M
            INNER JOIN TYPE_ENVELOPPE on
@@ -1762,18 +1363,12 @@ CREATE PROCEDURE [dbo].[LEC_GRP_COMPTE_GROUPE_ADHERENT]
             AND
             TYPE_ENVELOPPE.BLN_FRAIS_GESTION_COLLECTE = 1        
            where
-           M.ID_ACTIVITE  in (select id_activite from GET_IDS_ACTIVITE_BY_COD_TYPE_ACTIVITE('PLAN')) --14822  -- Plan 10-50 DSZ 13060
+           M.ID_ACTIVITE  in (select id_activite from GET_IDS_ACTIVITE_BY_COD_TYPE_ACTIVITE('PLAN')) 
             AND
             VERSEMENT_ORIGINE = 'V'
-         
-           -- <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-         
+
            UNION ALL
-         
-           -- >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-           -- Pr‚paration des mouvements budg‚taires vers les comptes de groupes
-           -- ------------------------------------------------------------------
-         
+
            SELECT
             #TMP_DONNEES_OBTENUES_TARDIF.      ID_ACTIVITE,
             ID_PERIODE        as ID_PERIODE_FISC,
@@ -1787,7 +1382,7 @@ CREATE PROCEDURE [dbo].[LEC_GRP_COMPTE_GROUPE_ADHERENT]
             'N'          as ID_N_R,
             DAT_EVENEMENT       as DAT_MVT_BUDGETAIRE,
             ID_EVENEMENT,
-            @ID_TYPE_MVT_COMPTE      as ID_TYPE_MOUVEMENT,  -- 10
+            @ID_TYPE_MVT_COMPTE      as ID_TYPE_MOUVEMENT,  
             cast(ROUND(ABS(MNT_HT - DONT_REGLE_FPSPP)- (
                   (ABS(MNT_HT - DONT_REGLE_FPSPP) * TAU_FRAIS_GESTION / 100) 
                   + (ABS(MNT_HT - DONT_REGLE_FPSPP) * PRC_MUTUALISATION_VERSEMENT_RELIQUAT)
@@ -1809,18 +1404,12 @@ CREATE PROCEDURE [dbo].[LEC_GRP_COMPTE_GROUPE_ADHERENT]
             #TMP_DONNEES_OBTENUES_TARDIF
             inner join TYPE_ENVELOPPE on (TYPE_ENVELOPPE.ID_TYPE_ENVELOPPE = #TMP_DONNEES_OBTENUES_TARDIF.ID_TYPE_ENVELOPPE)
             where
-             #TMP_DONNEES_OBTENUES_TARDIF.ID_ACTIVITE  in (select id_activite from GET_IDS_ACTIVITE_BY_COD_TYPE_ACTIVITE('PLAN')) --14822
+             #TMP_DONNEES_OBTENUES_TARDIF.ID_ACTIVITE  in (select id_activite from GET_IDS_ACTIVITE_BY_COD_TYPE_ACTIVITE('PLAN')) 
             AND
             TYPE_ENVELOPPE.BLN_FRAIS_GESTION_COLLECTE = 1
-         
-           -- <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-         
+
            UNION ALL
-         
-           -- >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-           -- Pr‚paration des mouvements budg‚taires vers les enveloppes de pot de mut.
-           -- -------------------------------------------------------------------------
-         
+
            SELECT
             M.ID_ACTIVITE,
             ID_PERIODE        as ID_PERIODE_FISC,
@@ -1834,7 +1423,7 @@ CREATE PROCEDURE [dbo].[LEC_GRP_COMPTE_GROUPE_ADHERENT]
             'N'          as ID_N_R,
             DAT_EVENEMENT       as DAT_MVT_BUDGETAIRE,
             ID_EVENEMENT,
-            @ID_TYPE_MVT_MUT      as ID_TYPE_MOUVEMENT,   -- 11
+            @ID_TYPE_MVT_MUT      as ID_TYPE_MOUVEMENT,   
             cast(ROUND(((ABS(MNT_HT-DONT_REGLE_FPSPP)* PRC_MUTUALISATION_VERSEMENT_RELIQUAT) ), 2) as decimal(18,2)) 
                       as MNT_MVT_BUDGETAIRE,
             ID_ENVELOPPE,
@@ -1859,19 +1448,12 @@ CREATE PROCEDURE [dbo].[LEC_GRP_COMPTE_GROUPE_ADHERENT]
             and
             TYPE_ENVELOPPE.ID_ACTIVITE is null
             where
-            M.ID_ACTIVITE  in (select id_activite from GET_IDS_ACTIVITE_BY_COD_TYPE_ACTIVITE('PLAN')) --14822  -- Plan 10-50 DSZ 13060
+            M.ID_ACTIVITE  in (select id_activite from GET_IDS_ACTIVITE_BY_COD_TYPE_ACTIVITE('PLAN')) 
             AND
             VERSEMENT_ORIGINE = 'O'
-         
-           -- <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-          
-           -- <SAFI AJOUTER 29-01-2010 FPSPP> 
+
            UNION ALL
-            
-           -- >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-           -- Pr‚paration des mouvements budg‚taires vers les enveloppes de pot de mut. FPSPP
-           -- -------------------------------------------------------------------------
-         
+
            SELECT
             M.ID_ACTIVITE,
             ID_PERIODE        as ID_PERIODE_FISC,
@@ -1885,7 +1467,7 @@ CREATE PROCEDURE [dbo].[LEC_GRP_COMPTE_GROUPE_ADHERENT]
             'N'          as ID_N_R,
             DAT_EVENEMENT       as DAT_MVT_BUDGETAIRE,
             ID_EVENEMENT,
-            @ID_TYPE_MVT_MUT_FPSPP     as ID_TYPE_MOUVEMENT,   -- 23
+            @ID_TYPE_MVT_MUT_FPSPP     as ID_TYPE_MOUVEMENT,   
             cast(ROUND(DONT_REGLE_FPSPP, 2) as float) as MNT_MVT_BUDGETAIRE,
             ID_ENVELOPPE,
             null         as ID_COMPTE,
@@ -1899,9 +1481,9 @@ CREATE PROCEDURE [dbo].[LEC_GRP_COMPTE_GROUPE_ADHERENT]
             end          as LIBL_MVT_BUDGETAIRE,
             NUM_ANNEE,
             NUM_CHEQUE,
-            -- <SAFI AJOTUER VERSEMENT_ORIGINE : 08/06/2010>
+
             VERSEMENT_ORIGINE as VERSEMENT_ORIGINE
-            -- </SAFI AJOTUER VERSEMENT_ORIGINE : 08/06/2010>
+
            FROM
             #TMP_DONNEES_OBTENUES_TARDIF as M
            INNER JOIN TYPE_ENVELOPPE on
@@ -1911,43 +1493,21 @@ CREATE PROCEDURE [dbo].[LEC_GRP_COMPTE_GROUPE_ADHERENT]
             and
             TYPE_ENVELOPPE.ID_ACTIVITE is null
             where
-            M.ID_ACTIVITE  in (select id_activite from GET_IDS_ACTIVITE_BY_COD_TYPE_ACTIVITE('PLAN')) --14822
+            M.ID_ACTIVITE  in (select id_activite from GET_IDS_ACTIVITE_BY_COD_TYPE_ACTIVITE('PLAN')) 
             AND
             VERSEMENT_ORIGINE = 'O'
-         
-           -- <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
            print 'Versement tardif - fin'
-         
-         
-         
-         -- #########################################################################################
-         
-         
-         
-         -- TRAITEMENT DES VERSEMENTS 'ANTERIEURS'
-         -- ======================================
-         
-           -- >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-           -- Initialisation pr‚alable des variables dans le cas d'un versement 'ant‚rieur'
-           -- -----------------------------------------------------------------------------
-         
-           SET  @ID_TYPE_ENVELOPPE    = 5  --FM Plan
+
+           SET  @ID_TYPE_ENVELOPPE    = 5  
            SET  @ID_TYPE_MVT_COLLECTE   = 8
            SET  @ID_TYPE_MVT_FRAIS    = 11
            SET     @ID_TYPE_MVT_COMPTE    = 10
            SET  @ID_TYPE_FINANCEMENT_COLLECTE = NULL
            SET  @ID_TYPE_FINANCEMENT_FRAIS  = NULL
            SET     @ID_TYPE_FINANCEMENT_COMPTE  = NULL
-           SET  @ID_TYPE_MVT_MUT_FPSPP   = 23 -- FPSPP 
-         
-           -- <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-         
-         
-         
-           -- >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-           -- Obtention des donn‚es
-           -- ---------------------
-         
+           SET  @ID_TYPE_MVT_MUT_FPSPP   = 23 
+
            SELECT
             *
            INTO 
@@ -1956,15 +1516,7 @@ CREATE PROCEDURE [dbo].[LEC_GRP_COMPTE_GROUPE_ADHERENT]
             BATCH_MVT_BUDGETAIRE_OBTENTION_DONNEES(@TYPE_EVENEMENT, 3, @SANS_DIFF) 
            WHERE
             @TYPE_EVENEMENT <> 5 OR MNT_HT > 0
-         
-           -- <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-         
-         
-         
-           -- >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-           -- S‚lection des lignes relatives aux enveloppes de collecte
-           -- ---------------------------------------------------------
-         
+
            SELECT
             M.*
            INTO 
@@ -1977,15 +1529,9 @@ CREATE PROCEDURE [dbo].[LEC_GRP_COMPTE_GROUPE_ADHERENT]
             TYPE_ENVELOPPE.ID_ACTIVITE = M.ID_ACTIVITE
             AND
             TYPE_ENVELOPPE.BLN_COLLECTE = 1      
-         
-           -- <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-         
+
            print 'R‚cup‚ration des informations - fin'
-         
-           -- >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-           -- Pr‚paration des mouvements budg‚taires vers les enveloppes de collecte
-           -- ----------------------------------------------------------------------
-         
+
            SELECT
             M.ID_ACTIVITE,
             M.ID_PERIODE       as ID_PERIODE_FISC,
@@ -2012,15 +1558,9 @@ CREATE PROCEDURE [dbo].[LEC_GRP_COMPTE_GROUPE_ADHERENT]
             #TMP_MVT_BUDGETAIRE_ANT
            FROM
             #TMP_DONNEES_OBTENUES_ANT_COL AS M
-         
-           -- <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-         
+
            UNION ALL
-         
-           -- >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-           -- Pr‚paration des mouvements budg‚taires vers les pots de mut.
-           -- ------------------------------------------------------------
-         
+
            SELECT
             M.ID_ACTIVITE,
             M.ID_PERIODE       as ID_PERIODE_FISC,
@@ -2035,24 +1575,21 @@ CREATE PROCEDURE [dbo].[LEC_GRP_COMPTE_GROUPE_ADHERENT]
             DAT_EVENEMENT       as DAT_MVT_BUDGETAIRE,
             ID_EVENEMENT,
             @ID_TYPE_MVT_FRAIS      as ID_TYPE_MOUVEMENT,
-            cast(ROUND(ABS(MNT_HT - DONT_REGLE_FPSPP) , 2) as float) as MNT_MVT_BUDGETAIRE,  -- SAFI SUPP DE DONT_REGLE_FPSPP
+            cast(ROUND(ABS(MNT_HT - DONT_REGLE_FPSPP) , 2) as float) as MNT_MVT_BUDGETAIRE,  
             ID_ENVELOPPE_PERIODE_EN_COURS   as ID_ENVELOPPE,
             null         as ID_COMPTE,
             case
              when (@SANS_DIFF = 1)  then 'V'+ VERSEMENT_ORIGINE +' Alim. Pot Mut ant‚rieure Collecte ' + convert(char(4), NUM_ANNEE)
-             -- SAFI AJOUTER Evol 339 30/12/2009
-             -- Old Block
-             
-             -- New Block
+
                when (@SANS_DIFF = 0 AND ID_MODE_VERSEMENT <> 3)  then 'V'+ VERSEMENT_ORIGINE +' Encaissement diff‚r‚ ' + NUM_CHEQUE + ' Collecte ' + convert(char(4), NUM_ANNEE)
                when (@SANS_DIFF = 0 AND ID_MODE_VERSEMENT = 3)  then 'V'+ VERSEMENT_ORIGINE +' Ech‚ancier pr‚v. ' + NUM_CHEQUE + ' Collecte ' + convert(char(4), NUM_ANNEE) 
-             -- END sAFI Evol 339 30/12/2009 -- Volontaire  - Echan
+
             end          as LIBL_MVT_BUDGETAIRE,
             NUM_ANNEE,
             NUM_CHEQUE,
-            -- <SAFI AJOTUER VERSEMENT_ORIGINE : 08/06/2010>
+
             VERSEMENT_ORIGINE as VERSEMENT_ORIGINE
-            -- </SAFI AJOTUER VERSEMENT_ORIGINE : 08/06/2010>
+
            FROM
             #TMP_DONNEES_OBTENUES_ANT as M
            INNER JOIN TYPE_ENVELOPPE on
@@ -2062,16 +1599,10 @@ CREATE PROCEDURE [dbo].[LEC_GRP_COMPTE_GROUPE_ADHERENT]
             and
             TYPE_ENVELOPPE.ID_ACTIVITE is null
             where
-            M.ID_ACTIVITE  in (select id_activite from GET_IDS_ACTIVITE_BY_COD_TYPE_ACTIVITE('PLAN')) --14822  -- Plan 10-50 DSZ 13060
-         
-           -- <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-           --<SAFI 29-01-2010 FPSPP>
+            M.ID_ACTIVITE  in (select id_activite from GET_IDS_ACTIVITE_BY_COD_TYPE_ACTIVITE('PLAN')) 
+
            UNION ALL
-          
-           -- >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-           -- Pr‚paration des mouvements budg‚taires vers les pots de mut. FPSPP
-           -- ------------------------------------------------------------
-         
+
            SELECT
             M.ID_ACTIVITE,
             M.ID_PERIODE       as ID_PERIODE_FISC,
@@ -2085,25 +1616,22 @@ CREATE PROCEDURE [dbo].[LEC_GRP_COMPTE_GROUPE_ADHERENT]
             'N'          as ID_N_R,
             DAT_EVENEMENT       as DAT_MVT_BUDGETAIRE,
             ID_EVENEMENT,
-            @ID_TYPE_MVT_MUT_FPSPP     as ID_TYPE_MOUVEMENT,   -- FPSPP 
+            @ID_TYPE_MVT_MUT_FPSPP     as ID_TYPE_MOUVEMENT,   
             cast(ROUND(ABS(DONT_REGLE_FPSPP) , 2) as float) as MNT_MVT_BUDGETAIRE,  
             ID_ENVELOPPE_PERIODE_EN_COURS   as ID_ENVELOPPE,
             null         as ID_COMPTE,
             case
              when (@SANS_DIFF = 1)  then 'V'+ VERSEMENT_ORIGINE +' Alim. Pot Mut FPSPP ant‚rieure Collecte ' + convert(char(4), NUM_ANNEE)
-             -- SAFI AJOUTER Evol 339 30/12/2009
-             -- Old Block
-             
-             -- New Block
+
                when (@SANS_DIFF = 0 AND ID_MODE_VERSEMENT <> 3)  then 'V'+ VERSEMENT_ORIGINE +' Encaissement diff‚r‚ FPSPP' + NUM_CHEQUE + ' Collecte ' + convert(char(4), NUM_ANNEE)
                when (@SANS_DIFF = 0 AND ID_MODE_VERSEMENT = 3)  then 'V'+ VERSEMENT_ORIGINE +' Ech‚ancier pr‚v. FPSPP ' + NUM_CHEQUE + ' Collecte ' + convert(char(4), NUM_ANNEE) 
-             -- END sAFI Evol 339 30/12/2009 -- Volontaire  - Echan
+
             end          as LIBL_MVT_BUDGETAIRE,
             NUM_ANNEE,
             NUM_CHEQUE,
-            -- <SAFI AJOTUER VERSEMENT_ORIGINE : 08/06/2010>
+
             VERSEMENT_ORIGINE as VERSEMENT_ORIGINE
-            -- </SAFI AJOTUER VERSEMENT_ORIGINE : 08/06/2010>
+
            FROM
             #TMP_DONNEES_OBTENUES_ANT as M
            INNER JOIN TYPE_ENVELOPPE on
@@ -2113,23 +1641,13 @@ CREATE PROCEDURE [dbo].[LEC_GRP_COMPTE_GROUPE_ADHERENT]
             and
             TYPE_ENVELOPPE.ID_ACTIVITE is null
            where
-           M.ID_ACTIVITE  in (select id_activite from GET_IDS_ACTIVITE_BY_COD_TYPE_ACTIVITE('PLAN')) --14822
-         
-         
-           -- <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-           --</SAFI 29-01-2010 FPSPP>
-         
+           M.ID_ACTIVITE  in (select id_activite from GET_IDS_ACTIVITE_BY_COD_TYPE_ACTIVITE('PLAN')) 
+
            print 'Versement ant‚rieur - fin'
-         
-         
-         
-         -- #########################################################################################
-         
-         
-         
+
            IF (@TYPE_EVENEMENT = 1 AND @SANS_DIFF = 0)
            BEGIN
-         
+
             INSERT INTO MVT_BUDGETAIRE
             (
              ID_ACTIVITE,
@@ -2173,14 +1691,14 @@ CREATE PROCEDURE [dbo].[LEC_GRP_COMPTE_GROUPE_ADHERENT]
              ID_ENVELOPPE,
              ID_COMPTE,
              case
-              -- 12 ou 16
+
               when (ID_TYPE_MOUVEMENT in (6, 10, 11)) then 'V'+ VERSEMENT_ORIGINE +' Diff‚r‚ remis en banque ' + NUM_CHEQUE + ' Collecte ' + convert(char(4), NUM_ANNEE)
-              -- 15
+
               when (ID_TYPE_MOUVEMENT =  9)  then 'V'+ VERSEMENT_ORIGINE +' Frais de gestion diff‚r‚ ' + NUM_CHEQUE + ' Collecte ' + convert(char(4), NUM_ANNEE)
              end          as LIBL_MVT_BUDGETAIRE
             FROM 
              #TMP_MVT_BUDGETAIRE_NORMAL
-         
+
             INSERT INTO MVT_BUDGETAIRE
             (
              ID_ACTIVITE,
@@ -2224,14 +1742,14 @@ CREATE PROCEDURE [dbo].[LEC_GRP_COMPTE_GROUPE_ADHERENT]
              ID_ENVELOPPE,
              ID_COMPTE,
              case
-              -- 12 ou 16
+
               when (ID_TYPE_MOUVEMENT in (7, 10, 11)) then 'V'+ VERSEMENT_ORIGINE +' Diff‚r‚ remis en banque ' +NUM_CHEQUE + ' Collecte ' + convert(char(4), NUM_ANNEE)
-              -- 15
+
               when (ID_TYPE_MOUVEMENT =  9)  then 'V'+ VERSEMENT_ORIGINE +' Frais de gestion diff‚r‚ ' + NUM_CHEQUE + ' Collecte ' + convert(char(4), NUM_ANNEE)
              end          as LIBL_MVT_BUDGETAIRE
             FROM 
              #TMP_MVT_BUDGETAIRE_TARDIF
-         
+
             INSERT INTO MVT_BUDGETAIRE
             (
              ID_ACTIVITE,
@@ -2273,16 +1791,14 @@ CREATE PROCEDURE [dbo].[LEC_GRP_COMPTE_GROUPE_ADHERENT]
              ID_ENVELOPPE,
              ID_COMPTE,
              case
-              -- 12 ou 16
+
               when (ID_TYPE_MOUVEMENT in (8, 11)) then 'V'+ VERSEMENT_ORIGINE +' Diff‚r‚ remis en banque ' + NUM_CHEQUE + ' Collecte ' + convert(char(4), NUM_ANNEE)
              end          as LIBL_MVT_BUDGETAIRE
             FROM 
              #TMP_MVT_BUDGETAIRE_ANT
-         
+
            END
-         
-         
-         
+
            INSERT INTO MVT_BUDGETAIRE
            (
              ID_ACTIVITE,
@@ -2323,7 +1839,7 @@ CREATE PROCEDURE [dbo].[LEC_GRP_COMPTE_GROUPE_ADHERENT]
             LIBL_MVT_BUDGETAIRE
            FROM 
             #TMP_MVT_BUDGETAIRE_NORMAL
-         
+
            INSERT INTO MVT_BUDGETAIRE
            (
              ID_ACTIVITE,
@@ -2364,7 +1880,7 @@ CREATE PROCEDURE [dbo].[LEC_GRP_COMPTE_GROUPE_ADHERENT]
             LIBL_MVT_BUDGETAIRE
            FROM 
             #TMP_MVT_BUDGETAIRE_TARDIF
-         
+
            INSERT INTO MVT_BUDGETAIRE
            (
              ID_ACTIVITE,
@@ -2405,30 +1921,19 @@ CREATE PROCEDURE [dbo].[LEC_GRP_COMPTE_GROUPE_ADHERENT]
             LIBL_MVT_BUDGETAIRE
            FROM 
             #TMP_MVT_BUDGETAIRE_ANT
-         
+
            print 'Transaction commit'
            COMMIT TRAN TRANSACTION_MVT_BUDGETAIRE
-         
+
            print 'end'
-         
-         
-         
-         -- #########################################################################################
-         
-         
-         
+
           END TRY
-         
+
           BEGIN CATCH
            SELECT
             ERROR_NUMBER() as ErrorNumber,
             ERROR_MESSAGE() as ErrorMessage;
-         
-           -- Test XACT_STATE for 1 or -1.
-           -- XACT_STATE = 0 means there is no transaction and
-           -- a COMMIT or ROLLBACK would generate an error.
-         
-           -- Test if the transaction is uncommittable.
+
            IF (XACT_STATE()) = -1
            BEGIN
             PRINT
@@ -2436,8 +1941,7 @@ CREATE PROCEDURE [dbo].[LEC_GRP_COMPTE_GROUPE_ADHERENT]
              'Rolling back transaction.'
             ROLLBACK TRANSACTION TRANSACTION_MVT_BUDGETAIRE;
            END;
-         
-           -- Test if the transaction is active and valid.
+
            IF (XACT_STATE()) = 1
            BEGIN
             PRINT
@@ -2445,36 +1949,25 @@ CREATE PROCEDURE [dbo].[LEC_GRP_COMPTE_GROUPE_ADHERENT]
              'Committing transaction.'
             COMMIT TRANSACTION TRANSACTION_MVT_BUDGETAIRE;   
            END;
-         
+
           END CATCH
-         
-         
-         
+
          END
 
-		-- =============================================
-         -- Author:		DSZ
-         -- Create date: 15/02/2011
-         -- Description:	Get Taux TVA pour l'etablissement chef de groupe donn‚ et periode donne
-         -- avec la traduction de periode en regime TVA
-         -- =============================================
-         -- DSZ 25/03/2013 15059 : remplacer la r‚cup‚ration de ID_ETABLISSEMENT_CHEF par GetEtabRepresentatifDuGroupe(@ID_GROUPE)
-         -- =============================================
          CREATE PROCEDURE [dbo].[GET_TAUX_TVA_GROUPE] 
          	@ID_GROUPE int
          AS
          BEGIN
          	DECLARE @ID_PERIODE_TVA AS INTEGER
-         
-         	
+
          	select @ID_PERIODE_TVA = ID_PERIODE
          	from dbo.PERIODE
          	where ID_TYPE_PERIODE = 2
          	and GetDate() between DAT_DEB_PERIODE and DAT_FIN_PERIODE
-         	
+
          	declare @ID_ETABLISSEMENT int
          	set @ID_ETABLISSEMENT = dbo.GetEtabRepresentatifDuGroupe(@ID_GROUPE)
-         
+
          	SELECT  
          		R26.TAU_TVA, 
          		ETABLISSEMENT.ID_GROUPE
@@ -2482,11 +1975,9 @@ CREATE PROCEDURE [dbo].[LEC_GRP_COMPTE_GROUPE_ADHERENT]
          		inner join R26 on (ETABLISSEMENT.ID_TYPE_TVA = R26.ID_TYPE_TVA and
          							R26.ID_PERIODE = @ID_PERIODE_TVA)
          	where ETABLISSEMENT.ID_ETABLISSEMENT  = @ID_ETABLISSEMENT 
-         
-         END
-         
 
-         
+         END
+
 create procedure CKParser.TheEnd 
 as 
 begin         

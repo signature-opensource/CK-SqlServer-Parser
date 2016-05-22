@@ -47,12 +47,12 @@ namespace CK.SqlServer.Parser.Tests
             }
         }
 
-        [TestCase( "Optiform.1.sql" )]
-        [TestCase( "Optiform.2.sql" )]
-        [TestCase( "Optiform.3.sql" )]
-        [TestCase( "Optiform.4.sql" )]
-        [TestCase( "Optiform.5.sql" )]
-        [TestCase( "Optiform.6.sql" )]
+        [TestCase( "Opt.1.sql" )]
+        [TestCase( "Opt.2.sql" )]
+        [TestCase( "Opt.3.sql" )]
+        [TestCase( "Opt.4.sql" )]
+        [TestCase( "Opt.5.sql" )]
+        [TestCase( "Opt.6.sql" )]
         public void parsing_multiple_sp( string name )
         {
             var texts = Regex.Split( TestHelper.LoadTextFromParsingScripts( name ), "^\\s*GO", RegexOptions.Multiline );

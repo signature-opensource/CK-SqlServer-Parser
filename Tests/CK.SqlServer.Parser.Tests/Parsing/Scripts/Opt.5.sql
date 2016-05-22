@@ -1,17 +1,4 @@
 ﻿
- -- =============================================
-         -- Author:		Kwame Woollams
-         -- Create date: 5 novembre 2007
-         -- Description:	insertion d'une arrivee piece pro
-         -- =============================================
-         -- DSZ 15282 ajout NUM_FILE
-         -- =============================================
-         -- DSZ 26/06/2013 15338 ajout id_utilisateur
-         -- =============================================
-         -- DSZ 12/11/2013 : 16337 ajout NOM_FICHIER
-         -- =============================================
-         -- WKH 26/11/2013 : 16468 ajout NUM_LOT
-         -- =============================================
          CREATE PROCEDURE INS_ARRIVEE_PIECE_PRO
          			@DAT_ARRIVEE_PIECE_PRO		DATETIME = NULL, 
          			@BLN_ACTIF					TINYINT, 
@@ -31,14 +18,13 @@
          			@ID_UTILISATEUR				int,
          			@NOM_FICHIER				varchar(100),
          			@NUM_LOT					varchar(17) = NULL
-         
+
          	AS
          	BEGIN
-         		
-         		-- initialisation de la 
+
          		IF @DAT_ARRIVEE_PIECE_PRO IS NULL
          			SET @DAT_ARRIVEE_PIECE_PRO = GETDATE ()
-         
+
          		INSERT INTO ARRIVEE_PIECE_PRO
          			(
          				COD_ARRIVEE_PIECE_PRO, 
@@ -83,25 +69,15 @@
          				@NOM_FICHIER,
          				@NUM_LOT
          			)
-         
-         
+
          		UPDATE	ARRIVEE_PIECE_PRO
          		SET		COD_ARRIVEE_PIECE_PRO = SCOPE_IDENTITY() 
          		WHERE	ID_ARRIVEE_PIECE_PRO = SCOPE_IDENTITY() 
-         
+
          		return SCOPE_IDENTITY() 
-         
+
          	END
-         
- -- =============================================  
-         -- Author  : ??  
-         -- Date   : ??
-         -- =============================================
-         -- 07/02/2013 LDE
-         -- 14822: [AGPP] : 8 : AGPP fonctionnel en descente en compta, ETEBAC et virements internes (-> en prod le 28/2)
-         -- Remplacement de != 3 pour d‚tecter le plan
-         -- =============================================
-         
+
          CREATE PROCEDURE [dbo].[LEC_GRP_STAGIAIRE_MODULE_PEC_FICHEDOSSIER]
          	@ID_MODULE		int
          AS
@@ -111,16 +87,16 @@
          	DECLARE @NB_STAGIAIRE		int
          	DECLARE @STAGIAIRE		VARCHAR(254)
          	DECLARE @COD_MOD			varchar(12)
-         
+
          	SET @COUNT = 0
-         
+
          	SELECT @COUNT	= count(ID_SESSION_PEC)	from SESSION_PEC	where ID_MODULE_PEC = @ID_MODULE
          	SELECT @COD_MOD = COD_MODULE_PEC	from MODULE_PEC		where ID_MODULE_PEC = @ID_MODULE
-         
+
          	SELECT top 1 @ID_PREV_SESSION = ID_SESSION_PEC from SESSION_PEC
          		where ID_MODULE_PEC = @ID_MODULE AND BLN_ACTIF = 1
          		order by ID_SESSION_PEC desc
-         
+
          	DECLARE @EXISTS_DESENGAGEMENT INT
          	SELECT @EXISTS_DESENGAGEMENT = ISNULL(COUNT(*),0)
          	FROM POSTE_COUT_ENGAGE
@@ -130,8 +106,7 @@
          	POSTE_COUT_ENGAGE.ID_MODULE_PEC = @ID_MODULE				AND
          	POSTE_COUT_ENGAGE.ID_ENGAGEMENT = ENGAGEMENT.ID_ENGAGEMENT	AND 
          	POSTE_COUT_ENGAGE.DAT_DESENGAGEMENT IS NOT NULL
-         
-         
+
          CREATE TABLE #MES_STAGIAIRES (ID_STAGIAIRE_PEC INT)
          INSERT 	INTO #MES_STAGIAIRES
          SELECT
@@ -142,9 +117,9 @@
          		@ID_MODULE		is not null	AND 
          		STAGIAIRE_PEC.ID_MODULE_PEC = @ID_MODULE	AND 
          		STAGIAIRE_PEC.ID_SESSION_PEC is null
-         
+
          SET @NB_STAGIAIRE =(Select Count(*)
-         
+
          	FROM		 
          		#MES_STAGIAIRES
          		INNER JOIN STAGIAIRE_PEC ON STAGIAIRE_PEC.ID_STAGIAIRE_PEC=#MES_STAGIAIRES.ID_STAGIAIRE_PEC
@@ -156,14 +131,14 @@
          		INNER JOIN ETABLISSEMENT ON ETABLISSEMENT.ID_ETABLISSEMENT	= STAGIAIRE_PEC.ID_ETABLISSEMENT
          		INNER JOIN ADHERENT		ON ADHERENT.ID_ADHERENT				= ETABLISSEMENT.ID_ADHERENT
          		LEFT JOIN GROUPE on (STAGIAIRE_PEC.ID_GROUPE = GROUPE.ID_GROUPE)
-         		
+
          		LEFT OUTER JOIN STAGIAIRE_PEC STP ON STAGIAIRE_PEC.ID_STAGIAIRE_TUTEUR = STP.ID_STAGIAIRE_PEC
          		LEFT OUTER JOIN INDIVIDU ISTP ON STP.ID_INDIVIDU = ISTP.ID_INDIVIDU
-         		left join R19 on (R19.ID_ADHERENT = ADHERENT.ID_ADHERENT and R19.ID_ACTIVITE in (SELECT ID_ACTIVITE FROM GET_IDS_ACTIVITE_BY_COD_TYPE_ACTIVITE('PLAN'))		-- LDE 07/02/2013 #14822
+         		left join R19 on (R19.ID_ADHERENT = ADHERENT.ID_ADHERENT and R19.ID_ACTIVITE in (SELECT ID_ACTIVITE FROM GET_IDS_ACTIVITE_BY_COD_TYPE_ACTIVITE('PLAN'))		
          						and R19.ID_PERIODE = (select ID_PERIODE from PERIODE where id_type_periode =1 and bln_en_cours = 1))
-         
+
          	)
-         	
+
          	IF @NB_STAGIAIRE = 1
          	BEGIN
          	SET @STAGIAIRE=( Select Top 1
@@ -179,65 +154,40 @@
          		INNER JOIN ETABLISSEMENT ON ETABLISSEMENT.ID_ETABLISSEMENT	= STAGIAIRE_PEC.ID_ETABLISSEMENT
          		INNER JOIN ADHERENT		ON ADHERENT.ID_ADHERENT				= ETABLISSEMENT.ID_ADHERENT
          		LEFT JOIN GROUPE on (STAGIAIRE_PEC.ID_GROUPE = GROUPE.ID_GROUPE)
-         		
+
          		LEFT OUTER JOIN STAGIAIRE_PEC STP ON STAGIAIRE_PEC.ID_STAGIAIRE_TUTEUR = STP.ID_STAGIAIRE_PEC
          		LEFT OUTER JOIN INDIVIDU ISTP ON STP.ID_INDIVIDU = ISTP.ID_INDIVIDU
-         		left join R19 on (R19.ID_ADHERENT = ADHERENT.ID_ADHERENT and R19.ID_ACTIVITE in (SELECT ID_ACTIVITE FROM GET_IDS_ACTIVITE_BY_COD_TYPE_ACTIVITE('PLAN'))		-- LDE 07/02/2013 #14822
+         		left join R19 on (R19.ID_ADHERENT = ADHERENT.ID_ADHERENT and R19.ID_ACTIVITE in (SELECT ID_ACTIVITE FROM GET_IDS_ACTIVITE_BY_COD_TYPE_ACTIVITE('PLAN'))		
          						and R19.ID_PERIODE = (select ID_PERIODE from PERIODE where id_type_periode =1 and bln_en_cours = 1))
-         							
+
          		)
-         	
+
          	END
          	ELSE 
          	BEGIN
          	SET @STAGIAIRE=@NB_STAGIAIRE 
          	END 
-         	
+
          SELECT @STAGIAIRE AS STAGIAIRE
          END   
-         
 
- -- =============================================
-         -- Author:		XXX
-         -- Create date: XX XXXX 2007
-         -- Description:	procedure de lecture detail sur l'iban d'une facture
-         -- ---------------------------------------------
-         -- Author:		SAY
-         -- Modified date: 01 oct. 2007
-         -- comment		: filtrage sur COD_SOUS_TYPE_TRANSACTION = 'REGLEMT'
-         -- ---------------------------------------------
-         -- Author:		SAY
-         -- Modified date: 03 oct. 2007
-         -- comment		: filtrage sur BLN_ACTIF = 1
-         -- =============================================
-         -- TLE 27/09/2103 : 15143 : Passage de la taille du NUM_BAN de 27 … 34
-         ----------------------------------------------  
          CREATE  PROCEDURE [dbo].[LEC_DET_IBAN_BY_TYPE_FACTURE] 
          	@ID_MODULE_PEC		AS INT,
          	@ID_ADHERENT		AS INT,
          	@ID_ACTION_PEC		AS INT,
          	@ID_TRANSACTION		AS INT OUT,
          	@NUM_IBAN			AS VARCHAR(34) OUT
-         
+
          AS
-         
+
          BEGIN
-         	
-         --	DECLARE @ID_MODULE_PEC AS INT
-         --	DECLARE @ID_ADHERENT AS INT
-         --	DECLARE @ID_ACTION_PEC AS INT
-         --	DECLARE @ID_TRANSACTION AS INT
-         --	DECLARE @NUM_IBAN AS VARCHAR(27)
-         
-         	--SET @ID_MODULE_PEC = 27
-         	--	SET @ID_ACTION_PEC = 53
-         	--	SET @ID_ADHERENT = 2
+
          	SET @ID_TRANSACTION = NULL
          	SET @NUM_IBAN		= 0
-         
+
          	IF @ID_MODULE_PEC IS NOT  NULL
          		BEGIN
-         
+
          			SELECT
          				@ID_TRANSACTION = [TRANSACTION].ID_TRANSACTION,
          				@NUM_IBAN		= NUM_IBAN
@@ -248,11 +198,11 @@
          														AND COD_SOUS_TYPE_TRANSACTION = 'REGLEMT'
          			WHERE
          				[TRANSACTION].BLN_TRANSACTION_REGLEMENT_PRINCIPAL = 1 AND [TRANSACTION].BLN_ACTIF = 1
-         
+
          		END
          	ELSE
          		BEGIN
-         
+
          			SELECT
          				@ID_TRANSACTION		= T.ID_TRANSACTION,
          				@NUM_IBAN			= T.NUM_IBAN,
@@ -268,80 +218,42 @@
          				T.BLN_TRANSACTION_REGLEMENT_PRINCIPAL = 1  AND T.BLN_ACTIF = 1 AND
          				E.ID_ADHERENT = @ID_ADHERENT AND
          				N.ID_ACTION_PEC = @ID_ACTION_PEC
-         
+
          		END
-         
-         --	PRINT @ID_TRANSACTION
-         --	PRINT @NUM_IBAN
-         
+
          END
-         
- -- =============================================  
-         -- Author  : MB  
-         -- Create date : 12/03/2008  
-         -- Description : Cloture des contrats de professionnalisation  
-         -- Un contrat est cloture si :  
-         --    - il est dans l'etat Termine et avec une date de cloture renseignee  
-         --    - toutes les sessions actives du contrat sont regles et associes a des reglements valides  
-         -- La cloture d'un contrat consiste a :  
-         --  - passer le contrat dans l'etat cloture   
-         --  - generer un evenement de type cloture a associe au contrat  
-         --    (la generation des mouvements budgetaires de cloture sera realise par un batch dedie)  
-         --    
-         -- Ce batch est lance toutes les nuits (avant celui de generation des mouvements budgetaires).  
-         -- ---------------------------------------------  
-         -- Author  : RMA  
-         -- Modified date: 14/01/2009  
-         -- comment  : 0011404: C PRO MHBM : d‚sengagement d'un CPro r‚sili‚ aprŠs son d‚marrage avec ou sans session   
-         -- ---------------------------------------------  
-         -- Author  : DSZ  
-         -- Modified date: 15/09/2009  
-         -- comment  : Ano Mantis 12216. Cloture cpro en double  
-         -- ---------------------------------------------  
-         -- Author  : DSZ  
-         -- Modified date: 09/06/2010  
-         -- comment  : 12386. ajoute creation de l'evenement de cloture module  
-         -- reprise fonctionnalite du BATCH_CLOTURE_MODULE_PRO, qui sera obsolete!  
-         -- ---------------------------------------------  
-         -- Author  : SBR  
-         -- Modified date: 05/04/2014
-         -- comment  : correction condition g‚n‚ration ‚vŠnement de cl“ture de module pro
-         -- =============================================  
+
          CREATE PROCEDURE [dbo].[BATCH_CLOTURE_CONTRAT_PRO]
          AS   
-           
+
          BEGIN  
-           
+
          DECLARE   
            @ID_TYPE_EVENEMENT_CLOTURE  int,   
            @ID_ETAT_CONTRAT_PRO_TERMINE int,  
            @ID_ETAT_CONTRAT_PRO_CLOTURE int,  
            @LIB_EVENEMENT     varchar(50)  
-           
+
           SELECT @ID_ETAT_CONTRAT_PRO_TERMINE = ID_ETAT_CONTRAT_PRO  
           FROM ETAT_CONTRAT_PRO  
           WHERE COD_ETAT_CONTRAT_PRO = 'TERMINE'  
-           
+
           SELECT @ID_ETAT_CONTRAT_PRO_CLOTURE = ID_ETAT_CONTRAT_PRO  
           FROM  ETAT_CONTRAT_PRO  
           WHERE COD_ETAT_CONTRAT_PRO = 'CLOTURE'  
-           
+
           SELECT @ID_TYPE_EVENEMENT_CLOTURE = ID_TYPE_EVENEMENT, @LIB_EVENEMENT = LIBL_TYPE_EVENEMENT  
           FROM TYPE_EVENEMENT  
           WHERE COD_TYPE_EVENEMENT = 'CLOT_PRO'  
-           
-           
-          -- Recherche des contrats de pro dans l'etat termine et sans session active non reglee  
+
           CREATE TABLE #TMP_CONTRAT_A_CLOTURER  
           (ID_CONTRAT_PRO int)  
-           
-           
-           
+
           INSERT INTO #TMP_CONTRAT_A_CLOTURER  
           (ID_CONTRAT_PRO)  
           SELECT ID_CONTRAT_PRO  
           FROM CONTRAT_PRO   
-          WHERE ID_ETAT_CONTRAT_PRO = @ID_ETAT_CONTRAT_PRO_TERMINE  --AND DAT_CLOTURE IS NOT NULL  
+          WHERE ID_ETAT_CONTRAT_PRO = @ID_ETAT_CONTRAT_PRO_TERMINE  
           AND  NOT EXISTS (  
                SELECT 1  
                FROM  SESSION_PRO  
@@ -352,15 +264,12 @@
                AND   ID_REGLEMENT_PRO_ADH IS NULL  
                AND   ID_REGLEMENT_PRO_OF IS NULL  
                )  
-         ----- modif DSZ 15/09/09 Mantis 12216   
-         -- INSERT INTO #TMP_CONTRAT_A_CLOTURER  
-         -- (ID_CONTRAT_PRO)  
+
          union  
-         ------end modif DSZ  
-          -- Recherche des contrats de pro dans l'etat termine et sans session reglee dont le reglement n'est pas valide   
+
           SELECT ID_CONTRAT_PRO  
           FROM CONTRAT_PRO   
-          WHERE ID_ETAT_CONTRAT_PRO = @ID_ETAT_CONTRAT_PRO_TERMINE  --AND DAT_CLOTURE IS NOT NULL  
+          WHERE ID_ETAT_CONTRAT_PRO = @ID_ETAT_CONTRAT_PRO_TERMINE  
           AND  NOT EXISTS (  
                SELECT 1  
                FROM  SESSION_PRO  
@@ -372,8 +281,7 @@
                AND   MODULE_PRO.ID_CONTRAT_PRO = CONTRAT_PRO.ID_CONTRAT_PRO   
                AND   REGLEMENT_PRO.DAT_VALID_REGLEMENT IS NULL  
                )  
-                 
-           
+
           INSERT INTO EVENEMENT  
            (  
             ID_TYPE_EVENEMENT,    LIBL_EVENEMENT,  DAT_EVENEMENT, ID_CONTRAT_PRO  
@@ -382,41 +290,27 @@
             @ID_TYPE_EVENEMENT_CLOTURE,  @LIB_EVENEMENT,  GETDATE(), ID_CONTRAT_PRO  
           FROM #TMP_CONTRAT_A_CLOTURER  
           WHERE NOT EXISTS (SELECT 1 FROM EVENEMENT WHERE ID_CONTRAT_PRO = #TMP_CONTRAT_A_CLOTURER.ID_CONTRAT_PRO AND ID_TYPE_EVENEMENT = @ID_TYPE_EVENEMENT_CLOTURE)  
-           
+
           UPDATE CONTRAT_PRO   
           SET ID_ETAT_CONTRAT_PRO = @ID_ETAT_CONTRAT_PRO_CLOTURE, DAT_CLOTURE = GETDATE()  
           FROM #TMP_CONTRAT_A_CLOTURER  
           WHERE CONTRAT_PRO .ID_CONTRAT_PRO = #TMP_CONTRAT_A_CLOTURER .ID_CONTRAT_PRO   
-           
-           
-         -----------ajout DSZ partie cloture module pro  
-           
+
           declare @ID_TYPE_EVEN_CLOMOPRO int
           SELECT @ID_TYPE_EVEN_CLOMOPRO = ID_TYPE_EVENEMENT,   
          		@LIB_EVENEMENT = LIBL_TYPE_EVENEMENT  
           FROM	TYPE_EVENEMENT  
           WHERE	COD_TYPE_EVENEMENT = 'CLOMOPRO'  
-           
+
           INSERT INTO EVENEMENT  
           (ID_TYPE_EVENEMENT, LIBL_EVENEMENT, DAT_EVENEMENT, ID_CONTRAT_PRO, ID_MODULE_PRO)  
           select	@ID_TYPE_EVEN_CLOMOPRO, @LIB_EVENEMENT, MODULE_PRO.DAT_CLOTURE, MODULE_PRO.ID_CONTRAT_PRO, MODULE_PRO.ID_MODULE_PRO  
           from	MODULE_PRO
           where	dat_cloture is not null
           and	not exists (select id_evenement from evenement where EVENEMENT.ID_MODULE_PRO = MODULE_PRO.ID_MODULE_PRO and ID_TYPE_EVENEMENT = @ID_TYPE_EVEN_CLOMOPRO)
-         
-         END  
-         
 
-         
-         
-         
-         
-         
-         -- ==============================================================
-         -- Author:		Kwame Woollams
-         -- Create date: 14 janvier 2008
-         -- Description:	Mise a jour des donn‚es concernant un contrat non conforme
-         -- ==============================================================
+         END  
+
          CREATE PROCEDURE [dbo].[UPD_HISTO_CONTRAT_NON_CONFORME]
          	@COD_CONTRAT_PRO			VARCHAR(10),
          	@DAT_DEPOT_DDTE				DATETIME = null,
@@ -425,47 +319,39 @@
          	@MOTIF_CONTROL_CONFORMITE	TEXT = null,
          	@COMMENTAIRE_COMMANDITAIRE	TEXT = null
          AS
-         
+
          BEGIN
-         
+
          	DECLARE @ID_HISTO_CONTRAT_DGEFP INT
          	DECLARE @ID_CONTRAT_PRO INT
          	DECLARE @STATUT_HISTO INT
-         
+
          	SELECT  @ID_HISTO_CONTRAT_DGEFP = HISTO_CONTRAT_DGEFP.ID_HISTO_CONTRAT_DGEFP,
          			@ID_CONTRAT_PRO			= CONTRAT_PRO.ID_CONTRAT_PRO
          	FROM	CONTRAT_PRO 
          			INNER JOIN HISTO_CONTRAT_DGEFP ON CONTRAT_PRO.ID_CONTRAT_PRO = HISTO_CONTRAT_DGEFP.ID_CONTRAT_PRO
          	WHERE	CONTRAT_PRO.COD_CONTRAT_PRO = @COD_CONTRAT_PRO
-         			/*AND HISTO_CONTRAT_DGEFP.DAT_CREATION =
-         			(
-         				SELECT		MIN(DAT_CREATION) 
-         				FROM		HISTO_CONTRAT_DGEFP ST 
-         				WHERE		ST.ID_CONTRAT_PRO = CONTRAT_PRO.ID_CONTRAT_PRO
-         				GROUP BY	ID_CONTRAT_PRO
-         			)*/
+         			
          			AND HISTO_CONTRAT_DGEFP.ID_HISTO_CONTRAT_DGEFP = 
          					( 
          						SELECT	MAX(HCD.ID_HISTO_CONTRAT_DGEFP)
          						FROM	HISTO_CONTRAT_DGEFP HCD
          						WHERE	HCD.ID_CONTRAT_PRO = CONTRAT_PRO.ID_CONTRAT_PRO
          					  )
-         		
-         	--Mise … jour de la date de depot dans le contrat
+
          	UPDATE	CONTRAT_PRO
          	SET		DAT_DEPOT_DDTE = @DAT_DEPOT_DDTE
          	WHERE	CONTRAT_PRO.ID_CONTRAT_PRO = @ID_CONTRAT_PRO
-         
-         	--Determination du statut_histo selon le code type de la date d'enregistrement
+
          	IF @CODE_TYPE = 18
          		BEGIN
          			SET @STATUT_HISTO = 30
-         
+
          			UPDATE	CONTRAT_PRO
          			SET		DAT_ENREGISTREMENT_DDTE = @DAT_ENREGISTREMENT_DDTE
          			WHERE	CONTRAT_PRO.ID_CONTRAT_PRO = @ID_CONTRAT_PRO
          		END
-         
+
          	ELSE IF @CODE_TYPE = 19
          		BEGIN
          			SET  @STATUT_HISTO = 100
@@ -474,38 +360,26 @@
          		BEGIN
          			SET  @STATUT_HISTO = 50
          		END
-         
-         	--Mise a jour de la table HISTO_CONTRAT_DGEFP pour l'envoi et le contrat concern‚
+
          	UPDATE	HISTO_CONTRAT_DGEFP
          	SET		DAT_DEPOT_DDTE = @DAT_DEPOT_DDTE,
          			STATUT_HISTO = @STATUT_HISTO,
          			MOTIF_CONTROL_CONFORMITE = @MOTIF_CONTROL_CONFORMITE,
          			COMMENTAIRE_COMMANDITAIRE = @COMMENTAIRE_COMMANDITAIRE
          	WHERE	HISTO_CONTRAT_DGEFP.ID_HISTO_CONTRAT_DGEFP = @ID_HISTO_CONTRAT_DGEFP
-         
+
          END
 
-
-         
-         
-         
-         -- =============================================
-         -- Author:		Woollams
-         -- Create date: 24 janvier 2008
-         -- Description:	Mise … jour de la date d'engagement 
-         -- pour les contrat de la liste
-         -- =============================================
-         
          CREATE PROCEDURE [dbo].[UPD_DATE_ENGAGEMENT_CONTRAT_PRO_ADH]
-         	@CODS_CONTRAT_PRO TEXT	-- List of COD_CONTRAT_PRO separated with ',' without spaces - i.e.: 1,2,3,4,5,6
+         	@CODS_CONTRAT_PRO TEXT	
          AS
-         
+
          BEGIN
-         
+
          	DECLARE @Item varchar(10);
-         	-- Create a temporary table which contains IDs
+
          	CREATE TABLE #List(Item VARCHAR(10) collate French_CI_AI)
-         	
+
          	DECLARE @Delimiter char
          	SET @Delimiter = ','
          	WHILE CHARINDEX(@Delimiter,@CODS_CONTRAT_PRO,0) <> 0
@@ -513,25 +387,24 @@
          		SELECT
          			@Item=RTRIM(LTRIM(SUBSTRING(@CODS_CONTRAT_PRO,1,CHARINDEX(@Delimiter,@CODS_CONTRAT_PRO,0)-1))),
          			@CODS_CONTRAT_PRO=RTRIM(LTRIM(SUBSTRING(@CODS_CONTRAT_PRO,CHARINDEX(@Delimiter,@CODS_CONTRAT_PRO,0)+1,DATALENGTH(@CODS_CONTRAT_PRO))))
-         
+
          		IF LEN(@Item) > 0
          			INSERT INTO #List SELECT cast(@Item as varchar)
          	END
-         
+
          	IF DATALENGTH(@CODS_CONTRAT_PRO) > 0
          		begin
          			select @Item = cast(@CODS_CONTRAT_PRO as varchar(10))
-         			INSERT INTO #List SELECT @Item -- Put the last item in
+         			INSERT INTO #List SELECT @Item 
          		end
-         
-         	--Mise … jour des date d'engagement
+
          	UPDATE	ENGAGEMENT_PRO
          	SET		ENGAGEMENT_PRO.DAT_LETTRE_ENGAGEMENT_PRO_ADH = GETDATE()
          	FROM	CONTRAT_PRO 
          			INNER JOIN MODULE_PRO ON CONTRAT_PRO.ID_CONTRAT_PRO = MODULE_PRO.ID_CONTRAT_PRO 
          			INNER JOIN ENGAGEMENT_PRO ON MODULE_PRO.ID_ENGAGEMENT_PRO = ENGAGEMENT_PRO.ID_ENGAGEMENT_PRO
          	WHERE	CONTRAT_PRO.COD_CONTRAT_PRO IN (SELECT Item FROM #List)
-         
+
          END
 
  CREATE PROCEDURE [dbo].[LEC_SUM_BUDGETAIRE_COMPTE]
@@ -542,34 +415,12 @@
           @P_E_R     VARCHAR(1),
           @ID_TYPE_FINANCEMENT INT
          AS
-         -- ====================================================================================================================================================================================
-         -- Author  : XX
-         -- Create date : XX XXXX 2007
-         -- Description : Cr‚ation
-         -- ====================================================================================================================================================================================
-         -- Author  : KS
-         -- Modif. date : 04 d‚c. 2007
-         -- Description : MANTIS 0006107 >> dans le cas d'un groupe le compte sur lequel doit ˆtre fait le contr“le de solde est le compte du groupe.
-         -- ====================================================================================================================================================================================
-         -- Modif. date : 11 d‚c. 2007
-         -- Description : MANTIS 0006107 >> ajout du controle de gestion de groupe
-         -- ====================================================================================================================================================================================
-         -- Author  : ASD
-         -- Modif. date : 25/08/2010
-         -- Description : MANTIS 12460 >> am‚lioration performances
-         -- ====================================================================================================================================================================================  
-         -- OPA 31/05/2013 : 15031 : SBR - suppression du type FLOAT et REAL dans le SQL : 2- FLOAT
-         -- ====================================================================================================================================================================================
-         -- OPA 19/01/2015 : #630 : En tant que Responsable Collecte, je veux pouvoir faire des transferts de montant d'un compte adh‚rent vers une enveloppe ou d'une enveloppe vers un compte 
-         -- selon son type de financement
-         -- ====================================================================================================================================================================================
-         -- HBO - #916 En tant que Gestionnaire RŠglement, lorsque je cr‚e un transfert manuel je veux que le solde du Groupe utilis‚ prenne en compte, pour ce compte, toutes les p‚riodes.
-         -- ====================================================================================================================================================================================
+
          BEGIN
           DECLARE
            @ID_COMPTE INT,
            @DiffMvtBudgetaire DECIMAL(18,2)
-         
+
           IF (@ID_PERIODE IS NULL)
           BEGIN
            SELECT
@@ -580,11 +431,10 @@
             BLN_EN_COURS = 1
             AND BLN_ACTIF = 1
           END
-         
-          -- ADD ASD 20100825
+
           IF (@ID_ENVELOPPE IS NOT NULL)
           BEGIN
-           --------------------------------------- SOLDE POSITIF ET NEGATIF ENVELOPPE --------------------------------------------
+
            SELECT 
             @DiffMvtBudgetaire = SUM(CASE WHEN (PARAMETRAGE_BUDGETAIRE.SENS = 'C') THEN ISNULL(MNT_MVT_BUDGETAIRE,0) WHEN (PARAMETRAGE_BUDGETAIRE.SENS = 'D') THEN ISNULL(-1 * MNT_MVT_BUDGETAIRE,0) ELSE 0 END)
            FROM
@@ -598,7 +448,7 @@
            WHERE
             ENVELOPPE.ID_ENVELOPPE = @ID_ENVELOPPE
             AND @ID_ENVELOPPE IS NOT NULL
-         
+
            SELECT
             @ID_TYPE_FINANCEMENT = BLN_SOLDE_POSITIF
            FROM
@@ -610,7 +460,7 @@
           END
           ELSE 
           BEGIN
-           --------------------------------------- SOLDE POSITIF ET NEGATIF COMPTE --------------------------------------------
+
            SELECT 
             @DiffMvtBudgetaire = SUM(CASE WHEN (PARAMETRAGE_BUDGETAIRE.SENS = 'C') THEN ISNULL(MNT_MVT_BUDGETAIRE,0) WHEN (PARAMETRAGE_BUDGETAIRE.SENS = 'D') THEN ISNULL(-1 * MNT_MVT_BUDGETAIRE,0) ELSE 0 END)
            FROM
@@ -625,21 +475,12 @@
             COMPTE.ID_GROUPE = @ID_GROUPE
             AND COMPTE.ID_TYPE_FINANCEMENT = @ID_TYPE_FINANCEMENT
           END
-          -- FIN ADD ASD 20100825
-          --------------------------------------- RETURN EVALUATION --------------------------------------------
-         
+
           DECLARE
            @TOTAL AS DECIMAL(18,2)
-         
+
           SET @TOTAL = (ISNULL(@DiffMvtBudgetaire,0) - ISNULL(@VALUE,0))
-          -- SELECT 
-          --  @TOTAL AS TOTAL, 
-          --  CASE
-          --   WHEN  @ID_TYPE_FINANCEMENT = 2
-          --    THEN 0
-          --   ELSE  1
-          --  END  AS PERMET_NEGATIF
-         
+
           SELECT
            @TOTAL AS TOTAL,
            1 AS PERMET_NEGATIF
@@ -660,11 +501,7 @@
           @ID_SCHEMAS_XML INT,
           @ID_OPERATION_FINANCIERE INT OUT
          AS 
-         ---------------------------------------
-         -- DSZ #661 21/11/2014 suppresion id_public faf et creation comptes par defaut
-         ---------------------------------------
-         -- DSZ #946 ajout ID_SCHEMAS_XML
-         ----------------------------------
+
          BEGIN
           IF (@BLN_DEFAUT IS NULL)
           BEGIN
@@ -674,13 +511,13 @@
           BEGIN
            SET @BLN_ACTIF = 0
           END
-         
+
           IF (@BLN_DEFAUT = 1)
           BEGIN
            UPDATE OPERATION_FINANCIERE SET BLN_DEFAUT = 0 WHERE ID_PERIODE = @ID_PERIODE AND ISNULL(ID_DISPOSITIF, -1) = ISNULL(@ID_DISPOSITIF, -1)
            AND ID_AGENCE = @ID_AGENCE AND ISNULL(ID_BRANCHE, -1) = ISNULL(@ID_BRANCHE, -1) AND BLN_DEFAUT = 1
           END
-          
+
           INSERT INTO OPERATION_FINANCIERE
            (
             COD_OPERATION_FINANCIERE,  
@@ -719,17 +556,13 @@
             @ID_UTIL,
             @ID_SCHEMAS_XML
            )
-         
-          
+
           UPDATE OPERATION_FINANCIERE SET COD_OPERATION_FINANCIERE = @@IDENTITY WHERE ID_OPERATION_FINANCIERE = @@IDENTITY 
-         
+
           SET @ID_OPERATION_FINANCIERE = @@IDENTITY
-         
+
          END
 
-
-         
-         
 CREATE PROCEDURE [dbo].[INS_NR67bis]
 
          	@ID_ETABLISSEMENT int,
@@ -739,8 +572,6 @@ CREATE PROCEDURE [dbo].[INS_NR67bis]
          AS
 
          BEGIN
-
-         	/* si il n'y a pas d'etablissement on ajoute le document a tous les etablissement */
 
          	IF (@ID_ETABLISSEMENT IS NULL)
 
@@ -768,8 +599,6 @@ CREATE PROCEDURE [dbo].[INS_NR67bis]
 
          		END
 
-         	/* ajout d'un document associ‚ … un adherent */
-
          	ELSE
 
          		BEGIN
@@ -786,70 +615,57 @@ CREATE PROCEDURE [dbo].[INS_NR67bis]
 
          END
 
-         
 GO         
 
  CREATE PROCEDURE [dbo].[DEL_STAGIAIRE_MODULE_PEC]
           @ID_STAGIAIRE INT
          AS  
-         
-         --DSZ  #947 suppression des attributs xml
-         --DSZ  11/03/2016 #1340 suppression des liaisons cdc
+
          BEGIN
           SET NOCOUNT ON
-         
-          
+
            DELETE PLAN_FINANCEMENT_US
            FROM   PLAN_FINANCEMENT_US
           inner join UNITE_STAGIAIRE on UNITE_STAGIAIRE.ID_UNITE_STAGIAIRE = PLAN_FINANCEMENT_US.ID_UNITE_STAGIAIRE  
            WHERE ID_STAGIAIRE_PEC = @ID_STAGIAIRE
-          
+
            DELETE NR215 FROM NR215
           inner join UNITE_STAGIAIRE on UNITE_STAGIAIRE.ID_UNITE_STAGIAIRE = NR215.ID_UNITE_STAGIAIRE  
            WHERE
               ID_STAGIAIRE_PEC = @ID_STAGIAIRE
-         
+
            DELETE FROM UNITE_STAGIAIRE
            WHERE ID_STAGIAIRE_PEC = @ID_STAGIAIRE
-          
+
            DELETE NR210 FROM   NR210
           inner join ARRIVEE_PIECE_PEC on ARRIVEE_PIECE_PEC.ID_ARRIVEE_PIECE_PEC = NR210.ID_ARRIVEE_PIECE_PEC 
            WHERE
               ID_STAGIAIRE_PEC = @ID_STAGIAIRE
-         
+
            DELETE FROM ARRIVEE_PIECE_PEC
            WHERE ID_STAGIAIRE_PEC = @ID_STAGIAIRE
-          
+
            DELETE FROM STAGIAIRE_PEC_ATTRIBUTS 
            WHERE ID_STAGIAIRE_PEC = @ID_STAGIAIRE
-           
+
            DELETE FROM STAGIAIRE_PEC_CDC 
            WHERE ID_STAGIAIRE_PEC = @ID_STAGIAIRE
-            
+
            DELETE FROM STAGIAIRE_PEC 
            WHERE ID_STAGIAIRE_PEC = @ID_STAGIAIRE
           END
---SPI: a return statement outside the BEGIN/END...         
-          -- RETURN 1
 
 GO
 
-         --===========================================
-         -- DSZ 04/03/10 Mantis 12323
-         -- Ne pas sauvegarder les lignes au MNT_HT = 0
-         --===========================================
-         -- OPA 31/05/2013 : 15031 : SBR - suppression du type FLOAT et REAL dans le SQL : 2- FLOAT
-         --===========================================
-         
          CREATE PROCEDURE [dbo].[INS_DEDUCTION]
          	@ID_ADHERENT	int, 
          	@ID_ACTIVITE	int, 
          	@ID_PERIODE		int, 
          	@MNT_HT			decimal(18,2)
          AS
-         
+
          BEGIN
-         	IF (@MNT_HT <> 0) --ajout DSZ 04/03/10
+         	IF (@MNT_HT <> 0) 
          	BEGIN
          		INSERT INTO DEDUCTION
          			(
@@ -867,99 +683,22 @@ GO
          			)
          	END
          END 
-         
-         --comment‚ DSZ, incorrect car pas d'identit‚ dans cette table
-         --RETURN @@Identity
-         
+
 GO
-         
- -- =============================================
-         -- Author: ASD
-         -- Creation: 10/07/2009
-         -- REPORTING DU PLURI-ANNUEL du contrat de pro
-         -- Engagement initial
-         -- =============================================
-         -- ASD 03/07/09 Calculer @last_run_date sur la PRO
-         -- =============================================
-         -- ASD 10/07/09 Compl‚ments
-         -- =============================================
-         -- ASD 17/07/09 Questions:
-         -- Cloture : module seul, contrat seul ? : contrat seul
-         -- eng net existe ? oui : EIP+ECP-RP
-         -- eng compl‚mentaire en maille contrat ? si nouveau module
-         -- ajouter les engagements initiaux pour la reprise (hors mvt_budg) : 
-         --		c'est le montant de l'engagement pro pour tous les modules existant … la date de reprise du CPRO (15/02/09)
-         --		fait dans une autre SP
-         -- =============================================
-         -- DSZ 31/07/09
-         -- utiliser @ID_SESSION au lieu de @BLN_USE_SESSION
-         -- =============================================
-         -- DSZ 04/08/09 corrections apres le point avec MHBM
-         -- =============================================
-         -- DSZ 10/08/09 ajout IRP au calcul de ENP
-         -- limitation a 'P_E_R = E' dans l'engagement initial
-         -- =============================================
-         -- DSZ 03/11/09 ajout CP au calcul de ENP
-         -- CP toujour negatif donc il faut l'ajouter pour que ENP des contrats clotures ‚gale 0
-         -- correction RP
-         -- =============================================
-         -- DSZ 04/11/09 suppresion condition sur ID_TYPE_MOUVEMENT et P_E_R dans calcul de CP 
-         -- pour prendre en compte tous le mvts de cloture, aussi annulation de pr‚vissionnel
-         -- =============================================
-         -- DSZ 19/11/09 aprŠs r‚vu du code avec MHBM.
-         -- traiter aussi les modules ajout‚s aux contrats de reprise
-         -- ajout cloture de contrats reprises
-         -- =============================================
-         -- DSZ 14/12/09 r‚vu de SFD_EFF_1.0
-         -- ajout de verification dat_valid_reglement
-         -- branche historis‚ dans salarie_pro
-         -- pas de ENP si CP existe
-         -- ajout partout la condition and MODULE_PRO.DAT_FIN > '20061231' pour homogeneit‚
-         -- =============================================
-         -- DSZ 15/04/2011 12750 SFD 1.2
-         -- ajout CMP et DMP : cl“ture et d‚sactivation de module PRO (DMP) sauf reprise
-         -- modif EMP pour prendre en compte les nouveaux types CMP et DMP 
-         -- =============================================
-         -- ASD 03/04/2013 15094 CMP recr‚‚s toujours
-         -- ajout de "and MODULE_PRO.DAT_CLOTURE > @last_run_date"
-         -- =============================================
-         -- SBR 04/04/13 - ajout des conditions de s‚lection li‚es … la reprise NESSIE
-         -- =============================================
-         -- SBR 05/04/13 - 1. Modification rŠgle de s‚lection pour calcul engagement initial pour g‚rer cas "anormaux" de d‚sengagement de contrat 
-         --					 avec rŠglement puis engagement initial avec date post‚rieure aux 1ers mouvements de d‚sengagement suite … rŠglement.
-         --					 On teste le type de l'engagement pro (TYPE_ENGAGEMENT_PRO.ID_TYPE_ENGAGEMENT_PRO) au lieu de faire le test sur MIN(dat_mvt_budgetaire) where p_e_r = 'E'
-         --				  2. Inactivation de la s‚lection des modules sur contrats issus de la reprise cr‚‚s post reprise. Ces modules seront trait‚s dans la
-         --					 proc‚dure sp‚cifique reprise BATCH_PLURI_ANNUEL_REPRISE_PRO
-         --				  3. Lors du calcul des CMP et DMP, filtre sur MVT_BUDGETAIRE.P_E_R = 'E' pour ne pas traiter … tord des P_E_R = 'P'
-         -- SBR 08/04/13 - 4. D'un c“t‚ les EIP et ECP sont calcul‚s uniquement sur les contrats et modules actifs.
-         --					 De l'autre, on calcul des DMP (d‚sactivation de modules pro) ==> cela ne peut pas fonctionner et abouti … des ENP n‚gatifs car les EIP ne sont pas calcul‚s
-         --					 Solution apport‚e: calcul EIP et CMP sur modules et contrats inactifs
-         --				  5. Modification condition de s‚lection des rŠglements: pour les contrats issus de la reprise, prendre en compte uniquement les 
-         --					 rŠglements effectu‚s post reprise.
-         -- SBR 11/04/13 - 6. Les CP (cl“ture pro) sont d‚sormais caclul‚s sur les contrats inactifs
-         -- =============================================
-         -- SBR 09/09/13 - suppression id_type_evenement 27 et 28 dans s‚lection initiale car ils n'existent plus en base.
-         -- =============================================
-         -- SBR 03/02/14 - on flag les ENP > 0 … l'aide du champ MVT_BUDGETAIRE_PERIODE.BLN_EN_POS
-         -- =============================================
+
          CREATE PROCEDURE [dbo].[BATCH_PLURI_ANNUEL_PRO]
          AS
          BEGIN
-         
+
          SET NOCOUNT ON;
-         
+
          DECLARE @last_run_date datetime
          SELECT @last_run_date = max(DAT_CREATION) from MVT_BUDGETAIRE_PERIODE 
          	where TYPE_ENREGISTREMENT like '%P'
          	and TYPE_ENREGISTREMENT not like '%RP'
          IF (@last_run_date is null)
          	SELECT @last_run_date = min(DAT_MVT_BUDGETAIRE) from MVT_BUDGETAIRE
-         
-         
-         --------- les actions actives, non-refusees, mais cloturees aussi
-         -- les modules a traiter : ceux qui avaient les mvt budg E depuis la derniere date
-         -- la table #TMP_BPA_MODULES sera utilise pour les engagements initiaux et complementaires
-         
+
          select	distinct MVT_BUDGETAIRE.id_MODULE_PRO,
          		cast(null as DATETIME) AS eng_initial_date,
          		SALARIE_PRO.ID_BRANCHE
@@ -970,30 +709,20 @@ GO
          	inner join EVENEMENT	on (EVENEMENT.ID_EVENEMENT = MVT_BUDGETAIRE.ID_EVENEMENT)
          	INNER JOIN SALARIE_PRO ON (CONTRAT_PRO.ID_SALARIE_PRO = SALARIE_PRO.ID_SALARIE_PRO)
          WHERE   MVT_BUDGETAIRE.ID_MODULE_PRO is not null
-         		and DAT_MVT_BUDGETAIRE >= @last_run_date --datediff(d, @last_run_date, DAT_MVT_BUDGETAIRE)>=0
+         		and DAT_MVT_BUDGETAIRE >= @last_run_date 
          		and coalesce(BLN_REPRISE_ADHOC,0)=0 
-         --			OR	(BLN_REPRISE_ADHOC=1 AND MODULE_PRO.DAT_CREATION>'17/03/09'))--19/11 ajout: les modules ajout‚s aux contrats de reprise
+
          		and coalesce(BLN_REPRISE_NESSIE,0)=0 
-         --			OR	(BLN_REPRISE_NESSIE=1 AND MODULE_PRO.DAT_CREATION>'01/01/13'))	-- SBR le 04/04/13
+
          		and MODULE_PRO.DAT_FIN > '20061231'
-         		--and CONTRAT_PRO.DAT_CLOTURE is null 
-         		and ((ID_TYPE_MOUVEMENT = 21 and ID_TYPE_EVENEMENT not in (23, 24, 25, 26, 29, 30)) or ID_TYPE_MOUVEMENT <> 21) --sans cloture, REGLEMENT_PRO
-         		--exclure 23 desactivation de module 15/04/2011 DSZ
+
+         		and ((ID_TYPE_MOUVEMENT = 21 and ID_TYPE_EVENEMENT not in (23, 24, 25, 26, 29, 30)) or ID_TYPE_MOUVEMENT <> 21) 
+
          		and P_E_R = 'E'
-         	--ASD	and coalesce(CONTRAT_PRO.ID_DECISION_CONTRAT_PRO,0)<>2
+
          		and CONTRAT_PRO.BLN_ACTIF = 1
          		and MODULE_PRO.BLN_ACTIF = 1
-         
-         --calcul de date d'engagement initial pour modules
-         
-         -- inactivation le 05/04/13 par SBR
-         --update #tmp_bpa_modules
-         --set eng_initial_date = (select min(DAT_MVT_BUDGETAIRE)
-         --						from MVT_BUDGETAIRE
-         --						where MVT_BUDGETAIRE.id_MODULE_PRO = #tmp_bpa_modules.id_MODULE_PRO
-         --						and P_E_R = 'E')  --ajout DSZ 05/08 vu avec MHBM
-         
-         
+
          DECLARE @ID_MODULE int
          DECLARE @ID_DISPOSITIF	int
          DECLARE @ID_BRANCHE int
@@ -1002,11 +731,7 @@ GO
          DECLARE @ID_TYPE_FINANCEMENT int
          DECLARE @MNT decimal(18,2)
          DECLARE @ID_SESSION int
-         
-         --==========================================================================================
-         ------------------------    ENGAGEMENTS INITIAUX
-         --on traite tous les engagements initiaux qui n'etaient pas encore pris en compte
-         
+
          declare initial_cursor cursor for
          	select	MVT_BUDGETAIRE.ID_DISPOSITIF, 
          			#tmp_bpa_modules.id_branche, 
@@ -1018,27 +743,26 @@ GO
          	from	MVT_BUDGETAIRE
          	join	#tmp_bpa_modules
          	on		MVT_BUDGETAIRE.id_MODULE_PRO = #tmp_bpa_modules.id_MODULE_PRO
-         	-- modif SBR 05/04/13
-         	--and		convert(varchar(10),DAT_MVT_BUDGETAIRE,102) = convert(varchar(10),eng_initial_date,102)
+
          	join	MODULE_PRO
          	on		MODULE_PRO.ID_MODULE_PRO = #tmp_bpa_modules.ID_MODULE_PRO
          	join	ENGAGEMENT_PRO
          	on		ENGAGEMENT_PRO.ID_ENGAGEMENT_PRO = MODULE_PRO.ID_ENGAGEMENT_PRO
-         	and		ENGAGEMENT_PRO.ID_TYPE_ENGAGEMENT_PRO = 1 -- engagement initial
+         	and		ENGAGEMENT_PRO.ID_TYPE_ENGAGEMENT_PRO = 1 
          	join	EVENEMENT
          	on		EVENEMENT.ID_ENGAGEMENT_PRO = ENGAGEMENT_PRO.ID_ENGAGEMENT_PRO
          	and		EVENEMENT.ID_EVENEMENT = MVT_BUDGETAIRE.ID_EVENEMENT
-         	and		EVENEMENT.ID_TYPE_EVENEMENT = 21 -- Engag. contrat PRO
-         	-- fin modif SBR 05/04/13
+         	and		EVENEMENT.ID_TYPE_EVENEMENT = 21 
+
          	where	MVT_BUDGETAIRE.P_E_R = 'E'	
          	group by MVT_BUDGETAIRE.ID_DISPOSITIF, #tmp_bpa_modules.id_branche, id_enveloppe,ID_TYPE_FINANCEMENT, ID_COMPTE, MVT_BUDGETAIRE.id_MODULE_PRO
-         
+
          OPEN initial_cursor
          FETCH NEXT FROM initial_cursor
          INTO @ID_DISPOSITIF, @ID_BRANCHE, @ID_ENVELOPPE, @ID_MODULE, @MNT, @ID_TYPE_FINANCEMENT, @ID_COMPTE
          WHILE @@FETCH_STATUS = 0
          BEGIN
-         
+
          	exec INS_MVT_BUDG_PERIODE_PRO
          	@ID_MODULE,
          	@ID_DISPOSITIF ,
@@ -1048,20 +772,15 @@ GO
          	@ID_TYPE_FINANCEMENT,
          	'EIP',
          	@MNT,
-         	null, -- @ID_SESSION 0, --@BLN_USE_SESSION
+         	null, 
          	null
-         
+
          	FETCH NEXT FROM initial_cursor
          	INTO @ID_DISPOSITIF, @ID_BRANCHE, @ID_ENVELOPPE, @ID_MODULE, @MNT, @ID_TYPE_FINANCEMENT, @ID_COMPTE
          END
          CLOSE initial_cursor
          DEALLOCATE initial_cursor
-         		
-         
-         --==========================================================================================
-         -------------- ENGAGEMENTS COMPLEMENTAIRES
-         -------------- cursor pour tous les mvts budgetaires sauf initiaux
-         --declare @mnt_initial float
+
          DECLARE mvt_cursor CURSOR FOR
          	select 
          			MVT_BUDGETAIRE.ID_DISPOSITIF, 
@@ -1074,45 +793,30 @@ GO
          	from	MVT_BUDGETAIRE
          	join	#tmp_bpa_modules 
          	on		MVT_BUDGETAIRE.id_MODULE_PRO = #tmp_bpa_modules.id_MODULE_PRO
-         	-- d‚but modif SBR 05/04/13
-         	--and datediff (d, #tmp_bpa_modules.eng_initial_date, DAT_MVT_BUDGETAIRE)>0
+
          	join	MODULE_PRO
          	on		MODULE_PRO.ID_MODULE_PRO = #tmp_bpa_modules.ID_MODULE_PRO
          	join	ENGAGEMENT_PRO
          	on		ENGAGEMENT_PRO.ID_ENGAGEMENT_PRO = MODULE_PRO.ID_ENGAGEMENT_PRO
-         	and		ENGAGEMENT_PRO.ID_TYPE_ENGAGEMENT_PRO = 2 -- engagement compl‚mentaire
+         	and		ENGAGEMENT_PRO.ID_TYPE_ENGAGEMENT_PRO = 2 
          	join	EVENEMENT
          	on		EVENEMENT.ID_ENGAGEMENT_PRO = ENGAGEMENT_PRO.ID_ENGAGEMENT_PRO
          	and		EVENEMENT.ID_EVENEMENT = MVT_BUDGETAIRE.ID_EVENEMENT
-         	-- fin modif SBR 05/04/13
-         	WHERE  --((ID_TYPE_MOUVEMENT =21 and ID_TYPE_EVENEMENT <> 25) or ID_TYPE_MOUVEMENT<>21) --sans cloture de CPRO ni de REGLEMENT_PRO (implicite pour le p_e_r)
-         			((ID_TYPE_MOUVEMENT =21 and ID_TYPE_EVENEMENT not in (24, 25, 26, 27, 28, 29, 30)) or ID_TYPE_MOUVEMENT<>21) --sans cloture, REGLEMENT_PRO -vu avec MHBM le 05/08/09
+
+         	WHERE  
+         			((ID_TYPE_MOUVEMENT =21 and ID_TYPE_EVENEMENT not in (24, 25, 26, 27, 28, 29, 30)) or ID_TYPE_MOUVEMENT<>21) 
          	and		P_E_R = 'E'
          	group by MVT_BUDGETAIRE.ID_DISPOSITIF, #tmp_bpa_modules.id_branche, id_enveloppe,ID_TYPE_FINANCEMENT, ID_COMPTE, MVT_BUDGETAIRE.id_MODULE_PRO
-         
+
          OPEN mvt_cursor
          FETCH NEXT FROM mvt_cursor
          INTO @ID_DISPOSITIF, @ID_BRANCHE, @ID_ENVELOPPE, @ID_MODULE, @MNT, @ID_TYPE_FINANCEMENT, @ID_COMPTE
          WHILE @@FETCH_STATUS = 0
          BEGIN
-         --TRACE select 'look for mnt_initial', @ID_DISPOSITIF disp, @ID_BRANCHE branch, @ID_ENVELOPPE env, @ID_MODULE module,  @ID_TYPE_FINANCEMENT typ_fin, @ID_COMPTE compte
-         	--select @mnt_initial = sum(MNT_MVT_BUDG_PERIODE)
-         	--from MVT_BUDGETAIRE_PERIODE
-         	--where (ID_DISPOSITIF = @ID_DISPOSITIF or (ID_DISPOSITIF is null and @ID_DISPOSITIF is null))
-         	--and ID_BRANCHE = @ID_BRANCHE
-         	--and ID_MODULE_PRO = @ID_MODULE 
-         	--and (ID_ENVELOPPE = @ID_ENVELOPPE or (@ID_ENVELOPPE is null and ID_ENVELOPPE is null))
-         	--and (ID_COMPTE = @ID_COMPTE or (ID_COMPTE is null and @ID_COMPTE is null))
-         	--and (ID_TYPE_FINANCEMENT = @ID_TYPE_FINANCEMENT or (ID_TYPE_FINANCEMENT is null and @ID_TYPE_FINANCEMENT is null))
-         	--and TYPE_ENREGISTREMENT = 'EIP'
-         	
-         
-         	
+
          	if @MNT  <> 0
          	begin
-         --		if @mnt_initial is not null
-         --			set @MNT  = @MNT - @mnt_initial --supprime car decompte 2 fois (action 5833//2009 vu avec MHBM 04/08)
-         		
+
          		exec INS_MVT_BUDG_PERIODE_PRO
          		@ID_MODULE,
          		@ID_DISPOSITIF ,
@@ -1122,7 +826,7 @@ GO
          		@ID_TYPE_FINANCEMENT,
          		'ECP',
          		@MNT,
-         		null, -- @ID_SESSION 0, --@BLN_USE_SESSION
+         		null, 
          		null
          	end
          	FETCH NEXT FROM mvt_cursor
@@ -1130,12 +834,7 @@ GO
          END
          CLOSE mvt_cursor
          DEALLOCATE mvt_cursor
-         
-         
-         
-         --==========================================================================================
-         ------------------------- LES Contrats CLOTUREES
-         
+
          DECLARE clotures_cursor CURSOR FOR
          select	MVT_BUDGETAIRE.ID_MODULE_PRO,
          		ID_DISPOSITIF, 
@@ -1148,20 +847,18 @@ GO
          	inner join EVENEMENT	on (EVENEMENT.ID_EVENEMENT = MVT_BUDGETAIRE.ID_EVENEMENT)
          	inner join MODULE_PRO	on (MODULE_PRO.ID_MODULE_PRO = MVT_BUDGETAIRE.ID_MODULE_PRO)
          	inner join CONTRAT_PRO	on (MODULE_PRO.ID_CONTRAT_PRO = CONTRAT_PRO.ID_CONTRAT_PRO)
-         	INNER JOIN SALARIE_PRO ON (CONTRAT_PRO.ID_SALARIE_PRO = SALARIE_PRO.ID_SALARIE_PRO) --ajout le 15/12/09
-         where -- ID_TYPE_MOUVEMENT =21 --id_type_mvt peut etre 19 ou 21 pour evenement 25. faut prendre les deux. DSZ 04/11/2009
-         	ID_TYPE_EVENEMENT in(25) -- cloture module, 26 ou contrat pro 25
+         	INNER JOIN SALARIE_PRO ON (CONTRAT_PRO.ID_SALARIE_PRO = SALARIE_PRO.ID_SALARIE_PRO) 
+         where 
+         	ID_TYPE_EVENEMENT in(25) 
          	and CONTRAT_PRO.DAT_CLOTURE is not null 
-         	and DAT_MVT_BUDGETAIRE >= @last_run_date --ou dat_cloture, ca doit etre la meme chose..
-         	and P_E_R = 'E' --reste a voir le 19/11/09
-         --	and coalesce(CONTRAT_PRO.ID_DECISION_CONTRAT_PRO,0)<>2
-         	--and CONTRAT_PRO.BLN_ACTIF = 1
-         	--and MODULE_PRO.BLN_ACTIF = 1 
-         	and coalesce(CONTRAT_PRO.BLN_REPRISE_ADHOC,0) = 0  --ajout le 19/11/09
+         	and DAT_MVT_BUDGETAIRE >= @last_run_date 
+         	and P_E_R = 'E' 
+
+         	and coalesce(CONTRAT_PRO.BLN_REPRISE_ADHOC,0) = 0  
          	and coalesce(CONTRAT_PRO.BLN_REPRISE_NESSIE,0) = 0
-         	and MODULE_PRO.DAT_FIN > '20061231' -- ajout DSZ 16/12/09 pour homogeneit‚
+         	and MODULE_PRO.DAT_FIN > '20061231' 
          group by MVT_BUDGETAIRE.ID_MODULE_PRO, ID_DISPOSITIF, SALARIE_PRO.ID_BRANCHE, ID_ENVELOPPE, ID_TYPE_FINANCEMENT, ID_COMPTE
-         
+
          OPEN clotures_cursor
          FETCH NEXT FROM clotures_cursor
          INTO @ID_MODULE,@ID_DISPOSITIF, @ID_BRANCHE, @ID_ENVELOPPE, @MNT, @ID_TYPE_FINANCEMENT, @ID_COMPTE
@@ -1177,23 +874,20 @@ GO
          		@ID_TYPE_FINANCEMENT,
          		'CP',
          		@MNT,
-         		null, -- @ID_SESSION 1, --@BLN_USE_SESSION
+         		null, 
          		null
-         
+
          	FETCH NEXT FROM clotures_cursor
          	INTO @ID_MODULE,@ID_DISPOSITIF, @ID_BRANCHE, @ID_ENVELOPPE, @MNT, @ID_TYPE_FINANCEMENT, @ID_COMPTE
          END
          CLOSE clotures_cursor
          DEALLOCATE clotures_cursor
-         
-         
-         
+
          declare @dat_REGLEMENT_PRO datetime
-         --==========================================================================================
-         -----------------------      REGLEMENT_PROS
+
          declare @id_reglement_of int
          declare @id_reglement_adh int
-         
+
          DECLARE REGLEMENT_PROs_cursor CURSOR FOR
          select	MVT_BUDGETAIRE.ID_MODULE_PRO,
          		ID_DISPOSITIF, 
@@ -1208,40 +902,37 @@ GO
          from dbo.MVT_BUDGETAIRE
          	inner join MODULE_PRO	on (MODULE_PRO.ID_MODULE_PRO = MVT_BUDGETAIRE.ID_MODULE_PRO)
          	inner join CONTRAT_PRO	on (CONTRAT_PRO.ID_CONTRAT_PRO = MODULE_PRO.ID_CONTRAT_PRO)
-         	INNER JOIN SALARIE_PRO ON (CONTRAT_PRO.ID_SALARIE_PRO = SALARIE_PRO.ID_SALARIE_PRO) --ajout le 15/12/09
+         	INNER JOIN SALARIE_PRO ON (CONTRAT_PRO.ID_SALARIE_PRO = SALARIE_PRO.ID_SALARIE_PRO) 
          	inner join EVENEMENT on (EVENEMENT.ID_EVENEMENT = MVT_BUDGETAIRE.ID_EVENEMENT)
          	inner join SESSION_PRO on (EVENEMENT.ID_SESSION_PRO = SESSION_PRO.ID_SESSION_PRO
          		and MVT_BUDGETAIRE.ID_SESSION_PRO = SESSION_PRO.ID_SESSION_PRO
          	)
-         --suppresion 03/11/09: mvt pris deux fois
-         --	inner join REGLEMENT_PRO on (SESSION_PRO.ID_REGLEMENT_PRO_of = REGLEMENT_PRO.ID_REGLEMENT_PRO or 
-         --SESSION_PRO.ID_REGLEMENT_PRO_adh = REGLEMENT_PRO.ID_REGLEMENT_PRO)
+
          where DAT_MVT_BUDGETAIRE >= @last_run_date 
          	and P_E_R = 'R'
          	and MODULE_PRO.DAT_FIN > '20061231'
-         --	and DAT_VALID_REGLEMENT is not null  --suppresion 03/11
-         --	and coalesce(CONTRAT_PRO.ID_DECISION_CONTRAT_PRO,0)<>2
+
          	and CONTRAT_PRO.BLN_ACTIF = 1
          	and MODULE_PRO.BLN_ACTIF = 1
-         	and EVENEMENT.ID_TYPE_EVENEMENT in (24,29,30) --reglement pro
-         	and (SESSION_PRO.ID_REGLEMENT_PRO_of is not null or SESSION_PRO.ID_REGLEMENT_PRO_adh is not null) --19/11/09 pour s'assurer qu'il existe des reglements
-         	-- SBR 08/04/13
+         	and EVENEMENT.ID_TYPE_EVENEMENT in (24,29,30) 
+         	and (SESSION_PRO.ID_REGLEMENT_PRO_of is not null or SESSION_PRO.ID_REGLEMENT_PRO_adh is not null) 
+
          	and	(
-         		(coalesce(CONTRAT_PRO.BLN_REPRISE_ADHOC, 0) = 1 and EVENEMENT.DAT_EVENEMENT >= '20090317') -- rŠglement sur contrat adhoc effectu‚ aprŠs la reprise adhoc
+         		(coalesce(CONTRAT_PRO.BLN_REPRISE_ADHOC, 0) = 1 and EVENEMENT.DAT_EVENEMENT >= '20090317') 
          		OR
-         		(coalesce(CONTRAT_PRO.BLN_REPRISE_NESSIE, 0) = 1 and EVENEMENT.DAT_EVENEMENT >= '20130101') -- rŠglement sur contrat nessie effectu‚ aprŠs la reprise nessie
+         		(coalesce(CONTRAT_PRO.BLN_REPRISE_NESSIE, 0) = 1 and EVENEMENT.DAT_EVENEMENT >= '20130101') 
          		OR
          		(coalesce(CONTRAT_PRO.BLN_REPRISE_ADHOC, 0) = 0 and coalesce(CONTRAT_PRO.BLN_REPRISE_NESSIE, 0) = 0)
          		)
          group by MVT_BUDGETAIRE.ID_MODULE_PRO, ID_DISPOSITIF, SALARIE_PRO.ID_BRANCHE, ID_ENVELOPPE, ID_TYPE_FINANCEMENT, ID_COMPTE, SESSION_PRO.ID_SESSION_PRO
-         
+
          OPEN REGLEMENT_PROs_cursor
          FETCH NEXT FROM REGLEMENT_PROs_cursor
          INTO @ID_MODULE,@ID_DISPOSITIF, @ID_BRANCHE, @ID_ENVELOPPE, @MNT, @ID_TYPE_FINANCEMENT, @ID_COMPTE, @ID_SESSION, @id_reglement_of, @id_reglement_adh
          WHILE @@FETCH_STATUS = 0
          BEGIN
          	if @MNT  <> 0
-         	begin --ajout partie dat_reglement le 14/12/09
+         	begin 
          		declare @dat_reglement datetime
          		select @dat_reglement = DAT_VALID_REGLEMENT
          		from REGLEMENT_PRO
@@ -1254,7 +945,7 @@ GO
          			where ID_REGLEMENT_PRO = @id_reglement_adh
          			and BLN_ACTIF = 1
          		end
-         		
+
          		if (@dat_reglement is not null)
          			exec INS_MVT_BUDG_PERIODE_PRO
          			@ID_MODULE,
@@ -1265,21 +956,15 @@ GO
          			@ID_TYPE_FINANCEMENT,
          			'RP',
          			@MNT,
-         			@ID_SESSION, -- 1, --@BLN_USE_SESSION
-         			null --@dat_REGLEMENT_PRO
+         			@ID_SESSION, 
+         			null 
          	end
          	FETCH NEXT FROM REGLEMENT_PROs_cursor
          	INTO @ID_MODULE,@ID_DISPOSITIF, @ID_BRANCHE, @ID_ENVELOPPE, @MNT, @ID_TYPE_FINANCEMENT, @ID_COMPTE, @ID_SESSION, @id_reglement_of, @id_reglement_adh
          END
          CLOSE REGLEMENT_PROs_cursor
          DEALLOCATE REGLEMENT_PROs_cursor
-         
-         
-         --ajout cloture de reprise le 19/11/09
-         --==========================================================================================
-         ------------------------- CLOTURE de REPRISE
-         
-         --tous les modules qui ont ‚t‚ clotures depuis la derniere fois et qui sont de reprise
+
          select distinct ID_MODULE_PRO
          into	#cp_table
          from	MODULE_PRO
@@ -1288,8 +973,8 @@ GO
          where	CONTRAT_PRO.DAT_CLOTURE is not null 
          and		CONTRAT_PRO.DAT_CLOTURE > @last_run_date
          and		(BLN_REPRISE_ADHOC = 1 or BLN_REPRISE_NESSIE = 1)
-         and		MODULE_PRO.DAT_FIN > '20061231' -- ajout DSZ 16/12/09 pour homogeneit‚
-         
+         and		MODULE_PRO.DAT_FIN > '20061231' 
+
          DECLARE cp_cursor CURSOR FOR
          select  
          	MVT_BUDGETAIRE_PERIODE.ID_MODULE_PRO, 
@@ -1313,7 +998,7 @@ GO
          	ID_ENVELOPPE,
          	ID_COMPTE, 
          	ID_TYPE_FINANCEMENT
-         
+
          OPEN cp_cursor
          FETCH NEXT FROM cp_cursor
          INTO @ID_MODULE,@ID_DISPOSITIF, @ID_BRANCHE, @ID_ENVELOPPE, @MNT, @ID_TYPE_FINANCEMENT, @ID_COMPTE
@@ -1329,28 +1014,21 @@ GO
          		'CP',
          		@MNT,
          		null, 
-         		null --@dat_REGLEMENT_PRO
-         
+         		null 
+
          	FETCH NEXT FROM cp_cursor
          	INTO @ID_MODULE,@ID_DISPOSITIF, @ID_BRANCHE, @ID_ENVELOPPE, @MNT, @ID_TYPE_FINANCEMENT, @ID_COMPTE
          END
          CLOSE cp_cursor
          DEALLOCATE cp_cursor
-         
-         --ajout 15/04/2011 DSZ 12750
-         --==========================================================================================
-         --------------------- cl“ture de module sauf reprise
-         --CMP: tous les mouvements budg‚taire E li‚s a un module pro cl“tur‚ (DAT_CLOTURE not null), 
-         -- li‚s a un ‚v‚nement de type cl“ture module pro (id = 26) 
-         ----==========================================================================================
-         
+
          DECLARE cmp_cursor CURSOR FOR
          select  
          	MVT_BUDGETAIRE.ID_MODULE_PRO, 
          	ID_DISPOSITIF,
          	SALARIE_PRO.ID_BRANCHE,
          	ID_ENVELOPPE,
-         	sum(MNT_MVT_BUDGETAIRE), --negatif
+         	sum(MNT_MVT_BUDGETAIRE), 
          	ID_COMPTE, 
          	ID_TYPE_FINANCEMENT
          from MVT_BUDGETAIRE
@@ -1359,7 +1037,7 @@ GO
          	inner join CONTRAT_PRO on (MODULE_PRO.id_CONTRAT_PRO = CONTRAT_PRO.id_CONTRAT_PRO)
          	INNER JOIN SALARIE_PRO ON (CONTRAT_PRO.ID_SALARIE_PRO = SALARIE_PRO.ID_SALARIE_PRO)
          where 
-         	MVT_BUDGETAIRE.P_E_R = 'E' -- SBR le 05/04/13
+         	MVT_BUDGETAIRE.P_E_R = 'E' 
          	and EVENEMENT.ID_TYPE_EVENEMENT = 26
          	and CONTRAT_PRO.BLN_REPRISE_ADHOC = 0 
          	and CONTRAT_PRO.BLN_REPRISE_NESSIE = 0
@@ -1372,7 +1050,7 @@ GO
          	ID_ENVELOPPE,
          	ID_COMPTE, 
          	ID_TYPE_FINANCEMENT
-         
+
          OPEN cmp_cursor
          FETCH NEXT FROM cmp_cursor
          INTO @ID_MODULE,@ID_DISPOSITIF, @ID_BRANCHE, @ID_ENVELOPPE, @MNT, @ID_TYPE_FINANCEMENT, @ID_COMPTE
@@ -1388,90 +1066,27 @@ GO
          		'CMP',
          		@MNT,
          		null, 
-         		null --@dat_REGLEMENT_PRO
-         
+         		null 
+
          	FETCH NEXT FROM cmp_cursor
          	INTO @ID_MODULE,@ID_DISPOSITIF, @ID_BRANCHE, @ID_ENVELOPPE, @MNT, @ID_TYPE_FINANCEMENT, @ID_COMPTE
          END
          CLOSE cmp_cursor
          DEALLOCATE cmp_cursor
-         
-         
-         --==========================================================================================
-         -- D‚sactivation de module sauf reprise : DMP
-         -- tous les mouvements budg‚taire E li‚s a un module pro d‚sactiv‚ (BLN_ACTIF = 0), 
-         -- li‚s a un ‚v‚nement de type d‚sactivation module pro (id = 23)
-         
-         --DECLARE dmp_cursor CURSOR FOR
-         --select  
-         --	MVT_BUDGETAIRE.ID_MODULE_PRO, 
-         --	ID_DISPOSITIF,
-         --	SALARIE_PRO.ID_BRANCHE,
-         --	ID_ENVELOPPE,
-         --	sum(MNT_MVT_BUDGETAIRE), --negatif
-         --	ID_COMPTE, 
-         --	ID_TYPE_FINANCEMENT
-         --from MVT_BUDGETAIRE
-         --	inner join EVENEMENT on (EVENEMENT.ID_EVENEMENT = MVT_BUDGETAIRE.ID_EVENEMENT)
-         --	inner join MODULE_PRO	on (MODULE_PRO.ID_MODULE_PRO = MVT_BUDGETAIRE.ID_MODULE_PRO)
-         --	inner join CONTRAT_PRO on (MODULE_PRO.ID_CONTRAT_PRO = CONTRAT_PRO.ID_CONTRAT_PRO)
-         --	INNER JOIN SALARIE_PRO ON (CONTRAT_PRO.ID_SALARIE_PRO = SALARIE_PRO.ID_SALARIE_PRO)
-         --where 
-         --	EVENEMENT.ID_TYPE_EVENEMENT = 23
-         --	and MODULE_PRO.BLN_ACTIF = 0
-         --	and MVT_BUDGETAIRE.DAT_MVT_BUDGETAIRE >= @last_run_date
-         --	and MVT_BUDGETAIRE.P_E_R = 'E' -- SBR le 05/04/13
-         --group by 
-         --	MVT_BUDGETAIRE.ID_MODULE_PRO, 
-         --	ID_DISPOSITIF,
-         --	ID_BRANCHE,
-         --	ID_ENVELOPPE,
-         --	ID_COMPTE, 
-         --	ID_TYPE_FINANCEMENT
-         
-         --OPEN dmp_cursor
-         --FETCH NEXT FROM dmp_cursor
-         --INTO @ID_MODULE,@ID_DISPOSITIF, @ID_BRANCHE, @ID_ENVELOPPE, @MNT, @ID_TYPE_FINANCEMENT, @ID_COMPTE
-         --WHILE @@FETCH_STATUS = 0
-         --BEGIN
-         --		exec INS_MVT_BUDG_PERIODE_PRO
-         --		@ID_MODULE,
-         --		@ID_DISPOSITIF ,
-         --		@ID_BRANCHE,
-         --		@ID_ENVELOPPE,
-         --		@ID_COMPTE,
-         -- 		@ID_TYPE_FINANCEMENT,
-         --		'DMP',
-         --		@MNT,
-         --		null, 
-         --		null --@dat_REGLEMENT_PRO
-         
-         --	FETCH NEXT FROM dmp_cursor
-         --	INTO @ID_MODULE,@ID_DISPOSITIF, @ID_BRANCHE, @ID_ENVELOPPE, @MNT, @ID_TYPE_FINANCEMENT, @ID_COMPTE
-         --END
-         --CLOSE dmp_cursor
-         --DEALLOCATE dmp_cursor
-         --<-- fin ajout 12750
-         
-         
-         -------------------------      ENGAGEMENT NET
-         --ajout CP DSZ 03/11/09. montant CP est toujours negatif donc faut l'ajouter
-         --calculer ENP via EIP+IRP+ECP-RP -RRP +CP.
+
          select	distinct ID_MODULE_PRO
          into	#enp_table
          from	MVT_BUDGETAIRE_PERIODE
          where	ID_MODULE_PRO is not null
          and		DAT_CREATION > @last_run_date
          and		TYPE_ENREGISTREMENT in  ('EIP', 'ECP', 'IRP', 'RP', 'RRP', 'CP', 'CMP')
-         
-         ------------ supprimer les lignes pour les remplacer
+
          delete	MVT_BUDGETAIRE_PERIODE
          from	MVT_BUDGETAIRE_PERIODE
          join	#enp_table 
          on		#enp_table.ID_MODULE_PRO = MVT_BUDGETAIRE_PERIODE.ID_MODULE_PRO
          where	MVT_BUDGETAIRE_PERIODE.TYPE_ENREGISTREMENT = 'ENP'
-         
-         ------------inserer
+
          insert into MVT_BUDGETAIRE_PERIODE
          (DAT_CREATION, MNT_MVT_BUDG_PERIODE, ID_PERIODE, ID_DISPOSITIF, ID_BRANCHE, ID_MODULE_PRO, ID_ENVELOPPE, ID_COMPTE, ID_TYPE_FINANCEMENT, TYPE_ENREGISTREMENT)
          select  
@@ -1491,8 +1106,7 @@ GO
          join	#enp_table 
          on		#enp_table.ID_MODULE_PRO = MVT_BUDGETAIRE_PERIODE.ID_MODULE_PRO
          where	MVT_BUDGETAIRE_PERIODE.TYPE_ENREGISTREMENT in  ('EIP', 'ECP', 'IRP', 'RP', 'RRP',  'CMP', 'CP')
-         --ajout 15/12/09 on ne veut pas des ENP si existe CP : SFD 1.1
-         --and		not exists (select * from MVT_BUDGETAIRE_PERIODE m where m.ID_MODULE_PRO = MVT_BUDGETAIRE_PERIODE.ID_MODULE_PRO and TYPE_ENREGISTREMENT = 'CP')
+
          group by 
          	MVT_BUDGETAIRE_PERIODE.ID_MODULE_PRO, 
          	ID_PERIODE,
@@ -1501,8 +1115,7 @@ GO
          	ID_ENVELOPPE,
          	ID_COMPTE, 
          	ID_TYPE_FINANCEMENT
-         
-         -- SBR le 03/02/2014
+
          update	t1
          set		t1.BLN_EN_POS = 1
          from	MVT_BUDGETAIRE_PERIODE t1
@@ -1516,54 +1129,26 @@ GO
          on		t1.ID_MODULE_PRO = t2.ID_MODULE_PRO
          and		t1.ID_DISPOSITIF = t2.ID_DISPOSITIF
          and		t1.TYPE_ENREGISTREMENT = 'ENP'
-         
+
          update	MVT_BUDGETAIRE_PERIODE 
          set		BLN_EN_POS = 0
          where	TYPE_ENREGISTREMENT = 'ENP'
          and		BLN_EN_POS is null
+
          
          
-         -- SBR le 18/07/2013 - suppression des ENP pour les modules et contrats cl“tur‚s ou inactifs
-         /*
-         update	t1
-         set		t1.MNT_MVT_BUDG_PERIODE = 0
-         from	MVT_BUDGETAIRE_PERIODE t1
-         join	MODULE_PRO t2
-         on		t1.ID_MODULE_PRO = t2.ID_MODULE_PRO
-         join	CONTRAT_PRO t3
-         on		t2.ID_CONTRAT_PRO = t3.ID_CONTRAT_PRO
-         where	(t2.DAT_CLOTURE is not null or t3.DAT_CLOTURE is not null or t2.BLN_ACTIF = 0 or t3.BLN_ACTIF = 0)
-         and		t1.TYPE_ENREGISTREMENT = 'ENP'
-         and		ABS(t1.MNT_MVT_BUDG_PERIODE) <> 0
-         */
-         /*
-         -- SBR le 10/04/2013: les ENP < 0 sont mis … 0
-         update	MVT_BUDGETAIRE_PERIODE
-         set		MNT_MVT_BUDG_PERIODE = 0
-         where	TYPE_ENREGISTREMENT = 'ENP'
-         and		MNT_MVT_BUDG_PERIODE < 0
-         */
          END
-         
- -- =============================================
-         -- Author	: AMA
-         -- Date		: 10/07/2008
-         -- Comment	: retourne l'id du module correspondant au code_PEC
-         -- =============================================
-         -- DSZ 13638 16/07/2012
-         -- remplir avec 0 si besoin
-         -- =============================================
-         
+
          CREATE PROCEDURE [dbo].[ProcGetModulePECId]
-         	@COD_MODULE varchar(18) -- format NNNNNN NN/AAAA	
+         	@COD_MODULE varchar(18) 
          AS
          BEGIN
-         	--si pas d '/', l'ajouter avant le 4 dernieres chiffres
+
          	if CHARINDEX('/',@COD_MODULE, 0) = 0 and LEN(@COD_MODULE) > 4
          	begin
          		set @COD_MODULE = SUBSTRING(@COD_MODULE,0, LEN(@COD_MODULE)-3)+'/'+SUBSTRING(@COD_MODULE, LEN(@COD_MODULE)-3,4)
          	end
-         	--si pas d'espace, ajoute avant NN/
+
          	if CHARINDEX(' ',@COD_MODULE, 0) = 0
          	begin
          		declare @n int
@@ -1578,16 +1163,7 @@ GO
          	from MODULE_PEC where COD_MODULE_PEC = @COD_MODULE
          	select 'Return Value'= @module_id	
          END
-         
-         
-         
-         
- -- =============================================
-         -- Author		: GiO
-         -- Create date	: 18 MArs 2008
-         -- Description	: Cr‚ation des lettres pour contrat pro de remboursement de salaires Adh‚rent
-         -- =============================================
-         
+
          CREATE PROCEDURE [dbo].[EDT_LETTRE_CONTRAT_PRO_REMB_SAL_ADH_TUTORALE]
          @ID_ETABLISSEMENT	INT,
          	@ID_BENEFICIAIRE	INT,
@@ -1596,15 +1172,13 @@ GO
          	@ID_CONTACT			INT,
          	@_ID_MODULE_PRO INT,
          	@_COD_CONTRAT_PRO	VARCHAR(10)
-         
+
          AS
          BEGIN
-         
+
          	DECLARE @RELANCE INT
          	SET @RELANCE = 0
-         	
-         
-         	/**** R‚cup‚ration des infos pour la partie r‚f‚rence ****/
+
          	SELECT	ADHERENT.ID_ADHERENT,
          			ADHERENT.ID_TYPE_TVA,
          			ADHERENT.COD_ADHERENT,
@@ -1619,8 +1193,7 @@ GO
          			INNER JOIN AGENCE			ON AGENCE.ID_AGENCE = ADHERENT.ID_AGENCE
          			INNER JOIN ETABLISSEMENT	ON ADHERENT.ID_ADHERENT = ETABLISSEMENT.ID_ADHERENT
          	WHERE	(ETABLISSEMENT.ID_ETABLISSEMENT = @ID_ETABLISSEMENT);
-         
-         	/**** R‚cup‚ration des infos sur le contrat pro ****/
+
          	SELECT	CONTRAT_PRO.ID_CONTRAT_PRO,
          			CONTRAT_PRO.COD_CONTRAT_PRO,
          			CONVERT(VARCHAR(8),CONTRAT_PRO.DAT_DEB_CONTRAT, 3) AS DAT_DEBUT,
@@ -1634,8 +1207,7 @@ GO
          			INNER JOIN SALARIE_PRO ON CONTRAT_PRO.ID_SALARIE_PRO = SALARIE_PRO.ID_SALARIE_PRO 
          			INNER JOIN INDIVIDU ON SALARIE_PRO.ID_INDIVIDU = INDIVIDU.ID_INDIVIDU
          	WHERE   CONTRAT_PRO.COD_CONTRAT_PRO = @_COD_CONTRAT_PRO;
-         
-         /*******************R‚cup‚ration du nom et pr‚nom du tuteur********************************************/
+
          	Select INDIVIDU.NOM_INDIVIDU AS NOM_TUTEUR, 
          			INDIVIDU.PRENOM_INDIVIDU as PRENOM_TUTEUR,
          			Case when INDIVIDU.BLN_MASCULIN=1 then 'Monsieur' else 'Madame' end as TITLE_TUTEUR
@@ -1643,23 +1215,17 @@ GO
          			from INDIVIDU 
          			inner join  CONTRAT_PRO on CONTRAT_PRO.ID_TUTEUR=INDIVIDU.ID_INDIVIDU
          				AND   CONTRAT_PRO.COD_CONTRAT_PRO = @_COD_CONTRAT_PRO;
-         
-         	
-         		/**** R‚cup‚ration des infos sur le le module pro pour les ETABLISSEMENT OF ****/
+
          		SELECT  ROUND(MODULE_PRO.TAUX_HORAIRE_MODULE,2) as TAUX_HORAIRE_MODULE 
          		INTO #TEMP_MODULE FROM MODULE_PRO
          		where MODULE_PRO.ID_MODULE_PRO=@_ID_MODULE_PRO;
-         	
-         	
-         /*********** R‚cuperation du TAU_TVA*********************************************************************/
+
          SELECT TAU_TVA
          INTO #TVA from R26
          inner join #TEMP_REGLEMENT_REFERENCE on #TEMP_REGLEMENT_REFERENCE.ID_TYPE_TVA = R26.ID_TYPE_TVA
          inner join PERIODE on PERIODE.ID_PERIODE=R26.ID_PERIODE and PERIODE.ID_TYPE_PERIODE=2 and (DATEDIFF(DAY,PERIODE.DAT_DEB_PERIODE,GETDATE()) >0)
          order by PERIODE.DAT_DEB_PERIODE desc
-         
-         
-         /*****  nieme relance *****************************************************************************/
+
          	IF( (SELECT COUNT(*) FROM ECHEANCE_MODULE_PRO WHERE ECHEANCE_MODULE_PRO.ID_MODULE_PRO=@_ID_MODULE_PRO AND (DATEDIFF(DAY,ECHEANCE_MODULE_PRO.DAT_ENVOI_RELANCE1_PREV,GETDATE()) >0) AND (ECHEANCE_MODULE_PRO.DAT_ENVOI_RELANCE1_EFF IS NULL)) >0)
          			BEGIN
          				SET @RELANCE = 1
@@ -1669,7 +1235,7 @@ GO
          					BEGIN
          						SET @RELANCE = 2
          					END
-         			
+
          		ELSE
          			BEGIN
          				IF ((SELECT COUNT(*) FROM ECHEANCE_MODULE_PRO WHERE ECHEANCE_MODULE_PRO.ID_MODULE_PRO=@_ID_MODULE_PRO AND (DATEDIFF(DAY,ECHEANCE_MODULE_PRO.DAT_ENVOI_RELANCE3_PREV,GETDATE()) >0) AND (ECHEANCE_MODULE_PRO.DAT_ENVOI_RELANCE3_EFF IS NULL)) >0)
@@ -1677,13 +1243,11 @@ GO
          						SET @RELANCE = 3
          					END
          			END;
-         
-         /*****  Creation du flux XML *****************************************************************************/
+
          	WITH XMLNAMESPACES (
          		DEFAULT 'EDT_LETTRE_CONTRAT_PRO_REMB_SAL_ADH_TUTORALE'
          	)
-         	/**********************************************************************************************************/
-         			
+
          	SELECT
          				CASE WHEN (@RELANCE > 0) THEN 
          			(
@@ -1703,21 +1267,17 @@ GO
          				FOR XML RAW('TOP') ,ELEMENTS,TYPE
          			)end,
          			(
-         				/**********************************************************************************************/
-         				/*****************	ENTETE DE LA LETTRE *******************************************************/
-         				/**********************************************************************************************/
+
          				SELECT	              	
-         					-- R‚cup‚ration des informations sur l'agence
+
          					dbo.GetXmlAgenceContact(ENTETE.ID_AGENCE) as EMETTEUR,
-         					
-         					-- R‚cup‚ration des informations sur le contact
+
          					dbo.GetXmlBenefiaireContact(@ID_BENEFICIAIRE, @TYPE_BENEFICIAIRE, @ID_ADRESSE, @ID_CONTACT) as BENEFICIAIRE,
-         
-         					/******************* Recuperation des informations DE l'entete ****************************/
+
          					(
          						SELECT	REFERENCE.LIB_VILLE,
          								dbo.GetFullDate(getDate()) as DATE
-         
+
          						FROM #TEMP_REGLEMENT_REFERENCE AS REFERENCE     
          						FOR XML AUTO, ELEMENTS, TYPE
          					)
@@ -1725,9 +1285,7 @@ GO
          				FOR XML AUTO, ELEMENTS, TYPE
          			),
          			(
-         				/**********************************************************************************************/
-         				/*****************	DEMANDE DE LA LETTRE ********************************************************/
-         				/**********************************************************************************************/
+
          				SELECT	
          						DEMANDE.COD_ADHERENT,
          						DEMANDE.LIB_RAISON_SOCIALE AS LIB_RAISON_SOCIALE_ADHERENT,
@@ -1753,13 +1311,10 @@ GO
          				FROM  #TEMP_REGLEMENT_REFERENCE AS DEMANDE
          				FOR XML AUTO, ELEMENTS, TYPE
          			),
-         			/**********************************************************************************************/
-         				/*****************	CORPS DE LA LETTRE ********************************************************/
-         				/**********************************************************************************************/
-         			
+
          			(
          			select
-         												
+
          			(
          				SELECT	top 1
          						dbo.GetContactSalutation(@ID_CONTACT, 1)
@@ -1771,7 +1326,7 @@ GO
          				SELECT 	top 1 CAST((TAU_TVA * 100) AS decimal(10,2)) as TAU_TVA from #TVA
          					FOR XML PATH(''), ELEMENTS, TYPE
          			),
-         
+
          			(
          				SELECT	top 1
          						dbo.GetContactSalutation(@ID_CONTACT, 0)
@@ -1781,45 +1336,31 @@ GO
          				FROM #TEMP_MODULE as CORPS
          				FOR XML AUTO, ELEMENTS, TYPE
          			),
-         
+
          			(
-         				/**********************************************************************************************/
-         				/*****************	SIGNATURE DE LA LETTRE ****************************************************/
-         				/**********************************************************************************************/
+
          				SELECT	SIGNATURE.LIB_PNM_CONSEILLER,
          						SIGNATURE.LIB_NOM_CONSEILLER
          				FROM
          						#TEMP_REGLEMENT_REFERENCE as SIGNATURE
          				FOR XML AUTO, ELEMENTS, TYPE
          			)
-         			/**************************************************************************************************/
-         
-         			
+
          	FROM	#TEMP_REGLEMENT_REFERENCE as LETTRE
          	FOR XML AUTO, ELEMENTS
-         
+
          END
 
-
-         
-         
-         -- =============================================
-         -- Author:		Woollams
-         -- Create date: 24 janvier 2008
-         -- Description:	Mise … jour de la date d'engagement 
-         -- pour les contrat de la liste
-         -- =============================================
-         
          CREATE PROCEDURE [dbo].[UPD_DATE_ENGAGEMENT_CONTRAT_PRO_OF]
-         	@CODS_CONTRAT_PRO TEXT	-- List of COD_CONTRAT_PRO separated with ',' without spaces - i.e.: 1,2,3,4,5,6
+         	@CODS_CONTRAT_PRO TEXT	
          AS
-         
+
          BEGIN
-         
+
          	DECLARE @Item varchar(10);
-         	-- Create a temporary table which contains IDs
+
          	CREATE TABLE #List(Item VARCHAR(10) collate French_CI_AI)
-         	
+
          	DECLARE @Delimiter char
          	SET @Delimiter = ','
          	WHILE CHARINDEX(@Delimiter,@CODS_CONTRAT_PRO,0) <> 0
@@ -1827,42 +1368,26 @@ GO
          		SELECT
          			@Item=RTRIM(LTRIM(SUBSTRING(@CODS_CONTRAT_PRO,1,CHARINDEX(@Delimiter,@CODS_CONTRAT_PRO,0)-1))),
          			@CODS_CONTRAT_PRO=RTRIM(LTRIM(SUBSTRING(@CODS_CONTRAT_PRO,CHARINDEX(@Delimiter,@CODS_CONTRAT_PRO,0)+1,DATALENGTH(@CODS_CONTRAT_PRO))))
-         
+
          		IF LEN(@Item) > 0
          			INSERT INTO #List SELECT cast(@Item as varchar)
          	END
-         
+
          	IF DATALENGTH(@CODS_CONTRAT_PRO) > 0
          		begin
          			select @Item = cast(@CODS_CONTRAT_PRO as varchar(10))
-         			INSERT INTO #List SELECT @Item -- Put the last item in
+         			INSERT INTO #List SELECT @Item 
          		end
-         
-         	--Mise … jour des date d'engagement
+
          	UPDATE	ENGAGEMENT_PRO
          	SET		ENGAGEMENT_PRO.DAT_LETTRE_ENGAGEMENT_PRO_OF = GETDATE()
          	FROM	CONTRAT_PRO 
          			INNER JOIN MODULE_PRO ON CONTRAT_PRO.ID_CONTRAT_PRO = MODULE_PRO.ID_CONTRAT_PRO 
          			INNER JOIN ENGAGEMENT_PRO ON MODULE_PRO.ID_ENGAGEMENT_PRO = ENGAGEMENT_PRO.ID_ENGAGEMENT_PRO
          	WHERE	CONTRAT_PRO.COD_CONTRAT_PRO IN (SELECT Item FROM #List)
-         
+
          END
 
- -- =============================================
-         -- Author				: EOU
-         -- Modification date	: 10 mai 2012
-         -- Description			: 13191
-         -- =============================================
-         -- WKH, 18/12/2013, 16610, Ajout reglle m‚tier mettre a "Annulation DEFI, ID_ETAT = 6 tous les prelevements non sollicit‚s pendant les 6 derniers mois
-         -- =============================================
-         -- LDE 31/12/2013 #16610: SEPA Pr‚lŠvement - Liste des ‚tats de pr‚lŠvement
-         -- Utilisation de 36 pour la valeur des mois
-         -- =============================================
-         -- HBO - 070114 - #16757: SEPA Pr‚lŠvement - Liste des ‚tats de pr‚lŠvement : Mandat Caduque
-         -- =============================================
-         -- DSZ - 080114 - #16757 - l'utilisateur aliment‚ dans INSERT COMMENTAIRE, 
-         --       DAT_SIGNATURE utilis‚e pour la comparaison 
-         -- =============================================
          CREATE PROCEDURE dbo.BATCH_MISE_A_JOUR_ETATS_ADP
          	@NOMBRE_JOURS	INT			
          AS
@@ -1871,7 +1396,7 @@ GO
          		@DATE	DATETIME 
          	SET
          		@DATE = DATEADD(DAY,@NOMBRE_JOURS, GETDATE());
-         	
+
          	UPDATE
          		AUTORISATION_PRELEVEMENT 
          	SET
@@ -1880,8 +1405,7 @@ GO
          	WHERE
          		ID_ETAT = 2
          		AND (DATEADD(DAY,@NOMBRE_JOURS, DAT_SIGNATURE)<=GETDATE())
-         
-         	--MISE · JOUR DE L'TAT DE L'AUTORISATION DE PRLÔVEMENT POUR LES MANDATS CADUQUES (>36 MOIS)
+
          	;WITH AUTORISATION_CADUQUE
          	AS
          	(
@@ -1928,8 +1452,7 @@ GO
          	FROM
          		AUTORISATION_PRELEVEMENT AP
          		INNER JOIN AUTORISATION_CADUQUE AC ON AC.ID_AUTORISATION_PRELEVEMENT = AP.ID_AUTORISATION_PRELEVEMENT
-         
-         	--INSERTION DANS LA TABLE COMMENTAIRES LES INFORMATIONS LIES AU MANDATS CADUQUES NON ENCORE PRSENTES DANS LA TABLE 
+
             INSERT INTO COMMENTAIRES
              (
                  TYPE_OBJET,
@@ -1969,30 +1492,13 @@ GO
           @MNT_ENGAGE  DECIMAL(18,2),
           @ID_UTILISATEUR INT
          AS
-         --==========================================
-         -- 09/12/2009 DSZ Mantis 12190
-         -- ne pas engager ceux avec MNT_PREVISIONNEL_HT = 0
-         --==========================================
-         -- OPA 31/05/2013 : 15031 : SBR - suppression du type FLOAT et REAL dans le SQL : 2- FLOAT
-         --==========================================
-         -- HBO - #255 - 20140605
-         -- =========================================
-         -- HBO - OPA - 20140801 #148D
-         -- =========================================
-         -- LDE 04/08/2014 #140 En tant qu'utilisateur OPTIFORM, j'engage des postes de co–t afin de g‚n‚rer les ‚vŠnements et les mouvements budg‚taires associ‚s
-         --==========================================
-         -- Author  : MBL  
-         -- Modified date: 21/08/2014
-         -- OBJET : Prise en compte des PCE avec Montant demand‚ … 0
-         -- =======================================================================================================================================
-         -- HBO - #489 - 20140904 : Traiter que les PCE li‚s … l'engagement
-         -- =========================================
+
          BEGIN
           DECLARE
            @NUM   INT,
            @ID_TYPE  INT,
            @IdEngagement INT
-         
+
           SELECT
            @NUM = count(*)
           FROM
@@ -2005,12 +1511,12 @@ GO
            AND MODULE_PEC.BLN_ACTIF = 1
            AND MODULE_PEC.BLN_IMPUTABLE = 1
            AND MODULE_PEC.DAT_CLOTURE IS NULL
-         
+
           IF(@NUM = 0)
            SET @ID_TYPE = 1
           ELSE
            SET @ID_TYPE = 3
-          
+
           INSERT INTO ENGAGEMENT
           (
            COD_ENGAGEMENT,
@@ -2029,16 +1535,16 @@ GO
            1,
            @ID_TYPE
           )
-         
+
           SET @IdEngagement = @@IDENTITY
-         
+
           UPDATE
            ENGAGEMENT
           SET
            COD_ENGAGEMENT = @IdEngagement
           WHERE
            ID_ENGAGEMENT = @IdEngagement;
-         
+
           UPDATE
            POSTE_COUT_ENGAGE
           SET
@@ -2057,9 +1563,9 @@ GO
              AND MODULE_PEC.DAT_CLOTURE IS NULL
            )
            AND POSTE_COUT_ENGAGE.ID_ENGAGEMENT IS NULL
-           -- MBL Modif du 21/08/2014 : Prise en compte des PCE avec Montant demand‚ … 0
+
            AND POSTE_COUT_ENGAGE.MNT_PREVISIONNEL_HT >= 0
-          
+
           UPDATE
            ACTION_PEC
           SET
@@ -2067,22 +1573,19 @@ GO
            ID_UTILISATEUR_BAE = @ID_UTILISATEUR
           WHERE
            ID_ACTION_PEC = @ID_ACTION_PEC;
-          
-          -- LDE 04/08/2014 #140
+
           EXEC INS_MVT_BUDGETAIRE_ENGAGEMENT
            @ID_ACTION_PEC,
            @ID_UTILISATEUR,
            @IdEngagement
-         
+
           EXEC dbo.DEL_EXPORT_D3R
            @ID_ACTION_PEC,
            'PEC'
          END
 
 GO 
-         --============================================
-         -- EVOL 10-50 DSZ 12913 13/10/2011 - 09/12/2011
-         --============================================
+
          CREATE PROCEDURE [dbo].[MAJ_PARAMETRES_COLLECTE]
          @ANNEE INT
          AS
@@ -2113,8 +1616,7 @@ GO
          ,COM_PARAM_GLO
          ,ID_PERIODE
          ,ID_REGIME)
-         
-         --** activite 1
+
          SELECT
          12, 1, 0, 0, 15, 0, 1, NULL, @ID_PERIODE_ANNEE, REGIME.ID_REGIME
          FROM
@@ -2164,7 +1666,7 @@ GO
          21, 1, 0, 0, 15, 0, 1, NULL, @ID_PERIODE_ANNEE, REGIME.ID_REGIME
          FROM
          REGIME
-         --- activite 4
+
          UNION ALL
          SELECT
          23, 4, 0, 0, 15, 0, 1, NULL, @ID_PERIODE_ANNEE, REGIME.ID_REGIME
@@ -2201,12 +1703,12 @@ GO
          FROM
          REGIME
          UNION ALL
-         --activite 5
+
          SELECT
          30, 5, 0, 0, 15, 0, 1, NULL, @ID_PERIODE_ANNEE, REGIME.ID_REGIME
          FROM
          REGIME
-         --act 2
+
          UNION ALL
          SELECT
          14, 2, 0, 0.4, 100, 0, 1, NULL, @ID_PERIODE_ANNEE, REGIME.ID_REGIME
@@ -2228,7 +1730,7 @@ GO
          FROM
          REGIME
          UNION ALL
-         --activite 3
+
          SELECT
          12, 3, 0, 0.5, 100, 0, 1, NULL, @ID_PERIODE_ANNEE, REGIME.ID_REGIME
          FROM
@@ -2323,8 +1825,7 @@ GO
          30, 3, 0, 0.15, 100, 0, 1, NULL, @ID_PERIODE_ANNEE, REGIME.ID_REGIME
          FROM
          REGIME
-         
-         
+
          UPDATE PARAMETRE_GLOBAL SET
          COD_PARAM_GLO = ID_PARAM_GLO
          WHERE
@@ -2373,36 +1874,6 @@ GO
          COD_PARAM_APPEL = 0
          END
 
- -- =============================================
-         -- Author: DSZ
-         -- Creation: 25/05/09-23/06
-         -- REPORTING DU PLURI-ANNUEL 
-         -- Engagement initial de reprise. 
-         -- batch a executer une fois
-         -- =============================================
-         -- Author: ASD
-         -- Creation: 20090720
-         -- Mise … jour EIR 
-         -- =============================================
-         -- Author: ASD
-         -- Creation: 20090721
-         -- Ajout RR 
-         -- =============================================
-         -- DSZ 31/07/09
-         -- changement RR apres mail de MBHM - faut prendre les sessions en compte
-         -- voir mail MBHM 30/07/09
-         -- =============================================
-         -- DSZ 16/12/09
-         -- ajout aux reglements la condition MODULE_PEC.DAT_FIN > '20061231' pour homogeneit‚
-         -- =============================================
-         -- SBR 06/03/13 Ajout des conditions pour la reprise plasturgie - NESSIE
-         -- =============================================
-         -- SBR 06/06/13 - Prise en compte des actions refus‚es
-         -- =============================================
-         -- SBR 14/06/13 - Les PCE initiaux d'engagement d‚sengag‚s ne doivent pas ˆtre ‚cart‚s pour le calcul de l'engagement initial
-         -- =============================================
-         -- SBR 05/07/13 - pour reprise adhoc, condition PLAN_FINANCEMENT_US.DAT_PLAN_FINANCEMENT_US < '20090216' remplac‚e par POSTE_COUT_ENGAGE.DAT_CREATION < '20090216'
-         -- =============================================
          CREATE PROCEDURE [dbo].[BATCH_PLURI_ANNUEL_REPRISE]
          AS
          BEGIN
@@ -2418,8 +1889,7 @@ GO
          DECLARE @jours_total int
          DECLARE @id_periode int
          DECLARE @jours_periode int
-         
-         -------Engagement initial de reprise. 
+
          DECLARE plan_fi_cursor CURSOR FOR
          SELECT	MODULE_PEC.ID_MODULE_PEC,
          		UNITE_STAGIAIRE.ID_DISPOSITIF, 
@@ -2436,13 +1906,11 @@ GO
          ON		UNITE_STAGIAIRE.ID_STAGIAIRE_PEC = STAGIAIRE_PEC.ID_STAGIAIRE_PEC 
          JOIN	PLAN_FINANCEMENT_US 
          ON		PLAN_FINANCEMENT_US.ID_UNITE_STAGIAIRE = UNITE_STAGIAIRE.ID_UNITE_STAGIAIRE 
-         --20090720 ADD ASD
+
          JOIN	POSTE_COUT_ENGAGE 
          ON		POSTE_COUT_ENGAGE.id_MODULE_PEC=MODULE_PEC.id_MODULE_PEC
          AND		PLAN_FINANCEMENT_US.id_POSTE_COUT_ENGAGE=POSTE_COUT_ENGAGE.id_POSTE_COUT_ENGAGE
-         -- AND		POSTE_COUT_ENGAGE.dat_desengagement is null -- inactivation SBR le 14/06/13
-         --20090720 END ADD ASD
-         --20090721 ADD ASD
+
          JOIN	ENGAGEMENT	
          ON		ENGAGEMENT.ID_ENGAGEMENT = POSTE_COUT_ENGAGE.ID_ENGAGEMENT
          AND		ID_TYPE_ENGAGEMENT	is not null 
@@ -2453,12 +1921,11 @@ GO
          		OR
          		(ACTION_PEC.BLN_REPRISE_NESSIE = 1 and MODULE_PEC.DAT_FIN > '20091231' and POSTE_COUT_ENGAGE.DAT_CREATION < '20130106')
          		)
-         --		and coalesce(ACTION_PEC.ID_DECISION_ACTION_PEC,0) <> 2
+
          		and ACTION_PEC.BLN_ACTIF = 1
          		and MODULE_PEC.BLN_ACTIF = 1
          		and PLAN_FINANCEMENT_US.ID_POSTE_COUT_REGLE is null
-         	--and ACTION_PEC.DAT_CLOTURE is null -----prendre les clotures en compte, confirme avec MHBM le 04/08
-         --	and MODULE_PEC.ID_MODULE_PEC = 137127
+
          GROUP BY 
          	UNITE_STAGIAIRE.ID_DISPOSITIF, 
          	STAGIAIRE_PEC.ID_BRANCHE,
@@ -2466,51 +1933,44 @@ GO
          	PLAN_FINANCEMENT_US.ID_ENVELOPPE,
          	PLAN_FINANCEMENT_US.ID_TYPE_FINANCEMENT
          ORDER BY ID_MODULE_PEC
-         
+
          OPEN plan_fi_cursor
          FETCH NEXT FROM plan_fi_cursor
          INTO @ID_MODULE, @ID_DISPOSITIF, @ID_BRANCHE, @MNT, @ID_ENVELOPPE, @ID_TYPE_FINANCEMENT
-         
+
          WHILE @@FETCH_STATUS = 0
          BEGIN
-         
-         	
+
          	exec INS_MVT_BUDG_PERIODE
          	@ID_MODULE,
          	@ID_DISPOSITIF ,
          	@ID_BRANCHE,
          	@ID_ENVELOPPE,
-         	NULL, --@ID_COMPTE,
+         	NULL, 
          	@ID_TYPE_FINANCEMENT,
          	'EIR',
          	@MNT,
-         	null, --@ID_SESSION
+         	null, 
          	null
-         
+
          	FETCH NEXT FROM plan_fi_cursor
          	INTO @ID_MODULE, @ID_DISPOSITIF, @ID_BRANCHE, @MNT, @ID_ENVELOPPE, @ID_TYPE_FINANCEMENT
          END
          CLOSE plan_fi_cursor
          DEALLOCATE plan_fi_cursor
-         
-         ---------------------------------------------------------------
-         ----------------reglement de la reprise
-         
+
          declare @ID_SESSION int
          DECLARE reglement_cursor CURSOR FOR
          SELECT	MODULE_PEC.ID_MODULE_PEC,
-         --		POSTE_COUT_REGLE.id_POSTE_COUT_REGLE,
-         --		POSTE_COUT_REGLE.MNT_REGLE_HT--,
-         --		REGLEMENT.DAT_VALID_REGLEMENT
+
          		sum(MNT_PLAN_FINANCEMENT_US) as mnt,
          		PLAN_FINANCEMENT_US.ID_ENVELOPPE,
          		PLAN_FINANCEMENT_US.ID_TYPE_FINANCEMENT,
          		UNITE_STAGIAIRE.ID_DISPOSITIF,
          		STAGIAIRE_PEC.ID_BRANCHE,
-         --ajout DSZ 31/07/09 
+
          		POSTE_COUT_REGLE.ID_SESSION_PEC
-         --fin ajout DSZ
-         		
+
          FROM    POSTE_COUT_REGLE 
          JOIN	MODULE_PEC 
          ON		MODULE_PEC.ID_MODULE_PEC = POSTE_COUT_REGLE.ID_MODULE_PEC
@@ -2538,27 +1998,26 @@ GO
          			STAGIAIRE_PEC.ID_BRANCHE,
          			POSTE_COUT_REGLE.ID_SESSION_PEC
          having sum(MNT_PLAN_FINANCEMENT_US) > 0
-         
-         
+
          OPEN reglement_cursor
          FETCH NEXT FROM reglement_cursor
          INTO @ID_MODULE, @MNT, @ID_ENVELOPPE, @ID_TYPE_FINANCEMENT,@ID_DISPOSITIF, @ID_BRANCHE, @ID_SESSION
-         
+
          WHILE @@FETCH_STATUS = 0
          BEGIN
-         
+
          	exec INS_MVT_BUDG_PERIODE
          	@ID_MODULE,
          	@ID_DISPOSITIF ,
          	@ID_BRANCHE,
          	@ID_ENVELOPPE,
-         	NULL, --@ID_COMPTE,
+         	NULL, 
          	@ID_TYPE_FINANCEMENT, 
-         	'RR', -- 'reglement reprise'
+         	'RR', 
          	@MNT,
          	@ID_SESSION,
          	null
-         
+
          	FETCH NEXT FROM reglement_cursor
          	INTO @ID_MODULE, @MNT, @ID_ENVELOPPE, @ID_TYPE_FINANCEMENT, @ID_DISPOSITIF, @ID_BRANCHE, @ID_SESSION
          END
@@ -2566,44 +2025,29 @@ GO
          DEALLOCATE reglement_cursor
          END
 
- CREATE PROCEDURE [dbo].[CHECK_GROUPE_ACTIVITE_SIREN]  --return 1 or null
+ CREATE PROCEDURE [dbo].[CHECK_GROUPE_ACTIVITE_SIREN]  
          	@ID_GROUPE int, 
-         	@ID_ADHERENT int, --pour d‚t‚rminer son activit‚
+         	@ID_ADHERENT int, 
          	@NUM_SIREN varchar(9),
          	@SAUF_ID_ETAB int
          AS
-         
-         -- =============================================
-         -- Author:		DSZ
-         -- Create date: 06/04/2012
-         -- Description:	13319 : Verifie si le groupe donn‚ a d'autres agr‚ments ou d'autres SIREN que donn‚, sauf l'‚tablissement donn‚
-         -- pour le p‚riode en cours
-         -- NB: si l'activite de l'adherent <> 2, on ne v‚rifie que l'activit‚ , pas le SIREN
-         -- =============================================
-         -- DSZ 24/04/2012 13319
-         -- se limiter aux ‚tablissement actifs
-         -- =============================================
-         -- DSZ 15/06/2012 13607
-         -- correction de la condition sur SIRET
-         ------------------------------------------------------------
-         -- ASD 07/01/2013 14822 : remplacer la condition !=3 par cod_type_activite = plan 
-         -- =============================================
+
          BEGIN
          	SET NOCOUNT ON;
-         	
+
          	declare @ID_PERIODE_EN_COURS int
          	select	@ID_PERIODE_EN_COURS = ID_PERIODE 
          	from	PERIODE 
          	where	BLN_EN_COURS = 1 and ID_TYPE_PERIODE = 1
-         	
+
          	declare @ID_ACTIVITE_D_ADHERENT int
          	exec @ID_ACTIVITE_D_ADHERENT = GetActiviteAdherentByCode  @ID_ADHERENT, @ID_PERIODE_EN_COURS,'PLAN' 
-         									
+
          	SELECT TOP 1 @ID_ACTIVITE_D_ADHERENT as EXISTENT_AUTRES
          	from ETABLISSEMENT 
-         		CROSS join ACTIVITE  -- 14822 20130207 ASD
+         		CROSS join ACTIVITE  
          		INNER join R19 on (	R19.ID_ADHERENT = ETABLISSEMENT.ID_ADHERENT and 
-         							R19.ID_ACTIVITE in (select id_activite from GET_IDS_ACTIVITE_BY_COD_TYPE_ACTIVITE('PLAN')) -- 14822
+         							R19.ID_ACTIVITE in (select id_activite from GET_IDS_ACTIVITE_BY_COD_TYPE_ACTIVITE('PLAN')) 
          							 and 
          							R19.ID_PERIODE = @ID_PERIODE_EN_COURS)
          	where 
@@ -2613,28 +2057,9 @@ GO
          		((@NUM_SIREN is null or (@ID_ACTIVITE_D_ADHERENT = 2 and left(ETABLISSEMENT.NUM_SIRET,9) <> @NUM_SIREN)) 
          		or
          		R19.ID_ACTIVITE <> @ID_ACTIVITE_D_ADHERENT)
-         		
+
          END
 
- -- =============================================
-         -- Author: ASD
-         -- Creation: 17/07/2009
-         -- REPORTING DU PLURI-ANNUEL CPRO - REPRISE
-         -- Engagement initial de reprise. 
-         -- batch a executer une fois
-         -- =============================================
-         -- Author: ASD 20/07/2009
-         -- + Reglement de reprise
-         -- =============================================
-         -- DSZ 31/0709 Modif pour utiliser @ID_SESSION au lieu de @BLN_USE_SESSION 
-         -- =============================================
-         -- DSZ 19/11/09 AprŠs revue du code avec MHBM : prendre la branche historis‚ dans Salari‚_pro;
-         -- supprimer la condition sur ENGAGEMENT_PRO.DAT_BAE pour les IRP: bln_reprise_adhoc suffisant
-         -- =============================================
-         -- SBR 06/03/13 Ajout des conditions pour la reprise plasturgie - NESSIE
-         -- =============================================
-         -- SBR 05/04/13 engagement initial du module r‚cup‚r‚ dans MODULE_PRO et pas dans ENGAGEMENT_PRO
-         -- =============================================
          CREATE PROCEDURE [dbo].[BATCH_PLURI_ANNUEL_REPRISE_PRO]
          AS
          BEGIN
@@ -2646,24 +2071,20 @@ GO
          DECLARE @ID_COMPTE int
          DECLARE @ID_TYPE_FINANCEMENT int
          DECLARE @ID_SESSION int
-         
+
          DECLARE @dat_debut datetime
          DECLARE @dat_fin datetime
          DECLARE @jours_total int
          DECLARE @id_periode int
          DECLARE @jours_periode int
          DECLARE @dat_valid_REGLEMENT datetime
-         
-         
-         -------------------------------------------------------------------------------------------------
-         --Engagement initial de reprise en CPRO
-         -------------------------------------------------------------------------------------------------
+
          DECLARE eng_pro_cursor CURSOR FOR
          SELECT	MODULE_PRO.ID_MODULE_PRO,
          		ENGAGEMENT_PRO.ID_DISPOSITIF, 
-         		SALARIE_PRO.ID_BRANCHE, --ETABLISSEMENT.ID_BRANCHE - remplac‚ le 19/11/09
-         --		round(sum(ENGAGEMENT_PRO.MNT_ENGAGE_HT),2) as MNT,
-         		round(sum(MODULE_PRO.MNT_MODULE_HT),2) as MNT, -- SBR le 05/04/13
+         		SALARIE_PRO.ID_BRANCHE, 
+
+         		round(sum(MODULE_PRO.MNT_MODULE_HT),2) as MNT, 
          		NULL as ID_ENVELOPPE,
          		NULL as ID_TYPE_FINANCEMENT
          FROM    CONTRAT_PRO 
@@ -2671,54 +2092,46 @@ GO
          		INNER JOIN TYPE_FORMATION ON TYPE_FORMATION.ID_TYPE_FORMATION = MODULE_PRO.ID_TYPE_FORMATION  
          		INNER JOIN ENGAGEMENT_PRO on ENGAGEMENT_PRO.id_ENGAGEMENT_PRO=module_pro.id_ENGAGEMENT_PRO
          		INNER JOIN ETABLISSEMENT on ETABLISSEMENT.id_ETABLISSEMENT=CONTRAT_PRO.id_ETABLISSEMENT
-         		INNER JOIN SALARIE_PRO ON (CONTRAT_PRO.ID_SALARIE_PRO = SALARIE_PRO.ID_SALARIE_PRO) --AJOUT 19/11/09 pour utilise la branche historis‚ dans salari‚
+         		INNER JOIN SALARIE_PRO ON (CONTRAT_PRO.ID_SALARIE_PRO = SALARIE_PRO.ID_SALARIE_PRO) 
          WHERE   (
          		(CONTRAT_PRO.BLN_REPRISE_ADHOC = 1 and MODULE_PRO.DAT_FIN > '20061231')
          		OR
-         		(CONTRAT_PRO.BLN_REPRISE_NESSIE = 1 and MODULE_PRO.DAT_FIN > '20091231') -- 06/03/13 - SBR
+         		(CONTRAT_PRO.BLN_REPRISE_NESSIE = 1 and MODULE_PRO.DAT_FIN > '20091231') 
          		)
-         	-- supprime le 19/11/09 abec MHBM: bln_reprise_adhoc suffisant
-         	--and ENGAGEMENT_PRO.DAT_BAE< '20090317'
+
          	and CONTRAT_PRO.BLN_ACTIF=1
          	and MODULE_PRO.BLN_ACTIF=1
          GROUP BY
          	ENGAGEMENT_PRO.ID_DISPOSITIF, 
-         	--ETABLISSEMENT.ID_BRANCHE,  --19/11/09 a prendre la branche historise dans le contrat!
+
          	SALARIE_PRO.ID_BRANCHE,
          	MODULE_PRO.ID_MODULE_PRO
-         --	PLAN_FINANCEMENT_US.ID_ENVELOPPE,
-         --	PLAN_FINANCEMENT_US.ID_TYPE_FINANCEMENT
-         
+
          OPEN eng_pro_cursor
          FETCH NEXT FROM eng_pro_cursor
          INTO @ID_MODULE, @ID_DISPOSITIF, @ID_BRANCHE, @MNT, @ID_ENVELOPPE, @ID_TYPE_FINANCEMENT
-         
+
          WHILE @@FETCH_STATUS = 0
          BEGIN
-         
-         	
+
          	exec INS_MVT_BUDG_PERIODE_PRO
          	@ID_MODULE,
          	@ID_DISPOSITIF ,
          	@ID_BRANCHE,
          	@ID_ENVELOPPE,
-         	NULL, --@ID_COMPTE,
+         	NULL, 
          	@ID_TYPE_FINANCEMENT,
          	'IRP',
          	@MNT,
-         	null, --@ID_SESSION
+         	null, 
          	null
-         
+
          	FETCH NEXT FROM eng_pro_cursor
          	INTO @ID_MODULE, @ID_DISPOSITIF, @ID_BRANCHE, @MNT, @ID_ENVELOPPE, @ID_TYPE_FINANCEMENT
          END
          CLOSE eng_pro_cursor
          DEALLOCATE eng_pro_cursor
-         
-         
-         -------------------------------------------------------------------------------------------------
-         ---------------    Reglement de reprise ADH en CPRO
-         -------------------------------------------------------------------------------------------------
+
          DECLARE regl_pro_cursor_adh CURSOR FOR
          SELECT	MODULE_PRO.ID_MODULE_PRO,
          		TYPE_FORMATION.ID_DISPOSITIF, 
@@ -2747,41 +2160,32 @@ GO
          	DAT_VALID_REGLEMENT,
          	SESSION_PRO.ID_SESSION_PRO
          order by dat_valid_reglement
-         --	PLAN_FINANCEMENT_US.ID_ENVELOPPE,
-         --	PLAN_FINANCEMENT_US.ID_TYPE_FINANCEMENT
-         
+
          OPEN regl_pro_cursor_adh
          FETCH NEXT FROM regl_pro_cursor_adh
          INTO @ID_MODULE, @ID_DISPOSITIF, @ID_BRANCHE, @MNT, @ID_ENVELOPPE, @ID_TYPE_FINANCEMENT, @DAT_VALID_REGLEMENT, @ID_SESSION
-         
+
          WHILE @@FETCH_STATUS = 0
          BEGIN
-         
-         	
+
          	exec INS_MVT_BUDG_PERIODE_PRO
          	@ID_MODULE,
          	@ID_DISPOSITIF ,
          	@ID_BRANCHE,
          	@ID_ENVELOPPE,
-         	NULL, --@ID_COMPTE,
+         	NULL, 
          	@ID_TYPE_FINANCEMENT,
          	'RRP',
          	@MNT,
-         	@ID_SESSION,    --1, --@BLN_USE_SESSION
-         	null --@DAT_VALID_REGLEMENT
-         
+         	@ID_SESSION,    
+         	null 
+
          	FETCH NEXT FROM regl_pro_cursor_adh
          	INTO @ID_MODULE, @ID_DISPOSITIF, @ID_BRANCHE, @MNT, @ID_ENVELOPPE, @ID_TYPE_FINANCEMENT, @DAT_VALID_REGLEMENT, @ID_SESSION
          END
          CLOSE regl_pro_cursor_adh
          DEALLOCATE regl_pro_cursor_adh
-         
-         
-         
-         -------------------------------------------------------------------------------------------------
-         ---------------   Reglement de reprise OF en CPRO
-         -------------------------------------------------------------------------------------------------
-         
+
          DECLARE regl_pro_cursor_OF CURSOR FOR
          SELECT	MODULE_PRO.ID_MODULE_PRO,
          		TYPE_FORMATION.ID_DISPOSITIF, 
@@ -2808,13 +2212,11 @@ GO
          	DAT_VALID_REGLEMENT,
          	SESSION_PRO.ID_SESSION_PRO
          order by dat_valid_reglement
-         --	PLAN_FINANCEMENT_US.ID_ENVELOPPE,
-         --	PLAN_FINANCEMENT_US.ID_TYPE_FINANCEMENT
-         
+
          OPEN regl_pro_cursor_OF
          FETCH NEXT FROM regl_pro_cursor_OF
          INTO @ID_MODULE, @ID_DISPOSITIF, @ID_BRANCHE, @MNT, @ID_ENVELOPPE, @ID_TYPE_FINANCEMENT, @DAT_VALID_REGLEMENT, @ID_SESSION
-         
+
          WHILE @@FETCH_STATUS = 0
          BEGIN
          	exec INS_MVT_BUDG_PERIODE_PRO
@@ -2822,77 +2224,56 @@ GO
          	@ID_DISPOSITIF ,
          	@ID_BRANCHE,
          	@ID_ENVELOPPE,
-         	NULL, --@ID_COMPTE,
+         	NULL, 
          	@ID_TYPE_FINANCEMENT,
          	'RRP',
          	@MNT,
-         	@ID_SESSION, --1, --@BLN_USE_SESSION
-         	null --@DAT_VALID_REGLEMENT
-         
+         	@ID_SESSION, 
+         	null 
+
          	FETCH NEXT FROM regl_pro_cursor_OF
          	INTO @ID_MODULE, @ID_DISPOSITIF, @ID_BRANCHE, @MNT, @ID_ENVELOPPE, @ID_TYPE_FINANCEMENT, @DAT_VALID_REGLEMENT, @ID_SESSION
          END
          CLOSE regl_pro_cursor_OF
          DEALLOCATE regl_pro_cursor_OF
-         
+
          END
-         
+
  CREATE PROCEDURE [dbo].[UPD_ENGAGER_CONTRAT_PRO]
           @ID_CONTRAT_PRO    AS INT,
           @ID_UTILISATEUR    AS INT,
           @ID_ADHERENT    AS INT
          AS
-         -- =============================================
-         -- Author:  Woollams
-         -- Create date: 25 juil. 2007
-         -- Description: proc‚dure engageant les contrats pro
-         ------------------------------------------------
-         -- Author:  WOOLLAMS
-         -- Modif. date: 19 mars 2008
-         -- Description: Mantis 0007721:Periode du module a prendre en compte
-         --    A l'engagement, la p‚riode … rattacher au module doit ˆtre celle du module. 
-         --    C'est … dire que s'il y a plusieurs modules rattach‚s au mˆme contrat et que ces modules 
-         --    sont sur des periodes diff‚rentes, il faut cr‚er autant d'engagement qu'il y a de periodes diff‚rentes.
-         -- =============================================
-         -- DSZ 07/08/12 13523 suppresion parametre @id_agence qui sert … rien
-         -- update avec @ID_UTILISATEUR
-         -- =============================================
+
          BEGIN
-          --L'intervalle des echanciers
+
           DECLARE @ID_AGENCE_CONTRAT INT
-         
-          --L'intervalle des echanciers
+
           DECLARE @NB_MOIS_ECHEANCIER INT
           SET  @NB_MOIS_ECHEANCIER = NULL
           SELECT  @NB_MOIS_ECHEANCIER = NB_MOIS_ECHEANCIER FROM PARAMETRES
-         
-         
+
           DECLARE @ID_ETAT_CONTRAT_PRO INT
           SET  @ID_ETAT_CONTRAT_PRO = NULL
           SELECT  @ID_ETAT_CONTRAT_PRO = ID_ETAT_CONTRAT_PRO FROM ETAT_CONTRAT_PRO WHERE ETAT_CONTRAT_PRO.COD_ETAT_CONTRAT_PRO = 'ENGAGE'
-         
+
           DECLARE @DAT_DEB_CONTRAT DATETIME
           DECLARE @DAT_FIN_CONTRAT DATETIME
-         
+
           SELECT  @DAT_DEB_CONTRAT = DAT_DEB_CONTRAT, 
             @DAT_FIN_CONTRAT = DAT_FIN_CONTRAT, 
             @ID_AGENCE_CONTRAT = CONTRAT_PRO.ID_AGENCE
           FROM CONTRAT_PRO 
           WHERE ID_CONTRAT_PRO = @ID_CONTRAT_PRO
-         
-          --Engagement initial
+
           DECLARE @DAT_BAE_INITIALE DATETIME
           SET @DAT_BAE_INITIALE = NULL
           SELECT @DAT_BAE_INITIALE = DAT_BAE_INITIALE FROM CONTRAT_PRO WHERE ID_CONTRAT_PRO = @ID_CONTRAT_PRO
-         
-         
-          --La branche de l'adherent
+
           DECLARE @ID_BRANCHE INT
           SET @ID_BRANCHE = NULL
           SELECT  @ID_BRANCHE = ID_BRANCHE FROM ADHERENT WHERE ID_ADHERENT = @ID_ADHERENT
-         
-         
-          --L'operation financiere correspondante
+
           SELECT OPERATION_FINANCIERE.ID_OPERATION_FINANCIERE,
             OPERATION_FINANCIERE.ID_DISPOSITIF,
             OPERATION_FINANCIERE.ID_PERIODE
@@ -2903,8 +2284,7 @@ GO
             AND ID_AGENCE = @ID_AGENCE_CONTRAT
             AND ((COD_DISPOSITIF = 'CONTPRO') OR (COD_DISPOSITIF = 'FONCTUT'))
             AND BLN_DEFAUT = 1 
-         
-          --Recuperation de la liste des montant a engager par dispositif
+
           SELECT  CONTRAT_PRO.ID_CONTRAT_PRO,
             DISPOSITIF.ID_DISPOSITIF,
             SUM(MODULE_PRO.MNT_MODULE_HT) as MNT_ENGAGE_HT,
@@ -2918,7 +2298,7 @@ GO
               2
             END AS ID_TYPE_ENGAGEMENT_PRO,
             (SELECT ID_OPERATION_FINANCIERE FROM #OPE_FIN WHERE #OPE_FIN.ID_DISPOSITIF = DISPOSITIF.ID_DISPOSITIF AND #OPE_FIN.ID_PERIODE = MODULE_PRO.ID_PERIODE) AS ID_OPERATION_FINANCIERE
-          
+
           INTO #TMP_LISTE
           FROM    CONTRAT_PRO 
             INNER JOIN MODULE_PRO ON CONTRAT_PRO.ID_CONTRAT_PRO = MODULE_PRO.ID_CONTRAT_PRO 
@@ -2928,8 +2308,7 @@ GO
             AND MODULE_PRO.BLN_ACTIF = 1
             AND MODULE_PRO.ID_ENGAGEMENT_PRO  IS NULL
           GROUP BY CONTRAT_PRO.ID_CONTRAT_PRO,DISPOSITIF.ID_DISPOSITIF,MODULE_PRO.ID_PERIODE
-         
-          --Insertion des engagements
+
           INSERT  dbo.ENGAGEMENT_PRO
           (
            COD_ENGAEMENT_PRO,
@@ -2956,7 +2335,7 @@ GO
              NULL,
              NULL
           FROM   #TMP_LISTE
-          --Raccordement des engagements aux module_pro
+
           UPDATE MODULE_PRO
           SET  MODULE_PRO.ID_ENGAGEMENT_PRO = ENGAGEMENT_PRO.ID_ENGAGEMENT_PRO
           FROM MODULE_PRO
@@ -2967,23 +2346,19 @@ GO
           AND  MODULE_PRO.BLN_ACTIF = 1
           AND  MODULE_PRO.ID_CONTRAT_PRO = @ID_CONTRAT_PRO
           AND  ENGAGEMENT_PRO.COD_ENGAEMENT_PRO = 'COD_TEMP'
-         
-         
-          --Mise a jour de cod_engagement_pro
+
           UPDATE ENGAGEMENT_PRO SET ENGAGEMENT_PRO.COD_ENGAEMENT_PRO = ENGAGEMENT_PRO.ID_ENGAGEMENT_PRO WHERE COD_ENGAEMENT_PRO = 'COD_TEMP'
-         
+
           UPDATE CONTRAT_PRO  
           SET CONTRAT_PRO.ID_ETAT_CONTRAT_PRO  = @ID_ETAT_CONTRAT_PRO,
            CONTRAT_PRO.BLN_CONFORME_ACCORD = 1,
            CONTRAT_PRO.BLN_PARTICIPATION_FINANCIERE = 1,
            CONTRAT_PRO.ID_UTILISATEUR = @ID_UTILISATEUR  
           WHERE CONTRAT_PRO.ID_CONTRAT_PRO = @ID_CONTRAT_PRO
-         
+
           IF @DAT_BAE_INITIALE IS NULL 
            UPDATE CONTRAT_PRO SET CONTRAT_PRO.DAT_BAE_INITIALE = GETDATE()  WHERE CONTRAT_PRO.ID_CONTRAT_PRO = @ID_CONTRAT_PRO
-         
-         
-          --Generation d'un echancier par module (sauf pour ceux dont le type de formation est Majoration CDD CDI)
+
           SELECT  CONTRAT_PRO.ID_CONTRAT_PRO,
             MODULE_PRO.ID_MODULE_PRO,
             MODULE_PRO.DAT_DEBUT,
@@ -3000,8 +2375,7 @@ GO
             AND MODULE_PRO.BLN_ACTIF = 1
             AND ENGAGEMENT_PRO.ID_ENGAGEMENT_PRO IS NOT NULL
             AND TYPE_FORMATION.ID_TYPE_FORMATION IN (SELECT ID_TYPE_FORMATION FROM TYPE_FORMATION WHERE COD_TYPE_FORMATION NOT IN ('MAJOCDI','MAJOCDD'))
-         
-         
+
           INSERT INTO ECHEANCE_MODULE_PRO
              (
               DAT_CREATION, 
@@ -3039,32 +2413,12 @@ GO
              NULL     AS DAT_PROP_RUPTURE,
              ID_MODULE_PRO   AS ID_MODULE_PRO
           FROM  #TMP_MODULE_PRO
-         
+
           EXEC dbo.DEL_EXPORT_D3R
            @ID_CONTRAT_PRO,
            'PRO'
          END
 
- -- =============================================  
-         -- AUTHOR  : SBR  
-         -- DATE   : 12/02/09  
-         -- DESCRIPTION : INITIALISER L'ACTIVIT DE L'ADHRENT POUR L'ANNE PASSE EN PARAMÔTRE · PARTIR DES INFORMATIONS DE   
-         --      LA DERNIÔRE ANNE CONNUE (R19)  
-         -- 20/11/09 SBR : BUG SUR ACTIVIT PLAN, MAUVAIS CONTRâLE D'EXISTENCE ACTIVIT PLAN -10 OU 10+ POUVANT GNRER DES  
-         --      ENREGISTREMENTS AVEC DOUBLE ACTIVIT PLAN SUR UNE PRIODE (DONNES SOUS-JACENTES CORRIGES)  
-         -- =============================================  
-         -- 28/11/2011 DSZ : VOLUTION 10-50  
-         -- =============================================  
-         -- 23/12/2011 SBR : VOLUTION 10-50: L'ACTIVIT EST MIGRE AU NIVEAU DE L'ADHRENT DONC PLUS BESOIN D'UN TRAITEMENT SPCIFIQUE POUR 2012
-         -- =============================================  
-         -- 17/01/2013 SBR : RAJUSTEMENT DES ACTIVITS PLAN -10 INCOHRENTES AVEC LE CHAMP D'APPLICATION DU TYPE ASSUJETTISSEMENT
-         -- =============================================
-         -- 07/02/2013 LDE
-         -- 14822: [AGPP] : 8 : AGPP FONCTIONNEL EN DESCENTE EN COMPTA, ETEBAC ET VIREMENTS INTERNES (-> EN PROD LE 28/2)
-         -- REMPLACEMENT DE != 3 POUR DTECTER LE PLAN
-         -- =============================================
-         -- 06/01/2014 SBR : RAJUSTEMENT DES ACTIVITS PLAN INCOHRENTES AVEC LE CHAMP D'APPLICATION DU TYPE ASSUJETTISSEMENT TENDU · TOUTES LES ACTIVITS PLAN (PAS SEULEMENT PLAN -10)
-         -- =============================================
          CREATE PROCEDURE dbo.MAJ_ACTIVITE_ANNEE
          	@NUM_ANNEE INT  
          AS  
@@ -3072,19 +2426,15 @@ GO
          	DECLARE
          		@ID_PERIODE INT,
          		@ID_PERIODE_PASSEE INT
-         
-         	-- RCUPRATION ANNE PASSE EN PARAMÔTRE  
+
          	SELECT
          		@ID_PERIODE = ID_PERIODE  
          	FROM
          		PERIODE  
          	WHERE
-         		ID_TYPE_PERIODE = 1 -- PRIODE CIVILE (NON TVA)
+         		ID_TYPE_PERIODE = 1 
          		AND NUM_ANNEE = @NUM_ANNEE
-         
-         	-- TRAITEMENT EN 2 TEMPS: POUR LE PLAN ET POUR LA PROF  
-         	  
-         	-- PLAN: ON RCUPÔRE L'ACTIVIT DE LA DERNIÔRE PERIODE CONNUE
+
          	SELECT
          		T2.ID_ADHERENT,
          		T2.ID_ACTIVITE,
@@ -3099,7 +2449,7 @@ GO
          		FROM
          			R19
          		WHERE
-         			ID_ACTIVITE IN (SELECT ID_ACTIVITE FROM GET_IDS_ACTIVITE_BY_COD_TYPE_ACTIVITE('PLAN'))		-- LDE 07/02/2013 #14822
+         			ID_ACTIVITE IN (SELECT ID_ACTIVITE FROM GET_IDS_ACTIVITE_BY_COD_TYPE_ACTIVITE('PLAN'))		
          		GROUP BY
          			ID_ADHERENT  
          		) T1
@@ -3107,11 +2457,9 @@ GO
          			ON	T1.ID_ADHERENT = T2.ID_ADHERENT
          			AND	T1.ID_PERIODE = T2.ID_PERIODE  
          	WHERE
-         		T2.ID_ACTIVITE IN (SELECT ID_ACTIVITE FROM GET_IDS_ACTIVITE_BY_COD_TYPE_ACTIVITE('PLAN'))				-- LDE 07/02/2013 #14822
+         		T2.ID_ACTIVITE IN (SELECT ID_ACTIVITE FROM GET_IDS_ACTIVITE_BY_COD_TYPE_ACTIVITE('PLAN'))				
          	ORDER BY 1
-         	
-         	--<---FIN  AJOUT DSZ  
-         	-- AJOUT DE LA DERNIÔRE ACTIVIT CONNUE POUR LA PRIODE CONSIDRE SI ELLE N'EXISTE PAS  
+
          	INSERT INTO R19  
          	(
          		ID_ADHERENT,
@@ -3133,17 +2481,16 @@ GO
          				R19  
          			WHERE
          				ID_ADHERENT = T1.ID_ADHERENT  
-         				AND ID_ACTIVITE IN (SELECT ID_ACTIVITE FROM GET_IDS_ACTIVITE_BY_COD_TYPE_ACTIVITE('PLAN'))	-- LDE 07/02/2013 #14822 
+         				AND ID_ACTIVITE IN (SELECT ID_ACTIVITE FROM GET_IDS_ACTIVITE_BY_COD_TYPE_ACTIVITE('PLAN'))	
          				AND ID_PERIODE = @ID_PERIODE  
          		)
-         	
+
          	DECLARE
          		@ID_ACTIVITE_PROF INT
-         	
+
          	SET
          		@ID_ACTIVITE_PROF = (SELECT ID_ACTIVITE FROM GET_IDS_ACTIVITE_BY_COD_TYPE_ACTIVITE('PROF'))
-         	-- PROF  
-         
+
          	INSERT INTO R19  
          	(
          		ID_ADHERENT,
@@ -3160,8 +2507,7 @@ GO
          		T1.BLN_ACTIF = 1  
          		AND NOT EXISTS (SELECT 1 FROM R19 WHERE ID_ADHERENT = T1.ID_ADHERENT AND ID_ACTIVITE = @ID_ACTIVITE_PROF AND ID_PERIODE = @ID_PERIODE)  
          		AND EXISTS (SELECT 1 FROM R19 WHERE ID_ADHERENT = T1.ID_ADHERENT AND ID_ACTIVITE = @ID_ACTIVITE_PROF)
-         
-         	-- RAJUSTEMENT DES ACTIVITS PLAN INCOHRENTES
+
          	UPDATE
          		T1
          	SET
@@ -3172,12 +2518,12 @@ GO
          			ON T1.ID_ADHERENT = T2.ID_ADHERENT
          			AND T1.ID_PERIODE = T2.ID_PERIODE
          			AND T1.ID_PERIODE = @ID_PERIODE
-         			AND T1.ID_ACTIVITE IN (SELECT ID_ACTIVITE FROM GET_IDS_ACTIVITE_BY_COD_TYPE_ACTIVITE('PLAN'))					-- LDE 07/02/2013 #14822
+         			AND T1.ID_ACTIVITE IN (SELECT ID_ACTIVITE FROM GET_IDS_ACTIVITE_BY_COD_TYPE_ACTIVITE('PLAN'))					
          		INNER JOIN TYPE_ASSUJETISSEMENT T3
          			ON T3.ID_TYPE_ASSUJETISSEMENT = T2.ID_TYPE_ASSUJETISSEMENT
          	WHERE
          		T3.ID_CHAMP_APPLICATION <> T1.ID_ACTIVITE
-         	--AND		T1.ID_ACTIVITE = 2 -- PLAN -10 -- SBR: INACTIVATION LE 06/01/2014
+
          END
 
  CREATE PROCEDURE [dbo].[EDT_LETTRE_CONTRAT_PRO_REMB_SAL_OF]
@@ -3188,14 +2534,13 @@ GO
          	@ID_CONTACT			INT,
          	@_ID_MODULE_PRO INT,
          	@_COD_CONTRAT_PRO	VARCHAR(10)
-         
+
          AS
          BEGIN
-         
+
          	DECLARE @RELANCE INT
          	SET @RELANCE = 0
-         	
-         	/**** R‚cup‚ration des infos sur le contrat pro ****/
+
          	SELECT	CONTRAT_PRO.ID_CONTRAT_PRO,
          			CONTRAT_PRO.COD_CONTRAT_PRO,
          			CONVERT(VARCHAR(8),CONTRAT_PRO.DAT_DEB_CONTRAT, 3) AS DAT_DEBUT,
@@ -3223,28 +2568,20 @@ GO
          			LEFT JOIN ETABLISSEMENT_OF ON ETABLISSEMENT_OF.ID_ETABLISSEMENT_OF = @ID_ETABLISSEMENT
          			LEFT JOIN ORGANISME_FORMATION ON ETABLISSEMENT_OF.ID_OF = ORGANISME_FORMATION.ID_OF
          	WHERE   CONTRAT_PRO.COD_CONTRAT_PRO = @_COD_CONTRAT_PRO;
-         
-         
-         
-         		/**** R‚cup‚ration des infos sur le le module pro pour les ETABLISSEMENT OF ****/
+
          		SELECT ORGANISME_FORMATION.LIB_RAISON_SOCIALE, ROUND(MODULE_PRO.TAUX_HORAIRE_RETENU_OF,2) as TAUX_HORAIRE_MODULE , TYPE_FORMATION.LIBL_TYPE_FORMATION
          		INTO #TEMP_MODULE_ORGANISME_OF FROM ORGANISME_FORMATION
          		INNER JOIN ETABLISSEMENT_OF  ON ETABLISSEMENT_OF.ID_OF=ORGANISME_FORMATION.ID_OF  and ETABLISSEMENT_OF.ID_ETABLISSEMENT_OF = @ID_BENEFICIAIRE
          		INNER join MODULE_PRO on MODULE_PRO.ID_ETABLISSEMENT_OF=ETABLISSEMENT_OF.ID_ETABLISSEMENT_OF
          		INNER join TYPE_FORMATION on MODULE_PRO.ID_TYPE_FORMATION=TYPE_FORMATION.ID_TYPE_FORMATION
          		where MODULE_PRO.ID_MODULE_PRO=@_ID_MODULE_PRO;
-         
-         
-         	
-         	
-         /*********** R‚cuperation du TAU_TVA*********************************************************************/
+
          SELECT TAU_TVA
          INTO #TVA from R26
          inner join #TMP_CONTRAT_PRO on #TMP_CONTRAT_PRO.ID_TYPE_TVA = R26.ID_TYPE_TVA
          inner join PERIODE on PERIODE.ID_PERIODE=R26.ID_PERIODE and PERIODE.ID_TYPE_PERIODE=2 and (DATEDIFF(DAY,PERIODE.DAT_DEB_PERIODE,GETDATE()) >0)
          order by PERIODE.DAT_DEB_PERIODE desc
-         
-         /*****  nieme relance *****************************************************************************/
+
          	IF( (SELECT COUNT(*) FROM ECHEANCE_MODULE_PRO WHERE ECHEANCE_MODULE_PRO.ID_MODULE_PRO=@_ID_MODULE_PRO AND (DATEDIFF(DAY,ECHEANCE_MODULE_PRO.DAT_ENVOI_RELANCE1_PREV,GETDATE()) >0) AND (ECHEANCE_MODULE_PRO.DAT_ENVOI_RELANCE1_EFF IS NULL)) >0)
          			BEGIN
          				SET @RELANCE = 1
@@ -3254,7 +2591,7 @@ GO
          					BEGIN
          						SET @RELANCE = 2
          					END
-         			
+
          		ELSE
          			BEGIN
          				IF ((SELECT COUNT(*) FROM ECHEANCE_MODULE_PRO WHERE ECHEANCE_MODULE_PRO.ID_MODULE_PRO=@_ID_MODULE_PRO AND (DATEDIFF(DAY,ECHEANCE_MODULE_PRO.DAT_ENVOI_RELANCE3_PREV,GETDATE()) >0) AND (ECHEANCE_MODULE_PRO.DAT_ENVOI_RELANCE3_EFF IS NULL)) >0)
@@ -3262,13 +2599,11 @@ GO
          						SET @RELANCE = 3
          					END
          			END;
-         
-         /*****  Creation du flux XML *****************************************************************************/
+
          	WITH XMLNAMESPACES (
          		DEFAULT 'EDT_LETTRE_PRO_REMBOURSEMENT_SALAIRES_OF'
          	)
-         	/**********************************************************************************************************/
-         			
+
          	SELECT
          			CASE WHEN (@RELANCE > 0) THEN 
          			(
@@ -3288,21 +2623,17 @@ GO
          				FOR XML RAW('TOP') ,ELEMENTS,TYPE
          			)end,
          			(
-         				/**********************************************************************************************/
-         				/*****************	ENTETE DE LA LETTRE *******************************************************/
-         				/**********************************************************************************************/
+
          				SELECT	              	
-         					-- R‚cup‚ration des informations sur l'agence
+
          					dbo.GetXmlAgenceContact(ENTETE.ID_AGENCE) as EMETTEUR,
-         					
-         					-- R‚cup‚ration des informations sur le contact
+
          					dbo.GetXmlBenefiaireContact(@ID_BENEFICIAIRE, @TYPE_BENEFICIAIRE, @ID_ADRESSE, @ID_CONTACT) as BENEFICIAIRE,
-         
-         					/******************* Recuperation des informations DE l'entete ****************************/
+
          					(
          						SELECT	REFERENCE.LIB_VILLE,
          								dbo.GetFullDate(getDate()) as DATE
-         
+
          						FROM #TMP_CONTRAT_PRO AS REFERENCE     
          						FOR XML AUTO, ELEMENTS, TYPE
          					)
@@ -3310,9 +2641,7 @@ GO
          				FOR XML AUTO, ELEMENTS, TYPE
          			),
          			(
-         				/**********************************************************************************************/
-         				/*****************	CORPS DE LA LETTRE ********************************************************/
-         				/**********************************************************************************************/
+
          				SELECT	
          						DEMANDE.COD_ADHERENT,
          						DEMANDE.LIB_RAISON_SOCIALE AS LIB_RAISON_SOCIALE_ADHERENT,
@@ -3328,7 +2657,7 @@ GO
          							FOR XML PATH(''), ELEMENTS, TYPE
          						),	
          						(
-         				
+
          						SELECT	ORGANISME.LIBL_TYPE_FORMATION
          						FROM #TEMP_MODULE_ORGANISME_OF as ORGANISME
          						FOR XML PATH(''), ELEMENTS, TYPE
@@ -3336,11 +2665,10 @@ GO
          				FROM  #TMP_CONTRAT_PRO AS DEMANDE
          				FOR XML AUTO, ELEMENTS, TYPE
          			),
-         			
-         			
+
          			(
          			select
-         												
+
          			(
          				SELECT	top 1
          						dbo.GetContactSalutation(@ID_CONTACT, 1)
@@ -3352,7 +2680,7 @@ GO
          				SELECT 	top 1 CAST((TAU_TVA * 100) AS decimal(10,2)) as TAU_TVA from #TVA
          					FOR XML PATH(''), ELEMENTS, TYPE
          			),
-         
+
          			(
          				SELECT	top 1
          						dbo.GetContactSalutation(@ID_CONTACT, 0)
@@ -3362,52 +2690,21 @@ GO
          				FROM #TEMP_MODULE_ORGANISME_OF as CORPS
          				FOR XML AUTO, ELEMENTS, TYPE
          			),
-         
+
          			(
-         				/**********************************************************************************************/
-         				/*****************	SIGNATURE DE LA LETTRE ****************************************************/
-         				/**********************************************************************************************/
+
          				SELECT	SIGNATURE.LIB_PNM_CONSEILLER,
          						SIGNATURE.LIB_NOM_CONSEILLER
          				FROM
          						#TMP_CONTRAT_PRO as SIGNATURE
          				FOR XML AUTO, ELEMENTS, TYPE
          			)
-         			/**************************************************************************************************/
-         
-         			
+
          	FROM	#TMP_CONTRAT_PRO as LETTRE
          	FOR XML AUTO, ELEMENTS
-         
+
          END
 
-         
-         --if EXISTS (select * from sysobjects where xtype = 'P' and name = 'LEC_GRP_STAGIAIRE_MODULE_PEC_CREATION')
-         --BEGIN
-         --	DROP PROCEDURE  [dbo].[LEC_GRP_STAGIAIRE_MODULE_PEC_CREATION]
-         --END;
-         --go
-         -- =============================================
-         -- Author:		SAFIYULLA
-         -- Modif. date: 12/01/2009
-         -- Description:	Used to select the stagiaire on 
-         -- creation mode cycle long
-         ------------------------------------------------
-         -- Author:		AMA
-         -- Modif. date: 06/04/2009
-         -- Description:	Optimisation de la requˆte
-         -- =============================================
-         -- 16/12/2009 SAFI
-         -- Mantis 12260 : La branche et le groupe doit ˆtre historis‚e la mˆme 
-         				--pour toute la vie du dossier. 
-         -- =============================================
-         -- 03/02/2010 DSZ
-         -- Mantis 12044 : calcul NB_HEURE_DEJA_REALISE uniquement sur sessions actives
-         --==============================================
-         -- 21/12/2011 DSZ 13040
-         -- recup de l'id activite historise dans stagiaire pec
-         --==============================================
-         
          CREATE PROCEDURE [dbo].[LEC_GRP_STAGIAIRE_MODULE_PEC_CREATION]
          	@ID_MODULE		int,
          	@ID_SESSION		int = null,
@@ -3417,16 +2714,16 @@ GO
          	DECLARE @ID_PREV_SESSION	int
          	DECLARE @COUNT				int
          	DECLARE @COD_MOD			varchar(12)
-         
+
          	SET @COUNT = 0
-         
+
          	SELECT @COUNT	= count(*)			from SESSION_PEC	where ID_MODULE_PEC = @ID_MODULE
          	SELECT @COD_MOD = COD_MODULE_PEC	from MODULE_PEC		where ID_MODULE_PEC = @ID_MODULE
-         
+
          	SELECT top 1 @ID_PREV_SESSION = ID_SESSION_PEC from SESSION_PEC
          		where ID_MODULE_PEC = @ID_MODULE AND BLN_ACTIF = 1
          		order by ID_SESSION_PEC desc
-         
+
           	Select 
          		@ID_MODULE									AS ID_MODULE,
          		STAGIAIRE_PEC.ID_STAGIAIRE_PEC				AS ID,
@@ -3490,23 +2787,23 @@ GO
          			),0) 
          		AS NB_HEURE_PREVU,	
          		STAGIAIRE_PEC.NB_HEURE_REM,	
-         
+
          		ISNULL((Select Sum(US.NB_HEURE_REGLE)AS DUREE_DEJA_REALISE		
          			FROM UNITE_STAGIAIRE US
          			LEFT JOIN	STAGIAIRE_PEC SP ON SP.ID_STAGIAIRE_PEC	= US.ID_STAGIAIRE_PEC  
-         			--ajout DSZ 03/02/10 Mantis 12044
+
          			left outer join session_pec on (SP.id_session_pec = session_pec.ID_SESSION_PEC)
          			WHERE				
          						SP.ID_INDIVIDU = INDIVIDU.ID_INDIVIDU	
          						AND SP.ID_MODULE_PEC	=  @ID_MODULE 
          						AND (@ID_SESSION IS NULL OR (@ID_SESSION IS NOT NULL AND SP.ID_SESSION_PEC <> @ID_SESSION))
-         						AND session_pec.bln_actif = 1 --ajout DSZ 03/02/10 Mantis 12044
+         						AND session_pec.bln_actif = 1 
          			),0) 
          		AS NB_HEURE_DEJA_REALISE,
-         		STAGIAIRE_PEC.ID_ACTIVITE --DSZ 21/12/11
-         
+         		STAGIAIRE_PEC.ID_ACTIVITE 
+
          	INTO #TMP_STAGIAIRE
-         
+
          	FROM		 
          		STAGIAIRE_PEC
          		INNER JOIN INDIVIDU		ON INDIVIDU.ID_INDIVIDU = STAGIAIRE_PEC.ID_INDIVIDU
@@ -3518,9 +2815,9 @@ GO
          		LEFT JOIN BRANCHE ON BRANCHE.ID_BRANCHE = STAGIAIRE_PEC.ID_BRANCHE		
          		LEFT OUTER JOIN STAGIAIRE_PEC STP ON STAGIAIRE_PEC.ID_STAGIAIRE_TUTEUR = STP.ID_STAGIAIRE_PEC
          		LEFT OUTER JOIN INDIVIDU ISTP ON STP.ID_INDIVIDU = ISTP.ID_INDIVIDU
-         		
+
          	WHERE
-         		
+
          		(@ID_SESSION	is not null AND STAGIAIRE_PEC.ID_SESSION_PEC = @ID_SESSION	AND 
          										STAGIAIRE_PEC.ID_SESSION_PEC is not null) 
          		OR
@@ -3528,9 +2825,9 @@ GO
          										@MODE_SESSION	is null						AND
          										STAGIAIRE_PEC.ID_MODULE_PEC = @ID_MODULE	AND 
          										STAGIAIRE_PEC.ID_SESSION_PEC is null) 		
-         		
+
          	ORDER BY INDIVIDU.NOM_INDIVIDU
-         	
+
          	UPDATE #TMP_STAGIAIRE 
          	SET
          		DUREE_PREVUE = 
@@ -3541,17 +2838,14 @@ GO
          			DUREE_PREVUE
          	END
          	)
-         
-         ---- Select Final
+
          	SELECT	*, (NB_HEURE_PREVU - NB_HEURE_DEJA_REALISE) AS NB_HEURE_RESTE 
          	FROM	#TMP_STAGIAIRE	
          	WHERE	(NB_HEURE_PREVU - NB_HEURE_DEJA_REALISE) > 0
          	ORDER BY NOM
-         ---- End Select 
-         
+
          END   
-         
-         
+
  CREATE PROCEDURE [dbo].[INS_PLAN_FINANCEMENT_US]
           @ID_UNITE_STAGIAIRE int,
           @ID_POSTE_COUT_ENGAGE int,
@@ -3564,36 +2858,7 @@ GO
           @HOURS_US decimal(18,2),
           @BLN_MODIFICATION tinyint
          AS
-         -- ==================================================================================================================
-         -- 2008-03-10 Dorota Szeliga
-         -- ID-BRANCHE -> ADHERENT.ID_BRANCHE pour eviter l'ambiguite
-         -- ==================================================================================================================
-         -- 17/04/2008 Dorota Szeliga
-         -- completement refaite. cree juste les lignes dans plan_financement avec mnt a 0
-         -- ==================================================================================================================
-         -- 20080704 Ajout ASD DSZE
-         -- limiter la s‚lection d'op‚ration financiŠre … celle par d‚faut
-         -- ==================================================================================================================
-         -- 04/06/09 DSZ
-         -- float ->decimal, probleme d'arrondis aux deux decimals, voir Mantis 12059 
-         -- ==================================================================================================================
-         -- 26/06/09 ASD
-         -- am‚lioration correction pr‚c‚dente
-         -- ==================================================================================================================
-         -- 02/12/11 DSZ 13039
-         -- EVOL 10-50
-         -- ==================================================================================================================
-         -- OPA 31/05/2013 : 15031 : SBR - suppression du type FLOAT et REAL dans le SQL : 2- FLOAT
-         -- ==================================================================================================================
-         -- DSZ 24/01/2014 : 15636: SBR - ne pas generer des PFUS … 0 sans aucune source de financement.
-         -- ==================================================================================================================
-         -- LDE 21/11/2014 #661: Suppression ID_PUBLIC_FAF
-         -- ==================================================================================================================
-         -- OPA 22/04/2015 : #821 En tant que DBA, je souhaite que tous les PFUS cr‚‚s ne possŠdent
-         --  plus de cod_pfus
-         -- ==================================================================================================================
-         -- GOK 21/03/2016 : #1358  Suppression du compte historique
-         -- ==================================================================================================================
+
          BEGIN
           DECLARE @ID_OPERATION_FINANCIERE int
           DECLARE @CIBLE_ACTION int
@@ -3608,25 +2873,25 @@ GO
           DECLARE @HOURS_STAGIAIRE_DISPOSITIF decimal(18,2)
           DECLARE @COUNT INT
           DECLARE @ID_ORIGINAL int
-         
+
           IF @BLN_MODIFICATION IS NULL
           BEGIN
            SET @BLN_MODIFICATION = 0
           END 
-         
+
           SELECT @COUNT = COUNT(*)
           FROM PLAN_FINANCEMENT_US
           WHERE
            ID_UNITE_STAGIAIRE = @ID_UNITE_STAGIAIRE AND
            ID_POSTE_COUT_ENGAGE = @ID_POSTE_COUT_ENGAGE
-         
+
              SELECT @HOURS_STAGIAIRE_DISPOSITIF = NB_HEURE_ENGAGE from UNITE_STAGIAIRE 
           WHERE ID_UNITE_STAGIAIRE = @ID_UNITE_STAGIAIRE
           AND BLN_REFUS =0
-         
+
           if (@HOURS_STAGIAIRE_DISPOSITIF is null or @HOURS_STAGIAIRE_DISPOSITIF =0)
            return;
-         
+
           SELECT 
            @ID_ACTION = MODULE_PEC.ID_ACTION_PEC,
            @ID_PERIODE = MODULE_PEC.ID_PERIODE,
@@ -3635,20 +2900,19 @@ GO
           FROM MODULE_PEC
           INNER JOIN ACTION_PEC ON ACTION_PEC.ID_ACTION_PEC = MODULE_PEC.ID_ACTION_PEC
            AND MODULE_PEC.ID_MODULE_PEC = @ID_MODULE
-         
-          -- INDIVIDUAL ACTION
+
           IF @CIBLE_ACTION = 1
           BEGIN
-           
+
            SELECT @ID_BRANCHE =  STAGIAIRE_PEC.ID_BRANCHE
            FROM STAGIAIRE_PEC
            INNER JOIN UNITE_STAGIAIRE ON UNITE_STAGIAIRE.ID_STAGIAIRE_PEC = STAGIAIRE_PEC.ID_STAGIAIRE_PEC
                   AND UNITE_STAGIAIRE.ID_UNITE_STAGIAIRE = @ID_UNITE_STAGIAIRE
-           
+
            SELECT @ID_AGENCE = ACTION_PEC.ID_AGENCE
            FROM ACTION_PEC
            WHERE ACTION_PEC.ID_ACTION_PEC = @ID_ACTION
-         
+
            SELECT 
             @ID_OPERATION_FINANCIERE = OPERATION_FINANCIERE.ID_OPERATION_FINANCIERE
            FROM OPERATION_FINANCIERE
@@ -3658,11 +2922,10 @@ GO
              ID_PERIODE = @ID_PERIODE AND 
              BLN_DEFAUT=1
           END
-          
-          -- SELECT THE CORRECT PLAN_FINANCEMENT_OPERATION
+
           IF @BLN_PLUS10 = 1
           BEGIN
-         
+
             SELECT
              @ID_TYPE_FINANCEMENT = ID_TYPE_FINANCEMENT,
              @ID_ENVELOPPE = ID_ENVELOPPE
@@ -3672,7 +2935,7 @@ GO
              POSTE_COUT_ENGAGE.ID_POSTE_COUT_ENGAGE = @ID_POSTE_COUT_ENGAGE
             WHERE 
              ID_OPERATION_FINANCIERE = @ID_OPERATION_FINANCIERE
-         
+
           END
           ELSE
           BEGIN
@@ -3692,14 +2955,13 @@ GO
            INNER JOIN TYPE_ENVELOPPE ON TYPE_ENVELOPPE.ID_TYPE_ENVELOPPE = ENVELOPPE.ID_TYPE_ENVELOPPE
             AND (TYPE_ENVELOPPE.ID_ACTIVITE IS NULL 
              OR TYPE_ENVELOPPE.ID_ACTIVITE in (2,3))
-             --avant : OR TYPE_ENVELOPPE.ID_ACTIVITE <> 1)
+
                ORDER BY ISNULL(TYPE_ENVELOPPE.ID_ACTIVITE, 10000) DESC
-         
-         
+
           END
-         
+
              SET @MNT_PLAN_FINANCEMENT_US = 0
-          
+
           IF @COUNT > 0
           BEGIN
            BEGIN
@@ -3713,13 +2975,13 @@ GO
            END
            RETURN
           END
-         
+
           IF @ID_TYPE_FINANCEMENT IS NULL 
             AND @ID_ENVELOPPE IS NULL
           BEGIN
            SET @MNT_PLAN_FINANCEMENT_US = 0
           END
-           
+
           IF ((@ID_TYPE_FINANCEMENT IS NOT NULL) OR (@ID_ENVELOPPE IS NOT NULL))
           BEGIN
            INSERT INTO PLAN_FINANCEMENT_US
@@ -3728,16 +2990,12 @@ GO
             ID_ENVELOPPE, ID_POSTE_COUT_ENGAGE, BLN_ATTENTE_FONDS)
            VALUES
             (GETDATE(), @MNT_PLAN_FINANCEMENT_US, 1, @ID_UNITE_STAGIAIRE,@ID_TYPE_FINANCEMENT, @ID_ENVELOPPE, @ID_POSTE_COUT_ENGAGE, 1)
-         
+
           END
          END
 
  CREATE PROCEDURE [dbo].[LEC_GRP_OPERATION]
-         ---------------------------------------------
-         -- Modifi‚ DSZ 06/11/2014 US #621
-         --=======================================
-         -- #661 : HBO - LEC_GRP_OPERATION
-         --=======================================
+
           @ID_OPERATION_FINANCEUR  INT,
           @COD_OPERATION_FINANCEUR VARCHAR(50),
              @OPERATION_FINANCEUR  VARCHAR(50),
@@ -3755,7 +3013,7 @@ GO
           BEGIN
            SET @BLN_ACTIF = 0
           END
-         
+
           SELECT DISTINCT
            O_FIN.ID_OPERATION_FINANCIERE,
            O_FIN.LIBL_OPERATION_FINANCIERE AS NOM_OPERATION,
@@ -3864,70 +3122,16 @@ GO
          @BLN_PAIEMENT_PARTIEL bit,
          @BLN_DEMANDE_CLOTURE_MODULE bit 
          AS
-         
-         -- =============================================
-         -- Author  : XXX
-         -- Create date : XX XXX. 2007
-         -- Description : procedure ins‚rant les demandes de r‚glements
-         -- ---------------------------------------------
-         -- Author  : Say
-         -- Modified date: 02 Aout 2007
-         -- comment  : #  Ajout de l'identifiant du poste de co–t engag‚ dans le poste de cout r‚gl‚ 
-         -- ---------------------------------------------
-         -- Author  : SV
-         -- Modified date: 17 ao–t 2007
-         -- Description : Ajout de la variable d'entr‚e ID_SESSION_PEC
-         -- ---------------------------------------------
-         -- Author  : Say
-         -- Modified date: 27 ao–t 2007
-         -- Description : ajout du filtrage DAT_DESENGAGEMENT isnull dans le cycle long.
-         -- ---------------------------------------------
-         -- Author  : SV
-         -- Modified date: 4 octobre 2007
-         -- Description : Lors d'un cycle court, on ne cr‚‚ plus d'engagement, il sera cr‚‚ lors de la validation des ordres de virement
-         -- ---------------------------------------------
-         -- Author  : KS
-         -- Modified date: 12 octobre 2007
-         -- Description : Poste de cout r‚gl‚ en BLN_A_CONTROLER = 1 ssi type facture = 2
-         -- ---------------------------------------------
-         -- Author  : SV
-         -- Modified date: 19 novembre 2007
-         -- Description : Ajout de la modification de l'identifiant du P.C.E. pour tous les P.C.R. du mˆme module avec le mˆme sous type de co–t
-         --     Cycle long : Rectriction au module en cours pour r‚cup‚rer le P.C.E. courant
-         -- ---------------------------------------------
-         -- Author  : KS
-         -- Modified date: 12 d‚cembre 2007
-         -- Description : MANTIS 0005108 >> Si type facture = avoir (2) alors BLN_OK_FINANCEMENT = 1
-         ------------------------------------------------
-         -- 30/04/08 Dorota PEC_M11
-         -- @ID_ETABLISSEMENT passe comme parametre, pas calcule comme etablissement principal
-         ----------------------------------------------  
-         -- Author:  SAFI
-         -- Create date: 27 AVRIL 2009
-         -- Description: Add one coloumn dans la INSERT (ID_TYPE_TVA)
-         -------------------------------------------------
-         -- OPA 31/05/2013 : 15031 : SBR - suppression du type FLOAT et REAL dans le SQL : 2- FLOAT
-         ----------------------------------------------  
-         -- DSZ 25/09/2013 : 16177 : tau tva sur 5 decimals
-         ----------------------------------------------------------------  
-         -- DSZ 03/03/2014 : #114 : ajout bln_paiement_partiel
-         ----------------------------------------------------------------  
-         -- OPA 03/03/2014 : U#123 S#2 : Ajout BLN_DEMANDE_CLOTURE_MODULE
-         --------------------------------------------------------------------
-         -- DSZ 26/02/2015 : US#679 : suppression du cycle court
-         -------------------------------------------------------- --- 
-         -- GOK 05/06/2015 : US931 : R‚cup‚ration des commentaires
-         -------------------------------------------------------- --- 
+
          BEGIN
-         
+
           DECLARE @POSTE_COUT_ENG INT
-         
+
           IF @BLN_FACTURE_DIRECTE IS NULL
            SET @BLN_FACTURE_DIRECTE = 0
           IF @BLN_ACTIF IS NULL
            SET @BLN_ACTIF = 0
-         
-          
+
           select
            @POSTE_COUT_ENG = ID_POSTE_COUT_ENGAGE
           from
@@ -3936,17 +3140,16 @@ GO
            ID_SOUS_TYPE_COUT = @ID_SOUS_TYPE_COUT
            AND DAT_DESENGAGEMENT is null
            AND ID_MODULE_PEC = @ID_MODULE
-         
-         
+
           DECLARE @BLN_CTRL INT
           SET  @BLN_CTRL = 0
-         
+
           IF (@ID_TYPE_FACTURE = 2)
           BEGIN
            SET @BLN_CTRL = 1
            SET @BLN_OK_FINANCEMENT = 1
           END
-         
+
           INSERT INTO POSTE_COUT_REGLE
              (COD_POSTE_COUT_REGLE, MNT_REGLE_HT, MNT_REGLE_TVA, MNT_REGLE_TTC, NUM_FACTURE,
            BLN_FACTURE_DIRECTE, TAU_TVA, BLN_ACTIF, ID_TRANSACTION, ID_SOUS_TYPE_COUT,
@@ -3961,15 +3164,13 @@ GO
            @MNT_DEMANDE_TTC, GETDATE(), GETDATE(), @ID_UTILISATEUR, @NUM_FACTURE_AVOIR,
            @BLN_OK_FINANCEMENT, @ID_ETABLISSEMENT, @BLN_OK_PIECE, 1, @BLN_CTRL, @POSTE_COUT_ENG, @ID_SESSION_PEC,@ID_FACTURE,@ID_TYPE_TVA,
            @BLN_PAIEMENT_PARTIEL, @BLN_DEMANDE_CLOTURE_MODULE)
-          
+
           SET @ID_POSTE_COUT_REGLE = @@IDENTITY
-          
-          /*** Mise … jour du code du poste co–t engag‚ avec szon identifiant ***/
+
           UPDATE POSTE_COUT_REGLE
            SET COD_POSTE_COUT_REGLE = @ID_POSTE_COUT_REGLE
           WHERE ID_POSTE_COUT_REGLE = @ID_POSTE_COUT_REGLE
-          
-          /*** Mise … jour du PCE pour tous les PCR du mˆme module et du mˆme sous type de co–t ***/
+
           UPDATE
            POSTE_COUT_REGLE
           SET
@@ -3977,7 +3178,7 @@ GO
           WHERE
            ID_MODULE_PEC = @ID_MODULE
            AND ID_SOUS_TYPE_COUT = @ID_SOUS_TYPE_COUT
-          
+
          END
 
  CREATE procedure [dbo].[UPD_DEMANDES_REGLEMENT]
@@ -4012,56 +3213,14 @@ GO
           @BLN_PAIEMENT_PARTIEL  bit,
           @BLN_DEMANDE_CLOTURE_MODULE bit
          AS
-         
-         
-         -- =============================================
-         -- Author:  XX
-         -- Create date: XX XX 2007
-         -- Description: Cr‚ation
-         -- =============================================
-         -- Author:  SV
-         -- Create date: 17 ao–t 2007
-         -- Description: Ajout de la variable d'entr‚e ID_SESSION_PEC
-         -- =============================================
-         -- Author:  KS
-         -- Create date: 22 oct. 2007
-         -- Description: MaJ de BLN_A_CONTROLER POUR MANTIS 5475
-         -- =============================================
-         -- Author:  KS
-         -- Create date: 25 oct. 2007
-         -- Description: MANTIS 0005561 
-         --    MaJ de DR il faut mettre … jour le champs ID poste de cout engag‚ de la DR avec le poste de cout 
-         --    engag‚ cr‚‚ non d‚sengag‚. 
-         ------------------------------------------------
-         -- 30/04/08 Dorota PEC_M11
-         -- @ID_ETABLISSEMENT passe comme parametre, pas calcule comme etablissement principal
-         ------------------------------------------------
-         -- Author:  SAFI
-         -- Create date: 27 AVRIL 2009
-         -- Description: Add one coloumn dans la update (ID_TYPE_TVA)
-         ----------------------------------------------  
-         -- OPA 31/05/2013 : 15031 : SBR - suppression du type FLOAT et REAL dans le SQL : 2- FLOAT
-         ----------------------------------------------  
-         -- HBO - 020813 - M15335: Gestion attente de piŠces DR : bool‚en OK_PIECES et piŠces non conformes
-         ----------------------------------------------  
-         -- DSZ 25/09/2103 : 16177 : taux TVA sur 5 decimals
-         -----------------------------------------------------------   
-         -- DSZ 03/03/2014 : #114 : ajout bln_paiement_partiel
-         -----------------------------------------------------------   
-         -- OPA 03/03/2014 : U#123 S#2 : Ajout BLN_DEMANDE_CLOTURE_MODULE
-         -----------------------------------------------------------   
-         -- DSZ 26/02/2015 : US#679 : suppression du cycle court
-         -----------------------------------------------------------  
-         -- GOK 05/06/2015 : US931 : R‚cup‚ration des commentaires
-         -------------------------------------------------------- --- 
-         
+
           BEGIN
-           
+
            SET QUOTED_IDENTIFIER ON
-         
+
            DECLARE @BLN_A_CONTROLER INT
            SET  @BLN_A_CONTROLER = -1
-         
+
            IF (EXISTS(select 1 from POSTE_COUT_REGLE 
                INNER JOIN [TRANSACTION] ON [TRANSACTION].ID_TRANSACTION = POSTE_COUT_REGLE.ID_TRANSACTION
                 where ID_POSTE_COUT_REGLE = @ID_POSTE_COUT_REGLE AND 
@@ -4071,7 +3230,7 @@ GO
            BEGIN
             SET @BLN_A_CONTROLER = 1
            END
-         
+
            UPDATE 
             POSTE_COUT_REGLE
            SET
@@ -4103,7 +3262,7 @@ GO
             BLN_PAIEMENT_PARTIEL  = @BLN_PAIEMENT_PARTIEL,
             BLN_DEMANDE_CLOTURE_MODULE = @BLN_DEMANDE_CLOTURE_MODULE
            WHERE ID_POSTE_COUT_REGLE = @ID_POSTE_COUT_REGLE
-         
+
           END
 
  CREATE PROCEDURE [dbo].[INS_ETABLISSEMENT_EXTRANET]
@@ -4123,41 +3282,7 @@ GO
           @FROM_ADRESSE VARCHAR(50),
           @ID_ETAB_INSERE INT OUT
          AS
-         -- =======================================================================================================================================
-         -- Author:  DSZ
-         -- Create date: 26/11/2012
-         -- Description: 14283 descendre les etablissements de l'extranet
-         -- =======================================================================================================================================
-         -- HBO - 090114 - #16781: Compl‚ments WCF d‚j…ÿ sp‚cifi‚s mais oubli‚s jusqu'ici
-         -- =======================================================================================================================================
-         -- DSZ - 100114 - #16788: type d'adresse 02 - Adresse op‚rationnel.
-         -- =======================================================================================================================================
-         -- HBO - 130114 - #16807: BBL - le mail de notification des etablissements comportent des caractŠres utf8
-         -- =======================================================================================================================================
-         -- HBO - 140114 - #16826: BBL - utilisation des PS m‚tiers lors de la synchro
-         -- =======================================================================================================================================
-         -- HBO - 150114 - #16831: BBL - ‚tablissement existant
-         -- =======================================================================================================================================
-         -- DSZ - US#178 format des caracteres speciaux UTF
-         -- =======================================================================================================================================
-         -- HBO - #758 l'‚tablissement nouvellement cr‚‚ doit ˆtre synchronis‚ inactif
-         -- =======================================================================================================================================
-         -- HBO - #757 l'‚tablissement n'a pas de code ‚tablissement suite …ÿ synchronisation
-         -- =======================================================================================================================================
-         -- DSZ - 03/02/2015 - US#702 ‚tablissement cr‚e doit ˆtre automatiquement abonn‚ …ÿ toutes les ‚ditions disponibles
-         -- =======================================================================================================================================
-         -- OPA - #739 En tant que service r‚f‚rentiel adh‚rent, lorsqu'un adh‚rent cr‚e un nouvel ‚tablissement depuis l'Extranet, 
-         -- je veux ˆtre averti par email de cette cr‚ation suite …ÿ la synchronisation du bordereau de collecte obligatoire.
-         -- =======================================================================================================================================
-         -- DSZ/LDE - #784 24/02/2015 il faut retourner le id etablissement mˆme s'il existe (n'est pas inser‚) et on le trouve … partir de SIRET 
-         -- =======================================================================================================================================
-         -- LDE - 12/03/2015 - US788: Passage de LIB_ENSEIGNE a VARCHAR(50)
-         -- =======================================================================================================================================
-         -- DSZ - 16/03/2015 - US797: ajout  @BLN_CREATION; correction sur lib_enseigne
-         -- =======================================================================================================================================
-         -- BBL - 04/04/2016 - Modification des Type Tva par defaut
-         -- =======================================================================================================================================
-         
+
          BEGIN
           DECLARE
            @ID_BRANCHE   INT,
@@ -4175,9 +3300,9 @@ GO
            @LIB_CP_CEDEX_OPTI VARCHAR(5),
            @LIB_VIL_CEDEX_OPTI VARCHAR(50),
            @SEND_EMAIL   TINYINT = 0
-         
+
           SET @ID_ETAB_INSERE = 0
-         
+
           SELECT
            @ID_BRANCHE = ID_BRANCHE,
            @COD_ADHERENT = CAST(COD_ADHERENT AS VARCHAR(6))
@@ -4185,7 +3310,7 @@ GO
            ADHERENT
           WHERE
            ID_ADHERENT = @ID_ADHERENT
-         
+
           SELECT
                  @ID_ETAB_INSERE = E.ID_ETABLISSEMENT,
            @NUM_SIRET_OPTI = E.NUM_SIRET,
@@ -4209,19 +3334,19 @@ GO
           WHERE
            E.ID_ETABLISSEMENT = @ID_ETABLISSEMENT
            OR E.NUM_SIRET = @NUM_SIRET
-          
+
           IF (@ID_BRANCHE IS NOT NULL)
           BEGIN
            IF (@NUM_SIRET_OPTI IS NULL)
            BEGIN
             BEGIN TRY
              BEGIN TRAN TRAN_INS_ETABLISEMENT
-         
+
              DECLARE
               @ID_ADRESSE INT,
               @ID_IDCC INT,
               @ID_GROUPE INT
-         
+
              EXEC @ID_ADRESSE = dbo.INS_ADRESSE
               @ID_ADRESSE = NULL,
               @ID_ETABLISSEMENT_OF = NULL,
@@ -4248,10 +3373,10 @@ GO
               @LIB_MENTION_PARTICULIERE = NULL,
               @ID_HEXAPOSTE = NULL,
               @EMAIL_PRO = NULL
-         
+
              SET @ID_IDCC = (SELECT TOP 1 ID_IDCC FROM IDCC WHERE COD_IDCC = @COD_IDCC)
              SET @ID_GROUPE = (SELECT TOP 1 ID_GROUPE FROM ETABLISSEMENT WHERE ID_ADHERENT = @ID_ADHERENT AND BLN_PRINCIPAL = 1)
-         
+
              EXEC @ID_ETAB_INSERE = dbo.INS_ETABLISSEMENT
               @ID_ADRESSE_PRINCIPALE = @ID_ADRESSE,
               @ID_ADHERENT = @ID_ADHERENT,
@@ -4274,24 +3399,22 @@ GO
               @ID_CHARGEE_MISSION = NULL,
               @ID_CHARGEE_RELATION = NULL,
               @ID_GROUPE = @ID_GROUPE,
-              --@OverwriteCodeEtablissement = 0
-              @BLN_CREATION = 1 --#797
-         
+
+              @BLN_CREATION = 1 
+
              UPDATE
               ADRESSE
              SET
               ID_ETABLISSEMENT = @ID_ETAB_INSERE
              WHERE
               ID_ADRESSE = @ID_ADRESSE
-              
-             --ajout des abonnements aux documents pour le nouveau ‚tablissement
-             
+
              insert into NR67bis (ID_ETABLISSEMENT, ID_DOCUMENT)
              select @ID_ETAB_INSERE, id_document from document where BLN_ABONNEMENT_ADHERENT = 1 and BLN_ACTIF =1
-         
+
              SET @SUBJECT = N'Extranet : D‚claration de nouvel ‚tablissement' 
               + @NUM_SIRET + N' pour l''adh‚rent ' + @COD_ADHERENT  COLLATE French_CI_AI
-         
+
              SET @BODY = N'<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"><html><head><meta http-equiv="content-type" content="text/html; charset=utf-8">' 
               + N'<title>Demande de cr‚ation d''''un nouvel ‚tablissement</title></head><body>' 
               + N'<p> Pour l''adh‚rent ' 
@@ -4306,9 +3429,9 @@ GO
               + N' <br> ' + @LIB_CP_CEDEX 
               + ' ' + @LIB_VIL_CEDEX + ' <br> ' 
               + '.</p></body></html>' COLLATE French_CI_AI;
-              
+
              SET @SEND_EMAIL = 1
-              
+
              COMMIT TRAN TRAN_INS_ETABLISEMENT
             END TRY
             BEGIN CATCH
@@ -4317,11 +3440,7 @@ GO
               ERROR_MESSAGE() AS ERRORMESSAGE,
               ERROR_LINE(),
               ERROR_PROCEDURE();
-         
-             -- Test XACT_STATE for 1 or -1.
-             -- XACT_STATE = 0 means there is no transaction and
-             -- a COMMIT or ROLLBACK would generate an error.
-             -- Test if the transaction is uncommittable.
+
              IF XACT_STATE() = -1
              BEGIN
               PRINT
@@ -4329,8 +3448,7 @@ GO
               SET @SEND_EMAIL = 0
               ROLLBACK TRANSACTION CLOTURE_MODULE_PEC;
              END;
-         
-             -- Test if the transaction is active and valid.
+
              IF XACT_STATE() = 1
              BEGIN
               PRINT
@@ -4341,52 +3459,51 @@ GO
             END CATCH
            END
            ELSE
-           -- id etablissement existe, mail …ÿ service collecte
+
            BEGIN
             SET @SUBJECT = 'Extranet : Modification d''‚tablissement SIRET ' 
              + @NUM_SIRET_OPTI + ' pour l''adh‚rent ' 
              + @COD_ADHERENT COLLATE French_CI_AI
-         
+
             DECLARE
              @COD_NAF VARCHAR(8)
-         
+
             SELECT
              @COD_NAF = COD_NAF
             FROM
              NAF
             WHERE
              ID_NAF = @ID_NAF     
-         
-            -- HBO - 090114 _ #16781: Compl‚ments WCF d‚j…ÿ sp‚cifi‚s mais oubli‚s jusqu'ici
+
             SET @BODY = N'<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"><html><head><meta http-equiv="content-type" content="text/html; charset=utf-8">' 
              + N'<title>Modification d''''un ‚tablissement</title></head><body>' 
              + N'<p> Une modification a ‚t‚ signal‚e dans l''Extranet sur l''Etablissement ' + @LIB_ENSEIGNE_OPTI
              + N'<br> pour l''adh‚rent : ' + @COD_ADHERENT
-         
+
             IF(@NUM_SIRET_OPTI<>@NUM_SIRET)
             BEGIN
              SET @BODY = @BODY + N'<br> ANCIEN SIRET : ' + @NUM_SIRET_OPTI + N' / NOUVEAU SIRET : ' + @NUM_SIRET
              SET @SEND_EMAIL = 1
             END
-         
+
             IF(@LIB_ENSEIGNE_OPTI<>@LIB_ENSEIGNE)
             BEGIN
              SET @BODY = @BODY + N'<br> ANCIENNE ENSEIGNE : ' + @LIB_ENSEIGNE_OPTI + N' / NOUVEAU ENSEIGNE : ' + @LIB_ENSEIGNE
              SET @SEND_EMAIL = 1
             END
-         
+
             IF(@COD_NAF_OPTI<>@COD_NAF)
             BEGIN
              SET @BODY = @BODY + N'<br> ANCIEN NAF : ' + @COD_NAF_OPTI + N' / NOUVEAU NAF : ' + @COD_NAF
              SET @SEND_EMAIL = 1
             END
-         
+
             IF(@COD_IDCC_OPTI<>@COD_IDCC)
             BEGIN
              SET @BODY = @BODY + '<br> ANCIEN IDCC : ' + @COD_IDCC_OPTI + ' / NOUVEAU IDCC : ' + @COD_IDCC
              SET @SEND_EMAIL = 1
             END
-         
+
             IF(@LIB_ADRESSE_1_OPTI <> @LIB_ADRESSE_1
             OR @LIB_ADRESSE_2_OPTI <> @LIB_ADRESSE_2
             OR @LIB_CP_CEDEX_OPTI <> @LIB_CP_CEDEX
@@ -4404,11 +3521,10 @@ GO
               + '<br>' + COALESCE(@LIB_VIL_CEDEX,'')
              SET @SEND_EMAIL = 1
             END 
-         
+
             SET @BODY = @BODY + '<br><br>Merci de reporter les changements dans Optiform.</p></body></html>'  COLLATE French_CI_AI;
            END
-         
-           --envoie de mail dans les deux cas, insert ou modif   
+
            IF (@SEND_EMAIL = 1)
            EXEC dbo.ENVOIE_MAIL
             @RECIPIENTS = @EMAIL_COLLECTE,
@@ -4420,27 +3536,23 @@ GO
             @FROM_ADRESS = @FROM_ADRESSE,
             @ATTACHMENT_PATH = NULL,
             @ERROR_MESSAGE = @ERROR_MESSAGE
-         
+
            SELECT
             @ERROR_MESSAGE
           END
          END
 
  CREATE PROCEDURE [dbo].[UPD_HISTO_CONTRAT_DGEFP_ENVOYES]
-          @LIST_NOM_FICHIER_XML TEXT -- Liste des noms de fichiers envoy‚s a la dgefp separ‚ par ',' sans espace
-         -- ==============================================================
-         -- Author:  Kwame Woollams
-         -- Create date: 8 janvier 2008
-         -- Description: Mise … jour des histo_contrats envoy‚s … la dgefp
-         -- ==============================================================
+          @LIST_NOM_FICHIER_XML TEXT 
+
          AS
-         
+
          BEGIN
-         
+
           DECLARE @Item varchar(255);
-          -- Table temporaire contenant la liste des noms
+
           CREATE TABLE #List(Item VARCHAR(255)  collate French_CI_AI)
-         
+
           DECLARE @Delimiter char
           SET @Delimiter = ','
           WHILE CHARINDEX(@Delimiter,@LIST_NOM_FICHIER_XML,0) <> 0
@@ -4448,25 +3560,23 @@ GO
            SELECT
             @Item=RTRIM(LTRIM(SUBSTRING(@LIST_NOM_FICHIER_XML,1,CHARINDEX(@Delimiter,@LIST_NOM_FICHIER_XML,0)-1))),
             @LIST_NOM_FICHIER_XML=RTRIM(LTRIM(SUBSTRING(@LIST_NOM_FICHIER_XML,CHARINDEX(@Delimiter,@LIST_NOM_FICHIER_XML,0)+1,DATALENGTH(@LIST_NOM_FICHIER_XML))))
-         
+
            IF LEN(@Item) > 0
             INSERT INTO #List SELECT cast(@Item as varchar(255) )
           END
-         
+
           IF DATALENGTH(@LIST_NOM_FICHIER_XML) > 0
            begin
             select @Item = cast(@LIST_NOM_FICHIER_XML as varchar(255))
-            INSERT INTO #List SELECT @Item -- Put the last item in
+            INSERT INTO #List SELECT @Item 
            end
-         
-          --Mise … jour de HISTO_CONTRAT_DGEFP
+
           UPDATE HISTO_CONTRAT_DGEFP
           SET  DAT_ENVOI_DGEFP = GETDATE(),
-            STATUT_HISTO = 10--,
-            --DAT_DEPOT_DDTE = GETDATE()
+            STATUT_HISTO = 10
+
           WHERE (NOM_FICHIER_XML IN (SELECT Item FROM #List))
-         
-         
+
          END
 
  CREATE PROCEDURE [dbo].[INS_ETABLISSEMENT]
@@ -4491,21 +3601,10 @@ GO
           @ID_CHARGEE_MISSION   INT,
           @ID_CHARGEE_RELATION  INT,
           @ID_GROUPE     INT,
-          --@OverwriteCodeEtablissement BIT = 1
+
           @BLN_CREATION    BIT = 0   
          AS
-         ------------------------------------------
-         -- DSZ 13659 12/07/12
-         -- tout ce qui est cr‚‚ dans optiform re‡oit BLN_CREATION = 0
-         ------------------------------------------
-         -- TLE 13/07/2013 : 15143 : Modification taille NUM_IBAN (de 27 … 34)
-         -- =============================================
-         -- HBO - #757 l'‚tablissement n'a pas de code ‚tablissement suite … synchronisation
-         -- =============================================
-         -- LDE - 12/03/2015 - US788: Passage LIB_ENSEIGNE a VARCHAR(50)
-         -- =============================================
-         -- DSZ - 16/03/2015 - US797: ajout  @BLN_CREATION
-         -- =============================================
+
          BEGIN
           INSERT INTO ETABLISSEMENT
              (
@@ -4561,8 +3660,8 @@ GO
            @ID_GROUPE,
            @BLN_CREATION
           )
-          
-          IF (@COD_ETABLISSEMENT IS NULL /*AND @OverwriteCodeEtablissement = 1*/)
+
+          IF (@COD_ETABLISSEMENT IS NULL )
           BEGIN
            UPDATE
             ETABLISSEMENT
@@ -4571,7 +3670,7 @@ GO
            WHERE
             ID_ETABLISSEMENT = @@IDENTITY
           END
-         
+
           IF (@BLN_PRINCIPAL = 1 AND @ID_ADHERENT > 0)
           BEGIN
            UPDATE
@@ -4582,7 +3681,7 @@ GO
             BLN_PRINCIPAL = 1
             AND ID_ADHERENT = @ID_ADHERENT
             AND ID_ETABLISSEMENT <> SCOPE_IDENTITY()
-           
+
            UPDATE
             ADHERENT
            SET
@@ -4590,7 +3689,7 @@ GO
            WHERE
             ID_ADHERENT = @ID_ADHERENT
           END
-          
+
           RETURN @@IDENTITY
          END
 
@@ -4599,55 +3698,7 @@ GO
           @ID_TYPE_MOUVEMENT INT,  
           @P_E_R    varchar(1)  
          AS  
-         /* *****************************************************************************************  
-         -- Auteur   : MBL  
-         -- Date Creation : 31/05/2012  
            
-         -- Role    : Generation de Mouvements Budgetaires Previsionnels, d'Engagement ou de Reglement  
-                  a partir du plan de financement du poste de cout associe a l'evenement  
-               pour le couple module/sous type de cout associe a l'evenement  
-           
-            Les differents cas d'appels de cette procedure sont :  
-           
-            - Generation des Mouvements Budgetaires lies a la validation des chiffrages  
-             Les mouvements budgetaires generes sont des mouvements previsionnels bases   
-             sur le plan de financement du PCE associe a l'evenement de Chiffrage  
-             @COD_TYPE_EVENEMENT = 'CHIF_PEC', @ID_TYPE_MOUVEMENT = 18, @P_E_R = 'P'  
-           
-            - Generation des Mouvements Budgetaires lies a l'engagement d'un sous type de cout  
-                Les mouvements budgetaires generes sont des mouvements d'engagement bases   
-                sur le plan de financement du PCE engage  
-             @COD_TYPE_EVENEMENT = 'ENGAGMT', @ID_TYPE_MOUVEMENT = 20 -- Engagement, @P_E_R = 'E'  
-           
-            - Generation des Mouvements Budgetaires de DESENGAGEMENT (P_E_R = 'E') lies au reglement d'un PCR  
-             Les mouvements budgetaires generes sont des mouvements d'engagement (P_E_R = 'E') bases   
-             sur le plan de financement du PCR regle dans la limite du montant engage  
-             @COD_TYPE_EVENEMENT = 'REGLEMT', @ID_TYPE_MOUVEMENT = 21 -- Mouvement de desengagement, @P_E_R = 'E'  
-           
-            - Generation des Mouvements Budgetaires de REGLEMENT (P_E_R = 'R') lies au reglement d'un PCR  
-             Les mouvements budgetaires generes sont des mouvements de reglements (P_E_R = 'R') bases   
-             sur le plan de financement du PCR regle  
-             @COD_TYPE_EVENEMENT = 'REGLEMT', @ID_TYPE_MOUVEMENT = 22 -- Reglement, @P_E_R = 'R'  
-                  
-         ---------------------------------------------------------------------------------------------------  
-         -- SBR le 30/01/2014 - Correction anomalie sur le rŠglement des avoirs qui provoquait la cr‚ation d'un engagement positif … tord lors de l'annulation de l'engagement suite au rŠglement  
-         ---------------------------------------------------------------------------------------------------  
-         -- Modif MB du 20/10/2014 : Pour les mouvements d'engagement (P_E_R = 'E'),  
-                tous les mouvements bugetaires avec un montant = 0 sont generes  
-         ------------------------------------------------------------------------------------------------  
-         -- DSZ 24/11/2014 US661 suppression ID_PUBLIC FAF  
-         ------------------------------------------------------------------------------------------------  
-         -- Modif MBL du 09/01/2015 : Valorisation de l'activite sur les mouvements budgetaires associes aux comptes  
-         ------------------------------------------------------------------------------------------------
-         -- OPA 21/03/16 1357 
-         -- En tant qu'utilisateur Optiform, dans la chaŒne d'engagement ou de rŠglement PEC, 
-         -- je ne souhaite pas qu'il y ai de cr‚ation de mouvements budg‚taires sur le type de financement 
-         -- Compte Historique si aucun type de financement n'est reconnu.
-         ------------------------------------------------------------------------------------------------  
-         -- Modif MBL du 31/03/2016 : Extinction du Compte Historique 
-         --        Annulation modif OPA du 21/03/16
-         ------------------------------------------------------------------------------------------------  
-         ***************************************************************************************** */  
          BEGIN  
           DECLARE   
           @BLN_GESTION_GROUP  TINYINT,  
@@ -4679,7 +3730,7 @@ GO
           @COD_FACTURE   VARCHAR(50),  
           @INVERSION_SIGNE_MVT TINYINT,  
           @MNT_ENGAGEMENT_RESIDUEL DECIMAL(15,2)  
-           
+
           SELECT @ID_POSTE_COUT_ENGAGE = ID_POSTE_COUT_ENGAGE,  
             @ID_POSTE_COUT_REGLE = ID_POSTE_COUT_REGLE,  
             @DAT_EVENEMENT   = DAT_EVENEMENT,  
@@ -4687,13 +3738,11 @@ GO
           FROM EVENEMENT  
           INNER JOIN TYPE_EVENEMENT ON EVENEMENT.ID_TYPE_EVENEMENT =TYPE_EVENEMENT.ID_TYPE_EVENEMENT  
           WHERE ID_EVENEMENT = @ID_EVENEMENT  
-            
-          -- INIT VAR  
+
           SET @ID_COMPTE = NULL  
           SET @ID_ACTIVITE = NULL  
           SET @ID_DISPOSITIF = NULL  
-           
-          -- Donn‚es MODULE_PEC  
+
           IF @ID_POSTE_COUT_REGLE IS NOT NULL  
           BEGIN  
            SELECT   
@@ -4720,46 +3769,45 @@ GO
            INNER JOIN MODULE_PEC ON MODULE_PEC.ID_MODULE_PEC = POSTE_COUT_ENGAGE.ID_MODULE_PEC  
            WHERE ID_POSTE_COUT_ENGAGE = @ID_POSTE_COUT_ENGAGE  
           END  
-            
-          -- COD_TYPE_COUT  
+
           SELECT @COD_TYPE_COUT = tc.COD_TYPE_COUT,   
           @COD_SOUS_TYPE_COUT= stc.COD_SOUS_TYPE_COUT  
           FROM SOUS_TYPE_COUT stc  
           INNER JOIN TYPE_COUT tc ON tc.ID_TYPE_COUT = stc.ID_TYPE_COUT  
           WHERE stc.ID_SOUS_TYPE_COUT = @ID_SOUS_TYPE_COUT  
-           
+
           SET @N_R = 'N'  
           SET @INVERSION_SIGNE_MVT = 0  
-          IF @COD_TYPE_EVENEMENT = 'CHIF_PEC' -- Chiffrage PEC  
+          IF @COD_TYPE_EVENEMENT = 'CHIF_PEC' 
           BEGIN  
            SET @LIBL_MVT_BUDGETAIRE = 'Chiffrage PEC ' + @COD_MODULE_PEC+ ' '+ @COD_SOUS_TYPE_COUT  
           END  
-           
-          IF @COD_TYPE_EVENEMENT = 'ENGAGMT' -- D‚sengagement  
+
+          IF @COD_TYPE_EVENEMENT = 'ENGAGMT' 
           BEGIN  
            SET @LIBL_MVT_BUDGETAIRE = 'Engagement '+ @COD_MODULE_PEC+ ' '+ @COD_SOUS_TYPE_COUT  
           END  
-           
-          IF @COD_TYPE_EVENEMENT = 'REGLEMT' -- Reglement  
+
+          IF @COD_TYPE_EVENEMENT = 'REGLEMT' 
           BEGIN  
-           IF @ID_TYPE_MOUVEMENT = 21 -- Mouvement de desengagement  
+           IF @ID_TYPE_MOUVEMENT = 21 
            BEGIN  
             SET @INVERSION_SIGNE_MVT = 1  
             SET @LIBL_MVT_BUDGETAIRE = 'Annul eng suite Reg '+ @COD_MODULE_PEC+ ' '+ @COD_SOUS_TYPE_COUT + ' Fact. ' + @COD_FACTURE  
            END  
-           ELSE IF @ID_TYPE_MOUVEMENT = 22 -- Reglement  
+           ELSE IF @ID_TYPE_MOUVEMENT = 22 
            BEGIN  
             SET @LIBL_MVT_BUDGETAIRE = 'Reglement '+ @COD_MODULE_PEC+ ' '+ @COD_SOUS_TYPE_COUT + ' Fact. ' + @COD_FACTURE  
            END  
           END  
-           
+
           IF (@COD_TYPE_EVENEMENT IS NULL OR @ID_TYPE_MOUVEMENT IS NULL)  
           BEGIN  
            SELECT PB = 'Type d evenement / Type de mouvement non definis', COD_TYPE_EVENEMENT = @COD_TYPE_EVENEMENT, ID_TYPE_MOUVEMENT = @ID_TYPE_MOUVEMENT  
           END  
           ELSE  
           BEGIN  
-           
+
           IF @ID_POSTE_COUT_REGLE IS NOT NULL  
           BEGIN  
            DECLARE CURSOR_PFUS CURSOR FOR  
@@ -4775,7 +3823,7 @@ GO
            INNER JOIN STAGIAIRE_PEC s_m  ON s_m.ID_MODULE_PEC = s_s.ID_MODULE_PEC   
              AND s_m.ID_ETABLISSEMENT = s_s.ID_ETABLISSEMENT   
              AND s_m.ID_INDIVIDU = s_s.ID_INDIVIDU   
-             AND s_m.id_SESSION_PEC is null -- sm = STAGIAIRE de MODULE  
+             AND s_m.id_SESSION_PEC is null 
            WHERE pus.ID_POSTE_COUT_REGLE = @ID_POSTE_COUT_REGLE  
            GROUP BY s_s.ID_ETABLISSEMENT,   
               pus.ID_TYPE_FINANCEMENT,   
@@ -4802,8 +3850,7 @@ GO
               s.ID_GROUPE,   
               s.ID_ACTIVITE   
           END  
-           
-          -- OPEN AND LOAD CURSOR VALUES  
+
           OPEN CURSOR_PFUS  
           FETCH NEXT FROM CURSOR_PFUS INTO  
           @ID_ETABLISSEMENT,  
@@ -4812,60 +3859,48 @@ GO
           @MNT_PFUS,  
           @ID_GROUPE_STAGIAIRE_PEC,  
           @ID_ACTIVITE  
-           
-          -- FOREACH ROW GROUPED BY ETABLISSEMENT, ID_TYPE_FINANCEMENT AND ID_ENVELOPPE  
+
           WHILE (@@Fetch_Status <> -1)  
           BEGIN  
-           
+
            SELECT @ID_ADHERENT = ID_ADHERENT  
            FROM ETABLISSEMENT   
            WHERE ID_ETABLISSEMENT = @ID_ETABLISSEMENT        
-                
+
            IF (@ID_ENVELOPPE IS NULL)  
-           BEGIN --IF THE ID_ENVELOPPE IS NULL  
-           --PERIODE FISC  
+           BEGIN 
+
            SET @ID_PERIODE_FISC = @ID_PERIODE_MODULE_PEC  
-           --PERIODE CPT  
+
            SET @ID_PERIODE_CPT = @ID_PERIODE_MODULE_PEC  
-           --COMPTE  
-           
-           -- Modif MBL du 31/03/2016 : Extinction du Compte Historique 
-           --if @ID_TYPE_FINANCEMENT is null  
-           -- select @ID_TYPE_FINANCEMENT = ID_TYPE_FINANCEMENT  
-           -- from TYPE_FINANCEMENT  
-           -- where COD_TYPE_FINANCEMENT = '1'  
-           
-           
+
            EXEC @ID_COMPTE = LEC_COMPTE @ID_GROUPE_STAGIAIRE_PEC,   
-             @ID_PERIODE_FISC, --@ID_ADHERENT,  
+             @ID_PERIODE_FISC, 
              @ID_TYPE_FINANCEMENT, @ID_ACTIVITE, null      
-           
-           -- Modif MBL du 09/01/2015 : Valorisation de l'activite sur les mouvements budgetaires associes aux comptes  
+
            SELECT @ID_ACTIVITE   = ID_ACTIVITE   
            FROM COMPTE  
            WHERE ID_COMPTE  = @ID_COMPTE   
-             
+
           END    
           ELSE  
           BEGIN  
-           --PERIODE FISC  
+
            SELECT @ID_PERIODE_FISC = ID_PERIODE   
            FROM ENVELOPPE  
            WHERE ID_ENVELOPPE = @ID_ENVELOPPE  
-           --PERIODE CPT  
+
            SET @ID_PERIODE_CPT = @ID_PERIODE_FISC  
-           --COMPTE  
-           SET @ID_COMPTE = NULL --JUST IN CASE  
+
+           SET @ID_COMPTE = NULL 
            SET @ID_TYPE_FINANCEMENT = NULL  
           END   
-           
-           
-          IF @COD_TYPE_EVENEMENT = 'REGLEMT' -- Reglement   
-          AND @ID_TYPE_MOUVEMENT = 21 -- Mouvement de desengagement  
+
+          IF @COD_TYPE_EVENEMENT = 'REGLEMT' 
+          AND @ID_TYPE_MOUVEMENT = 21 
           BEGIN  
            SET @MNT_ENGAGEMENT_RESIDUEL= NULL  
-           
-           -- Pour le desengagement des montants regles, le montant a desengager doit etre limite a l'engagement residuel  
+
            SELECT @MNT_ENGAGEMENT_RESIDUEL = SUM(ISNULL(CAST(MNT_MVT_BUDGETAIRE AS DECIMAL(15,2)), 0))  
            FROM MVT_BUDGETAIRE  
            INNER JOIN EVENEMENT on EVENEMENT.ID_EVENEMENT = MVT_BUDGETAIRE.ID_EVENEMENT  
@@ -4883,10 +3918,9 @@ GO
            AND  ISNULL(MVT_BUDGETAIRE.ID_COMPTE, 0)   = ISNULL(@ID_COMPTE, 0)  
            AND  ISNULL(MVT_BUDGETAIRE.ID_ENVELOPPE, 0)   = ISNULL(@ID_ENVELOPPE, 0)  
            AND  ISNULL(MVT_BUDGETAIRE.ID_TYPE_FINANCEMENT, 0)  = ISNULL(@ID_TYPE_FINANCEMENT, 0)  
-           
+
            SET @MNT_ENGAGEMENT_RESIDUEL= ISNULL(@MNT_ENGAGEMENT_RESIDUEL, 0)  
-                 
-           -- SBR le 30/01/2014 - correction de la gestion des avoirs (cas @MNT_PFUS < 0)  
+
            IF @MNT_PFUS > 0  
             SELECT @MNT_PFUS = CASE   
                  WHEN @MNT_PFUS > @MNT_ENGAGEMENT_RESIDUEL THEN @MNT_ENGAGEMENT_RESIDUEL  
@@ -4895,19 +3929,15 @@ GO
            ELSE  
             SET @MNT_PFUS = 0  
            END  
-           
-           -- Changement signe des mouvements a generer  
+
            IF @INVERSION_SIGNE_MVT = 1  
            BEGIN  
             SET @MNT_PFUS = - @MNT_PFUS  
             END  
-           
-            -- Les mouvements budg‚taires a 0 ne sont generes que pour les Engagements (pas les d‚sengagements suite au rŠglement)  
-            -- Modif MB du 20/10/2014 : Pour les mouvements d'engagement (P_E_R = 'E'),tous les mouvements bugetaires avec un montant = 0 sont generes  
-            --IF ((@P_E_R = 'E' and @INVERSION_SIGNE_MVT = 0) OR @MNT_PFUS <> 0 )   
+
             IF (@P_E_R = 'E' OR @MNT_PFUS <> 0 )   
             BEGIN  
-             -- THE MVT_BUDG IS CREATED       
+
              EXEC @ID_MVT_BUDGETAIRE = INS_MVT_BUDGETAIRE  
              @ID_TYPE_MOUVEMENT, @ID_EVENEMENT, @ID_COMPTE, @ID_ENVELOPPE, @MNT_PFUS,  
              @P_E_R, @DAT_EVENEMENT, @N_R, @ID_PERIODE_FISC, @ID_PERIODE_CPT,   
@@ -4915,7 +3945,7 @@ GO
              @ID_ETABLISSEMENT, @ID_TYPE_FINANCEMENT,   
              @ID_DISPOSITIF, @ID_MODULE_PEC  
             END  
-           
+
             FETCH NEXT FROM CURSOR_PFUS INTO  
             @ID_ETABLISSEMENT,  
             @ID_TYPE_FINANCEMENT,  
@@ -4923,64 +3953,14 @@ GO
             @MNT_PFUS,  
             @ID_GROUPE_STAGIAIRE_PEC,  
             @ID_ACTIVITE  
-           END --FOREACH  
+           END 
            CLOSE CURSOR_PFUS  
            DEALLOCATE CURSOR_PFUS  
           END  
          END
 
-
          CREATE PROCEDURE [dbo].[DECLOTURER_PEC]
-         /* 
-         -- =============================================
-         -- Author  : MBL
-         -- Create date : 15/10/2014
-         -- Description : DECLOTURE D'UNE ACTION PEC OU D'UN MODULE PEC 
-         -- =============================================
          
-         -------------------------------------------------------------
-         !! A UTILISER APRES REFONTE DES MOUVEMENTS BUDGETAIRES !! 
-         -------------------------------------------------------------
-         
-         --------------------------
-         Fonctionnement du SCRIPT :
-         --------------------------
-         
-         Pour DECLOTURER une action, il faut valoriser :
-          - les variables @cod_action_pec et @annee_action_pec avec des valeurs non nulles
-          - la variable @cod_module_pec … null
-         
-         Pour DECLOTURE un module, il faut valoriser :
-          - la variable @cod_module_pec … une valeur non nulle
-          - les variables @cod_action_pec et @annee_action_pec … null
-          
-         
-         Des controles pr‚alables sont effectues afin de verifier :
-         
-         - que des modules existent pour les variables saisies (cod_action + annee_action ou cod_module)
-         - Avant de cloturer un module, on s'assure que soit le module soit l'action sont effectivement clotures
-         - Avant de cloturer un module, on s'assure : 
-           - que le dernier evenement associe au module est bien une cloture (CLOMOPEC OU CLOTACT)
-           - ou que le reliquat d'engagement du module est a 0
-         
-         Pour chaque module a cloturer, on repere les derniers postes de cout d'engagement qui lui sont associes
-         L'appel a la PS MVT_BUDGETAIRE_PEC_INS_EVENEMENT_PEC est effectu‚e pour chacun de ses PCE 
-         ce qui permet de g‚n‚rer les ‚v‚nements et mouvements de d‚cloture
-         
-         -- =============================================
-         -- Author  : MBL
-         -- Modif  date : 29/10/2014
-         -- Description : Correction PB de non decloture des modules lors de la cloture d'une action PEC
-         -- =============================================
-         -- Author  : MBL
-         -- Modif  date : 17/11/2014
-         -- Description : Gestion des cas d'exceptions lies a la non generation d'evenement lors de la decloture
-         -- =============================================
-         -- Author  : MBL
-         -- Modif  date : 23/02/2016
-         -- Description : Suppression du motif de cloture en cas de decloture d'une ACTION PEC
-         -- =============================================
-         */
          @cod_action_pec   integer,
          @annee_action_pec  integer,
          @cod_module_pec   varchar(14),
@@ -4988,14 +3968,13 @@ GO
          @message    varchar(7000) out
          AS
          BEGIN
-         
-         
+
           declare @id_module_pec   int,
             @id_action_pec   int,
             @ID_EVENEMENT_NEW  int,
             @bln_decloture_action int,
             @dat_cloture   datetime
-         
+
           DECLARE 
             @ID_TYPE_EVENEMENT  int,
             @LIBL_TYPE_EVENEMENT varchar(50),
@@ -5005,26 +3984,25 @@ GO
             @ID_UTILISATEUR   int,
             @COM_EVENEMENT   varchar(7600),
             @COD_TYPE_EVENEMENT  varchar(8)
-            
+
           SELECT @ID_TYPE_EVENEMENT = ID_TYPE_EVENEMENT, @LIBL_TYPE_EVENEMENT = LIBL_TYPE_EVENEMENT
           FROM TYPE_EVENEMENT
           WHERE COD_TYPE_EVENEMENT = 'ANCLOPEC'
-         
+
           SET @ID_UTILISATEUR   = 82
           SET @COM_EVENEMENT   = 'BATCH MANUEL Reg‚n‚ration Evenement ANCLOPEC (DECLOTURE MODULE)'
-         
+
           SET @ID_POSTE_COUT_REGLE =NULL
           SET @DAT_EVENEMENT  = GETDATE()
-         
-         
+
           SET @bln_ok = 0
           SET @message = ''
-          
+
           IF @cod_module_pec is null AND @cod_action_pec is null AND @annee_action_pec is null
           BEGIN 
            SELECT @message = '!! ALERTE !! Aucun parametre d''entree n''est valorise. Decl“ture impossible'
           END
-          ELSE IF @cod_module_pec is not null -- DECLOTURE MODULE
+          ELSE IF @cod_module_pec is not null 
           BEGIN
            IF @cod_action_pec is not null OR @annee_action_pec is not null
            BEGIN
@@ -5039,7 +4017,7 @@ GO
             INNER JOIN ACTION_PEC ON ACTION_PEC.ID_ACTION_PEC = MODULE_PEC.ID_ACTION_PEC 
             WHERE COD_MODULE_PEC = @cod_module_pec 
             AND ACTION_PEC.BLN_ACTIF = 1 AND MODULE_PEC.BLN_ACTIF = 1
-            
+
             IF @id_module_pec IS NULL
             BEGIN
              SELECT @message = '!! ALERTE !! Module avec COD_MODULE_PEC = ' + CAST(@cod_module_pec AS VARCHAR)+ ' inexistant. Decloture module impossible.'
@@ -5047,11 +4025,11 @@ GO
             ELSE IF @dat_cloture IS NULL
             BEGIN
              SELECT @message = '!! ALERTE !! Module avec COD_MODULE_PEC = ' + CAST(@cod_module_pec AS VARCHAR)+ ' non clotur‚. D‚cloture module impossible.'
-             
+
              SELECT @dat_cloture = ACTION_PEC.DAT_CLOTURE, @cod_action_pec  = COD_ACTION_PEC, @annee_action_pec = ANNEE_ACTION_PEC
              FROM ACTION_PEC 
              WHERE ID_ACTION_PEC = @id_action_pec  
-             
+
              IF @dat_cloture IS NOT NULL
              BEGIN
               SELECT @message  = @message + CHAR(13) + CHAR(10) + '!! INFO !! L Action PEC avec COD_ACTION_PEC = ' + CAST(@cod_action_pec AS VARCHAR)+ ' et ANNEE_ACTION_PEC = ' + CAST(@annee_action_pec AS VARCHAR) + ' est cloturee et peut etre decloture. (Parametres de lancement a modifier)'
@@ -5063,15 +4041,15 @@ GO
             END
            END
           END
-          ELSE IF @cod_action_pec is not null AND @annee_action_pec is not null -- DECLOTURE ACTION
+          ELSE IF @cod_action_pec is not null AND @annee_action_pec is not null 
           BEGIN
             SET @id_module_pec = NULL
-         
+
             SELECT  @id_action_pec = ID_ACTION_PEC, @dat_cloture = ACTION_PEC.DAT_CLOTURE
             FROM ACTION_PEC 
             WHERE COD_ACTION_PEC = @cod_action_pec  AND  ANNEE_ACTION_PEC = @annee_action_pec
             AND ACTION_PEC.BLN_ACTIF = 1
-            
+
             IF @id_action_pec IS NULL
             BEGIN
              SELECT @message = '!! ALERTE !! Action non trouvee pour COD_ACTION_PEC = ' + CAST(@cod_action_pec AS VARCHAR)+ ' et ANNEE_ACTION_PEC = ' + CAST(@annee_action_pec AS VARCHAR) + ' . Decloture action impossible.'
@@ -5091,9 +4069,7 @@ GO
                 +  CHAR(13) + CHAR(10) +
                 '!! ALERTE !! Lorsque la variable @cod_module_pec n''est pas renseign‚e, les variables @cod_action_pec et @annee_action_pec doivent etre les deux valorisees et non NULL'
           END
-         
-         
-         
+
           IF @bln_ok = 1
           BEGIN
            DECLARE cu_pce_module CURSOR FOR
@@ -5107,29 +4083,25 @@ GO
            WHERE MODULE_PEC.ID_MODULE_PEC = ISNULL(@id_module_pec , MODULE_PEC.ID_MODULE_PEC)
            AND  MODULE_PEC.ID_ACTION_PEC = @id_action_pec
            AND  MODULE_PEC.BLN_ACTIF = 1
-         
-           
+
            OPEN cu_pce_module 
-           
+
            FETCH cu_pce_module INTO @id_module_pec, @ID_POSTE_COUT_ENGAGE
-           
+
            SET @bln_decloture_action = 0
-           
+
            WHILE @@FETCH_STATUS <> -1
            BEGIN
             SET @ID_EVENEMENT_NEW  = NULL
             EXEC MVT_BUDGETAIRE_PEC_INS_EVENEMENT_PEC
             @LIBL_TYPE_EVENEMENT, @DAT_EVENEMENT, @ID_TYPE_EVENEMENT, @ID_POSTE_COUT_ENGAGE, @ID_POSTE_COUT_REGLE, @ID_UTILISATEUR, @COM_EVENEMENT, @ID_EVENEMENT_NEW out
-               
-               
+
             FETCH cu_pce_module INTO @id_module_pec, @ID_POSTE_COUT_ENGAGE
            END
-           
+
            CLOSE  cu_pce_module 
            DEALLOCATE cu_pce_module 
-           
-           
-           -- Verification que le dernier evenement cree correspond bien a une annulation de cloture
+
            SELECT TOP 1 @COD_TYPE_EVENEMENT = COD_TYPE_EVENEMENT 
            from EVENEMENT
            INNER JOIN TYPE_EVENEMENT ON EVENEMENT.ID_TYPE_EVENEMENT = TYPE_EVENEMENT .ID_TYPE_EVENEMENT
@@ -5137,32 +4109,31 @@ GO
            LEFT JOIN POSTE_COUT_REGLE ON EVENEMENT.ID_POSTE_COUT_REGLE =POSTE_COUT_REGLE .ID_POSTE_COUT_REGLE 
            WHERE ISNULL(POSTE_COUT_ENGAGE .ID_MODULE_PEC , POSTE_COUT_REGLE .ID_MODULE_PEC ) = @id_module_pec
            ORDER BY EVENEMENT.ID_EVENEMENT DESC
-           
+
            IF @COD_TYPE_EVENEMENT = 'ANCLOPEC'
            BEGIN
             SET @bln_decloture_action = 1
-         
+
             UPDATE MODULE_PEC
             SET DAT_CLOTURE = NULL, DAT_MODIF = GETDATE(), ID_UTILISATEUR = @ID_UTILISATEUR
             WHERE ID_MODULE_PEC = @id_module_pec
-         
+
             IF @cod_module_pec is NOT NULL  
             BEGIN
              SELECT @message = 'Le Module PEC avec COD_MODULE_PEC = ' + CAST(@cod_module_pec AS VARCHAR)+ ' a ete DEcloture.'  
             END
            END
-         
-           
+
            SELECT @dat_cloture = ACTION_PEC.DAT_CLOTURE,  @cod_action_pec  = COD_ACTION_PEC, @annee_action_pec = ANNEE_ACTION_PEC
            FROM ACTION_PEC 
            WHERE ID_ACTION_PEC = @id_action_pec
-           
+
            IF @bln_decloture_action = 1 OR (@dat_cloture IS NOT NULL)
            BEGIN
             UPDATE ACTION_PEC
             SET DAT_CLOTURE = NULL, DAT_MODIF = GETDATE(), ID_UTILISATEUR = @ID_UTILISATEUR, ID_MOTIF_CLOTURE_PEC = NULL
             WHERE ID_ACTION_PEC  = @id_action_pec
-            
+
             IF @dat_cloture IS NOT NULL
             BEGIN
              SELECT @message = @message 
@@ -5171,13 +4142,10 @@ GO
             END
            END  
           END
-          
-          
+
          END
 
-
 GO
-
 
  CREATE PROCEDURE [dbo].[EDT_LETTRE_RELANCE_COMP_ETAB_CPRO]
           @ID_ETABLISSEMENT int,
@@ -5187,25 +4155,7 @@ GO
           @ID_CONTACT   int,
           @COD_CONTRAT_PRO varchar(10)
          AS
-         -- =============================================
-         -- Author:  SAFIYULLA
-         -- Create date: 19-05-2010
-         -- Description: Lettre relance Compl‚ment Etablissement
-         -- =============================================
-         -- SAFI 07/06/2010 Correction the spelling mistake on First Followup
-         -- DSZ  19/07/2010 Ajout partie session 12452
-         -- DSZ  20/07/2010 Ajout correction inner join sur le calcul @MAX_DAT_EVENEMENT_ADMIN
-         -- SAFI 01/09/2010 12398 : Added the Paragraphes to the XML
-         -- RVI  21/08/2012 13820 : Correction entˆte nouveau template
-         -- DSZ  20/09/2012 13697 : Num tel dynamique
-         -- OPA  31/05/2013 : 15031 : SBR - suppression du type FLOAT et REAL dans le SQL : 2- FLOAT
-         -- DSZ  25/09/2103 : 16177 : taux TVA sur 5 decimals
-         -- =============================================
-         -- LDE/OPA 23/05/2014 : #213 En tant qu'utilisateur OPTIFORM, 
-         -- lorsque j'‚dite un courrier (PEC, PRO) … destination d'un Adh‚rent ou d'un OF, je veux que, 
-         -- l'adresse … afficher dans la zone "correspondance" soit l'adresse TSA propre … ce type de courrier 
-         -- si le mode "TSA" s'applique sinon qu'elle soit l'adresse actuelle
-         -- =======================================================================================================================================
+
          BEGIN
           DECLARE
            @ID_CONTRAT_PRO INT,
@@ -5218,10 +4168,9 @@ GO
            @DELAI_RELANCE_1 INT,
            @DELAI_RELANCE_2 INT,
            @DELAI_RELANCE_3 INT
-         
+
           SET @RELANCE = 1
-         
-          -- Contact principal par d‚faut mais pas de "."
+
           IF (@ID_CONTACT IS NULL)
           BEGIN
            SELECT
@@ -5236,14 +4185,14 @@ GO
             AND ID_ETABLISSEMENT = @ID_BENEFICIAIRE
             AND CONTACT.LIB_NOM_CONTACT <> '.'
           END
-         
+
           SELECT
            @ID_DOCUMENT = ID_DOCUMENT
           FROM
            DOCUMENT
           WHERE
            COD_DOCUMENT = 'LET_REL_CETAB'
-          
+
           SELECT
            @DELAI_RELANCE_1 = DELAI_RELANCE_1,
            @DELAI_RELANCE_2 = DELAI_RELANCE_2,
@@ -5253,13 +4202,13 @@ GO
            PARAM_EDITION_CPRO
           WHERE
            ID_DOCUMENT   = @ID_DOCUMENT
-          
+
           DECLARE
            @MAX_DAT_EVENEMENT_ADMIN DATETIME,
            @MAX_DAT_BAP_OF DATETIME
-         
+
           SELECT
-           @MAX_DAT_BAP_OF = CONVERT(DATETIME,MAX(SP.DAT_BAP_OF),10)   --(MAX(SP.DAT_BAP_OF)
+           @MAX_DAT_BAP_OF = CONVERT(DATETIME,MAX(SP.DAT_BAP_OF),10)   
           FROM
            CONTRAT_PRO CP
            INNER JOIN MODULE_PRO MP
@@ -5268,9 +4217,9 @@ GO
             ON SP.ID_MODULE_PRO = MP.ID_MODULE_PRO
           WHERE
            CP.COD_CONTRAT_PRO = @COD_CONTRAT_PRO
-         
+
           SELECT
-           @MAX_DAT_EVENEMENT_ADMIN  = CONVERT(DATETIME,MAX(EA.DAT_EVENEMENT_ADMIN),10) --MAX(EA.DAT_EVENEMENT_ADMIN)
+           @MAX_DAT_EVENEMENT_ADMIN  = CONVERT(DATETIME,MAX(EA.DAT_EVENEMENT_ADMIN),10) 
           FROM
            EVENEMENT_ADMIN EA
            INNER JOIN CONTRAT_PRO CP
@@ -5278,7 +4227,7 @@ GO
              AND CP.COD_CONTRAT_PRO = @COD_CONTRAT_PRO
           WHERE
            EA.ID_TYPE_EVENEMENT_ADMIN IN (15,16,17)
-         
+
           SELECT
            ADHERENT.COD_ADHERENT,
            ETABLISSEMENT.NUM_SIRET,   
@@ -5297,25 +4246,25 @@ GO
             ON ADHERENT.ID_ADHERENT = ETABLISSEMENT.ID_ADHERENT
            INNER JOIN ADRESSE
             ON ETABLISSEMENT.ID_ADRESSE_PRINCIPALE = ADRESSE.ID_ADRESSE
-           LEFT JOIN UTILISATEUR CR -- charg‚ de relation
+           LEFT JOIN UTILISATEUR CR 
             ON ETABLISSEMENT.ID_CHARGEE_RELATION = CR.ID_UTILISATEUR
-           LEFT JOIN UTILISATEUR CM -- charg‚ de mission
+           LEFT JOIN UTILISATEUR CM 
             ON ETABLISSEMENT.ID_CHARGEE_MISSION = CM.ID_UTILISATEUR
           WHERE
            ETABLISSEMENT.ID_ETABLISSEMENT = @ID_ETABLISSEMENT
-          
+
           SELECT
            @ID_REF_UTIL = ID_UTIL
           FROM
            #TEMP_REFERENCE
-         
+
           SELECT
            @ID_TYPE_TVA = ETABLISSEMENT.ID_TYPE_TVA
           FROM
            ETABLISSEMENT
           WHERE
            ETABLISSEMENT.ID_ETABLISSEMENT = @ID_ETABLISSEMENT
-          
+
           SELECT DISTINCT
            ADHERENT.COD_ADHERENT,
            AGENCE.ID_AGENCE,
@@ -5333,7 +4282,7 @@ GO
             ON ADHERENT.ID_ADHERENT = ETABLISSEMENT.ID_ADHERENT
           WHERE
            ETABLISSEMENT.ID_ETABLISSEMENT = @ID_ETABLISSEMENT
-         
+
           SELECT
            CONTRAT_PRO.ID_CONTRAT_PRO,
            CONTRAT_PRO.COD_CONTRAT_PRO,
@@ -5355,26 +4304,26 @@ GO
             ON SALARIE_PRO.ID_INDIVIDU = INDIVIDU.ID_INDIVIDU
           WHERE
            CONTRAT_PRO.COD_CONTRAT_PRO = @COD_CONTRAT_PRO
-          
+
           SELECT
            @ID_CONTRAT_PRO = ID_CONTRAT_PRO
           FROM
            #TMP_CONTRAT_PRO
-          
+
           DECLARE
            @LIB_PRENOM_CHARGE_RELATION_SIGNE VARCHAR(100),
            @LIB_NOM_CHARGE_RELATION_SIGNE VARCHAR(100)
-         
+
           SELECT
            @LIB_NOM_CHARGE_RELATION_SIGNE = isnull(LIB_NOM_CHARGE_RELATION, ''),
            @LIB_PRENOM_CHARGE_RELATION_SIGNE = isnull(LIB_PRENOM_CHARGE_RELATION, '')
           FROM
            #TEMP_REFERENCE as SIGNATURE
-         
+
           SELECT
            MP1.ID_MODULE_PRO,
            MP1.LIBL_MODULE_PRO,
-           ISNULL(ISNULL(SP1.MNT_VERSE_HT_ADH,0)/ISNULL(SP1.NB_UNITE_TOTALE,1),0) AS TAUX_HORAIRE_MODULE, --TAUX_HORAIRE_MODULE,  
+           ISNULL(ISNULL(SP1.MNT_VERSE_HT_ADH,0)/ISNULL(SP1.NB_UNITE_TOTALE,1),0) AS TAUX_HORAIRE_MODULE, 
            SP1.DAT_DEBUT,
            SP1.DAT_FIN,
            ISNULL(SP1.NB_UNITE_TOTALE,0)   AS NB_UNITE_TOTALE,         
@@ -5403,19 +4352,19 @@ GO
            AND SP1.ID_FACTURE_OF IS NOT NULL
            AND SP1.ID_REGLEMENT_PRO_OF IS NOT NULL
            AND SP1.ID_FACTURE_ADHERENT IS NULL
-          
+
           SELECT TOP 1
            @TAUX_TVA = TAU_TVA
           FROM
            #LST_MODULES_TOUTE
-          
+
           PRINT @TAUX_TVA PRINT 'OK'
-          
+
           SELECT TOP 1
            @RELANCE = NUM_RELANCE
           FROM
            #LST_MODULES_TOUTE
-          
+
           SELECT DISTINCT
            ID_MODULE_PRO,
            LIBL_MODULE_PRO
@@ -5423,42 +4372,42 @@ GO
            #LST_MODULES
           FROM
            #LST_MODULES_TOUTE
-          
+
           DECLARE
            @PRENOM_PARA1 VARCHAR(35),
            @NOM_PARA1 VARCHAR(35)
-         
+
           SELECT TOP 1
            @PRENOM_PARA1 = PRENOM,
            @NOM_PARA1 = NOM
           FROM
            #TMP_CONTRAT_PRO
-          
+
           IF (EXISTS(SELECT 1 FROM SYS.TABLES WHERE NAME = '#TABLE_PARAGRAPHE'))
           BEGIN
            DROP TABLE #TABLE_PARAGRAPHE
           END
-            
+
           CREATE TABLE #TABLE_PARAGRAPHE
           (        
            PARAGRAPHE VARCHAR(MAX),
            NUM_ORDRE INTEGER,             
           )     
-         
+
           INSERT INTO  #TABLE_PARAGRAPHE 
           VALUES
           (
            'Afin de pouvoir proc‚der au rŠglement du compl‚ment de forfait* relatif aux heures de formation r‚alis‚es et justifi‚es par les attestations de pr‚sence du contrat de professionnalisation de ' + @PRENOM_PARA1 +' '+ @NOM_PARA1 + ', nous vous remercions de bien vouloir nous retourner une facture selon le modŠle ci-joint d–ment compl‚t‚e et sign‚e.',
            1
           )
-             
+
           INSERT INTO  #TABLE_PARAGRAPHE 
           VALUES
           (
            'Nous vous remercions de nous l''envoyer dans le  mois en cours, pour la prendre en compte dans la clture de nos comptes mensuels.',
            2
           )
-         
+
           IF (@RELANCE >= 3)
           BEGIN
            INSERT INTO  #TABLE_PARAGRAPHE 
@@ -5468,26 +4417,26 @@ GO
             3
            )
           END
-            
+
           INSERT INTO  #TABLE_PARAGRAPHE 
           VALUES
           (
            'Nous restons … votre disposition pour tout renseignement compl‚mentaire et, vous prions d''agr‚er, Madame, Monsieur, l''expression de nos sincŠres salutations.',
            4
           )
-         
+
           SELECT 
            (
             SELECT 
              ( 
               SELECT dbo.GetXmlBenefiaireContact(@ID_BENEFICIAIRE, @TYPE_BENEFICIAIRE, @ID_ADRESSE, @ID_CONTACT) 
               FOR XML RAW('BENEFICIAIRE'), ELEMENTS, TYPE
-             ),  -- R‚cup‚ration des informations sur le contact et le b‚n‚ficiaire    
+             ),  
              isnull(COD_ADHERENT, '')    as COD_ADH,     
              isnull(LIB_PRENOM_CHARGE_RELATION, '') as LIB_PRENOM_CHARGE_RELATION,     
              isnull(LIB_NOM_CHARGE_RELATION, '')  as LIB_NOM_CHARGE_RELATION,
              isnull(EMAIL_CHARGE_RELATION, '')  as EMAIL,
-             -- R‚cup‚ration des informations sur l'‚metteur
+
              (
               SELECT dbo.GetXmlAdrUtilAvecTel(ENTETE.ID_UTIL, dbo.DossierEstTSA(@COD_CONTRAT_PRO, 0), 1) FOR XML RAW('EMETTEUR_LETTRE'), ELEMENTS, TYPE
              ),
@@ -5498,14 +4447,14 @@ GO
                   WHEN @RELANCE = 3 THEN ' DerniŠre relance' END) 
               FOR XML RAW('NUM_RELANCE'), ELEMENTS, TYPE 
              ),
-             -- r‚f‚rence du contrat pro
+
              (
               SELECT #TMP_CONTRAT_PRO.COD_CONTRAT_PRO
               FROM #TMP_CONTRAT_PRO
               FOR XML RAW('DOSSIER'), ELEMENTS, TYPE 
              ),
              ENTETE.NUM_SIRET AS SIRET,
-             rtrim(case when patindex('%CEDEX%', LIB_VILLE) <> 0 then left(LIB_VILLE, patindex('%CEDEX%', LIB_VILLE)-1) else LIB_VILLE end) as LIB_VILLE, -- retraitement de la ville au cas o— de la forme COMMUNE CEDEX 999
+             rtrim(case when patindex('%CEDEX%', LIB_VILLE) <> 0 then left(LIB_VILLE, patindex('%CEDEX%', LIB_VILLE)-1) else LIB_VILLE end) as LIB_VILLE, 
              dbo.GetFullDate(getDate()) as DATE,    
              (
               SELECT top 1
@@ -5516,42 +4465,36 @@ GO
             FROM #TEMP_REFERENCE AS ENTETE     
             FOR XML AUTO, ELEMENTS, TYPE    
            ),
-         
+
            (
             SELECT PARAGRAPHE
             FROM #TABLE_PARAGRAPHE AS TABLE_PARAGRAPHE ORDER BY NUM_ORDRE     
             FOR XML RAW('CORPS_DE_LETTRE'),ELEMENTS, TYPE
            ),
-              
+
            (
             SELECT          
             @LIB_PRENOM_CHARGE_RELATION_SIGNE AS LIB_PRENOM_CHARGE_RELATION_SIGNE,          
             @LIB_NOM_CHARGE_RELATION_SIGNE  AS LIB_NOM_CHARGE_RELATION_SIGNE
             FOR XML RAW('SIGNATURE_LETTRE'),ELEMENTS, TYPE
            ),
-         
-           ----************************  ANNEX  ----************************
-         
+
            (
            SELECT 
             (
              SELECT         
-              -- R‚cup‚ration des informations sur le contact et le b‚n‚ficiaire
+
               ( SELECT dbo.GetXmlBenefiaireContact(@ID_BENEFICIAIRE, @TYPE_BENEFICIAIRE, @ID_ADRESSE, @ID_CONTACT) 
                FOR XML RAW('BENEFICIAIRE'), ELEMENTS, TYPE       
               ),
-                
-              -- R‚cup‚ration des informations sur l'‚metteur
-              (SELECT dbo.GetXmlAdrUtilAvecTel(@ID_REF_UTIL,0, 1) --AS EMETTEUR_ANNEX
+
+              (SELECT dbo.GetXmlAdrUtilAvecTel(@ID_REF_UTIL,0, 1) 
                FOR XML RAW('EMETTEUR'), ELEMENTS, TYPE),
-         
-              -- R‚cup‚ration de COD Adh‚rent
+
               ISNULL(COD_ADHERENT, '') AS COD_ADH,
-                
-              -- R‚cup‚ration de COD Contrat Pro
+
               ISNULL(@COD_CONTRAT_PRO, '') AS COD_CONTRAT_PRO,   
-                
-              -- R‚cup‚ration de Nom et Pr‚nom de la salari‚ form‚
+
               (SELECT CORPS2.PRENOM, CORPS2.NOM
                FROM #TMP_CONTRAT_PRO AS CORPS2 FOR XML RAW('SALARIE_FORME'),ELEMENTS, TYPE)
              FOR XML RAW('ENTETE'),ELEMENTS, TYPE      
@@ -5585,62 +4528,14 @@ GO
              FOR XML RAW('TOTAL_ANNEX'),ELEMENTS, TYPE
             )
            FROM #TEMP_REFERENCE AS LETTRE_ANNEX 
-           --FOR XML AUTO, ELEMENTS  
+
            FOR XML RAW('LETTRE_ANNEX'), ELEMENTS, TYPE
           )   
-           ----************************     
-         
+
           FROM #TEMP_REFERENCE as LETTRE
           FOR XML AUTO, ELEMENTS     
          END
 
-
-         -- =======================================================================================================================================
-         -- Author:		M. ELHABOUSSI
-         -- Create date: 10/06/2013
-         -- Description:	RECUPERER LE NOM DU FICHIER 
-         -- MANTIS		: B15254 [Paniers] R‚alisation des PS Paniers
-         -- =======================================================================================================================================
-         -- Author:		M. ELHABOUSSI
-         -- Update date	: 18/06/2013
-         -- Description	: Ajout de la jointure avec la vue VUE_MODULES_VISIBLES_PANIERS 
-         -- MANTIS		: B15254 [Paniers] R‚alisation des PS Paniers
-         -- =======================================================================================================================================
-         -- Author:		M. ELHABOUSSI
-         -- Update date	: 21/06/2013
-         -- Description	: Filtrage des r‚sultats en fonction de type de piŠce 
-         -- MANTIS		: B15254 [Paniers] R‚alisation des PS Paniers
-         -- =======================================================================================================================================
-         -- DSZ 29/07/2013 15558
-         -- =======================================================================================================================================
-         -- DSZ 30/08/2103 15558 gerer le cas ou il n'y pas de session. pas trŠs logique pour moi.
-         -- =======================================================================================================================================
-         -- DSZ 17/10/2103 15914 retourner un bon chemin pour la facture
-         -- =======================================================================================================================================
-         -- DSZ 05/11/2013 16337 @TYPE_PIECE doit ˆtre 50 et non pas 10
-         -- Corrig‚ le cas sans session
-         -- =======================================================================================================================================
-         -- DSZ 08/11/2013 16337 correction resultat PRO pour qu'il ne retourne pas toujours null
-         -- =======================================================================================================================================
-         -- ASD 22/11/2013 16438 correction Create #TMP_REGLEMENT : il manquait NUM_FILE
-         -- =======================================================================================================================================
-         -- DSZ 26/11/2013 16359 ajout ann‚e (de la date d'emission) au chemin de la facture
-         -- =======================================================================================================================================
-         -- DSZ 02/12/2013 15555 ajout ann‚e (de la date d'emission) aux chemins
-         -- =======================================================================================================================================
-         -- OPA + LDE 06/02/2014 16915: BBL -affichage du document FACT dans optiform
-         -- =======================================================================================================================================
-         -- LDE 31/03/2014 US#247
-         -- =======================================================================================================================================
-         -- DSZ 18/04/2014 US#284 lors de l'appel de CHEMIN_PIECE pour une piŠce ayant un type facture 
-         -- avec id_facture null,la rŠgle de nommage doit renvoyer NULL
-         -- =======================================================================================================================================
-         -- OPA 16/05/2014 US#313	En tant qu'utilisateur systŠme D3R, lorsque je veux r‚cup‚rer le chemin de stockage d'une piŠce 
-         -- qui a d‚j… fait l'objet d'une relance, je veux que la proc‚dure CHEMIN_PIECE me fournisse ce chemin.
-         -- =======================================================================================================================================
-         -- BBL PIECE PRO : Utilisation du code contrat pro et non l'id
-         -- =======================================================================================================================================
-         
          CREATE PROCEDURE [dbo].[CHEMIN_PIECE]
          	@TYPE_PIECE VARCHAR(50),
          	@ID_FACTURE INT,
@@ -5648,10 +4543,10 @@ GO
           	@COD_DOSSIER varchar (12),
          	@TYPE_DOSSIER VARCHAR(3),
          	@RESULT_CHEMIN_PIECE varchar(255) OUTPUT
-         
+
          AS
          BEGIN
-         
+
          	DECLARE @ID_ACTION INT
          	DECLARE @ID_CONTRAT_PRO INT
          	DECLARE @ID_MODULE INT
@@ -5662,18 +4557,17 @@ GO
          	DECLARE @ID_POSTE_COUT INT
          	DECLARE @REPERTOIRE VARCHAR(300)
          	DECLARE @COD_PIECE varchar(10)
-         
+
          	SELECT @COD_PIECE = DBO.GET_TYPE_PIECE_PEC(@TYPE_PIECE)
          	IF @ID_FACTURE IS  NULL AND @COD_PIECE = 'FACT'	
          	BEGIN
          		SET @RESULT_CHEMIN_PIECE = NULL
          		RETURN
          	END	
-         
+
          	IF @TYPE_DOSSIER = 'PEC'
          	BEGIN
-         
-         		--15914 
+
          		IF @ID_FACTURE IS NOT NULL AND @COD_PIECE = 'FACT'		 		 
          		 BEGIN
          			SELECT @REPERTOIRE = REPERTOIRE + CASE WHEN PATINDEX('%\', REPERTOIRE) = LEN(REPERTOIRE) THEN '' ELSE '\' END
@@ -5687,8 +4581,7 @@ GO
          		 END
          		ELSE
          			BEGIN
-         
-         			-- Table pour insertion du r‚sultat de la proc‚dure LEC_GRP_PIECES_MODULE_NOUVEAU
+
          			CREATE TABLE #TMP_MODULE_PEC 
          			(
          				ID_MODULE INT,
@@ -5724,8 +4617,7 @@ GO
          				NUM_FILE INT,
          				ID_UTILISATEUR INT
          			)
-         
-         			-- Table pour insertion du r‚sultat de la proc‚dure LEC_GRP_PIECES_SESSION_NOUVEAU
+
          			CREATE TABLE #TMP_SESSION_PEC 
          			(
          				ID_MODULE INT,
@@ -5757,8 +4649,7 @@ GO
          				ID_INDIVIDU INT,
          				BLN_AUTRES BIT
          			)
-         
-         			-- Table pour insertion du r‚sultat de la proc‚dure LEC_GRP_PIECES_REGLEMENT_NOUVEAU
+
          			CREATE TABLE #TMP_REGLEMENT 
          			(
          				REPERTOIRE VARCHAR(250),
@@ -5778,15 +4669,14 @@ GO
          				BLN_AUTRES BIT,
          				NUM_FILE int
          			)
-         
+
          			 SET @ID_ACTION = @ID_DOSSIER
-         		 
+
          			 DECLARE @ANNEE_ACTION_PEC VARCHAR(4)
          			 SELECT @ANNEE_ACTION_PEC = CAST(ANNEE_ACTION_PEC AS VARCHAR(4)) FROM ACTION_PEC WHERE ID_ACTION_PEC = @ID_ACTION 
-         		 
-         	 
+
          			 DECLARE CURSOR_SESSION CURSOR FOR
-         
+
          				 SELECT SESSION_PEC.ID_SESSION_PEC, 
          						MODULE_PEC.ID_ACTION_PEC,  
          						MODULE_PEC.COD_MODULE_PEC,
@@ -5796,7 +4686,7 @@ GO
          						INNER JOIN ACTION_PEC ON ACTION_PEC.ID_ACTION_PEC = MODULE_PEC.ID_ACTION_PEC 
          						INNER JOIN VUE_MODULES_VISIBLES_PANIERS MODULES_VISIBLES ON MODULES_VISIBLES.id_module_pec = MODULE_PEC.ID_MODULE_PEC
          						AND ACTION_PEC.ID_ACTION_PEC = @ID_DOSSIER
-         
+
          				OPEN CURSOR_SESSION
          				FETCH NEXT FROM CURSOR_SESSION INTO @ID_SESSION, @ID_MODULE, @COD_MODULE, @COD_SESSION_PEC
          				WHILE @@FETCH_STATUS = 0   
@@ -5806,7 +4696,7 @@ GO
          					  ,@ID_MODULE
          					  ,@ID_SESSION
          					  ,@COD_SESSION_PEC
-         
+
          					INSERT INTO #TMP_REGLEMENT EXECUTE [LEC_GRP_PIECES_REGLEMENT_NOUVEAU] 
          					   @IS_CREATION
          					  ,@ID_POSTE_COUT
@@ -5819,21 +4709,20 @@ GO
          			DECLARE @BLN_CREER_PIECES_SESSION BIT = 0
          			IF NOT EXISTS (SELECT 1 FROM #TMP_REGLEMENT )
          				SET @BLN_CREER_PIECES_SESSION = 1
-         		
-         
+
          			DECLARE CURSOR_MODULE CURSOR FOR
          				SELECT	MODULE_PEC.ID_MODULE_PEC, COD_MODULE_PEC
-         
+
          				FROM	MODULE_PEC INNER JOIN
          						ACTION_PEC ON MODULE_PEC.ID_ACTION_PEC = ACTION_PEC.ID_ACTION_PEC
          						INNER JOIN VUE_MODULES_VISIBLES_PANIERS MODULES_VISIBLES ON MODULES_VISIBLES.ID_MODULE_PEC = MODULE_PEC.ID_MODULE_PEC
          						AND ACTION_PEC.ID_ACTION_PEC = @ID_DOSSIER
-         
+
          				OPEN CURSOR_MODULE
          				FETCH NEXT FROM CURSOR_MODULE INTO @ID_MODULE, @COD_MODULE
          				WHILE @@FETCH_STATUS = 0   
          				BEGIN
-         			
+
          				INSERT INTO #TMP_MODULE_PEC EXECUTE [LEC_GRP_PIECES_MODULE_NOUVEAU] 
          					   @ID_DOSSIER
          					  ,@ID_MODULE
@@ -5845,15 +4734,12 @@ GO
          						  ,NULL
          						  ,@ID_MODULE
          						  ,@COD_MODULE
-         
-         	 
-         
+
          					FETCH NEXT FROM CURSOR_MODULE INTO @ID_MODULE, @COD_MODULE
          				END
          			CLOSE CURSOR_MODULE
          			DEALLOCATE CURSOR_MODULE
-         		
-         
+
          			SELECT @RESULT_CHEMIN_PIECE = CHEMIN_PIECE FROM
          			(
          			SELECT REPERTOIRE + @ANNEE_ACTION_PEC + '\'+ dbo.REMOVE_EXTENSION(NOM_FICHIER) AS CHEMIN_PIECE 
@@ -5870,11 +4756,10 @@ GO
          			) AS A
          		END
          	END
-         
-         
+
          	IF @TYPE_DOSSIER = 'PRO'
          	BEGIN
-         	-- TABLE POUR INSERTION DU RSULTAT DE LA PROCDURE LEC_GRP_ARRIVEE_PIECES_PRO
+
          		CREATE TABLE #TMP_PRO 
          		(
          			ID_PIECE_PRO INT,
@@ -5913,15 +4798,14 @@ GO
          			NOM_FICHIER VARCHAR(250)
          		)
          		SET @ID_CONTRAT_PRO = @ID_DOSSIER
-         		
-         		--LEC_GRP_ARRIVEE_PIECES_PRO 309166,1,1,1,1
+
          		INSERT INTO #TMP_PRO EXECUTE LEC_GRP_ARRIVEE_PIECES_PRO 
          			   @ID_CONTRAT_PRO
          			  ,1
          			  ,1
          			  ,1
          			  ,1	
-         
+
          		SELECT	@RESULT_CHEMIN_PIECE = REPERTOIRE + CASE WHEN PATINDEX('%\', REPERTOIRE) = LEN(REPERTOIRE) THEN '' ELSE '\' END + 
          		CASE 
          			WHEN COD_PIECE_PRO IN ('FACTADH', 'FACTOF') 
@@ -5944,27 +4828,22 @@ GO
          		WHERE	#TMP_PRO.COD_PIECE_PRO LIKE DBO.GET_TYPE_PIECE_PRO(@TYPE_PIECE)+'%'
          	END
          END
-         
- -- =============================================
-         -- Author:		Dorota Szeliga
-         -- Create date: 11/03/2008
-         -- Description:	Compteur pour COD_ACTION_PEC. Returns COD_ACTION
-         -- =============================================
+
          CREATE PROCEDURE [dbo].[ACTION_COMPTEUR]
          	@ACTION_ANNEE int
          AS
          BEGIN
-         	-- get the existing counter
+
          	DECLARE	@@COMPTEUR int
          	DECLARE @@COD_CPT varchar(11)
-         
+
          	SET @@COD_CPT = 'ACTION '+convert(varchar(4), @ACTION_ANNEE)
-         
+
          	SELECT @@COMPTEUR = NUM_CPT 
          	FROM COMPTEUR 
          	WHERE COD_CPT = @@COD_CPT
-         
-         	IF @@COMPTEUR is null --if no counter found for this year let's create it
+
+         	IF @@COMPTEUR is null 
          		BEGIN
          			SET @@COMPTEUR = 1
          			insert into COMPTEUR (COD_CPT, NUM_CPT, BLN_BLOQUE)
@@ -5978,7 +4857,7 @@ GO
          		END
          RETURN  @@COMPTEUR
          END
-         
+
  CREATE PROCEDURE [dbo].[EDT_GENERATION_RECU_DSP]
           @ID_DESTINATAIRE INT,
           @ID_BENEFICIAIRE INT,
@@ -5987,17 +4866,7 @@ GO
           @EDT_ID_PERIODE  INT,
           @_ANOMALIE   VARCHAR(3)
          AS
-         -- ===================================================================================================================
-         -- Author:  DSZ
-         -- Create date: 12/03/13
-         -- Description: 14770 Re‡u DSP 4 :  sort un XML et cr‚e un re‡u 
-         --    dont les 3 BLN de type de recu (lib‚ratoire, versement, VV) sont … z‚ro.
-         -- ===================================================================================================================
-         -- 15114 DSZ 22/04/2013
-         -- ===================================================================================================================
-         -- OPA #259 En tant qu'utilisateur Optiform Habilit‚, je souhaite, lorsque j'‚dite un Re‡u de versement avec DSP, 
-         -- que l'ann‚e indiqu‚e soit bien celle du versement et que l'adresse puisse s'afficher dans une fenˆtre … enveloppe
-         -- ===================================================================================================================
+
          BEGIN
           DECLARE
            @RAISON_SOCIALE VARCHAR(64),
@@ -6006,19 +4875,19 @@ GO
            @ID_RECU  VARCHAR(10),
            @ID_BRANCHE  INT,
            @SIREN   VARCHAR(14)
-         
+
           SELECT
            @ID_ADHERENT = ETABLISSEMENT.ID_ADHERENT,
            @ID_BRANCHE = ETABLISSEMENT.ID_BRANCHE,
            @SIREN = CONVERT(VARCHAR(14),
-           cast(ADHERENT.NUM_SIREN as money),  1) --avec ',' pour s‚parer les miliers
+           cast(ADHERENT.NUM_SIREN as money),  1) 
           FROM
            ETABLISSEMENT
            INNER JOIN ADHERENT
             ON ADHERENT.ID_ADHERENT = ETABLISSEMENT.ID_ADHERENT
           WHERE
            ID_ETABLISSEMENT = @ID_DESTINATAIRE
-         
+
           SELECT
            @RAISON_SOCIALE = ADHERENT.LIB_RAISON_SOCIALE
           FROM
@@ -6027,17 +4896,14 @@ GO
             ON ADHERENT.ID_ADHERENT = ETABLISSEMENT.ID_ADHERENT
           WHERE
            ID_ETABLISSEMENT = @ID_BENEFICIAIRE
-          
+
           SET
-           @SIREN = REPLACE(LEFT(@SIREN, LEN(@SIREN) - 3),',','') --remplace ',' par ' ' et supprimer '.00' … la fin
-          
-          --* Raison sociale et coordonn‚es du destinataire :
-          --on prend l'‚tablissement principal s'il est plasturgiste, sinon
-          --on prend le premier ‚tablissement en plasturgie.
+           @SIREN = REPLACE(LEFT(@SIREN, LEN(@SIREN) - 3),',','') 
+
           DECLARE
            @ID_ETAB_PLASTURGIE INT,
-           @NOMBRE_ETABS INT -- Nombre d'‚tablissements concern‚s : nb d'‚tablissements actifs de plasturgie de cet adh‚rent
-         
+           @NOMBRE_ETABS INT 
+
           SELECT
            @ID_ETAB_PLASTURGIE = MIN(ID_ETABLISSEMENT),
            @NOMBRE_ETABS = COUNT(ID_ETABLISSEMENT)
@@ -6047,17 +4913,16 @@ GO
            ID_ADHERENT = @ID_ADHERENT
            AND ID_BRANCHE = 13
            AND BLN_ACTIF = 1
-          
-          IF (@ID_BRANCHE <> 13) -- pas plasturgie
+
+          IF (@ID_BRANCHE <> 13) 
           BEGIN
            IF (@ID_ETAB_PLASTURGIE IS NULL)
            BEGIN
-            RETURN --pas d'etablissement en plasturgie
+            RETURN 
            END
            SET @ID_BENEFICIAIRE = @ID_ETAB_PLASTURGIE
           END
-         
-          --cr‚er un re‡u
+
           IF (@_Anomalie = 'non' 
            AND NOT EXISTS
             (
@@ -6081,7 +4946,7 @@ GO
             0,
             1
           END
-          
+
           SELECT
            @ID_RECU = ID_RECU,
            @COD_RECU = COD_RECU
@@ -6092,11 +4957,10 @@ GO
            AND  ID_ADHERENT = @ID_ADHERENT
            AND  ID_PERIODE = @EDT_ID_PERIODE
            AND  ID_TYPE_RECU = 4
-           --cumul des MS r‚elles pour la p‚riode du poste versement des ‚tablissements actifs de plasturgie de cet adh‚rent
-          
+
           DECLARE
            @MASSE_SALARIALE DECIMAL(18,2)
-          
+
           SELECT
            @MASSE_SALARIALE = SUM(R21_BIS.MASSE_SALARIALE_REELLE)
           FROM
@@ -6108,12 +4972,10 @@ GO
            AND ETABLISSEMENT.BLN_ACTIF = 1
            AND R21_BIS.ID_PERIODE = @EDT_ID_PERIODE
            AND ETABLISSEMENT.ID_ADHERENT = @ID_ADHERENT
-          
+
           DECLARE
            @CONTRIBUTION DECIMAL(18,2)
-          
-          --  Contribution vers‚e : montant du versement AGPP
-          -- (les r‚gul et reversements sont pris en compte)
+
           SELECT
            ETABLISSEMENT.NUM_SIRET,
            SUM (POSTE_IMPUTATION.MNT_HT - POSTE_IMPUTATION.DONT_REGLE_FPSPP) AS CONTRIBUTION
@@ -6141,7 +5003,7 @@ GO
            POSTE_VERSEMENT.ID_ETABLISSEMENT_BENEFICIAIRE, ETABLISSEMENT.NUM_SIRET
           HAVING
            SUM (POSTE_IMPUTATION.MNT_HT - POSTE_IMPUTATION.DONT_REGLE_FPSPP) > 0
-          
+
           SELECT
            CONVERT(VARCHAR(12), GETDATE(), 103) AS DAT_EDITION,
            @SIREN AS SIREN,
@@ -6152,15 +5014,14 @@ GO
            PERIODE
           WHERE
            PERIODE.ID_PERIODE = @EDT_ID_PERIODE
-          
+
           SELECT
            @CONTRIBUTION = SUM(CONTRIBUTION)
           FROM
            #CONTRIB_ETABS
-          
-          -- XML Generation
+
           SELECT
-           -- Recuperation des informations sur le contact
+
            (
             SELECT
              @RAISON_SOCIALE AS LIB_RAISON_SOCIALE,
@@ -6183,7 +5044,7 @@ GO
              ADRESSE.ID_ADRESSE = @ID_ADRESSE
             FOR XML AUTO, ELEMENTS, TYPE
            ),
-           /***************** ENTETE DE LA LETTRE *******************************************************/
+
            (
             SELECT
              DAT_EDITION,
@@ -6193,7 +5054,7 @@ GO
              #PERIODE
             FOR XML PATH('ENTETE'), TYPE
            ),
-           /***************** CORPS DE LA LETTRE *******************************************************/
+
            (
             SELECT
              @NOMBRE_ETABS AS NOMBRE,
@@ -6218,36 +5079,6 @@ GO
           FOR XML RAW('LETTRE'), ELEMENTS
          END
 
-
-         -- =============================================
-         -- Author		: Say
-         -- Create date	: 12 oct. 2007
-         -- Description	: proc‚dure r‚cup‚rant les donn‚es pour un salari‚ pro donn‚e
-         -- ---------------------------------------------
-         -- Modified date: 12 oct. 2007
-         -- comment		: # ajout du nombre de contrat pro g‚r‚ par le tuteur
-         -- ---------------------------------------------
-         -- Modified date: 10 d‚c. 2007
-         -- comment		: # ajout du nombre d'heures totales d‚di‚es … l'enseignement pour l'ensemble 
-         --					des modules de formation du contrat de professionnalisation.
-         -- ---------------------------------------------
-         -- Modified date: 28 ao–t. 2008
-         -- comment		: # Ajout utilisateur createur
-         --					des modules de formation du contrat de professionnalisation.
-         -- ---------------------------------------------
-         -- Author		: RMA
-         -- Modified date: 05/12/2008
-         -- comment		: # Evol.1 210 
-         --				  [DAT_BAP] => [DAT_BAP_OF - DAT_BAP_ADH]
-         --				  [ID_SESSION_BAP_PRO] => [ID_SESSION_BAP_PRO_OF - ID_SESSION_BAP_PRO_ADH]
-         -- =============================================
-         -- Author		: MBT
-         -- Modified date: 02/03/2010
-         -- comment		: EVOL 12301
-         -- =============================================
-         -- OPA 31/05/2013 : 15031 : SBR - suppression du type FLOAT et REAL dans le SQL : 2- FLOAT
-         -- =============================================
-         
          CREATE PROCEDURE [dbo].[LEC_DET_CONTRAT_PRO]
          	@ID_CONTRAT_PRO				AS INT,
          	@ID_UTILISATEUR				AS INT = NULL
@@ -6258,13 +5089,13 @@ GO
          	SET @CPT	= 0
          	SET @NB		= 0
          	SET @COD_UTILISATEUR_CREATEUR		= NULL
-         
+
          	SELECT @CPT = count(*) 
          		FROM SESSION_PRO 
          			INNER JOIN MODULE_PRO		ON MODULE_PRO.ID_MODULE_PRO = SESSION_PRO.ID_MODULE_PRO
-         		  --WHERE DAT_BAP is not null AND MODULE_PRO.ID_CONTRAT_PRO = @ID_CONTRAT_PRO
+
          			WHERE (DAT_BAP_OF IS NOT NULL OR DAT_BAP_ADH IS NOT NULL) AND MODULE_PRO.ID_CONTRAT_PRO = @ID_CONTRAT_PRO
-         
+
          	SELECT @NB = count(C.ID_CONTRAT_PRO)
          		FROM CONTRAT_PRO C
          			INNER JOIN CONTRAT_PRO C1	on	C1.ID_ETABLISSEMENT = C.ID_ETABLISSEMENT AND C1.ID_TUTEUR = C.ID_TUTEUR 
@@ -6276,29 +5107,26 @@ GO
          			C.BLN_ACTIF			= 1		AND 
          			C.ID_ETAT_CONTRAT_PRO <> 7	AND
          			C.ID_CONTRAT_PRO <> C1.ID_CONTRAT_PRO
-         
+
          	SELECT @NB_UNITE_FORMATION_TOT = SUM(MODULE_PRO.NB_UNITE_FORMATION) 
          		FROM MODULE_PRO
          			INNER JOIN TYPE_FORMATION	on	TYPE_FORMATION.ID_TYPE_FORMATION = MODULE_PRO.ID_TYPE_FORMATION
          		WHERE @ID_CONTRAT_PRO is not null	AND MODULE_PRO.ID_CONTRAT_PRO = @ID_CONTRAT_PRO AND
          				MODULE_PRO.BLN_ACTIF = 1	AND 
-         				COD_TYPE_FORMATION <> 'FTUT' --[RMA] AND COD_TYPE_FORMATION <> 'MAJOCDI'
-         
+         				COD_TYPE_FORMATION <> 'FTUT' 
+
          	SELECT @COD_UTILISATEUR_CREATEUR = (SELECT UTILISATEUR.COD_UTIL
          		FROM UTILISATEUR 
          		INNER JOIN CONTRAT_PRO ON UTILISATEUR.ID_UTILISATEUR = CONTRAT_PRO.ID_UTILISATEUR_CREATEUR
          		WHERE CONTRAT_PRO.ID_CONTRAT_PRO = @ID_CONTRAT_PRO)
-         		
+
          DECLARE @DOB DATETIME
-         
-         
-         /** MBT - EVOL 12301 - le 02/03/2010 **/
+
          SELECT @DOB = INDIVIDU.DAT_NAISSANCE 
          FROM CONTRAT_PRO
          LEFT JOIN INDIVIDU ON INDIVIDU.ID_INDIVIDU = CONTRAT_PRO.ID_TUTEUR
          WHERE CONTRAT_PRO.ID_CONTRAT_PRO = @ID_CONTRAT_PRO
-         /** Fin MBT **/
-         																								
+
          	SELECT 
          		CONTRAT_PRO.*,
          		@DOB					AS DAT_NAISSANCE_TUTEUR,
@@ -6324,45 +5152,31 @@ GO
          	WHERE
          		CONTRAT_PRO.ID_CONTRAT_PRO	= @ID_CONTRAT_PRO
          END
-         -- ---------------------------------------------
-         
+
  CREATE PROCEDURE [dbo].[GET_COMPTEUR_SUIVANT]
          	@COD_CPT VARCHAR(25)
          AS
          BEGIN
          	DECLARE @compteur [int]
-         
+
          	SELECT @compteur = NUM_CPT
          	FROM COMPTEUR
          	WHERE COD_CPT = @COD_CPT
-         
+
          	UPDATE 	COMPTEUR
          		SET NUM_CPT = @compteur + 1
          		WHERE COD_CPT = @COD_CPT
-         		
-         	
+
          	RETURN @compteur
          END
-         
-		 
-		         -- =================================================================================
-         -- LDE + OPA 21/05/2013 14672: DNE - [Demandeur d'emploi] - (1) - Nouvelle Edition pour envoi … l'adresse priv‚e du salari‚ : CSP et DIF portable
-         -- ---------------------------------------------------------------------------------
-         -- DSZ 15365 28/06/2013
-         -- ---------------------------------------------------------------------------------
-         -- DSZ 15547 30/07/2013
-         -- =================================================================================
-         -- OPA 15830 16/01/2014 IBO - Correction sur courrier CSP demandeur d'emploi
-         -- =================================================================================
+
          CREATE PROCEDURE [dbo].[EDT_LETTRE_PEC_ACCORD_DX97_CSP]
          	@ID_STAGIAIRE int,
          	@ID_ETABLISSEMENT int,
          	@ID_MODULE int
          AS
          BEGIN
-         
-         --============================B‚n‚ficiaire===============================
-         
+
          SELECT 
          	CASE WHEN i.BLN_MASCULIN = 1
          		THEN 'Monsieur'
@@ -6384,12 +5198,7 @@ GO
          	INNER JOIN HEXAPOSTE AS h ON h.ID_HEXAPOSTE = a.ID_HEXAPOSTE
          	left join COMP_NUM_ADR on a.ID_COMP_NUM_ADR = COMP_NUM_ADR.ID_COMP_NUM_ADR 
          	WHERE st.ID_STAGIAIRE_PEC = @ID_STAGIAIRE
-         	
-         --=======================================================================
-         
-         
-         --==========================Entˆte et Corps==============================
-         
+
          SELECT LTRIM(CR.LIB_PNM) AS LIB_PRENOM_CHARGE_RELATION,
          	LTRIM(CR.LIB_NOM) AS LIB_NOM_CHARGE_RELATION,
          	CR.EMAIL,
@@ -6416,15 +5225,11 @@ GO
          	INNER JOIN ORGANISME_FORMATION ON ORGANISME_FORMATION.ID_OF = ETABLISSEMENT_OF.ID_OF
          	INNER JOIN POSTE_COUT_ENGAGE ON POSTE_COUT_ENGAGE.ID_MODULE_PEC = MODULE_PEC.ID_MODULE_PEC AND POSTE_COUT_ENGAGE.DAT_DESENGAGEMENT IS NULL
          	INNER JOIN SOUS_TYPE_COUT ON SOUS_TYPE_COUT.ID_SOUS_TYPE_COUT = POSTE_COUT_ENGAGE.ID_SOUS_TYPE_COUT AND SOUS_TYPE_COUT.COD_SOUS_TYPE_COUT = 'CP';
-         
-         --=======================================================================
-         
-         /*****  Creation du flux XML *******************************************************************************/
+
          WITH XMLNAMESPACES (
          	DEFAULT 'EDT_LETTRE_PEC_ACCORD_DX97_CSP'
          )
-         /************************************************************************************************************/
-         
+
          SELECT
          	(SELECT
          			CONTACT_CIVILITE,
@@ -6471,21 +5276,11 @@ GO
          		FOR XML AUTO, ELEMENTS, TYPE)
          FROM	#TMP_GENERAL as LETTRE
          	FOR XML AUTO, ELEMENTS
-         
+
          END
-         
- -- =============================================
-         -- modif DSZ 08/07/2011 12827
-         -- le @COD TIERS ne peut pas ˆtre int -> pass‚ en varchar(20)
-         -- =============================================
-         -- OPA 31/05/2013 : 15031 : SBR - suppression du type FLOAT et REAL dans le SQL : 2- FLOAT
-         -- =============================================
-         -- HBO - 141113 - M16371: Lot 1 - Modification structure de donn‚es / proc‚dures stock‚es
-         -- =============================================
-         -- HBO - 201113 - M16378: Lot 1 - Editions
-         -- =============================================
+
          CREATE PROCEDURE EDT_BORDEREAUX
-         	@IDS_BORDEREAU varchar(500)	-- List of ID_BORDEREAU separated with ',' without spaces - i.e.: 1,2,3,4,5,6
+         	@IDS_BORDEREAU varchar(500)	
          with recompile
          AS
          	BEGIN
@@ -6507,11 +5302,11 @@ GO
          			@CHQ_CPT int,
          			@OLD_COD_BORDEREAU int,
          			@OLD_ID_POSTE_VERSEMENT int
-         	
+
          		SET @OLD_COD_BORDEREAU = 0
          		SET @OLD_ID_POSTE_VERSEMENT = 0
          		SET @CHQ_CPT = 0
-         
+
          		CREATE TABLE #TMP_DATA
          		(
          			LIB_NOM varchar(35),
@@ -6526,9 +5321,9 @@ GO
          			TOTAL_HT decimal(18,2),
          			NUM_CHEQ int
          		)
-         		-- Create a temporary table which contains IDs
+
          		CREATE TABLE #List(Item int)
-         		
+
          		DECLARE @Delimiter char
          		SET @Delimiter = ','
          		WHILE CHARINDEX(@Delimiter,@IDS_BORDEREAU,0) <> 0
@@ -6536,17 +5331,16 @@ GO
          				SELECT
          					@Item=RTRIM(LTRIM(SUBSTRING(@IDS_BORDEREAU,1,CHARINDEX(@Delimiter,@IDS_BORDEREAU,0)-1))),
          					@IDS_BORDEREAU=RTRIM(LTRIM(SUBSTRING(@IDS_BORDEREAU,CHARINDEX(@Delimiter,@IDS_BORDEREAU,0)+1,LEN(@IDS_BORDEREAU))))
-         
+
          				IF LEN(@Item) > 0
          					INSERT INTO #List
          					SELECT @Item
          			END
-         
+
          		IF LEN(@IDS_BORDEREAU) > 0
          			INSERT INTO #List
-         			SELECT @IDS_BORDEREAU -- Put the last item in
-         
-         		-- Start the selection
+         			SELECT @IDS_BORDEREAU 
+
          		DECLARE CURSOR_DATA CURSOR FOR
          		SELECT
          			UTILISATEUR.LIB_NOM,
@@ -6556,12 +5350,12 @@ GO
          			TIERS.COD_TIERS,
          			ADHERENT.LIB_RAISON_SOCIALE,
          			TIERS.LIB_NOM,
-         			--POSTE_VERSEMENT.ID_POSTE_VERSEMENT,
+
          			VERSEMENT.ID_VERSEMENT,
          			VERSEMENT.LIB_BANQUE,
          			VERSEMENT.NUM_CHEQUE,
          			VERSEMENT.DAT_SAISIE,
-         			/* La variable TOTAL_HT contient en realitÇ¸ le montant TTC des postes d'imputations*/
+
          			SUM(POSTE_IMPUTATION.MNT_TTC) as TOTAL_HT
          		FROM
          			BORDEREAU
@@ -6584,19 +5378,18 @@ GO
          			ADHERENT.LIB_RAISON_SOCIALE,
          			TIERS.LIB_NOM,
          			VERSEMENT.ID_VERSEMENT,
-         			--POSTE_VERSEMENT.ID_POSTE_VERSEMENT,
+
          			VERSEMENT.LIB_BANQUE,
          			VERSEMENT.NUM_CHEQUE,
          			VERSEMENT.DAT_SAISIE
          		ORDER BY
          			BORDEREAU.COD_BORDEREAU,
-         			--POSTE_VERSEMENT.ID_POSTE_VERSEMENT,
+
          			VERSEMENT.ID_VERSEMENT,
          			ADHERENT.COD_ADHERENT
-         
-         		-- Parcours des activit?s concern?es pour trouver le montant d?
+
          		OPEN CURSOR_DATA
-         		FETCH NEXT FROM CURSOR_DATA INTO @LIB_NOM, @LIB_PNM, @COD_BORDEREAU, @COD_ADHERENT, @COD_TIERS, @LIB_RAISON_SOCIALE, @NOM_TIERS, /*@ID_POSTE_VERSEMENT,*/ @ID_VERSEMENT, @LIB_BANQUE, @NUM_CHEQUE, @DAT_SAISIE, @TOTAL_HT
+         		FETCH NEXT FROM CURSOR_DATA INTO @LIB_NOM, @LIB_PNM, @COD_BORDEREAU, @COD_ADHERENT, @COD_TIERS, @LIB_RAISON_SOCIALE, @NOM_TIERS,  @ID_VERSEMENT, @LIB_BANQUE, @NUM_CHEQUE, @DAT_SAISIE, @TOTAL_HT
          		WHILE @@FETCH_STATUS = 0
          			BEGIN
          				IF (@COD_BORDEREAU <> @OLD_COD_BORDEREAU)
@@ -6604,10 +5397,9 @@ GO
          						SET @CHQ_CPT = 0
          						SET @OLD_COD_BORDEREAU = @COD_BORDEREAU
          					END
-         
-         				--	IF (@ID_POSTE_VERSEMENT <> @OLD_ID_POSTE_VERSEMENT)
+
          				SET @CHQ_CPT = @CHQ_CPT + 1
-         		
+
          				INSERT INTO #TMP_DATA VALUES
          				(
          					@LIB_NOM,
@@ -6615,18 +5407,18 @@ GO
          					@COD_BORDEREAU,
          					isnull(cast(@COD_ADHERENT as varchar(20)), @COD_TIERS),
          					isnull(@LIB_RAISON_SOCIALE,@NOM_TIERS),
-         					0,--@ID_POSTE_VERSEMENT, 
+         					0,
          					@LIB_BANQUE,
          					@NUM_CHEQUE,
          					@DAT_SAISIE,
          					@TOTAL_HT,
          					@CHQ_CPT
          				)
-         				FETCH NEXT FROM CURSOR_DATA INTO @LIB_NOM, @LIB_PNM, @COD_BORDEREAU, @COD_ADHERENT, @COD_TIERS, @LIB_RAISON_SOCIALE, @NOM_TIERS, /*@ID_POSTE_VERSEMENT,*/ @ID_VERSEMENT, @LIB_BANQUE, @NUM_CHEQUE, @DAT_SAISIE, @TOTAL_HT
+         				FETCH NEXT FROM CURSOR_DATA INTO @LIB_NOM, @LIB_PNM, @COD_BORDEREAU, @COD_ADHERENT, @COD_TIERS, @LIB_RAISON_SOCIALE, @NOM_TIERS,  @ID_VERSEMENT, @LIB_BANQUE, @NUM_CHEQUE, @DAT_SAISIE, @TOTAL_HT
          			END
          		CLOSE CURSOR_DATA
          		DEALLOCATE CURSOR_DATA
-         	
+
          		SELECT
          			#TMP_DATA.*,
          			TRANSIT.NUM_IBAN_TRANSIT as NUM_COMPTE,
@@ -6636,27 +5428,16 @@ GO
          			#TMP_DATA, TRANSIT
          	END
 
-
-         
-         
-         
-         
-         -- =============================================================
-         -- Author		: WOOLLAMS
-         -- Create date	: 31 janvier 2008
-         -- Description	: Lettre de relance d'engagement contrat pro adh
-         -- Mise a jour des date de relance pour les courier edit‚s
-         -- =============================================================
          CREATE PROCEDURE [dbo].[UPD_DATE_LETTRE_RELANCE_ENGAGEMENT_CONTRAT_PRO_ADH]
-         	@CODS_CONTRAT_PRO TEXT	-- List of cod_contrat_pro separated with ',' without spaces - i.e.: 1,2,3,4,5,6
+         	@CODS_CONTRAT_PRO TEXT	
          AS
-         
+
          BEGIN
-         
+
          	DECLARE @Item VARCHAR(12);
-         	-- Create a temporary table which contains IDs
+
          	CREATE TABLE #List(Item VARCHAR(12)  collate French_CI_AI)
-         	
+
          	DECLARE @Delimiter char
          	SET @Delimiter = ','
          	WHILE CHARINDEX(@Delimiter,@CODS_CONTRAT_PRO,0) <> 0
@@ -6664,15 +5445,14 @@ GO
          		SELECT
          			@Item=RTRIM(LTRIM(SUBSTRING(@CODS_CONTRAT_PRO,1,CHARINDEX(@Delimiter,@CODS_CONTRAT_PRO,0)-1))),
          			@CODS_CONTRAT_PRO=RTRIM(LTRIM(SUBSTRING(@CODS_CONTRAT_PRO,CHARINDEX(@Delimiter,@CODS_CONTRAT_PRO,0)+1,DATALENGTH(@CODS_CONTRAT_PRO))))
-         
+
          		IF LEN(@Item) > 0
          			INSERT INTO #List SELECT @Item
          	END
-         
+
          	IF DATALENGTH(@CODS_CONTRAT_PRO) > 0
          		INSERT INTO #List SELECT @CODS_CONTRAT_PRO
-         
-         
+
          	SELECT      CONTRAT_PRO.ID_CONTRAT_PRO, 
          				ARRIVEE_PIECE_PRO.ID_ARRIVEE_PIECE_PRO, 
          				ARRIVEE_PIECE_PRO.DAT_RELANCE_ENGAGE_1, 
@@ -6714,7 +5494,7 @@ GO
          							)
          				)
          	UNION
-         
+
          	SELECT  CONTRAT_PRO.ID_CONTRAT_PRO, 
          			ARRIVEE_PIECE_PRO.ID_ARRIVEE_PIECE_PRO, 
          			ARRIVEE_PIECE_PRO.DAT_RELANCE_ENGAGE_1, 
@@ -6757,7 +5537,7 @@ GO
          									(APP.DAT_RELANCE_ENGAGE_3 IS NOT NULL)														
          							)
          				)
-         	--1iere relance
+
          	UPDATE	ARRIVEE_PIECE_PRO
          	SET		ARRIVEE_PIECE_PRO.DAT_RELANCE_ENGAGE_1 = GETDATE()
          	WHERE	ARRIVEE_PIECE_PRO.ID_ARRIVEE_PIECE_PRO	IN 
@@ -6768,8 +5548,7 @@ GO
          						AND #TEMP.DAT_RELANCE_ENGAGE_2 IS NULL
          						AND #TEMP.DAT_RELANCE_ENGAGE_3 IS NULL 
          			)
-         
-         	--2ieme relance
+
          	UPDATE	ARRIVEE_PIECE_PRO
          	SET		ARRIVEE_PIECE_PRO.DAT_RELANCE_ENGAGE_2 = GETDATE()
          	WHERE	ARRIVEE_PIECE_PRO.ID_ARRIVEE_PIECE_PRO	IN 
@@ -6780,8 +5559,7 @@ GO
          						AND	#TEMP.DAT_RELANCE_ENGAGE_2 IS NULL
          						AND #TEMP.DAT_RELANCE_ENGAGE_3 IS NULL
          			)
-         
-         	--3ieme relance
+
          	UPDATE	ARRIVEE_PIECE_PRO
          	SET		ARRIVEE_PIECE_PRO.DAT_RELANCE_ENGAGE_3 = GETDATE()
          	WHERE	ARRIVEE_PIECE_PRO.ID_ARRIVEE_PIECE_PRO	IN 
@@ -6791,7 +5569,7 @@ GO
          				WHERE		#TEMP.DAT_RELANCE_ENGAGE_2 IS NOT NULL
          						AND #TEMP.DAT_RELANCE_ENGAGE_3 IS NULL
          			)
-         
+
          DROP TABLE #List
          DROP TABLE #TEMP
          END
@@ -6811,9 +5589,8 @@ GO
            DECLARE
             @COD_ADHERENT_OF AS VARCHAR(8),
             @TOT AS MONEY
-         
-           /* Mise en place des variables en fonction du destinataire */
-           IF (@TYPE_DESTINATAIRE = 1) -- destinataire ADH
+
+           IF (@TYPE_DESTINATAIRE = 1) 
             BEGIN
              SELECT
               @COD_ADHERENT_OF = ADHERENT.COD_ADHERENT
@@ -6823,8 +5600,8 @@ GO
              WHERE
               ETABLISSEMENT.ID_ETABLISSEMENT = @ID_ETABLISSEMENT
            END
-         
-           IF (@TYPE_DESTINATAIRE = 2) -- destinataire OF
+
+           IF (@TYPE_DESTINATAIRE = 2) 
             BEGIN
              SELECT
               @COD_ADHERENT_OF = ORGANISME_FORMATION.COD_OF
@@ -6834,8 +5611,7 @@ GO
              WHERE
               ETABLISSEMENT_OF.ID_ETABLISSEMENT_OF = @ID_ETABLISSEMENT
             END
-         
-           /* Recuperation des informations sur le reglement */
+
            SELECT  TOP 1 
             CM.LIB_NOM   AS LIB_NOM_CONSEILLER,
             CM.LIB_PNM   AS LIB_PNM_CONSEILLER,
@@ -6862,15 +5638,14 @@ GO
             JOIN CONTRAT_PRO   ON  CONTRAT_PRO.ID_CONTRAT_PRO = MODULE_PRO.ID_CONTRAT_PRO 
             LEFT JOIN ETABLISSEMENT  ON  CONTRAT_PRO.ID_ETABLISSEMENT = ETABLISSEMENT.ID_ETABLISSEMENT 
             LEFT JOIN ADHERENT  ON  ETABLISSEMENT.ID_ADHERENT = ADHERENT.ID_ADHERENT
-            LEFT JOIN UTILISATEUR CR -- charg‚ de relation
+            LEFT JOIN UTILISATEUR CR 
                    ON  ETABLISSEMENT.ID_CHARGEE_RELATION = CR.ID_UTILISATEUR
-            LEFT JOIN UTILISATEUR CM -- charg‚ de mission
+            LEFT JOIN UTILISATEUR CM 
                    ON  ETABLISSEMENT.ID_CHARGEE_MISSION = CM.ID_UTILISATEUR
            WHERE
             REGLEMENT_PRO.ID_REGLEMENT_PRO = @ID_REGLEMENT_PRO
             AND  REGLEMENT_PRO.ID_TRANSACTION = @ID_TRANSACTION;
-         
-           /* La table des contrats */
+
            SELECT DISTINCT
             CASE
              WHEN INDIVIDU.BLN_MASCULIN  = 0 THEN 'Madame'
@@ -6895,8 +5670,7 @@ GO
             (SESSION_PRO.ID_REGLEMENT_PRO_OF = @ID_REGLEMENT_PRO
             OR 
             SESSION_PRO.ID_REGLEMENT_PRO_ADH = @ID_REGLEMENT_PRO) 
-         
-           /* La table des modules */
+
            SELECT  #TEMP_CONTRAT_PRO.ID_REGLEMENT_PRO,
              #TEMP_CONTRAT_PRO.ID_CONTRAT_PRO,
              MODULE_PRO.ID_MODULE_PRO,
@@ -6904,7 +5678,7 @@ GO
              MODULE_PRO.TAUX_HORAIRE_RETENU_ADH,
              MODULE_PRO.TAUX_HORAIRE_RETENU_OF,
              ORGANISME_FORMATION.LIB_RAISON_SOCIALE,
-             --deplac‚ ici de #TEMP_INFO 13401 DSZ
+
              coalesce(dbo.IS_EMPTY(ETABLISSEMENT.LIB_ENSEIGNE), ADHERENT.LIB_RAISON_SOCIALE) as LIB_RAISON_SOCIALE_2
            INTO #TEMP_MODULE_PRO
            FROM #TEMP_CONTRAT_PRO 
@@ -6914,8 +5688,7 @@ GO
            LEFT JOIN ETABLISSEMENT  ON  #TEMP_CONTRAT_PRO.ID_ETABLISSEMENT = ETABLISSEMENT.ID_ETABLISSEMENT 
            LEFT JOIN ADHERENT  ON  ETABLISSEMENT.ID_ADHERENT = ADHERENT.ID_ADHERENT
            WHERE MODULE_PRO.BLN_ACTIF = 1
-         
-           /* Les tables des sessions */
+
            SELECT  SESSION_PRO.ID_SESSION_PRO,
              SESSION_PRO.COD_SESSION_PRO,
              SESSION_PRO.ID_MODULE_PRO,
@@ -6946,28 +5719,24 @@ GO
              OR
              ((@TYPE_DESTINATAIRE = 2) AND (SESSION_PRO.ID_REGLEMENT_PRO_OF = #TEMP_MODULE_PRO.ID_REGLEMENT_PRO) AND (SESSION_PRO.MNT_VERSE_HT_OF > 0))
              )
-         
+
            DELETE FROM #TEMP_MODULE_PRO
            WHERE #TEMP_MODULE_PRO.ID_MODULE_PRO NOT IN (SELECT #TEMP_SESSION_PRO.ID_MODULE_PRO FROM #TEMP_SESSION_PRO);
-            
-            
+
            DELETE FROM #TEMP_CONTRAT_PRO
            WHERE #TEMP_CONTRAT_PRO.ID_CONTRAT_PRO NOT IN (SELECT #TEMP_MODULE_PRO.ID_CONTRAT_PRO FROM #TEMP_MODULE_PRO);
-           
-           -- XML Generation
+
            WITH XMLNAMESPACES (
             DEFAULT 'ORDRE_VIREMENT_CONTRAT_PRO'
            )
            SELECT
-             -- R‚cup‚ration des informations sur le contact et le b‚n‚ficiaire
+
              dbo.GetXmlBenefiaireContact(@ID_BENEFICIAIRE, @TYPE_BENEFICIAIRE, @ID_ADRESSE, @ID_CONTACT) AS BENEFICIAIRE,
-            
+
              (
-              /**********************************************************************************************/
-              /***************** ENTETE DE LA LETTRE *******************************************************/
-              /**********************************************************************************************/
+
               SELECT                
-               /******************* Recuperation des informations de l'entete ****************************/
+
                CASE
                 WHEN (@TYPE_DESTINATAIRE = 1) THEN 'ADHERENT'
                 WHEN (@TYPE_DESTINATAIRE = 2) THEN 'OF'
@@ -6976,8 +5745,7 @@ GO
                ISNULL(LIB_PRENOM_CHARGE_RELATION, '') AS LIB_PRENOM_CHARGE_RELATION,
                ISNULL(LIB_NOM_CHARGE_RELATION, '')  AS LIB_NOM_CHARGE_RELATION,
                ISNULL(EMAIL_CHARGE_RELATION, '')  AS EMAIL,
-         
-               -- R‚cup‚ration des informations sur l'‚metteur
+
                dbo.GetXmlAdrUtilAvecTel(ENTETE.ID_UTIL, 
                      (SELECT MAX(CAST(dbo.DossierEstTSA(COD_CONTRAT_PRO, 0) AS INT)) FROM #TEMP_CONTRAT_PRO), 
                      (
@@ -6987,7 +5755,7 @@ GO
                       END
                      )) AS EMETTEUR,
                CAST(NUM_VIREMENT AS VARCHAR) + case when @BLN_COPIE = 1 then ' Copie' else '' end  AS NUM_VIREMENT,
-               -- r‚f‚rence du contrat pro
+
                (
                 SELECT (      
                  SELECT DISTINCT COD_CONTRAT_PRO
@@ -6995,8 +5763,8 @@ GO
                  FOR XML RAW (''), ELEMENTS, TYPE
                 ) FOR XML RAW ('REFERENCE_CONTRAT'), ELEMENTS, TYPE
                ),
-         
-               RTRIM(CASE WHEN PATINDEX('%CEDEX%', LIB_VILLE) <> 0 THEN LEFT(LIB_VILLE, PATINDEX('%CEDEX%', LIB_VILLE)-1) ELSE LIB_VILLE END) AS LIB_VILLE, -- retraitement de la ville au cas o— de la forme COMMUNE CEDEX 999
+
+               RTRIM(CASE WHEN PATINDEX('%CEDEX%', LIB_VILLE) <> 0 THEN LEFT(LIB_VILLE, PATINDEX('%CEDEX%', LIB_VILLE)-1) ELSE LIB_VILLE END) AS LIB_VILLE, 
                dbo.GetFullDate(GETDATE()) AS DATE,    
                (
                 SELECT TOP 1
@@ -7007,7 +5775,7 @@ GO
               FROM #TEMP_INFO AS ENTETE     
               FOR XML AUTO, ELEMENTS, TYPE
              ),
-         
+
              (
               SELECT 
                 dbo.GetShorterDate(#TEMP_INFO.DAT_REGLEMENT) AS DAT_REGLEMENT,
@@ -7051,38 +5819,37 @@ GO
                        (
                         SELECT 
                           CASE 
-                           WHEN (@TYPE_DESTINATAIRE = 2) THEN #TEMP_MODULE_PRO.LIB_RAISON_SOCIALE_2 --avant : #TEMP_INFO.LIB_RAISON_SOCIALE
+                           WHEN (@TYPE_DESTINATAIRE = 2) THEN #TEMP_MODULE_PRO.LIB_RAISON_SOCIALE_2 
                            WHEN (@TYPE_DESTINATAIRE = 1) THEN #TEMP_MODULE_PRO.LIB_RAISON_SOCIALE
                           END AS LIB_RAISON_SOCIALE,
-         
+
                           CASE
                            WHEN (@TYPE_DESTINATAIRE = 1) THEN COALESCE(dbo.GetFrenchCurrencyFormat(CAST(#TEMP_MODULE_PRO.TAUX_HORAIRE_RETENU_ADH AS MONEY)), ' ')
                            WHEN (@TYPE_DESTINATAIRE = 2) THEN COALESCE(dbo.GetFrenchCurrencyFormat(CAST(#TEMP_MODULE_PRO.TAUX_HORAIRE_RETENU_OF AS MONEY)), ' ')
                           END AS  TAUX_HORAIRE_RETENU,
-         
-         
+
                           dbo.GetShorterDate(#TEMP_SESSION_PRO.DAT_DEBUT) AS DAT_DEBUT,
                           dbo.GetShorterDate(#TEMP_SESSION_PRO.DAT_FIN) AS DAT_FIN,
                           COALESCE(dbo.GetFrenchCurrencyFormat(CAST(#TEMP_SESSION_PRO.NB_UNITE_TOTALE AS MONEY)), ' ') AS NB_UNITE_TOTALE,
-                         
+
                           CASE 
                            WHEN (@TYPE_DESTINATAIRE = 1) THEN COALESCE(dbo.GetFrenchCurrencyFormat(CAST(#TEMP_SESSION_PRO.MNT_VERSE_HT_ADH AS MONEY)), ' ')
                            WHEN (@TYPE_DESTINATAIRE = 2) THEN COALESCE(dbo.GetFrenchCurrencyFormat(CAST(#TEMP_SESSION_PRO.MNT_VERSE_HT_OF AS MONEY)), ' ')
                           END AS MNT_VERSE_HT,
-                         
+
                           CASE 
                            WHEN (@TYPE_DESTINATAIRE = 1) THEN COALESCE(dbo.GetFrenchCurrencyFormat(CAST(#TEMP_SESSION_PRO.MNT_VERSE_TVA_ADH AS MONEY)), ' ')
                            WHEN (@TYPE_DESTINATAIRE = 2) THEN COALESCE(dbo.GetFrenchCurrencyFormat(CAST(#TEMP_SESSION_PRO.MNT_VERSE_TVA_OF AS MONEY)), ' ')
                           END AS MNT_VERSE_TVA,
-         
+
                           COALESCE(#TEMP_SESSION_PRO.NUM_FACTURE, '') AS NUM_FACTURE,
                           #TEMP_SESSION_PRO.COD_SESSION_PRO AS ID_SESSION_PRO,
-                         
+
                           CASE
                            WHEN (@TYPE_DESTINATAIRE = 1) THEN COALESCE(dbo.GetFrenchCurrencyFormat(CAST(#TEMP_SESSION_PRO.MNT_VERSE_HT_ADH + #TEMP_SESSION_PRO.MNT_VERSE_TVA_ADH AS MONEY)), ' ')
                            WHEN (@TYPE_DESTINATAIRE = 2) THEN COALESCE(dbo.GetFrenchCurrencyFormat(CAST(#TEMP_SESSION_PRO.MNT_VERSE_HT_OF + #TEMP_SESSION_PRO.MNT_VERSE_TVA_OF AS MONEY)), ' ')
                           END AS  MNT_TTC
-                         
+
                         FROM #TEMP_SESSION_PRO
                         WHERE #TEMP_MODULE_PRO.ID_MODULE_PRO = #TEMP_SESSION_PRO.ID_MODULE_PRO
                         FOR XML RAW ('SESSION'), ELEMENTS, TYPE
@@ -7113,86 +5880,44 @@ GO
               FOR XML RAW('CORPS'), ELEMENTS,TYPE
              ),
              (
-              /**********************************************************************************************/
-              /***************** SIGNATURE DE LA LETTRE ****************************************************/
-              /**********************************************************************************************/
+
               SELECT SIGNATURE.LIB_PNM_CONSEILLER,
                 SIGNATURE.LIB_NOM_CONSEILLER
               FROM #TEMP_INFO as SIGNATURE
               FOR XML AUTO, ELEMENTS, TYPE
              )
-         
+
            FROM #TEMP_INFO AS LETTRE
            FOR XML RAW('') ,ROOT('LETTRE'),ELEMENTS
           END
 
-
-         
          CREATE PROCEDURE [dbo].[LEC_GRP_ADHERENT_JAMAIS_PAYE]        
          @ID_PERIODE int,        
           @ID_AGENCE int,        
           @P10PlusOnly tinyint = 0        
          AS        
-         -- =============================================        
-         -- Author       : XXXX        
-         -- Create date  : XX/XX/XXXX        
-         -- Description  : S‚lection des potentiels pour le courrier collecte - jamais pay‚        
-         -- Modification : Le XX/XX/XXXX par XXXX - libell‚ de la modification        
-         --    : Le XX/XX/XXXX par XXXX - libell‚ de la modification        
-         -- =============================================        
-         -- modif DSZ 12911 17/10/2011 evol 10-50  + cosmetique        
-         /*      
-         -- =============================================        
-          modif MBL : Refonte complete de la PS      
-               
-          Les adherents pris en compte repondent … l'ensemble des criteres suivants :      
-          - Adherents actifs      
-          - Situation economique de l'adherent = "en activit‚" ou "sans effectif < 2012"      
-          - type d'assujetissement renseign‚ sur la periode      
-          - derniere masse salariale connue de l'adherent sup‚rieure a 1 ? ou l'adherent n'a pas ete cree dans l'annee courante      
-          (Les adherents crees les annees precedentes et sans masse salariale seront relanc‚s)      
-          - Montant colllecte verse sur la periode <= 0       
-               
-         -- =============================================        
-         -- modif MBL du 17/07/2013      
-            -- Les adherents relances sont ceux dont le montant Verse VO <= 0      
-            -- (dans la version precedente on ne relan‡ait pas les adherents ayant effectue seulement du VV)      
-         -- =============================================        
-         -- modif MBL du 20/04/2014      
-            -- Rajout des adherents dont la situation economique est 'Activit‚ ss eff 2012'    
-         -- =============================================        
-         -- modif MBL du 13/04/2015      
-            -- Rajout des adherents dont la situation economique est 'Activit‚ ss eff 2013'    
-         -- =============================================
-         -- OPA/AME 22/12/2015 : 1262 
-         -- =============================================        
-         -- modif MBL du 14/04/2016
-            -- Rajout des adherents dont la situation economique est 'Activit‚ ss eff 2014'    
-         -- =============================================        
-         */ 
+
+          
          DECLARE @NUM_ANNEE int      
          BEGIN      
-               
-          IF @ID_AGENCE = -1 SET @ID_AGENCE = NULL -- OPTIFORM valorise @ID_AGENCE  a -1 si l'antenne n'est pas renseigne      
-               
+
+          IF @ID_AGENCE = -1 SET @ID_AGENCE = NULL 
+
           SELECT @NUM_ANNEE = NUM_ANNEE      
           FROM PERIODE      
           WHERE ID_PERIODE = @ID_PERIODE       
-               
+
           SELECT        
           ADHERENT.ID_ADHERENT,        
           ADHERENT.ID_ETABLISSEMENT_PRINCIPAL as ID_ETABLISSEMENT        
-          --,      
-          --MNT_MASSE_SALARIALE = ISNULL([dbo].[GetMasseSalariale](ADHERENT.ID_ADHERENT, @ID_PERIODE), 0),      
-          --MNT_VERSE_HT = VERSE.MNT_VERSE_HT ,      
-          --ADHERENT.DAT_CREATION      
+
           FROM        
           ADHERENT        
-          -- Seulement ceux qui ont un assujettissement pour la p‚riode        
+
           INNER JOIN R20  ON R20.ID_ADHERENT  = ADHERENT.ID_ADHERENT       
                AND R20.ID_PERIODE  = @ID_PERIODE      
           INNER JOIN PERIODE ON PERIODE.ID_PERIODE = @ID_PERIODE      
-               
+
           LEFT JOIN       
            (       
            SELECT ID_ADHERENT, MNT_VERSE_HT = SUM(MNT_HT_VO)      
@@ -7200,44 +5925,38 @@ GO
            WHERE ANNEE = @NUM_ANNEE      
            GROUP BY ID_ADHERENT      
            ) VERSE ON VERSE.ID_ADHERENT = ADHERENT.ID_ADHERENT      
-                     
+
           WHERE       
-           -- Adherents actifs      
+
            ADHERENT.BLN_ACTIF = 1      
-                 
-           -- Adherent de l'agence si l'agence est passe en parametre      
+
           AND ADHERENT.ID_AGENCE = COALESCE(@ID_AGENCE, ADHERENT.ID_AGENCE)        
-               
-          -- derniere masse salariale connue de l'adherent sup‚rieure a 1 ?       
-          -- ou l'adherent n'a pas ete cree dans l'annee courante      
-          -- (Les adherents crees les annees precedentes et sans masse salariale seront relanc‚s)      
+
           AND       
           ( ISNULL(dbo.GetMasseSalariale(ADHERENT.ID_ADHERENT, @ID_PERIODE, DEFAULT), 0) > 1        
            OR       
            YEAR(ISNULL(ADHERENT.DAT_CREATION, 0)) < YEAR( GETDATE() )
           )       
-                
-          -- Situation economique de l'adherent = "en activit‚" ou "sans effectif < 2012"      
+
           AND ADHERENT.ID_SITUATION_ECONOMIQUE IN (SELECT ID_SITUATION_ECONOMIQUE       
                        FROM SITUATION_ECONOMIQUE       
                        WHERE COD_SITUATION_ECONOMIQUE       
                        IN       
                        (      
-                       '01',   -- En activit‚      
-                       '08', --  Activit‚ ss eff 2008      
-                       '09', -- Activit‚ ss eff 2009      
-                       '10', -- Activit‚ ss eff 2010      
-                       '12', -- Activit‚ ss eff 2011      
-                       '14', -- Activit‚ ss eff 2012    
-                       '15', -- Activit‚ ss eff 2013
-                       '16' -- Activit‚ ss eff 2014
+                       '01',   
+                       '08', 
+                       '09', 
+                       '10', 
+                       '12', 
+                       '14', 
+                       '15', 
+                       '16' 
                        )        
                     )      
-               
-          -- Montant collecte Verse Total <= 0      
+
           AND ISNULL(VERSE.MNT_VERSE_HT, 0) <= 0      
           AND (       
-             (@P10PlusOnly = 0) -- Tous les adh‚rents      
+             (@P10PlusOnly = 0) 
             OR      
            (
                ADHERENT.ID_ADHERENT IN       
@@ -7245,45 +5964,29 @@ GO
               SELECT ID_ADHERENT        
               FROM R19        
               WHERE ID_PERIODE = @ID_PERIODE        
-              AND  ID_ACTIVITE in (4, 10, 11)  -- Adherent +10      
+              AND  ID_ACTIVITE in (4, 10, 11)  
              )        
             )        
           )      
          END
- 
+
  GO
-         
- -- =============================================
-         -- CRATION LE 11 JANVIER 2007 PAR KIM SAY -- 
-         -- =============================================
-         -- MODIFICATION LE 21 MARS 2007		PAR KIM SAY 
-         -- CONTRâLE DE LA DSYNCHRONISATION : AUCUN VERSEMENT PRSENT POUR LE BORDEREAU
-         -- =============================================
-         -- DSZ 15174 13/05/2013 
-         -- UTILISATION DE LA NOUVELLE FONCTION GET_VERSEMENTS_POUR_BORDEREAU (QUI REPREND LE CODE EXISTANT AVANT)
-         -- =============================================
-         -- DSZ 17/12/2013 16623 AJOUT MISE · JOUR DE SYNC_BLN_SYNCHRO_SSIS ET SYNC_DAT SYNCHRO_SSIS
-         -- =============================================
-         -- HBO - 26/12/13 - Reprise de #16623: [INS_BORDEREAU_VERSEMENT_EXTRANET] et [INS_BORDEREAU]
-         -- =============================================
-         -- ASD - 03/01/2014 - Compl‚ments … #16623: [INS_BORDEREAU_VERSEMENT_EXTRANET] et [INS_BORDEREAU]
-         -- =============================================
+
          CREATE PROCEDURE [dbo].[INS_BORDEREAU]
          	@ID_LOT_REMISE_BANCAIRE	INT = NULL, 
          	@ID_UTILISATEUR			INT,
          	@ID_MODE_VERSEMENT		INT = 1,
-         	@LISTE_ID_VERSEMENT_SELECTIONNE VARCHAR(8000) = NULL -- CONCATNATION D'ID 
+         	@LISTE_ID_VERSEMENT_SELECTIONNE VARCHAR(8000) = NULL 
          AS
          BEGIN
          	DECLARE
          		@ID_BORDEREAU INT
-         	
+
          	IF EXISTS (SELECT 1 FROM tempdb.dbo.sysobjects(nolock)WHERE name like '%#VERSEMENTS%')
          		DROP TABLE #VERSEMENTS
-         	
+
          	CREATE TABLE #VERSEMENTS (ID_VERSEMENT INT)
-         		
-         	--SI C'EST UNE INSERTION DE BORDEREAU POUR DES VERSEMENTS RE€US DE L'EXTRANET
+
          	IF(@LISTE_ID_VERSEMENT_SELECTIONNE IS NOT NULL)
          		BEGIN
          			INSERT INTO #VERSEMENTS
@@ -7300,7 +6003,7 @@ GO
          				AND
          				(
          					BLN_ENCAISSEMENT_DIFFERE	= 0
-         				
+
          					OR
          					(
          						BLN_ENCAISSEMENT_DIFFERE = 1
@@ -7311,7 +6014,7 @@ GO
          				AND	VERSEMENT.BLN_ACTIF = 1
          				AND ID_MODE_VERSEMENT = @ID_MODE_VERSEMENT
          		END
-         	--SI C'EST UNE INSERTION DE BORDEREAU POUR DES VERSEMENTS SAISIS DANS OPTIFORM
+
          	ELSE
          		BEGIN
          			INSERT INTO #VERSEMENTS
@@ -7320,8 +6023,7 @@ GO
          			FROM
          				dbo.GET_VERSEMENTS_POUR_BORDEREAU(@ID_UTILISATEUR,   @ID_MODE_VERSEMENT)
          		END
-         
-         	-- UNE FOIS DETERMINEE #VERSEMENTS, lancement de l'insertion
+
          	IF NOT EXISTS(SELECT 1 FROM #VERSEMENTS)
          		SELECT -1
          	ELSE
@@ -7344,17 +6046,17 @@ GO
          				0, 
          				@ID_UTILISATEUR
          			)
-         				
+
          			SET
          				@ID_BORDEREAU = @@IDENTITY
-         					
+
          			UPDATE
          				BORDEREAU
          			SET
          				COD_BORDEREAU = @ID_BORDEREAU
          			WHERE
          				ID_BORDEREAU = @ID_BORDEREAU
-         
+
          			UPDATE
          				VERSEMENT	
          			SET 
@@ -7366,33 +6068,21 @@ GO
          				VERSEMENT
          				INNER JOIN #VERSEMENTS
          					ON #VERSEMENTS.ID_VERSEMENT = VERSEMENT.ID_VERSEMENT
-         
+
          			SELECT @ID_BORDEREAU
          		END
          END
 
-
-         
-         
-         
-         
-         
-         -- =============================================================
-         -- Author		: WOOLLAMS
-         -- Create date	: 31 janvier 2008
-         -- Description	: Lettre de relance d'engagement contrat pro of
-         -- Mise a jour des date de relance pour les courier edit‚s
-         -- =============================================================
          CREATE PROCEDURE [dbo].[UPD_DATE_LETTRE_RELANCE_ENGAGEMENT_CONTRAT_PRO_OF]
-         	@CODS_CONTRAT_PRO TEXT	-- List of cod_contrat_pro separated with ',' without spaces - i.e.: 1,2,3,4,5,6
+         	@CODS_CONTRAT_PRO TEXT	
          AS
-         
+
          BEGIN
-         
+
          	DECLARE @Item VARCHAR(12);
-         	-- Create a temporary table which contains IDs
+
          	CREATE TABLE #List(Item VARCHAR(12)  collate French_CI_AI)
-         	
+
          	DECLARE @Delimiter char
          	SET @Delimiter = ','
          	WHILE CHARINDEX(@Delimiter,@CODS_CONTRAT_PRO,0) <> 0
@@ -7400,15 +6090,14 @@ GO
          		SELECT
          			@Item=RTRIM(LTRIM(SUBSTRING(@CODS_CONTRAT_PRO,1,CHARINDEX(@Delimiter,@CODS_CONTRAT_PRO,0)-1))),
          			@CODS_CONTRAT_PRO=RTRIM(LTRIM(SUBSTRING(@CODS_CONTRAT_PRO,CHARINDEX(@Delimiter,@CODS_CONTRAT_PRO,0)+1,DATALENGTH(@CODS_CONTRAT_PRO))))
-         
+
          		IF LEN(@Item) > 0
          			INSERT INTO #List SELECT @Item
          	END
-         
+
          	IF DATALENGTH(@CODS_CONTRAT_PRO) > 0
          		INSERT INTO #List SELECT @CODS_CONTRAT_PRO
-         
-         
+
          	SELECT  CONTRAT_PRO.ID_CONTRAT_PRO, 
          			ARRIVEE_PIECE_PRO.ID_ARRIVEE_PIECE_PRO, 
          			ARRIVEE_PIECE_PRO.DAT_RELANCE_ENGAGE_1, 
@@ -7425,8 +6114,7 @@ GO
          			AND MODULE_PRO.BLN_SUBROGE = 1
          			AND CONTRAT_PRO.COD_CONTRAT_PRO IN (SELECT Item FROM #List)
          			AND ((ARRIVEE_PIECE_PRO.BLN_ACTIF = 0) OR ((ARRIVEE_PIECE_PRO.BLN_ACTIF = 1) AND ( EXISTS (select 1 from NR410 WHERE NR410.ID_ARRIVEE_PIECE_PRO = ARRIVEE_PIECE_PRO.ID_ARRIVEE_PIECE_PRO))))
-         
-         	--1iere relance
+
          	UPDATE	ARRIVEE_PIECE_PRO
          	SET		ARRIVEE_PIECE_PRO.DAT_RELANCE_ENGAGE_1 = GETDATE()
          	WHERE	ARRIVEE_PIECE_PRO.ID_ARRIVEE_PIECE_PRO	IN 
@@ -7437,8 +6125,7 @@ GO
          						AND #TEMP.DAT_RELANCE_ENGAGE_2 IS NULL
          						AND #TEMP.DAT_RELANCE_ENGAGE_3 IS NULL 
          			)
-         
-         	--2ieme relance
+
          	UPDATE	ARRIVEE_PIECE_PRO
          	SET		ARRIVEE_PIECE_PRO.DAT_RELANCE_ENGAGE_2 = GETDATE()
          	WHERE	ARRIVEE_PIECE_PRO.ID_ARRIVEE_PIECE_PRO	IN 
@@ -7449,8 +6136,7 @@ GO
          						AND	#TEMP.DAT_RELANCE_ENGAGE_2 IS NULL
          						AND #TEMP.DAT_RELANCE_ENGAGE_3 IS NULL
          			)
-         
-         	--3ieme relance
+
          	UPDATE	ARRIVEE_PIECE_PRO
          	SET		ARRIVEE_PIECE_PRO.DAT_RELANCE_ENGAGE_3 = GETDATE()
          	WHERE	ARRIVEE_PIECE_PRO.ID_ARRIVEE_PIECE_PRO	IN 
@@ -7460,20 +6146,9 @@ GO
          				WHERE		#TEMP.DAT_RELANCE_ENGAGE_2 IS NOT NULL
          						AND #TEMP.DAT_RELANCE_ENGAGE_3 IS NULL
          			)
-         
-         END
-         
 
-         
-         
-         -- =============================================
-         -- Author:		Slah
-         -- Create date: 14 06 2012
-         -- Description:	inserer un formateur interne
-         -- ---------------------------------------------
-         -- OPA 31/05/2013 : 15031 : SBR - suppression du type FLOAT et REAL dans le SQL : 2- FLOAT
-         ----------------------------------------------  
-         
+         END
+
          CREATE PROCEDURE [dbo].[INS_FORMATEUR_INTERNE_PEC]
           @COD_FORMATEUR_INTERNE_PEC varchar(8),
           @ID_TYPE_CONTRAT INT,
@@ -7542,29 +6217,21 @@ GO
          		   @BLN_SUIVI_FORMATION_FORMATEUR ,
          		   @BLN_SUIVI_FORMATION_TUTEUR,
          		   @BLN_FORME_REGULIEREMENT_INTERNE)
-                 
+
          		UPDATE POSTE_COUT_ENGAGE	SET BLN_OK_FINANCEMENT = 0
          		WHERE ID_MODULE_PEC = @ID_MODULE_PEC
          			AND DAT_DESENGAGEMENT IS NULL
          			AND ID_ENGAGEMENT IS NULL
-         
+
             select @@IDENTITY as ID
          END
 
- -- =============================================
-         -- Auteur	: SBR
-         -- Creation	: 09/12/15
-         -- REPORTING DU PLURI-ANNUEL = EFF
-         -- Refonte totale du traitement pr‚c‚dent
-         -----------------------------------------------
          CREATE PROCEDURE [dbo].[BATCH_PLURI_ANNUEL]
          AS
          BEGIN
-         
+
          SET NOCOUNT ON;
-         
-         
-         --p‚rimŠtre des modules … traiter et date du 1er mvmt budg‚taire d'engagement
+
          select	MVT_BUDGETAIRE.ID_MODULE_PEC,
          		MIN(MVT_BUDGETAIRE.DAT_MVT_BUDGETAIRE) AS eng_initial_date
          into	#PERIMETRE_MODULES
@@ -7580,7 +6247,7 @@ GO
          and		ACTION_PEC.BLN_ACTIF = 1
          and		MODULE_PEC.BLN_ACTIF = 1
          group by MVT_BUDGETAIRE.ID_MODULE_PEC
-         
+
          DECLARE @ID_MODULE int
          DECLARE @ID_DISPOSITIF int
          DECLARE @ID_BRANCHE int
@@ -7590,10 +6257,7 @@ GO
          DECLARE @MNT float
          DECLARE @ID_ETABLISSEMENT int
          DECLARE @ID_COMPTE_EN int
-         
-         --==========================================================================================
-         ------------------------    ENGAGEMENTS INITIAUX
-         --==========================================================================================
+
          declare initial_cursor cursor for
          select	MVT_BUDGETAIRE.ID_DISPOSITIF, 
          		ID_BRANCHE = dbo.GetBrancheHistorise(MVT_BUDGETAIRE.ID_MODULE_PEC, MVT_BUDGETAIRE.ID_ETABLISSEMENT),
@@ -7606,7 +6270,7 @@ GO
          join	#PERIMETRE_MODULES
          on		MVT_BUDGETAIRE.ID_MODULE_PEC = #PERIMETRE_MODULES.ID_MODULE_PEC
          where	P_E_R = 'E'
-         and		convert(varchar,MVT_BUDGETAIRE.DAT_MVT_BUDGETAIRE,112) = convert(varchar,#PERIMETRE_MODULES.eng_initial_date,112) -- mouvements de la 1Šre journ‚e d'engagement
+         and		convert(varchar,MVT_BUDGETAIRE.DAT_MVT_BUDGETAIRE,112) = convert(varchar,#PERIMETRE_MODULES.eng_initial_date,112) 
          group by MVT_BUDGETAIRE.ID_DISPOSITIF, 
          		 dbo.GetBrancheHistorise(MVT_BUDGETAIRE.ID_MODULE_PEC, MVT_BUDGETAIRE.ID_ETABLISSEMENT),
          		 MVT_BUDGETAIRE.ID_ENVELOPPE, 
@@ -7614,13 +6278,13 @@ GO
          		 MVT_BUDGETAIRE.ID_TYPE_FINANCEMENT, 
          		 MVT_BUDGETAIRE. ID_COMPTE
          having sum(cast(MVT_BUDGETAIRE.MNT_MVT_BUDGETAIRE as decimal(18,6))) <> 0
-         
+
          OPEN initial_cursor
          FETCH NEXT FROM initial_cursor
          INTO @ID_DISPOSITIF, @ID_BRANCHE, @ID_ENVELOPPE, @ID_MODULE, @MNT, @ID_TYPE_FINANCEMENT, @ID_COMPTE
          WHILE @@FETCH_STATUS = 0
          BEGIN
-         
+
          	exec INS_MVT_BUDG_PERIODE
          	@ID_MODULE,
          	@ID_DISPOSITIF ,
@@ -7630,19 +6294,15 @@ GO
          	@ID_TYPE_FINANCEMENT,
          	'EIS',
          	@MNT,
-         	null,	--@ID_SESSION
-         	null	--@DATE
-         
+         	null,	
+         	null	
+
          	FETCH NEXT FROM initial_cursor
          	INTO @ID_DISPOSITIF, @ID_BRANCHE, @ID_ENVELOPPE, @ID_MODULE, @MNT, @ID_TYPE_FINANCEMENT, @ID_COMPTE
          END
          CLOSE initial_cursor
          DEALLOCATE initial_cursor
-         
-         
-         --==========================================================================================
-         -------------- ENGAGEMENTS COMPLEMENTAIRES
-         --==========================================================================================
+
          DECLARE mvt_cursor CURSOR FOR
          select	MVT_BUDGETAIRE.ID_DISPOSITIF, 
          		ID_BRANCHE = dbo.GetBrancheHistorise(MVT_BUDGETAIRE.ID_MODULE_PEC, MVT_BUDGETAIRE.ID_ETABLISSEMENT),
@@ -7655,7 +6315,7 @@ GO
          join	#PERIMETRE_MODULES
          on		MVT_BUDGETAIRE.ID_MODULE_PEC = #PERIMETRE_MODULES.ID_MODULE_PEC
          where	P_E_R in ('E','R')
-         and		MVT_BUDGETAIRE.DAT_MVT_BUDGETAIRE >= dateadd(day, 1, convert(datetime, convert(varchar, #PERIMETRE_MODULES.eng_initial_date, 112), 112)) -- mouvements post‚rieurs … la 1Šre journ‚e d'engagement
+         and		MVT_BUDGETAIRE.DAT_MVT_BUDGETAIRE >= dateadd(day, 1, convert(datetime, convert(varchar, #PERIMETRE_MODULES.eng_initial_date, 112), 112)) 
          group by MVT_BUDGETAIRE.ID_DISPOSITIF, 
          		 dbo.GetBrancheHistorise(MVT_BUDGETAIRE.ID_MODULE_PEC, MVT_BUDGETAIRE.ID_ETABLISSEMENT),
          		 MVT_BUDGETAIRE.ID_ENVELOPPE, 
@@ -7663,13 +6323,13 @@ GO
          		 MVT_BUDGETAIRE.ID_TYPE_FINANCEMENT, 
          		 MVT_BUDGETAIRE. ID_COMPTE
          having sum(cast(MVT_BUDGETAIRE.MNT_MVT_BUDGETAIRE as decimal(18,6))) <> 0
-         
+
          OPEN mvt_cursor
          FETCH NEXT FROM mvt_cursor
          INTO @ID_DISPOSITIF, @ID_BRANCHE, @ID_ENVELOPPE, @ID_MODULE, @MNT, @ID_TYPE_FINANCEMENT, @ID_COMPTE
          WHILE @@FETCH_STATUS = 0
          BEGIN
-         
+
          	exec INS_MVT_BUDG_PERIODE
          	@ID_MODULE,
          	@ID_DISPOSITIF ,
@@ -7679,19 +6339,15 @@ GO
          	@ID_TYPE_FINANCEMENT,
          	'EC',
          	@MNT,
-         	null,	--@ID_SESSION
-         	null	--@DATE
-         
+         	null,	
+         	null	
+
          	FETCH NEXT FROM mvt_cursor
          	INTO @ID_DISPOSITIF, @ID_BRANCHE, @ID_ENVELOPPE, @ID_MODULE, @MNT, @ID_TYPE_FINANCEMENT, @ID_COMPTE
          END
          CLOSE mvt_cursor
          DEALLOCATE mvt_cursor
-         
-         
-         --==========================================================================================
-         ------------------------- CLâTURES
-         --==========================================================================================
+
          DECLARE clotures_cursor CURSOR FOR
          select	MVT_BUDGETAIRE.ID_DISPOSITIF, 
          		ID_BRANCHE = dbo.GetBrancheHistorise(MVT_BUDGETAIRE.ID_MODULE_PEC, MVT_BUDGETAIRE.ID_ETABLISSEMENT),
@@ -7716,8 +6372,7 @@ GO
          		 MVT_BUDGETAIRE.ID_TYPE_FINANCEMENT, 
          		 MVT_BUDGETAIRE. ID_COMPTE
          having sum(cast(MVT_BUDGETAIRE.MNT_MVT_BUDGETAIRE as decimal(18,6))) <> 0
-         
-         
+
          OPEN clotures_cursor
          FETCH NEXT FROM clotures_cursor
          INTO @ID_MODULE,@ID_DISPOSITIF, @ID_BRANCHE, @ID_ENVELOPPE, @MNT, @ID_TYPE_FINANCEMENT, @ID_COMPTE
@@ -7732,22 +6387,18 @@ GO
          	@ID_TYPE_FINANCEMENT,
          	'C',
          	@MNT,
-         	null,	--@ID_SESSION
-         	null	--@DATE
-         
+         	null,	
+         	null	
+
          	FETCH NEXT FROM clotures_cursor
          	INTO @ID_MODULE,@ID_DISPOSITIF, @ID_BRANCHE, @ID_ENVELOPPE, @MNT, @ID_TYPE_FINANCEMENT, @ID_COMPTE
          END
          CLOSE clotures_cursor
          DEALLOCATE clotures_cursor
-         
-         
-         --==========================================================================================
-         -----------------------      REGLEMENTS
-         --==========================================================================================
+
          declare @dat_reglement datetime
          declare @id_session int
-         
+
          DECLARE reglements_cursor CURSOR FOR
          select	MVT_BUDGETAIRE.ID_DISPOSITIF, 
          		ID_BRANCHE = dbo.GetBrancheHistorise(MVT_BUDGETAIRE.ID_MODULE_PEC, MVT_BUDGETAIRE.ID_ETABLISSEMENT),
@@ -7767,7 +6418,7 @@ GO
          		 MVT_BUDGETAIRE.ID_TYPE_FINANCEMENT, 
          		 MVT_BUDGETAIRE. ID_COMPTE
          having sum(cast(MVT_BUDGETAIRE.MNT_MVT_BUDGETAIRE as decimal(18,6))) <> 0
-         
+
          OPEN reglements_cursor
          FETCH NEXT FROM reglements_cursor
          INTO @ID_MODULE,@ID_DISPOSITIF, @ID_BRANCHE, @ID_ENVELOPPE, @MNT, @ID_TYPE_FINANCEMENT, @ID_COMPTE, @dat_reglement, @id_session
@@ -7783,161 +6434,30 @@ GO
          	'R',
          	@MNT,
          	@id_session, 
-         	null	--@dat_reglement
-         
+         	null	
+
          	FETCH NEXT FROM reglements_cursor
          	INTO @ID_MODULE,@ID_DISPOSITIF, @ID_BRANCHE, @ID_ENVELOPPE, @MNT, @ID_TYPE_FINANCEMENT, @ID_COMPTE, @dat_reglement, @id_session
          END
          CLOSE reglements_cursor
          DEALLOCATE reglements_cursor
-         
-         
-         --==========================================================================================
-         -----------------------      ENGAGEMENT NET
-         ----poste cout engage
-         --select	ID_ENVELOPPE,
-         --		ID_TYPE_FINANCEMENT, 
-         --		sum(MNT_PLAN_FINANCEMENT_US) as mnt,
-         --		POSTE_COUT_ENGAGE.ID_MODULE_PEC,
-         --		UNITE_STAGIAIRE.ID_DISPOSITIF,
-         --		STAGIAIRE_PEC.ID_BRANCHE,
-         --		-- ASD 20110912 add ID_etab
-         --		STAGIAIRE_PEC.ID_ETABLISSEMENT
-         --into #temp_pce
-         --from PLAN_FINANCEMENT_US 
-         --inner join POSTE_COUT_ENGAGE on (POSTE_COUT_ENGAGE.ID_POSTE_COUT_ENGAGE = PLAN_FINANCEMENT_US.ID_POSTE_COUT_ENGAGE)
-         --inner join UNITE_STAGIAIRE on (UNITE_STAGIAIRE.ID_UNITE_STAGIAIRE = PLAN_FINANCEMENT_US.ID_UNITE_STAGIAIRE)
-         --inner join STAGIAIRE_PEC on (STAGIAIRE_PEC.ID_STAGIAIRE_PEC = UNITE_STAGIAIRE.ID_STAGIAIRE_PEC)
-         --inner join MODULE_PEC on (POSTE_COUT_ENGAGE.ID_MODULE_PEC = MODULE_PEC.ID_MODULE_PEC)
-         --	inner join ACTION_PEC on (module_pec.id_action_pec = Action_pec.id_Action_pec)
-         --INNER JOIN ENGAGEMENT	ON ENGAGEMENT.ID_ENGAGEMENT = POSTE_COUT_ENGAGE.ID_ENGAGEMENT
-         --		AND	ID_TYPE_ENGAGEMENT	is not null AND ID_TYPE_ENGAGEMENT	<> 2 and ENGAGEMENT.DAT_BAE is not null
-         --where POSTE_COUT_ENGAGE.DAT_DESENGAGEMENT is null 
-         --	and PLAN_FINANCEMENT_US.BLN_ACTIF = 1
-         --	and MODULE_PEC.DAT_FIN > '20061231'
-         --	and DAT_PLAN_FINANCEMENT_US>= @last_run_date 
-         --	and action_pec.dat_cloture is null
-         --group by	ID_ENVELOPPE,
-         --			ID_TYPE_FINANCEMENT, 
-         --			POSTE_COUT_ENGAGE.ID_MODULE_PEC,
-         --			UNITE_STAGIAIRE.ID_DISPOSITIF,
-         --			STAGIAIRE_PEC.ID_BRANCHE,
-         --		-- ASD 20110912 add ID_etab
-         --			STAGIAIRE_PEC.ID_ETABLISSEMENT
-         
-         --having sum(MNT_PLAN_FINANCEMENT_US)>0
-         
-         
-         ----regle
-         --select	ID_ENVELOPPE,
-         --		ID_TYPE_FINANCEMENT, 
-         --		sum(MNT_PLAN_FINANCEMENT_US) as mnt,
-         --		POSTE_COUT_REGLE.ID_MODULE_PEC,
-         --		UNITE_STAGIAIRE.ID_DISPOSITIF,
-         --		STAGIAIRE_PEC.ID_BRANCHE,
-         --		-- ASD 20110912 add ID_etab
-         --		STAGIAIRE_PEC.ID_ETABLISSEMENT
-         --into #temp_pcr
-         --from PLAN_FINANCEMENT_US 
-         --inner join POSTE_COUT_REGLE on (POSTE_COUT_REGLE.ID_POSTE_COUT_REGLE = PLAN_FINANCEMENT_US.ID_POSTE_COUT_REGLE)
-         --inner join SESSION_PEC on (POSTE_COUT_REGLE.ID_SESSION_PEC = SESSION_PEC.ID_SESSION_PEC)
-         --inner join UNITE_STAGIAIRE on (UNITE_STAGIAIRE.ID_UNITE_STAGIAIRE = PLAN_FINANCEMENT_US.ID_UNITE_STAGIAIRE)
-         --inner join STAGIAIRE_PEC on (STAGIAIRE_PEC.ID_STAGIAIRE_PEC = UNITE_STAGIAIRE.ID_STAGIAIRE_PEC)
-         --inner join MODULE_PEC on (POSTE_COUT_REGLE.ID_MODULE_PEC = MODULE_PEC.ID_MODULE_PEC)
-         --	inner join ACTION_PEC on (module_pec.id_action_pec = Action_pec.id_Action_pec)
-         --where SESSION_PEC.BLN_ACTIF = 1
-         --	and PLAN_FINANCEMENT_US.BLN_ACTIF = 1
-         --	and MODULE_PEC.DAT_FIN > '20061231'
-         --	and DAT_PLAN_FINANCEMENT_US >= @last_run_date 
-         --	and action_pec.dat_cloture is null
-         --	--ajout DSZ 04/08/09
-         --	and POSTE_COUT_REGLE.BLN_ACTIF=1
-         --	--fin ajout DSZ
-         --group by	ID_ENVELOPPE,
-         --			ID_TYPE_FINANCEMENT, 
-         --			POSTE_COUT_REGLE.ID_MODULE_PEC,
-         --			UNITE_STAGIAIRE.ID_DISPOSITIF,
-         --			STAGIAIRE_PEC.ID_BRANCHE,
-         --		-- ASD 20110912 add ID_etab
-         --			STAGIAIRE_PEC.ID_ETABLISSEMENT
-         --having sum(MNT_PLAN_FINANCEMENT_US)>0
-         
-         
-         ----cursor pour joindre les deux
-         --DECLARE ennet_cursor CURSOR FOR   --changement calcul cursor DSZ 05/08/09
-         --select	coalesce(#temp_pce.ID_MODULE_PEC, #temp_pcr.ID_MODULE_PEC),
-         --		coalesce(#temp_pce.ID_DISPOSITIF, #temp_pcr.ID_DISPOSITIF),
-         --		coalesce(#temp_pce.ID_BRANCHE, #temp_pcr.ID_BRANCHE),
-         --		coalesce(#temp_pce.ID_ENVELOPPE, #temp_pcr.ID_ENVELOPPE),
-         --		-- ajout case DSZ 14/09/2011, vu avec ASD (et MHBM)
-         ---- si E >0 et R>0 et E-R <0 alors EN = 0 pour ne pas afficher des surpaiements
-         --	case when (coalesce(#temp_pce.mnt,0) > 0 and coalesce(#temp_pcr.mnt,0) >0 and 
-         --				(coalesce(#temp_pce.mnt,0) - coalesce(#temp_pcr.mnt,0) < 0)) then 0
-         --		else
-         --			cast ((coalesce(#temp_pce.mnt,0) - coalesce(#temp_pcr.mnt,0)) as decimal(18,2)) end as mnt,
-         --		coalesce(#temp_pce.ID_TYPE_FINANCEMENT, #temp_pcr.ID_TYPE_FINANCEMENT),
-         
-         --		-- ASD 20110912 add ID_etab
-         --		coalesce(#temp_pce.ID_ETABLISSEMENT, #temp_pcr.ID_ETABLISSEMENT)
-         --from #temp_pce
-         --full outer join #temp_pcr on ((#temp_pce.ID_ENVELOPPE = #temp_pcr.ID_ENVELOPPE 
-         --							OR (#temp_pce.ID_ENVELOPPE is NULL and #temp_pcr.ID_ENVELOPPE is null))
-         --						 and	(#temp_pce.ID_TYPE_FINANCEMENT = #temp_pcr.ID_TYPE_FINANCEMENT 
-         --							OR (#temp_pce.ID_TYPE_FINANCEMENT is NULL and #temp_pcr.ID_TYPE_FINANCEMENT is null))
-         --						 and	(#temp_pce.ID_MODULE_PEC = #temp_pcr.ID_MODULE_PEC)
-         --						 and	(#temp_pce.ID_DISPOSITIF = #temp_pcr.ID_DISPOSITIF)
-         --						 and	(#temp_pce.ID_BRANCHE = #temp_pcr.ID_BRANCHE )
-         --						)
-         
-         --OPEN ennet_cursor
-         --FETCH NEXT FROM ennet_cursor 
-         --INTO @ID_MODULE,@ID_DISPOSITIF, @ID_BRANCHE, @ID_ENVELOPPE, @MNT, @ID_TYPE_FINANCEMENT,@ID_ETABLISSEMENT
-         --WHILE @@FETCH_STATUS = 0
-         --BEGIN
-         --	if @MNT  <> 0
-         --	-- ASD 20110912 add ID_etab
-         --		select top 1 @ID_COMPTE_EN = id_compte from COMPTE 
-         --		inner join groupe on groupe.id_groupe = COMPTE.ID_GROUPE
-         --		inner join etablissement on ETABLISSEMENT.ID_GROUPE=GROUPE.id_groupe
-         --		where id_etablissement=@ID_ETABLISSEMENT
-         --		order by COMPTE.ID_PERIODE desc
-         --	--fin ASD add
-         --	exec INS_MVT_BUDG_PERIODE
-         --		@ID_MODULE,
-         --		@ID_DISPOSITIF ,
-         --		@ID_BRANCHE,
-         --		@ID_ENVELOPPE,
-         --		@ID_COMPTE_EN, --null, --@ID_COMPTE,--fin ASD add
-         --		@ID_TYPE_FINANCEMENT,
-         --		'EN',
-         --		@MNT,
-         --		null,
-         --		null
-         --	FETCH NEXT FROM ennet_cursor
-         --	INTO @ID_MODULE,@ID_DISPOSITIF, @ID_BRANCHE, @ID_ENVELOPPE, @MNT, @ID_TYPE_FINANCEMENT, @ID_ETABLISSEMENT
-         --END
-         --CLOSE ennet_cursor
-         --DEALLOCATE ennet_cursor
-         
-         --calculer EN via EIS+EIR+EC-R-RR+C.
+
          if exists (select 1 from sys.objects where name like 'enp_table')
          	drop table enp_table
-         	
+
          select	distinct ID_MODULE_PEC
          into	enp_table
          from	MVT_BUDGETAIRE_PERIODE
          where	ID_MODULE_PEC is not null
-         --and		DAT_CREATION > @last_run_date
+
          and		TYPE_ENREGISTREMENT in  ('EIS', 'EC', 'EIR', 'R', 'RR', 'C')
-         
-         ------------ supprimer les lignes pour les remplacer
+
          delete	MVT_BUDGETAIRE_PERIODE
          from	MVT_BUDGETAIRE_PERIODE
          join	enp_table 
          on		enp_table.ID_MODULE_PEC = MVT_BUDGETAIRE_PERIODE.ID_MODULE_PEC
          where	MVT_BUDGETAIRE_PERIODE.TYPE_ENREGISTREMENT = 'EN'
-         
-         ------------inserer
+
          insert into MVT_BUDGETAIRE_PERIODE
          (DAT_CREATION, MNT_MVT_BUDG_PERIODE, ID_PERIODE, ID_DISPOSITIF, ID_BRANCHE, ID_MODULE_PEC, ID_ENVELOPPE, ID_COMPTE, ID_TYPE_FINANCEMENT, TYPE_ENREGISTREMENT)
          select  
@@ -7957,8 +6477,7 @@ GO
          join	enp_table 
          on		enp_table.ID_MODULE_PEC = MVT_BUDGETAIRE_PERIODE.ID_MODULE_PEC
          where	MVT_BUDGETAIRE_PERIODE.TYPE_ENREGISTREMENT in  ('EIS', 'EC', 'EIR', 'R', 'RR', 'C')
-         --ajout 15/12/09 on ne veut pas des ENP si existe CP : SFD 1.1
-         --and		not exists (select * from MVT_BUDGETAIRE_PERIODE m where m.ID_MODULE_PEC = MVT_BUDGETAIRE_PERIODE.ID_MODULE_PEC and TYPE_ENREGISTREMENT = 'C')
+
          group by 
          	MVT_BUDGETAIRE_PERIODE.ID_MODULE_PEC,
          	ID_PERIODE,
@@ -7967,10 +6486,9 @@ GO
          	ID_ENVELOPPE,
          	ID_COMPTE, 
          	ID_TYPE_FINANCEMENT
-         
+
          drop table enp_table
-         
-         -- SBR le 18/06/2013 - suppression des EN pour les modules et actions cl“tur‚s ou inactifs
+
          print 'suppression des EN pour les modules et actions cl“tur‚s ou inactifs'
          update	t1
          set		t1.MNT_MVT_BUDG_PERIODE = 0
@@ -7982,9 +6500,7 @@ GO
          where	(t2.DAT_CLOTURE is not null or t3.DAT_CLOTURE is not null or t2.BLN_ACTIF = 0 or t3.BLN_ACTIF = 0)
          and		t1.TYPE_ENREGISTREMENT = 'EN'
          and		ABS(t1.MNT_MVT_BUDG_PERIODE) <> 0
-         
-         
-         -- en cas de dispositif null, mise … jour des id_dispositifs r‚cup‚rables dans l'enveloppe ou via le compte
+
          UPDATE	MVT_BUDGETAIRE_PERIODE
          SET		ID_DISPOSITIF =	(
          						SELECT	TYPE_ENVELOPPE.ID_DISPOSITIF 
@@ -7997,19 +6513,14 @@ GO
          AND		ID_COMPTE IS NULL 
          AND		ID_MODULE_PEC IS NOT NULL 
          AND		ID_ENVELOPPE IS NOT NULL
-         
-         
-         -- commentaire SBR: ces cas ne devraient pas exister
+
          UPDATE	MVT_BUDGETAIRE_PERIODE
          SET		ID_DISPOSITIF = 1 
          WHERE	ID_DISPOSITIF IS NULL 
          AND		ID_COMPTE IS NOT NULL 
          AND		ID_MODULE_PEC IS NOT NULL 
          AND		ID_ENVELOPPE IS NULL
-         
-         -- s'il en reste, aller les chercher dans le stagiaire ?
-         
-         -- SBR le 23/09/14: r‚cup‚ration id_compte ou id_activite pour les cas o— ID_TYPE_FINANCEMENT non NULL et ID_COMPTE NULL (cas de la reprise)
+
          update	t1
          set		t1.ID_COMPTE = t2.id_compte
          from	MVT_BUDGETAIRE_PERIODE t1
@@ -8026,7 +6537,7 @@ GO
          on		t1.ID_MODULE_PEC = t2.ID_MODULE_PEC
          where	t1.ID_TYPE_FINANCEMENT is not null 
          and		t1.ID_COMPTE is null
-         
+
          update	t1
          set		t1.id_activite = t2.id_activite
          from	MVT_BUDGETAIRE_PERIODE t1
@@ -8041,64 +6552,38 @@ GO
          on		t1.ID_MODULE_PEC = t2.ID_MODULE_PEC
          where	t1.ID_TYPE_FINANCEMENT is not null 
          and		t1.ID_COMPTE is null
-         
-         
+
          END
-         
+
  CREATE PROCEDURE [dbo].[LEC_GRP_ANNULATION_VIREMENT_PRO]
           @NUM_VIREMENT_PRO   VARCHAR(10),
           @COD_MODULE_PRO    VARCHAR(10),
           @COD_SESSION_BAP_PRO  VARCHAR(10),
           @COD_SESSION_PRO   VARCHAR(12)
          AS
-         
-         -- ====================================================================
-         -- Author  : GiO
-         -- Create date : 04 Avril 2008
-         -- comment  : Recuperation de la liste des virements pro … annuler
-         -- ---------------------------------------------
-         -- Author  : RMA 
-         -- Modified date: 05/12/2008
-         -- comment  : # Evol.1 210 
-         --      [DAT_BAP] => [DAT_BAP_OF - DAT_BAP_ADH]
-         --      [ID_SESSION_BAP_PRO] => [ID_SESSION_BAP_PRO_OF - ID_SESSION_BAP_PRO_ADH]
-         -- ---------------------------------------------
-         -- Author  : DCL
-         -- Modified date: 06/04/2009
-         -- comment  : virement adh, of et tiers (adh ou of)
-         --     ano tiers (ajout bap_pro adh)
-         -- ---------------------------------------------
-         -- Author  : ASD/DSZ
-         -- Modified date: 27-31/05/2011
-         -- comment  : 12798 valeur du MNT_HT pour une ligne 
-         --     lorsque plusieurs du mˆme contrat sont regroup‚es sous le rŠglement_pro
-         --     doit ˆtre celui de la partie de session et non du rŠglement
-         -- ajout de la colonne BLN_ANNULABLE
-         -- ---------------------------------------------
-         -- DSZ 17/03/2015 US#540 permettre annulation d'une session pro mˆme lorsqu'une partie de la session a d‚j… ‚t‚ r‚gl‚e
-         -- =============================================
+
          BEGIN
-         
+
           IF (@COD_MODULE_PRO = '')
            BEGIN
             SET @COD_MODULE_PRO = NULL
            END
-         
+
           IF (@NUM_VIREMENT_PRO = '')
            BEGIN
             SET @NUM_VIREMENT_PRO = NULL
            END
-         
+
           IF (@COD_SESSION_PRO = '')
            BEGIN
             SET @COD_SESSION_PRO = NULL
            END
-         
+
           IF (@COD_SESSION_BAP_PRO = '')
            BEGIN
             SET @COD_SESSION_BAP_PRO = NULL
            END
-         
+
           SELECT DISTINCT
            0               AS ANNULATION,
            REGLEMENT_PRO.ID_REGLEMENT_PRO        AS ID_REGLEMENT_PRO,
@@ -8119,18 +6604,18 @@ GO
             else SESSION_PRO.MNT_VERSE_HT_OF+SESSION_PRO.MNT_VERSE_TVA_OF
            end
                           AS MNT_REGLE_TTC,
-           
+
            CONTRAT_PRO.ID_CONTRAT_PRO         AS ID_CONTRAT_PRO,
            CONTRAT_PRO.COD_CONTRAT_PRO         AS COD_CONTRAT_PRO,
            CONTRAT_PRO.LIBL_CONTRAT_PRO        AS LIBL_CONTRAT_PRO,
-         
+
            MODULE_PRO.ID_MODULE_PRO         AS ID_MODULE_PRO,
            MODULE_PRO.COD_MODULE_PRO          AS COD_MODULE_PRO,
            MODULE_PRO.LIBL_MODULE_PRO          AS LIBL_MODULE_PRO,
-           
+
            AGENCE.ID_AGENCE           AS ID_AGENCE,
            AGENCE.LIBC_AGENCE           AS LIBC_AGENCE,
-         
+
            SESSION_PRO.ID_SESSION_PRO         AS ID_SESSION_PRO,
            SESSION_PRO.COD_SESSION_PRO         AS COD_SESSION_PRO,
            SESSION_PRO.DAT_DEBUT          AS DAT_DEBUT,
@@ -8142,8 +6627,7 @@ GO
              THEN ADHERENT.LIB_SIGLE_ADHERENT
            END               AS BENEFICIAIRE,
            1               AS BLN_ANNULABLE
-         
-          
+
          INTO #TEMP
           FROM 
             REGLEMENT_PRO 
@@ -8166,10 +6650,9 @@ GO
             AND  SESSION_PRO.BLN_ACTIF = 1
             AND  MODULE_PRO.BLN_ACTIF = 1 
             AND REGLEMENT_PRO.NUM_VIREMENT IS NOT NULL
-         
-         
+
          union all
-         
+
          SELECT DISTINCT
            0               AS ANNULATION,
            REGLEMENT_PRO.ID_REGLEMENT_PRO        AS ID_REGLEMENT_PRO,
@@ -8190,18 +6673,18 @@ GO
             else SESSION_PRO.MNT_VERSE_HT_OF+SESSION_PRO.MNT_VERSE_TVA_OF
            end
                           AS MNT_REGLE_TTC,
-           
+
            CONTRAT_PRO.ID_CONTRAT_PRO         AS ID_CONTRAT_PRO,
            CONTRAT_PRO.COD_CONTRAT_PRO         AS COD_CONTRAT_PRO,
            CONTRAT_PRO.LIBL_CONTRAT_PRO        AS LIBL_CONTRAT_PRO,
-         
+
            MODULE_PRO.ID_MODULE_PRO         AS ID_MODULE_PRO,
            MODULE_PRO.COD_MODULE_PRO          AS COD_MODULE_PRO,
            MODULE_PRO.LIBL_MODULE_PRO          AS LIBL_MODULE_PRO,
-           
+
            AGENCE.ID_AGENCE           AS ID_AGENCE,
            AGENCE.LIBC_AGENCE           AS LIBC_AGENCE,
-         
+
            SESSION_PRO.ID_SESSION_PRO         AS ID_SESSION_PRO,
            SESSION_PRO.COD_SESSION_PRO         AS COD_SESSION_PRO,
            SESSION_PRO.DAT_DEBUT          AS DAT_DEBUT,
@@ -8213,8 +6696,7 @@ GO
              THEN ORGANISME_FORMATION.LIB_SIGLE_OF
            END          AS BENEFICIAIRE,
            1          AS BLN_ANNULABLE
-          
-         
+
           FROM 
             REGLEMENT_PRO 
             INNER JOIN SESSION_PRO   ON SESSION_PRO.ID_REGLEMENT_PRO_OF = REGLEMENT_PRO.ID_REGLEMENT_PRO
@@ -8236,9 +6718,9 @@ GO
             AND  SESSION_PRO.BLN_ACTIF = 1
             AND  MODULE_PRO.BLN_ACTIF = 1
             AND REGLEMENT_PRO.NUM_VIREMENT IS NOT NULL
-         
+
          union all
-         
+
          SELECT DISTINCT
            0               AS ANNULATION,
            REGLEMENT_PRO.ID_REGLEMENT_PRO        AS ID_REGLEMENT_PRO,
@@ -8262,14 +6744,14 @@ GO
            CONTRAT_PRO.ID_CONTRAT_PRO         AS ID_CONTRAT_PRO,
            CONTRAT_PRO.COD_CONTRAT_PRO         AS COD_CONTRAT_PRO,
            CONTRAT_PRO.LIBL_CONTRAT_PRO        AS LIBL_CONTRAT_PRO,
-         
+
            MODULE_PRO.ID_MODULE_PRO         AS ID_MODULE_PRO,
            MODULE_PRO.COD_MODULE_PRO          AS COD_MODULE_PRO,
            MODULE_PRO.LIBL_MODULE_PRO          AS LIBL_MODULE_PRO,
-           
+
            AGENCE.ID_AGENCE           AS ID_AGENCE,
            AGENCE.LIBC_AGENCE           AS LIBC_AGENCE,
-         
+
            SESSION_PRO.ID_SESSION_PRO         AS ID_SESSION_PRO,
            SESSION_PRO.COD_SESSION_PRO         AS COD_SESSION_PRO,
            SESSION_PRO.DAT_DEBUT          AS DAT_DEBUT,
@@ -8283,8 +6765,7 @@ GO
               ) 
            then 0 else 1
            end               AS BLN_ANNULABLE
-          
-         
+
           FROM 
             REGLEMENT_PRO 
             INNER JOIN SESSION_PRO   ON (SESSION_PRO.ID_REGLEMENT_PRO_OF = REGLEMENT_PRO.ID_REGLEMENT_PRO or SESSION_PRO.ID_REGLEMENT_PRO_ADH = REGLEMENT_PRO.ID_REGLEMENT_PRO)
@@ -8307,16 +6788,11 @@ GO
             AND  MODULE_PRO.BLN_ACTIF = 1
             AND REGLEMENT_PRO.NUM_VIREMENT IS NOT NULL
             and TIERS.LIB_NOM  is not null
-         
-         
+
          SELECT DISTINCT * FROM #TEMP ORDER BY NUM_VIREMENT ,COD_SESSION_PRO
-         
+
          END
 
-         -----------------------------------------------
-         -- Date: 19/06/2012 
-         -- Auteur: Slah 13609
-         -- Description: Ech‚anciers Groupes pour Editions
          CREATE PROCEDURE [INS_OFFRE_SERVICE]
          			@ID_FREQUENCE_DIFFUSION_AUTOMATIQUE ID,
          			@ID_CONTACT ID,
@@ -8347,27 +6823,20 @@ GO
                 ,@DAT_MODIF
                 ,@DAT_ENVOI_AUTO)
          SET @ID_OFFRE_SERVICE = @@IDENTITY
-         
+
          SELECT @ID_OFFRE_SERVICE AS ID_OFFRE_SERVICE
          END
 
-
-         -- =============================================================
-         -- Author		: GiO
-         -- Create date	: 13 Mars 2008
-         -- Description	: Lettre de relance de reglement contrat pro adh
-         -- Mise a jour des date de relance pour les courier edit‚s
-         -- =============================================================
          CREATE PROCEDURE [dbo].[UPD_DATE_LETTRE_RELANCE_REGLEMENT_CONTRAT_PRO_ADH]
-         	@CODS_CONTRAT_PRO TEXT	-- List of cod_contrat_pro separated with ',' without spaces - i.e.: 1,2,3,4,5,6
+         	@CODS_CONTRAT_PRO TEXT	
          AS
-         
+
          BEGIN
-         
+
          	DECLARE @Item VARCHAR(12);
-         	-- Create a temporary table which contains IDs
+
          	CREATE TABLE #List(Item VARCHAR(12)  collate French_CI_AI)
-         	
+
          	DECLARE @Delimiter char
          	SET @Delimiter = ','
          	WHILE CHARINDEX(@Delimiter,@CODS_CONTRAT_PRO,0) <> 0
@@ -8375,15 +6844,14 @@ GO
          		SELECT
          			@Item=RTRIM(LTRIM(SUBSTRING(@CODS_CONTRAT_PRO,1,CHARINDEX(@Delimiter,@CODS_CONTRAT_PRO,0)-1))),
          			@CODS_CONTRAT_PRO=RTRIM(LTRIM(SUBSTRING(@CODS_CONTRAT_PRO,CHARINDEX(@Delimiter,@CODS_CONTRAT_PRO,0)+1,DATALENGTH(@CODS_CONTRAT_PRO))))
-         
+
          		IF LEN(@Item) > 0
          			INSERT INTO #List SELECT @Item
          	END
-         
+
          	IF DATALENGTH(@CODS_CONTRAT_PRO) > 0
          		INSERT INTO #List SELECT @CODS_CONTRAT_PRO
-         
-         
+
          	SELECT      CONTRAT_PRO.ID_CONTRAT_PRO, 
          				ARRIVEE_PIECE_PRO.ID_ARRIVEE_PIECE_PRO, 
          				ARRIVEE_PIECE_PRO.DAT_RELANCE_REGLE_1, 
@@ -8398,9 +6866,9 @@ GO
          				AND CONTRAT_PRO.COD_CONTRAT_PRO IN (SELECT Item FROM #List)
          				AND ((ARRIVEE_PIECE_PRO.BLN_ACTIF = 0) OR ((ARRIVEE_PIECE_PRO.BLN_ACTIF = 1) AND ( EXISTS (select 1 from NR410 WHERE NR410.ID_ARRIVEE_PIECE_PRO = ARRIVEE_PIECE_PRO.ID_ARRIVEE_PIECE_PRO))))
          				AND CONTRAT_PRO.BLN_ACTIF=1
-         
+
          	UNION
-         
+
          	SELECT  CONTRAT_PRO.ID_CONTRAT_PRO, 
          			ARRIVEE_PIECE_PRO.ID_ARRIVEE_PIECE_PRO, 
          			ARRIVEE_PIECE_PRO.DAT_RELANCE_REGLE_1, 
@@ -8416,9 +6884,9 @@ GO
          			AND MODULE_PRO.BLN_SUBROGE != 1
          			AND CONTRAT_PRO.COD_CONTRAT_PRO IN (SELECT Item FROM #List)
          			AND ((ARRIVEE_PIECE_PRO.BLN_ACTIF = 0) OR ((ARRIVEE_PIECE_PRO.BLN_ACTIF = 1) AND ( EXISTS (select 1 from NR410 WHERE NR410.ID_ARRIVEE_PIECE_PRO = ARRIVEE_PIECE_PRO.ID_ARRIVEE_PIECE_PRO))))
-         
+
          UNION
-         
+
          	SELECT  CONTRAT_PRO.ID_CONTRAT_PRO, 
          			ARRIVEE_PIECE_PRO.ID_ARRIVEE_PIECE_PRO, 
          			ARRIVEE_PIECE_PRO.DAT_RELANCE_REGLE_1, 
@@ -8435,9 +6903,7 @@ GO
          			AND MODULE_PRO.BLN_SUBROGE != 1
          			AND CONTRAT_PRO.COD_CONTRAT_PRO IN (SELECT Item FROM #List)
          			AND ((ARRIVEE_PIECE_PRO.BLN_ACTIF = 0) OR ((ARRIVEE_PIECE_PRO.BLN_ACTIF = 1) AND ( EXISTS (select 1 from NR410 WHERE NR410.ID_ARRIVEE_PIECE_PRO = ARRIVEE_PIECE_PRO.ID_ARRIVEE_PIECE_PRO))))
-         
-         
-         	--1iere relance
+
          	UPDATE	ARRIVEE_PIECE_PRO
          	SET		ARRIVEE_PIECE_PRO.DAT_RELANCE_REGLE_1 = GETDATE()
          	WHERE	ARRIVEE_PIECE_PRO.ID_ARRIVEE_PIECE_PRO	IN 
@@ -8448,8 +6914,7 @@ GO
          						AND #TEMP.DAT_RELANCE_REGLE_2 IS NULL
          						AND #TEMP.DAT_RELANCE_REGLE_3 IS NULL 
          			)
-         
-         	--2ieme relance
+
          	UPDATE	ARRIVEE_PIECE_PRO
          	SET		ARRIVEE_PIECE_PRO.DAT_RELANCE_REGLE_2 = GETDATE()
          	WHERE	ARRIVEE_PIECE_PRO.ID_ARRIVEE_PIECE_PRO	IN 
@@ -8460,8 +6925,7 @@ GO
          						AND	#TEMP.DAT_RELANCE_REGLE_2 IS NULL
          						AND #TEMP.DAT_RELANCE_REGLE_3 IS NULL
          			)
-         
-         	--3ieme relance
+
          	UPDATE	ARRIVEE_PIECE_PRO
          	SET		ARRIVEE_PIECE_PRO.DAT_RELANCE_REGLE_3 = GETDATE()
          	WHERE	ARRIVEE_PIECE_PRO.ID_ARRIVEE_PIECE_PRO	IN 
@@ -8471,76 +6935,43 @@ GO
          				WHERE		#TEMP.DAT_RELANCE_REGLE_2 IS NOT NULL
          						AND #TEMP.DAT_RELANCE_REGLE_3 IS NULL
          			)
-         
+
          END
-         
 
  CREATE PROCEDURE [dbo].[LEC_GRP_STAGIAIRE_MODULE_PEC_POSTE_COUT]
           @ID_MODULE int,
           @ID_POSTE_COUT_ENGAGE int
          AS
-         
-         --================================================
-         -- PROC FAF
-         ------------------------------------------------
-         -- Author:  ASD
-         -- Modif date: 20/06/2008
-         -- Description: correction pour restriction aux unit‚s stagiaires de modules
-         ------------------------------------------------
-         -- Author:  DSZE
-         -- Modif date: 09/07/2008
-         -- Description: ajout LIB_SIGLE_GROUPE
-         ------------------------------------------------
-         -- Author:  DSZE
-         -- Modif date: 11/12/2009
-         -- Description: 12180, evol 406, historisation du groupe: prendre le lib_sigle du groupe HISTORISEE
-         ------------------------------------------------
-         -- DSZ 18/02/2011 12638
-         -- ne pas prendre en compte les US qui ont NB_HEURE_ENGAGE = 0
-         ------------------------------------------------
-         -- DSZ 05/10/2011 12570
-         -- suppression jointure pfus, qui ne sert ici … rien et qui bloque le chiffrage dans le cas o— 
-         -- les dispositifs auraient ‚t‚ refus‚s
-         ------------------------------------------------
-         -- slah 29/02/2012 13504
-         -- ajoue des col NB_HEURE_REM et ID_SOUS_TYPE_COUT
-         ------------------------------------------------
-         -- OPA 31/05/2013 : 15031 : SBR - suppression du type FLOAT et REAL dans le SQL : 2- FLOAT
-         ------------------------------------------------
-         -- DSZ 19/03/2015 : US#717 : il faut avoir lib_groupe non null
-         --================================================
+
          BEGIN
-         
+
           DECLARE @MNT_ENGAGE_HT decimal(18,2)
           DECLARE @NUM_DUREE_HEURE int
           DECLARE @SUM_HEURE_STAGIAIRE decimal(18,2)
           DECLARE @ID_SOUS_TYPE_COUT INT
-          
+
           SELECT @NUM_DUREE_HEURE = NUM_DUREE_HEURE 
           FROM MODULE_PEC WHERE ID_MODULE_PEC = @ID_MODULE
-          
+
           IF (@NUM_DUREE_HEURE IS NULL)
           BEGIN
            SET @NUM_DUREE_HEURE = 1
           END
-          
+
           SELECT @MNT_ENGAGE_HT = MNT_ENGAGE_HT, @ID_SOUS_TYPE_COUT = ID_SOUS_TYPE_COUT 
           FROM POSTE_COUT_ENGAGE 
           WHERE ID_POSTE_COUT_ENGAGE = @ID_POSTE_COUT_ENGAGE
-         
+
           IF (@MNT_ENGAGE_HT IS NULL)
           BEGIN
            SET @MNT_ENGAGE_HT = 0
           END
-         
+
           SELECT @SUM_HEURE_STAGIAIRE = SUM(NB_HEURE_ENGAGE)
           FROM STAGIAIRE_PEC
           WHERE ID_MODULE_PEC = @ID_MODULE
           AND ID_SESSION_PEC is NULL
-         
-         
-         
-         
+
           SELECT  DISTINCT(UNITE_STAGIAIRE.ID_UNITE_STAGIAIRE),
           STAGIAIRE_PEC.ID_STAGIAIRE_PEC,
           ADHERENT.LIB_RAISON_SOCIALE AS ADHERENT,
@@ -8575,47 +7006,12 @@ GO
 CREATE PROCEDURE [dbo].[LEC_DET_MODULE_PEC] 
           @ID_MODULE int
          AS
-         -- =============================================
-         -- Author:  XXX
-         -- Create date: XX XXX. 2007
-         -- Description: procedure recuperant les donnees pour un module pec
-         -- ---------------------------------------------
-         -- Author:  Say
-         -- Modified date: 26 Juillet 2007
-         -- comment  : # ajout d'un autre syst de calcul pour le desengagement
-         -- ---------------------------------------------
-         -- Author:  Say
-         -- Modified date: 02 Aout 2007
-         -- comment  : # correction du filtrage espagnole sur le comptage des poste de cout engages
-         -- ---------------------------------------------
-         -- Author:  SV
-         -- Modified date: 13 novembre 2007
-         -- comment  : V‚rification du champ ID_TYPE_ENGAGEMENT de la table ENGAGEMENT pour que la variable @DESENGAGEMENT_VERSION_ECRAN ne soit pas incr‚ment‚e si le champ vaut 2
-         -- =============================================
-         -- Author:  AMA
-         -- Modified date: 11 mars 2008
-         -- comment  : R‚cup‚ration de nouveaux champs pour C2P
-         -- =============================================
-         -- Author:  DSZE
-         -- Modified date: 17 mars 2008
-         -- comment  : Ajout Code Action format NNNNNN/AAAA (11 characters)
-         -- =============================================
-         -- Author:  MAB SAFI
-         -- Modified date: 17 mai 2011 / 01 juin 2011
-         -- comment  : Ajout TOTAL_DUREE_UTILISE
-         -- =============================================
-         -- DSZ 13261 recup BLN_CLOTURE
-         -- =============================================
-         -- RVI 13404 2012-04-19 : Ajout BLN_CATALOGUE
-         -- =============================================
-         -- DSZ US#1003 15/07/2015 : Ajout ID_MODALITE_ENSEIGNEMENT et CODE_CPF 
-         -- =============================================
-         
+
          BEGIN
-         
+
           DECLARE @DESENGAGEMENT INT
           DECLARE @DESENGAGEMENT_VERSION_ECRAN INT
-         
+
           SELECT @DESENGAGEMENT = COUNT(*) 
           from MODULE_PEC
            LEFT JOIN POSTE_COUT_ENGAGE ON POSTE_COUT_ENGAGE.ID_MODULE_PEC = MODULE_PEC.ID_MODULE_PEC
@@ -8624,12 +7020,12 @@ CREATE PROCEDURE [dbo].[LEC_DET_MODULE_PEC]
             DAT_DESENGAGEMENT is null  AND
             ENGAGEMENT.DAT_BAE is not null AND
             MODULE_PEC.ID_MODULE_PEC = @ID_MODULE
-         
+
           IF @DESENGAGEMENT > 0
           BEGIN
            SET @DESENGAGEMENT = 1
           END
-          
+
           select
            @DESENGAGEMENT_VERSION_ECRAN = count(*) 
           from
@@ -8640,7 +7036,7 @@ CREATE PROCEDURE [dbo].[LEC_DET_MODULE_PEC]
             AND POSTE_COUT_ENGAGE.DAT_DESENGAGEMENT IS NULL
             AND POSTE_COUT_ENGAGE.ID_ENGAGEMENT IS NOT NULL
             AND ENGAGEMENT.ID_TYPE_ENGAGEMENT <> 2
-         
+
           select 
            MODULE_PEC.ID_MODULE_PEC,
            @DESENGAGEMENT AS DESENGAGEMENT,
@@ -8688,7 +7084,7 @@ CREATE PROCEDURE [dbo].[LEC_DET_MODULE_PEC]
                AND MODULE_PEC.BLN_ACTIF = 1
                GROUP BY MODULE_PEC.ID_ACTION_PEC),0)
            AS TOTAL_DUREE_UTILISE,
-           ID_DISPOSITIF_PAR_DEFAUT, --DSZ 12/01/12
+           ID_DISPOSITIF_PAR_DEFAUT, 
            (SELECT COUNT(*) + 1
            FROM SESSION_PEC
            WHERE ID_MODULE_PEC=@ID_MODULE) AS NEXT_SESSION_NUMBER,
@@ -8702,17 +7098,11 @@ CREATE PROCEDURE [dbo].[LEC_DET_MODULE_PEC]
             LEFT JOIN ETABLISSEMENT_OF ON ETABLISSEMENT_OF.ID_ETABLISSEMENT_OF = MODULE_PEC.ID_ETABLISSEMENT_OF
             LEFT JOIN UTILISATEUR ON UTILISATEUR.ID_UTILISATEUR = MODULE_PEC.ID_UTILISATEUR
             LEFT JOIN UTILISATEUR UCREATEUR ON UCREATEUR.ID_UTILISATEUR = MODULE_PEC.ID_UTILISATEUR_CREATEUR
-         
+
           WHERE MODULE_PEC.ID_MODULE_PEC = @ID_MODULE
-          
+
          END
 
-
-         -- =================================================================================
-         -- Author:		TLE
-         -- Create date: 26/06/2013
-         -- Description: INS_COMMENTAIRE avec une variable output au lieu d'un return
-         -- =================================================================================
          CREATE PROCEDURE [dbo].[INS_COMMENTAIRE_WITH_OUTPUT] 
          	@TYPE_OBJET int,	
          	@ID_OBJET int,
@@ -8722,7 +7112,7 @@ CREATE PROCEDURE [dbo].[LEC_DET_MODULE_PEC]
          AS
          BEGIN
          	SET NOCOUNT ON;
-         
+
          	INSERT INTO COMMENTAIRES
                     ([TYPE_OBJET]
                     ,[ID_OBJET]
@@ -8735,29 +7125,21 @@ CREATE PROCEDURE [dbo].[LEC_DET_MODULE_PEC]
                     ,GetDate()
                     ,@COMMENTAIRE
                     ,@ID_UTILISATEUR)
-         
-         
-         	SET @RESULT_COMMENTAIRE = @@IDENTITY
-         
-         END
-         
 
-         -- =============================================================
-         -- Author		: GiO
-         -- Create date	: 12 Mars 2008
-         -- Description	: Lettre de relance de reglement contrat pro of
-         -- Mise a jour des date de relance pour les courier edit‚s
-         -- =============================================================
+         	SET @RESULT_COMMENTAIRE = @@IDENTITY
+
+         END
+
          CREATE PROCEDURE [dbo].[UPD_DATE_LETTRE_RELANCE_REGLEMENT_CONTRAT_PRO_OF]
-         	@CODS_CONTRAT_PRO TEXT	-- List of cod_contrat_pro separated with ',' without spaces - i.e.: 1,2,3,4,5,6
+         	@CODS_CONTRAT_PRO TEXT	
          AS
-         
+
          BEGIN
-         
+
          	DECLARE @Item VARCHAR(12);
-         	-- Create a temporary table which contains IDs
+
          	CREATE TABLE #List(Item VARCHAR(12)  collate French_CI_AI)
-         	
+
          	DECLARE @Delimiter char
          	SET @Delimiter = ','
          	WHILE CHARINDEX(@Delimiter,@CODS_CONTRAT_PRO,0) <> 0
@@ -8765,15 +7147,14 @@ CREATE PROCEDURE [dbo].[LEC_DET_MODULE_PEC]
          		SELECT
          			@Item=RTRIM(LTRIM(SUBSTRING(@CODS_CONTRAT_PRO,1,CHARINDEX(@Delimiter,@CODS_CONTRAT_PRO,0)-1))),
          			@CODS_CONTRAT_PRO=RTRIM(LTRIM(SUBSTRING(@CODS_CONTRAT_PRO,CHARINDEX(@Delimiter,@CODS_CONTRAT_PRO,0)+1,DATALENGTH(@CODS_CONTRAT_PRO))))
-         
+
          		IF LEN(@Item) > 0
          			INSERT INTO #List SELECT @Item
          	END
-         
+
          	IF DATALENGTH(@CODS_CONTRAT_PRO) > 0
          		INSERT INTO #List SELECT @CODS_CONTRAT_PRO
-         
-         
+
          	SELECT  CONTRAT_PRO.ID_CONTRAT_PRO, 
          			ARRIVEE_PIECE_PRO.ID_ARRIVEE_PIECE_PRO, 
          			ARRIVEE_PIECE_PRO.DAT_RELANCE_REGLE_1, 
@@ -8791,9 +7172,9 @@ CREATE PROCEDURE [dbo].[LEC_DET_MODULE_PEC]
          			AND CONTRAT_PRO.COD_CONTRAT_PRO IN (SELECT Item FROM #List)
          			AND ((ARRIVEE_PIECE_PRO.BLN_ACTIF = 0) OR ((ARRIVEE_PIECE_PRO.BLN_ACTIF = 1) AND ( EXISTS (select 1 from NR410 WHERE NR410.ID_ARRIVEE_PIECE_PRO = ARRIVEE_PIECE_PRO.ID_ARRIVEE_PIECE_PRO))))
          			AND CONTRAT_PRO.BLN_ACTIF=1
-         
+
          union 
-         
+
          SELECT  CONTRAT_PRO.ID_CONTRAT_PRO, 
          			ARRIVEE_PIECE_PRO.ID_ARRIVEE_PIECE_PRO, 
          			ARRIVEE_PIECE_PRO.DAT_RELANCE_REGLE_1, 
@@ -8810,8 +7191,7 @@ CREATE PROCEDURE [dbo].[LEC_DET_MODULE_PEC]
          			AND MODULE_PRO.BLN_SUBROGE = 1
          			AND CONTRAT_PRO.COD_CONTRAT_PRO IN (SELECT Item FROM #List)
          			AND ((ARRIVEE_PIECE_PRO.BLN_ACTIF = 0) OR ((ARRIVEE_PIECE_PRO.BLN_ACTIF = 1) AND ( EXISTS (select 1 from NR410 WHERE NR410.ID_ARRIVEE_PIECE_PRO = ARRIVEE_PIECE_PRO.ID_ARRIVEE_PIECE_PRO))))
-         
-         	--1iere relance
+
          	UPDATE	ARRIVEE_PIECE_PRO
          	SET		ARRIVEE_PIECE_PRO.DAT_RELANCE_REGLE_1 = GETDATE()
          	WHERE	ARRIVEE_PIECE_PRO.ID_ARRIVEE_PIECE_PRO	IN 
@@ -8822,8 +7202,7 @@ CREATE PROCEDURE [dbo].[LEC_DET_MODULE_PEC]
          						AND #TEMP.DAT_RELANCE_REGLE_2 IS NULL
          						AND #TEMP.DAT_RELANCE_REGLE_3 IS NULL 
          			)
-         
-         	--2ieme relance
+
          	UPDATE	ARRIVEE_PIECE_PRO
          	SET		ARRIVEE_PIECE_PRO.DAT_RELANCE_REGLE_2 = GETDATE()
          	WHERE	ARRIVEE_PIECE_PRO.ID_ARRIVEE_PIECE_PRO	IN 
@@ -8834,8 +7213,7 @@ CREATE PROCEDURE [dbo].[LEC_DET_MODULE_PEC]
          						AND	#TEMP.DAT_RELANCE_REGLE_2 IS NULL
          						AND #TEMP.DAT_RELANCE_REGLE_3 IS NULL
          			)
-         
-         	--3ieme relance
+
          	UPDATE	ARRIVEE_PIECE_PRO
          	SET		ARRIVEE_PIECE_PRO.DAT_RELANCE_REGLE_3 = GETDATE()
          	WHERE	ARRIVEE_PIECE_PRO.ID_ARRIVEE_PIECE_PRO	IN 
@@ -8845,99 +7223,40 @@ CREATE PROCEDURE [dbo].[LEC_DET_MODULE_PEC]
          				WHERE		#TEMP.DAT_RELANCE_REGLE_2 IS NOT NULL
          						AND #TEMP.DAT_RELANCE_REGLE_3 IS NULL
          			)
-         
+
          END
 
  CREATE PROCEDURE [dbo].[UPD_ANNULATION_VIREMENT_PRO]
           @ID_REGLEMENT_PRO INT,
           @ID_SESSION_PRO INT
          AS
-         
-         
-         -- ====================================================================
-         -- Author  : KW
-         -- Create date : 28 novembre 2007
-         -- comment  : ANNULATION D'UN REGLEMENT PRO
-         -- ===================================================================
-         -- Author  : GiO
-         -- Create date : 11 Mars 2008
-         -- comment  : Update des table reglement pro et session pro avec les donn‚es manquantes
-         -- ===================================================================
-         -- Author  : RMA
-         -- Create date : 05 Ao–t 2008
-         -- comment  : Si l'un des deux virements est valid‚, alors le second n'est plus annulable
-         -- ---------------------------------------------
-         -- Author  : RMA 
-         -- Modified date: 05/12/2008
-         -- comment  : # Evol.1 210 
-         --      [DAT_BAP] => [DAT_BAP_OF - DAT_BAP_ADH]
-         --      [ID_SESSION_BAP_PRO] => [ID_SESSION_BAP_PRO_OF - ID_SESSION_BAP_PRO_ADH]
-         -- ---------------------------------------------
-         -- Author  : DCL
-         -- Modified date: 24/04/2009
-         -- comment  : ano Mantis 11931.
-         --     si session avec virement ADH et OF : on annule les deux ou aucun (si l'un des 2 est deja valid‚)
-         --     sinon, on annule le virement et d‚BAP la(es) session(s) pro associ‚e(s)
-          
-         -- OU modif en amont : ne pas faire apparitre le virement si adh ou of  valid‚?!
-         -- => modif de LEC_GRP_ANNULATION_VIREMENT_PRO @NUM_VIREMENT_PRO='',@COD_MODULE_PRO='',@COD_SESSION_BAP_PRO='',@COD_SESSION_PRO=''
-         -- ---------------------------------------------
-         -- Author  : ASD_DCL
-         -- Modified date: 23/06/2009
-         -- comment  : ano Mantis 11931.
-         --     si on annule un virement, on d‚-BAPe, on d‚-rŠgle, on d‚-bap_sessionne toute la session pro associ‚e (ADH et OF si r‚gl‚s)
-         --     et on d‚-rŠgle toutes les parties des autres sessions incluses dans le(s) rŠglement(s) annul‚(s)
-         --     nota : ici, r‚gler, d‚-r‚gler signifient "associer, d‚s-associer une partie de session_pro … un r‚glement"
-         -- ---------------------------------------------
-         -- Author  : ASD : 12237
-         -- Modified date: 21/02/2011
-         -- comment  : ano Mantis 12237-11931. correction d‚BAP global : re‚criture quasi complŠte : pas de code ancien conserv‚ en commentaire.
-         --                une partie du code a ‚t‚ d‚port‚e dans INS_REGLEMENT_PRO
-         -- ---------------------------------------------
-         -- Author  : ASD_DSZ 
-         -- Modified date: 27/05/2011
-         -- comment  : relecture
-         -- ---------------------------------------------
-         -- Author  : DSZ  
-         -- Modified date: 31/05/2011
-         -- comment  : 12237 : detachement des reglements annules se fera desormais dans DETACHER_REGLT_PRO_DE_SESSION
-         -- aprŠs avoir fait tous les annulations (appel‚ par le code)
-         -- =============================================
-         -- DSZ 20/03/2015 us#540 pouvoir annuler le virement d'une session pro mˆme lorsqu'une partie de la session a d‚j… ‚t‚ r‚gl‚e
-         -- =============================================
-         
-         
+
          BEGIN
-         
+
           DECLARE @ID_REGLEMENT_PRO_OF AS INT,
             @ID_REGLEMENT_PRO_ADH AS INT,
             @DAT_VALID_REGLEMENT AS DATETIME
-         
+
           SET @ID_REGLEMENT_PRO_OF = NULL
           SET @ID_REGLEMENT_PRO_ADH = NULL
           SET @DAT_VALID_REGLEMENT = NULL
-         
+
           SELECT @DAT_VALID_REGLEMENT = DAT_VALID_REGLEMENT 
           FROM REGLEMENT_PRO 
           WHERE ID_REGLEMENT_PRO = @ID_REGLEMENT_PRO
-         
-          -- annulation uniquement si le reglŠment n'a pas ‚t‚ valid‚
+
           IF(@DAT_VALID_REGLEMENT IS NULL)
           BEGIN
-         
-           -- je recherche les rŠglements de la session_pro concern‚e
+
            SELECT @ID_REGLEMENT_PRO_OF = ID_REGLEMENT_PRO_OF FROM SESSION_PRO WHERE ID_SESSION_PRO = @ID_SESSION_PRO AND
                               ID_REGLEMENT_PRO_OF IS NOT NULL
            SELECT @ID_REGLEMENT_PRO_ADH = ID_REGLEMENT_PRO_ADH FROM SESSION_PRO WHERE ID_SESSION_PRO = @ID_SESSION_PRO AND 
                               ID_REGLEMENT_PRO_ADH IS NOT NULL
-         --select @ID_REGLEMENT_PRO_ADH, @ID_REGLEMENT_PRO_OF
-           
-           -- le rŠglement est … d‚sactiver
+
            update REGLEMENT_PRO SET BLN_ACTIF=0 
            WHERE ID_REGLEMENT_PRO=@ID_REGLEMENT_PRO 
              and bln_actif=1
-         
-           -- la participation de la session en parametre peut ˆtre annul‚e du rŠglement en paramŠtre (partie OF et/ou ADH)
+
            if (@ID_REGLEMENT_PRO_OF = @ID_REGLEMENT_PRO) 
             update SESSION_PRO 
             SET 
@@ -8947,7 +7266,7 @@ CREATE PROCEDURE [dbo].[LEC_DET_MODULE_PEC]
               DAT_BAP_OF = NULL,
               ID_SESSION_BAP_PRO_OF = NULL 
             WHERE ID_SESSION_PRO = @ID_SESSION_PRO
-           --et/ou
+
            if (@ID_REGLEMENT_PRO_ADH = @ID_REGLEMENT_PRO ) 
             update SESSION_PRO 
             SET 
@@ -8957,15 +7276,9 @@ CREATE PROCEDURE [dbo].[LEC_DET_MODULE_PEC]
               DAT_BAP_ADH = NULL,
               ID_SESSION_BAP_PRO_ADH = NULL
             WHERE ID_SESSION_PRO = @ID_SESSION_PRO
-          END --IF(@DAT_VALID_REGLEMENT IS NULL)
-         END --fin PS
+          END 
+         END 
 
-
-         -- =============================================
-         -- Author:		DSZ
-         -- Create date: 16/04/2012
-         -- Description:	ajout de role au contact donn‚, si n'existe pas d‚j…
-         -- =============================================
          CREATE PROCEDURE INS_ROLE_CONTACT
          	@ID_CONTACT int,
          	@ID_ROLE int
@@ -8977,27 +7290,16 @@ CREATE PROCEDURE [dbo].[LEC_DET_MODULE_PEC]
          		values (@ID_CONTACT, @ID_ROLE)
          END
 
-
-         -- =============================================
-         -- Author:		??
-         -- Create date: XX XX 2007
-         -- Description:	Cr‚ation
-         -- =============================================
-         -- Author:		SV
-         -- Create date: 13 novembre 2007
-         -- Description:	Transformation du dernier identifiant en varchar(50) avant insertion dans #List pour ‚viter une exception de cast text vers int
-         -- =============================================
-         
          CREATE PROCEDURE [dbo].[UPD_DATE_LETTRE_ENGAGEMENT_ADH]
-         	@IDS_ACTION_PEC TEXT	-- List of ID_ACTION separated with ',' without spaces - i.e.: 1,2,3,4,5,6
+         	@IDS_ACTION_PEC TEXT	
          AS
-         
+
          BEGIN
-         
+
          	DECLARE @Item int;
-         	-- Create a temporary table which contains IDs
+
          	CREATE TABLE #List(Item int)
-         	
+
          	DECLARE @Delimiter char
          	SET @Delimiter = ','
          	WHILE CHARINDEX(@Delimiter,@IDS_ACTION_PEC,0) <> 0
@@ -9005,18 +7307,17 @@ CREATE PROCEDURE [dbo].[LEC_DET_MODULE_PEC]
          		SELECT
          			@Item=RTRIM(LTRIM(SUBSTRING(@IDS_ACTION_PEC,1,CHARINDEX(@Delimiter,@IDS_ACTION_PEC,0)-1))),
          			@IDS_ACTION_PEC=RTRIM(LTRIM(SUBSTRING(@IDS_ACTION_PEC,CHARINDEX(@Delimiter,@IDS_ACTION_PEC,0)+1,DATALENGTH(@IDS_ACTION_PEC))))
-         
+
          		IF LEN(@Item) > 0
          			INSERT INTO #List SELECT cast(@Item as int)
          	END
-         
+
          	IF DATALENGTH(@IDS_ACTION_PEC) > 0
          		begin
          			select @Item = cast(@IDS_ACTION_PEC as varchar(50))
-         			INSERT INTO #List SELECT @Item -- Put the last item in
+         			INSERT INTO #List SELECT @Item 
          		end
-         
-         	--R‚cup‚ration de la liste des engagement a mettre … jour
+
          	SELECT DISTINCT ENGAGEMENT.ID_ENGAGEMENT
          	INTO			#TEMP_ENGAMEMENT
          	FROM			ACTION_PEC 
@@ -9026,17 +7327,12 @@ CREATE PROCEDURE [dbo].[LEC_DET_MODULE_PEC]
          					AND (ENGAGEMENT.ID_TYPE_ENGAGEMENT <> 2)
          					AND (ENGAGEMENT.DAT_LETTRE_PEC_ENGAGEMENT_ADH  IS NULL)
          					AND (ACTION_PEC.ID_ACTION_PEC IN (SELECT Item FROM #List))
-         
-         	--Mise … jour des date d'engagement
+
          	UPDATE ENGAGEMENT
          	SET	DAT_LETTRE_PEC_ENGAGEMENT_ADH= GETDATE()
          	WHERE	ID_ENGAGEMENT IN (SELECT ID_ENGAGEMENT FROM #TEMP_ENGAMEMENT)
-         
+
          END
-         
-         
-         
-         
 
          CREATE PROCEDURE [dbo].[UPD_NR31]  
          	@ID_ETABLISSEMENT	INTEGER,
@@ -9067,30 +7363,30 @@ CREATE PROCEDURE [dbo].[LEC_DET_MODULE_PEC]
          		ID_ADRESSE		= @ID_ADRESSE,
          		LIB_TITRE		= @LIB_TITRE,
          		EMAIL_PERS		= @EMAIL_PERS
-         
+
          	FROM NR31
-         
+
          	WHERE
          			ID_ETABLISSEMENT	= @ID_ETABLISSEMENT  
          		AND ID_CONTACT			= @ID_CONTACT
          		AND TIME_STAMP			= @TIME_STAMP  
-         
+
          	IF @@ROWCOUNT = 0   
          		BEGIN  
          		   IF EXISTS(SELECT * FROM NR31 WHERE	ID_ETABLISSEMENT	= @ID_ETABLISSEMENT AND 
          												ID_CONTACT			= @ID_CONTACT		AND 
          												TIME_STAMP			!= @TIME_STAMP)      
          		   BEGIN  
-         		      /* ProblŠme de Concurrence d'accŠs */  
+
          		      RAISERROR(50001, 16, 1)  
          		   END  
          		   ELSE  
          		   BEGIN  
-         		      /* L'enregistrement a ‚t‚ d‚truit */  
+
          		      RAISERROR(50002, 16, 1)  
          		   END  
          		END       
-         
+
          	IF (@BLN_ACTIF = 0 and  EXISTS (select * from [TRANSACTION]  where ID_ETABLISSEMENT_BENEF = @ID_ETABLISSEMENT 
          				AND ID_CONTACT = @ID_CONTACT AND BLN_ACTIF = 1 and BLN_TRANSACTION_REGLEMENT_PRINCIPAL = 0))
          				BEGIN
@@ -9116,40 +7412,16 @@ CREATE PROCEDURE [dbo].[LEC_DET_MODULE_PEC]
          			[TRANSACTION].ID_CONTACT			=  @ID_CONTACT
          		print 'transaction ok'
          	END
-         
+
 GO
 
  CREATE PROCEDURE [dbo].[BATCH_GENERATION_MVT_BUDGETAIRE_TRANSFERT]
           @ID_EVENEMENT INT
          AS
-         -- =============================================
-         -- Author  : MBL
-         -- Create date : 21/11/2013
-         -- Description : Proc‚dure permettant de generer les mouvements budgetaires des evenements associes a des transferts :
-         --     - TRANSFER Transfert manuel
-         --     - TRAN_FMS Transfert FMS
-         --     - TRAN_DOT TRANSFERT dot -10
-         --     - TRAN_PRE Transfert pr‚script
-         --     - TRAN_CNV Transfert convention
-         --     - REG_CONV R‚gul. conventionnel
-         
-         -- Parametre @ID_EVENEMENT 
-         --     Il est a noter que cette procedure est appelee de 2 manieres differentes : 
-         --    Pour les transferts manuel, generes au fil de l'eau 
-         --  le parametre @ID_EVENEMENT est valorise avec l'identifiant de l'evenement associe au transfert cree
-         --    Pour les autres transferts, generes par batch la nuit
-         --   le parametre @ID_EVENEMENT est valorise a NULL. Tous les evenements sans Mouvements budgetaires sont alors pris en compte
-         -- =============================================
-         -- Author  : MBL
-         -- Create date : 21/04/2015
-         -- Description : L'‚tablissement associ‚ aux mouvements budg‚taires est pris dans TRANSFERT.ID_ETABLISSEMENT 
-         -- Description : La p‚riode prise en compte est celle du compte (plus celle de l'enveloppe) associee au transfert
-         -- =============================================
+
          BEGIN
           SET NOCOUNT ON;
-         
-          -- Obtention des donn‚es
-          -----------------------
+
           with transferts as
           (  
           SELECT
@@ -9157,7 +7429,7 @@ GO
            TRANSFERT.ID_ENVELOPPE,
            MNT_MVT = ISNULL(TRANSFERT.MNT_REEL, TRANSFERT.MNT_REEL_OUVRIER),
            TRANSFERT.BLN_COMPTE_VERS_ENVELOPPE ,
-           -- MBL Modif 21/04/2015 : La p‚riode prise en compte est celle du compte (plus celle de l'enveloppe) associee au transfert
+
            COMPTE.ID_PERIODE,
            COMPTE.ID_ACTIVITE ,
            LIBL = CASE WHEN LEN(LTRIM(TRANSFERT.COM_TRANSFERT))>0 AND COD_TYPE_EVENEMENT != 'TRANSFER' THEN TRANSFERT.COM_TRANSFERT ELSE  TRANSFERT.LIBL_TRANSFERT END,
@@ -9165,23 +7437,20 @@ GO
            COMPTE.ID_GROUPE,
            EVENEMENT.DAT_EVENEMENT,
            COMPTE.ID_TYPE_FINANCEMENT,
-           -- MBL Modif 21/04/2015 : L'‚tablissement associ‚ aux mouvements budg‚taires est pris dans TRANSFERT.ID_ETABLISSEMENT 
+
            ID_ETABLISSEMENT = TRANSFERT.ID_ETABLISSEMENT, 
            ETABLISSEMENT.ID_ADHERENT
           FROM    EVENEMENT
             INNER JOIN TRANSFERT  on (TRANSFERT.ID_TRANSFERT  = EVENEMENT.ID_TRANSFERT) 
             INNER JOIN COMPTE   on (COMPTE.ID_COMPTE   = TRANSFERT.ID_COMPTE)
             INNER JOIN TYPE_EVENEMENT on (EVENEMENT.ID_TYPE_EVENEMENT = TYPE_EVENEMENT.ID_TYPE_EVENEMENT)
-            -- MBL Modif 21/04/2015 : L'‚tablissement associ‚ aux mouvements budg‚taires est pris dans TRANSFERT.ID_ETABLISSEMENT 
-            -- MBL Modif 21/04/2015 : La p‚riode prise en compte est celle du compte (plus celle de l'enveloppe) associee au transfert
+
             INNER JOIN ETABLISSEMENT on (ETABLISSEMENT.ID_ETABLISSEMENT= TRANSFERT.ID_ETABLISSEMENT)     
           WHERE ID_EVENEMENT NOT IN (SELECT ID_EVENEMENT FROM MVT_BUDGETAIRE) 
           AND   ID_EVENEMENT = ISNULL(@ID_EVENEMENT, ID_EVENEMENT)
           )
-         
-          /*mvts pour les comptes
-          - mnt positif si transfert de l'enveloppe vers compte
-          - mnt negatif si transfert du compte vers l'enveloppe*/
+
+          
           INSERT INTO MVT_BUDGETAIRE
           (
            ID_ACTIVITE,
@@ -9207,57 +7476,42 @@ GO
            transferts.ID_PERIODE,
            transferts.ID_ETABLISSEMENT,
            transferts.ID_ADHERENT,
-           'R', -- P_E_R
+           'R', 
            transferts.ID_GROUPE,
            transferts.ID_TYPE_FINANCEMENT,
            'N',
            transferts.DAT_EVENEMENT,
            transferts.ID_EVENEMENT,
-           4,  --ID_TYPE_MOUVEMENT pour le compte toujours 4 : attribution de fonds
-           case transferts.BLN_COMPTE_VERS_ENVELOPPE when 0 then transferts.MNT_MVT else -1 *transferts.MNT_MVT end, --MNT: si d'env vers compte, positif, sinon negatif
-           null, -- ID_ENVELOPPE,
+           4,  
+           case transferts.BLN_COMPTE_VERS_ENVELOPPE when 0 then transferts.MNT_MVT else -1 *transferts.MNT_MVT end, 
+           null, 
            transferts.ID_COMPTE,
            transferts.LIBL
           FROM transferts
-         
+
           UNION ALL
-          /*mvts pour les enveloppes
-          - mnt negatif si transfert de l'enveloppe vers compte
-          - mnt positif si transfert du compte vers l'enveloppe*/
+          
           SELECT
            transferts.ID_ACTIVITE,
            transferts.ID_PERIODE,
            transferts.ID_PERIODE,
            transferts.ID_ETABLISSEMENT,
            transferts.ID_ADHERENT,
-           'R', -- P_E_R
+           'R', 
            transferts.ID_GROUPE,
-           null, -- ID_TYPE_FINANCEMENT 
+           null, 
            'N',
            transferts.DAT_EVENEMENT,
            transferts.ID_EVENEMENT,
-           5,  --ID_TYPE_MOUVEMENT : reprise de fonds
-           case transferts.BLN_COMPTE_VERS_ENVELOPPE when 1 then transferts.MNT_MVT else -1 * transferts.MNT_MVT end, --MNT : si de compte vers enveloppe - positif sinon n‚gatif
-           transferts.ID_ENVELOPPE, -- ID_ENVELOPPE,
-           null, -- ID_COMPTE
+           5,  
+           case transferts.BLN_COMPTE_VERS_ENVELOPPE when 1 then transferts.MNT_MVT else -1 * transferts.MNT_MVT end, 
+           transferts.ID_ENVELOPPE, 
+           null, 
            transferts.LIBL
           FROM transferts
-         
+
          END
 
- -- =============================================
-         -- Author:		Woollams
-         -- Create date: 24 janvier 2008
-         -- Description:	Lettre de refus
-         -- =============================================
-         -- 30/12/08 par SBR - adaptation au gabarit C2P
-         -- Modif du 20/09/12 par DSZ - 13697 : num tel dynamique
-         -- =============================================
-         -- DSZ 26/05/2014 : #213 En tant qu'utilisateur OPTIFORM, 
-         -- lorsque j'‚dite un courrier (PEC, PRO) … destination d'un Adh‚rent ou d'un OF, je veux que, 
-         -- l'adresse … afficher dans la zone "correspondance" soit l'adresse TSA propre … ce type de courrier 
-         -- si le mode "TSA" s'applique sinon qu'elle soit l'adresse actuelle
-         -- ================================================
          CREATE PROCEDURE [dbo].[EDT_LETTRE_REFUS_ADH_CONTRAT_PRO]
          		@ID_ETABLISSEMENT int,
          		@ID_BENEFICIAIRE int,
@@ -9266,11 +7520,9 @@ GO
          		@ID_CONTACT int,
          		@COD_CONTRAT_PRO varchar(10)
          AS
-         
+
          BEGIN
-         
-         
-         	-- Contact principal par d‚faut mais pas de "."
+
          	IF @ID_CONTACT IS NULL
          	SELECT @ID_CONTACT = NR31.ID_CONTACT
          	FROM NR31
@@ -9279,8 +7531,7 @@ GO
          		AND BLN_ACTIF = 1
          		AND ID_ETABLISSEMENT = @ID_BENEFICIAIRE
          		AND CONTACT.LIB_NOM_CONTACT <> '.';
-         
-         	
+
          	SELECT	ADHERENT.COD_ADHERENT,
          			ETABLISSEMENT.NUM_SIRET,
          			CM.LIB_NOM			as LIB_NOM_CONSEILLER,
@@ -9297,14 +7548,13 @@ GO
          	JOIN	ADRESSE
          	ON		ETABLISSEMENT.ID_ADRESSE_PRINCIPALE = ADRESSE.ID_ADRESSE
          	left join
-         			utilisateur CR -- charg‚ de relation
+         			utilisateur CR 
          	on		ETABLISSEMENT.id_chargee_relation = CR.id_utilisateur
          	left join
-         			utilisateur CM -- charg‚ de mission
+         			utilisateur CM 
          	on		ETABLISSEMENT.id_chargee_mission = CM.id_utilisateur
          	WHERE	ETABLISSEMENT.ID_ETABLISSEMENT = @ID_ETABLISSEMENT;
-         
-         	
+
          	SELECT	CONTRAT_PRO.ID_CONTRAT_PRO,
          			CONTRAT_PRO.COD_CONTRAT_PRO,
          			CONVERT(VARCHAR(8),CONTRAT_PRO.DAT_DEB_CONTRAT, 3) AS DAT_DEBUT,
@@ -9320,39 +7570,33 @@ GO
          	JOIN	SALARIE_PRO ON CONTRAT_PRO.ID_SALARIE_PRO = SALARIE_PRO.ID_SALARIE_PRO 
          	JOIN	INDIVIDU ON SALARIE_PRO.ID_INDIVIDU = INDIVIDU.ID_INDIVIDU
          	WHERE   CONTRAT_PRO.COD_CONTRAT_PRO = @COD_CONTRAT_PRO;
-         
-         	
+
          	WITH XMLNAMESPACES (
          		DEFAULT 'EDT_LETTRE_REFUS_ADH_CONTRAT_PRO'
          	)
-         	
-         
+
          	SELECT
-         			-- R‚cup‚ration des informations sur le contact et le b‚n‚ficiaire
+
          			dbo.GetXmlBenefiaireContact(@ID_BENEFICIAIRE, @TYPE_BENEFICIAIRE, @ID_ADRESSE, @ID_CONTACT) as BENEFICIAIRE,
-         					
+
          			(
-         				
-         				
-         				
+
          				SELECT	              	
-         					
+
          					isnull(COD_ADHERENT, '')				as COD_ADH,
          					isnull(LIB_PRENOM_CHARGE_RELATION, '')	as LIB_PRENOM_CHARGE_RELATION,
          					isnull(LIB_NOM_CHARGE_RELATION, '')		as LIB_NOM_CHARGE_RELATION,
          					isnull(EMAIL_CHARGE_RELATION, '')		as EMAIL,
-         
-         					-- R‚cup‚ration des informations sur l'‚metteur
+
          					dbo.GetXmlAdrUtilAvecTel(ENTETE.ID_UTIL,0,1) as EMETTEUR,
-         
-         					-- r‚f‚rence du contrat pro
+
          					(
          						SELECT	#TEMP_CONTRAT_PRO.COD_CONTRAT_PRO
          						FROM	#TEMP_CONTRAT_PRO
          						FOR XML PATH(''), TYPE 
          					),
          					ENTETE.NUM_SIRET AS SIRET,
-         					rtrim(case when patindex('%CEDEX%', LIB_VILLE) <> 0 then left(LIB_VILLE, patindex('%CEDEX%', LIB_VILLE)-1) else LIB_VILLE end) as LIB_VILLE, -- retraitement de la ville au cas o— de la forme COMMUNE CEDEX 999
+         					rtrim(case when patindex('%CEDEX%', LIB_VILLE) <> 0 then left(LIB_VILLE, patindex('%CEDEX%', LIB_VILLE)-1) else LIB_VILLE end) as LIB_VILLE, 
          					dbo.GetFullDate(getDate()) as DATE,				
          					(
          						SELECT	top 1
@@ -9363,11 +7607,9 @@ GO
          				FROM #TEMP_REFERENCE AS ENTETE     
          				FOR XML AUTO, ELEMENTS, TYPE
          			),
-         
+
          			(
-         				
-         				
-         				
+
          				SELECT	CORPS.COD_CONTRAT_PRO,
          						CORPS.PRENOM_INDIVIDU,
          						CORPS.NOM_INDIVIDU,
@@ -9388,41 +7630,25 @@ GO
          							FROM CIVILITE
          							FOR XML PATH('POLITESSE_BAS'), TYPE
          						)
-         
+
          					FROM	#TEMP_CONTRAT_PRO AS CORPS
          					FOR XML AUTO, ELEMENTS, TYPE
          			),
-         
+
          			(
-         				
-         				
-         				
+
          				SELECT	SIGNATURE.LIB_PNM_CONSEILLER,
          						SIGNATURE.LIB_NOM_CONSEILLER
          				FROM
          						#TEMP_REFERENCE as SIGNATURE
          				FOR XML AUTO, ELEMENTS, TYPE
          			)
-         			
-         				
+
          	FROM	#TEMP_CONTRAT_PRO AS LETTRE
          	FOR XML AUTO, ELEMENTS
-         
+
          END
 
- -- =============================================
-         -- Author				: EOU
-         -- Modification date	: 16 mai 2012
-         -- Description			: 13484
-         -- =============================================
-         -- Author				: EOU
-         -- Modification date	: 10 aout 2012
-         -- Description			: 13811
-         -- =============================================
-         -- OPA 31/05/2013 : 15031 : SBR - suppression du type FLOAT et REAL dans le SQL : 2- FLOAT
-         -- =============================================
-         -- DSZ 24/10/2013 : 16218 : FONCTION sur 120 caracteres
-         -- =============================================
          CREATE PROCEDURE [dbo].[INS_SALARIE]
          	@ID_SALARIE INT OUTPUT,
          	@BLN_ACTIF  tinyint=1,
@@ -9450,11 +7676,11 @@ GO
          	@FONCTION  varchar(120),
          	@BLN_SALARIE_REFERENCE  tinyint,
          	@ID_ADRESSE INT
-         
+
          AS
          BEGIN
          DECLARE @ID_SALARIE_LOCAL INT 
-         
+
          	INSERT INTO SALARIE 
          	(
          		COD_SALARIE,
@@ -9515,53 +7741,18 @@ GO
          		@BLN_ACTIF  ,
          		@ID_ADRESSE
          	)
-         	
+
          	SET @ID_SALARIE		= @@IDENTITY
-         
+
          	UPDATE SALARIE SET COD_SALARIE = @ID_SALARIE WHERE ID_SALARIE = @ID_SALARIE
-         
+
          	UPDATE SALARIE
          	SET BLN_SALARIE_REFERENCE = 0	
          	WHERE ID_INDIVIDU = @ID_INDIVIDU AND ID_SALARIE <> @ID_SALARIE AND BLN_SALARIE_REFERENCE <> 0
-         	
+
          	return @@IDENTITY	
          END
-         
 
- -- =============================================
-         -- Author:		??
-         -- Create date: ??
-         -- Description:	proc‚dure s‚lectionnant la liste des adh‚rents pour un filtrage donn‚
-         -- Author:		Say
-         -- Modified date: 31 octobre 2007
-         -- comment		: # nouveau filtrage par encadrement (rajout NAF,CCN et Branche)
-         -- =============================================
-         -- Author		: SAFI		
-         -- Modified date: 31 MARS 2010
-         -- comment		: ID : 12335, Correction on the joint of NR31
-         -- The Etablissement has not contact principal is not displayed on the search Adherent.
-         -- The correction : adherent is displayed without a contact name, if there is no contact principal
-         -- ---------------------------------------------
-         -- Author		: ASD DSZ
-         -- Modified date: 13/10/3010
-         -- comment		: 12423 Perf.
-         -- ---------------------------------------------
-         -- Author		: DSZ
-         -- Modified date: 06/12/2011
-         -- comment		: Ajout ID_ETABLISSEMENT_PRINCIPAL
-         -- ---------------------------------------------
-         -- Author		: DSZ
-         -- Modified date: 08/03/2012
-         -- comment		: 13293 : Ajout @ID_GROUPE_STAT
-         -- ---------------------------------------------
-         -- Author		: DSZ
-         -- Modified date: 12/07/2012
-         -- comment		: 13659 : Ajout @BLN_CREATION
-         -- =============================================
-         
-         
-         
-         
          CREATE PROCEDURE [dbo].[LEC_GRP_ADHERENT]
          	@ID_ADHERENT		int,
          	@COD_ADHERENT		int,
@@ -9586,14 +7777,14 @@ GO
          	@ID_CHARGEE_RELATION	int,
          	@ID_SYNDICAT			int,
          	@ID_GROUPE_STAT			int,
-         	@BLN_CREATION			bit = 0 --si 0, on voit que 0; si 1, on voit 0 et 1
+         	@BLN_CREATION			bit = 0 
          AS
          BEGIN
          	IF (@BLN_ACTIF IS NULL)
          	BEGIN
          		SET @BLN_ACTIF = 0
          	END
-         
+
          SELECT 
          		ADHERENT.ID_ADHERENT,
          		ADHERENT.ID_AGENCE,
@@ -9655,120 +7846,24 @@ GO
          	AND (@ID_GROUPE_STAT IS NULL		OR ADHERENT.ID_GROUPE_STATISTIQUE = @ID_GROUPE_STAT)
          	AND ISNULL(ADHERENT.BLN_CREATION, 0) <= @BLN_CREATION
          order by ID_ADHERENT
-         
-         
-         
-         
-         
+
          END
-         
+
  CREATE PROCEDURE [dbo].[INS_TRANSFERT]
-         -- =======================================================================================================================================  
-         -- Author  : XXX  
-         -- Create date : XX XXXXX 2007  
-         -- Description : proc‚dure pour l'insertion de donn‚es li‚es au transfert  
-         -- =======================================================================================================================================  
-         -- Author  : Say  
-         -- Modified on : 22 nov. 2007  
-         -- comment  : # EVOLUTION # MANTIS 0005908 >> Enregistrement de l'ID ADH dans le mvt budg.   
-         --     mˆme dans le cas d'un GROUPE  
-         -- =======================================================================================================================================  
-         -- Author  : RMA & SRE  
-         -- Modif. date : 31/12/2008  
-         -- Description : Le choix de la periode en cours doit porter sur les periode civiles uniquement  
-         -- =======================================================================================================================================  
-         -- Author  : MBL & ASD  
-         -- Modif. date : 20/01/2009  
-         -- Description : Le paramŠtre @id_adherent devient @id_groupe  
-         -- =======================================================================================================================================  
-         -- Author  : ASD  
-         -- Modif. date : 06/07/2009  
-         -- Description : Marquage de la cr‚ation de compte suite … transfert dans le com_compte  
-         -- =======================================================================================================================================  
-         -- SAFI : 15/11/2010 : 12548  
-         -- supprission de la colonne id_adherent   
-         -- dans la table de COMPTE  
-         -- =======================================================================================================================================  
-         -- SAFI : 23/08/2011 : 12815  
-         -- remplir la Compte.Dat_Creation avec GetDate()  
-         -- =======================================================================================================================================  
-         -- ASD : 03/01/2012 : 13106  
-         -- 10-50 : remplacer le Set implicite id_activite = 1 dans les appels … INS_COMPTE et INS_MVT_BUDGETAIRE  
-         -- DSZ Ajout securite si activit‚ null  
-         -- =============================================  
-         -- DSZ : 22/03/2012 : 13296  
-         -- modif cr‚ation ouvrier/maitrise pour pas creer des triplons  
-         -- =============================================  
-         -- DSZ : 04/04/2012 : 13319  
-         -- Pas de cr‚ation maitrise/cadre. + nettoyage.   
-         -- Permettre cr‚ation des comptes pour l'activit‚ -10  
-         -- =============================================  
-         -- DSZ : 19/04/2012 : 13341  
-         -- suppresion des parametres @MNT_REEL_MAITRISE et @@MNT_REEL_CADRE (suite au nettoyage fait au dessus)  
-         -- ajout de parametre de libelle des mvts bugdetaires; si null, valeurs par d‚faut comme avant  
-         -- pour utiliser cette procedure dans CREER_ATTRIBUTION_VERS_CC  
-         -- =============================================  
-         -- DSZ : 09/05/2012 13427  
-         -- ajout @ID_TYPE_EVENEMENT aux parametres  
-         -- cr‚ation des plusieurs comptes pour plusieurs activit‚s  
-         -- =============================================  
-         -- DSZ : 09/07/2012 13341  
-         -- appel LEC_COMPTE au lieu de cr‚er les comptes manuellement  
-         -- =============================================  
-         -- DSZ : 03/08/2012 13791  
-         -- changement de type mouvement et le signe de montant en n‚gatif pour compte vers enveloppe  
-         -- =============================================  
-         -- DSZ : ne pas traiter si id_compte <=0 ou null (avant seulement null). ne pas retourner null  
-         -- =============================================  
-         -- DSZ : 22/11/2012 14041  
-         -- la proc sera utilis‚ pour le transfert conventionnel, ne pas cr‚er des mvts budgetaires pour celui-ci  
-         ------------------------------------------------------------  
-         -- ASD 07/01/2013 14822 : remplacer la condition !=3 via type_activite   
-         ------------------------------------------------------------  
-         -- ASD 22/03/2013 15052 : remplacer la r‚cup‚ration de ID_ETABLISSEMENT_CHEF qui ne fait pas forc‚ment partie du groupe  
-         ------------------------------------------------------------  
-         -- DSZ 25/03/2013 15059 : remplacer la r‚cup‚ration de ID_ETABLISSEMENT_CHEF par GetEtabRepresentatifDuGroupe(@ID_GROUPE)  
-         -- =============================================  
-         -- DSZ 11/04/2013 15119 : pour le transfer de pr‚scription forcer le choix du compte … prescrire … -10  
-         -- =============================================  
-         -- OPA 31/05/2013 : 15031 : SBR - suppression du type FLOAT et REAL dans le SQL : 2- FLOAT  
-         -- =============================================  
-         -- MBL 30/10/2013 : Dans le cas des transferts de dotation, on force l'activit‚ a Plan-10
-         -- =============================================   
-         -- MBL 21/11/2013 : REVUE DE LA PS
-         --        Les mouvements budg‚taires ne sont g‚n‚r‚s au fil de l'eau que pour les TRANSFERTS MANUELS
-         --     : Pour les autres transferts, li‚s … la collecte, seuls les evenements sont crees
-         --       les mouvements budgetaires seront generes par batch la nuit (comme toute les evenements lies a la collecte)
-         --                  La cinematique de la PS est la suivante :
-         --      1 - Creation du transfert
-         --      2 - Creation de l'evenement associe au transfert 
-         --      3 - Generation des mouvements budgetaires pour les transferts de type "Transfert Manuel"
-         --      On notera que la generation des mouvements budgetaires lies aux transferts de collecte est effectue par un batch de nuit
-         -- =============================================  
-         -- MBL 17/11/2014 : Modification de la signature de la PS dans le cadre de la refonte de l'‚cran associ‚ 
-         -- NB : Une ‚ventuelle modification est … apporter afin de valoriser ID_PUBLICFAF
-         -- =============================================   
-         -- MBL 20/04/2015 : RAJOUT @ID_ETABLISSEMENT en paramŠtre d'ENTREE
-            -- Ce parametre @ID_ETABLISSEMENT devra ˆtre valorise dans tous les cas,
-            -- que ce soit par l'interm‚diaire de l'‚cran de g‚n‚ration des transferts manuels
-            -- ou par l'interm‚diaire des diff‚rents batchs de transfers automatiques
-         -- =============================================   
-         -- MBL 22/04/2015 : RAJOUT @ID_ETABLISSEMENT en paramŠtre d'ENTREE
-            -- Suppression Appel inutile a la fonction  GetActiviteSourceFinancementIndividualisee (r‚alis‚ par LEC_COMPTE)
-         -- =============================================   
+
           @LIBL_TRANSFERT     VARCHAR(50),    
           @BLN_COMPTE_VERS_ENVELOPPE  TINYINT,    
           @ID_GROUPE      INT,  
           @ID_ENVELOPPE     INT,  
           @DAT_TRANSFERT     DATETIME,  
-          @MNT_TRANSFERT     DECIMAL(18,2),  -- Montant du transfert
-          @ID_TYPE_FINANCEMENT   INT,   -- Type de finacement sur lequel le transfert est effectu‚
+          @MNT_TRANSFERT     DECIMAL(18,2),  
+          @ID_TYPE_FINANCEMENT   INT,   
           @ID_UTILISATEUR     INT,  
           @ID_PERIODE      INT,  
           @COM_TRANSFERT     VARCHAR(255),  
           @LIBL_MVT_BUDGETAIRE   VARCHAR(60),  
           @ID_TYPE_EVENEMENT    INT = 4,
-          @ID_ETABLISSEMENT    INT = null -- Etablissement du groupe pour lequel le transfert est effectu‚
+          @ID_ETABLISSEMENT    INT = null 
          AS
          BEGIN  
           DECLARE
@@ -9781,11 +7876,9 @@ GO
           @COD_TYPE_EVENEMENT VARCHAR(8),
           @ID_ACTIVITE_ADH INT,
           @DAT    DATETIME  
-          
-          /*cod type evenement*/  
+
           SELECT @COD_TYPE_EVENEMENT = COD_TYPE_EVENEMENT from TYPE_EVENEMENT where ID_TYPE_EVENEMENT = @ID_TYPE_EVENEMENT      
-         
-          --periode en cours par d‚faut  
+
           IF @ID_PERIODE IS NULL  
           BEGIN  
            SELECT @ID_PERIODE = ID_PERIODE   
@@ -9793,47 +7886,43 @@ GO
            WHERE BLN_EN_COURS = 1   
            AND  ID_TYPE_PERIODE = 1  
           END  
-         
-          -- Modif du MBL 20/04/2015 : RAJOUT @ID_ETABLISSEMENT en paramŠtre d'ENTREE
+
           IF @ID_ETABLISSEMENT IS NULL
           BEGIN
            SELECT @ID_ETABLISSEMENT = dbo.GetEtabRepresentatifDuGroupe(@ID_GROUPE)  
           END 
-         
+
           IF @COD_TYPE_EVENEMENT = 'TRAN_PRE'  OR @COD_TYPE_EVENEMENT = 'TRAN_DOT'
-          /*Dans le cas de transfert prescription ou dotation, on force le choix du compte … l'activit‚ -10. Mantis 15119*/  
+
           BEGIN
            SET @ID_ACTIVITE_ADH = 2  
           END
           ELSE 
           BEGIN
            SET @ID_ACTIVITE_ADH = NULL  
-         
-           --Determination de l'activit‚ PLAN courante de l'adherent associe a l'etablissement chef de groupe
+
            SELECT  TOP 1 @ID_ACTIVITE_ADH = ID_ACTIVITE  
            FROM  ETABLISSEMENT   
            INNER JOIN R19  on R19.ID_ADHERENT = ETABLISSEMENT.ID_ADHERENT  
            WHERE  ID_ETABLISSEMENT = @ID_ETABLISSEMENT   
            AND   ID_PERIODE = @ID_PERIODE  
-           AND   ID_ACTIVITE  in (select id_activite from GET_IDS_ACTIVITE_BY_COD_TYPE_ACTIVITE('PLAN')) -- 14822  
+           AND   ID_ACTIVITE  in (select id_activite from GET_IDS_ACTIVITE_BY_COD_TYPE_ACTIVITE('PLAN')) 
            ORDER BY ID_ACTIVITE ASC  
-         
+
           END
-         
-          -- 1. GENERATION DU TRANSFERT
+
           SET @ID_COMPTE = NULL  
-         
-          -- Recherche du compte associe au groupe 
+
           EXEC @ID_COMPTE = LEC_COMPTE  
           @ID_GROUPE = @ID_GROUPE,  
           @ID_PERIODE_FISC = @ID_PERIODE,  
           @ID_TYPE_FINANCEMENT = @ID_TYPE_FINANCEMENT,  
           @ID_ACTIVITE = @ID_ACTIVITE_ADH,  
           @COM_COMPTE = 'Cr‚ation par Transfert'  
-          
+
           IF isnull(@ID_COMPTE,0) > 0  
           BEGIN
-          
+
            INSERT INTO TRANSFERT  
            (
            COD_TRANSFERT,    
@@ -9862,20 +7951,19 @@ GO
            @ID_ENVELOPPE,  
            @ID_COMPTE,    
            @MNT_TRANSFERT,    
-           NULL, --@MNT_REEL_OUVRIER,  
+           NULL, 
            @COM_TRANSFERT ,
            @ID_ETABLISSEMENT
            ) 
-         
+
            update TRANSFERT  
            set  COD_TRANSFERT =  SCOPE_IDENTITY()  
            where ID_TRANSFERT =  SCOPE_IDENTITY()  
-         
+
            set @ID_TRANSFERT =  SCOPE_IDENTITY()  
-         
-           -- 2. Creation Evenement associe au Transfert 
+
            SET @DAT = @DAT_TRANSFERT
-         
+
            EXEC @ID_EVENEMENT = INS_EVENEMENT  
              @LIBL_TRANSFERT, 
              @ID_TYPE_EVENEMENT, 
@@ -9884,43 +7972,27 @@ GO
              null, 
              null, 
              null          
-         
-           -- 3. Generation des mvts budgetaires  
-           -- uniquement pour les transferts manuels
-           -- les mouvements budgetaires lies a la collecte sont generes par le batch de nuit associe
+
            IF (@COD_TYPE_EVENEMENT = 'TRANSFER')   
            BEGIN 
             EXEC dbo.BATCH_GENERATION_MVT_BUDGETAIRE_TRANSFERT @ID_EVENEMENT
            END
-         
-          END --if id_compte is not null  
-         
+
+          END 
+
           RETURN isnull(@ID_TRANSFERT,0)  
          END
 
- -- =============================================
-         -- Author:		??
-         -- Create date: XX XX 2007
-         -- Description:	Cr‚ation
-         -- =============================================
-         -- Author:		SV
-         -- Create date: 14 novembre 2007
-         -- Description:	Transformation du dernier identifiant en varchar(50) avant insertion dans #List pour ‚viter une exception de cast text vers int
-         -- =============================================
-         -- Modif du 27/02/09 par SBR - filtre trop restrictif sur piŠces adh‚rent
-         -- =============================================
-         -- Modif du 06/05/13 par DSZ : 15205 : filtre trop restrictif pour relance 2 et 3
-         -- =============================================
          CREATE PROCEDURE [dbo].[UPD_DATE_LETTRE_RELANCE_INSTRUCTION_ADH]
-         	@IDS_ACTION_PEC TEXT	-- List of ID_ACTION separated with ',' without spaces - i.e.: 1,2,3,4,5,6
+         	@IDS_ACTION_PEC TEXT	
          AS
-         
+
          BEGIN
-         
+
          	DECLARE @Item int;
-         	-- Create a temporary table which contains IDs
+
          	CREATE TABLE #List(Item int)
-         	
+
          	DECLARE @Delimiter char
          	SET @Delimiter = ','
          	WHILE CHARINDEX(@Delimiter,@IDS_ACTION_PEC,0) <> 0
@@ -9928,26 +8000,24 @@ GO
          		SELECT
          			@Item=RTRIM(LTRIM(SUBSTRING(@IDS_ACTION_PEC,1,CHARINDEX(@Delimiter,@IDS_ACTION_PEC,0)-1))),
          			@IDS_ACTION_PEC=RTRIM(LTRIM(SUBSTRING(@IDS_ACTION_PEC,CHARINDEX(@Delimiter,@IDS_ACTION_PEC,0)+1,DATALENGTH(@IDS_ACTION_PEC))))
-         
+
          		IF LEN(@Item) > 0
          			INSERT INTO #List SELECT cast(@Item as int)
          	END
-         
+
          	IF DATALENGTH(@IDS_ACTION_PEC) > 0
          		begin
          			select @Item = cast(@IDS_ACTION_PEC as varchar(50))
-         			INSERT INTO #List SELECT @Item -- Put the last item in
+         			INSERT INTO #List SELECT @Item 
          		end
-         
-         		--1ere relance-------------------------------------------------------------------------
-         		-- piŠces de niveau module
+
          		SELECT	DISTINCT ARRIVEE_PIECE_PEC.ID_ARRIVEE_PIECE_PEC
          		INTO	#TEMP_RELANCE_1
          		FROM    ARRIVEE_PIECE_PEC
          				INNER JOIN PIECE_PEC ON ARRIVEE_PIECE_PEC.ID_PIECE_PEC = PIECE_PEC.ID_PIECE_PEC 
          				INNER JOIN MODULE_PEC ON ARRIVEE_PIECE_PEC.ID_MODULE_PEC = MODULE_PEC.ID_MODULE_PEC 
          				INNER JOIN ACTION_PEC ON MODULE_PEC.ID_ACTION_PEC = ACTION_PEC.ID_ACTION_PEC
-         
+
          		WHERE		(ARRIVEE_PIECE_PEC.DAT_RELANCE_ENGAGE_1 IS NULL) 
          				AND (ARRIVEE_PIECE_PEC.DAT_RELANCE_ENGAGE_2 IS NULL) 
          				AND (ARRIVEE_PIECE_PEC.DAT_RELANCE_ENGAGE_3 IS NULL)
@@ -9956,20 +8026,20 @@ GO
          				AND (PIECE_PEC.BLN_BLOQUANT_ENGAGEMENT = 1)
          				AND (MODULE_PEC.BLN_ACTIF = 1)
          				AND (PIECE_PEC.BLN_ACTIF=1)
-         -- correction du 27/02/09 par SBR
+
          				AND	(
-         					(PIECE_PEC.BLN_ADHERENT =1)				-- PiŠces adh‚rent
+         					(PIECE_PEC.BLN_ADHERENT =1)				
          					OR
-         					(										-- PiŠces module
+         					(										
          						(PIECE_PEC.BLN_MODULE = 1)
          						AND (PIECE_PEC.BLN_ADHERENT = 0)
          						AND (PIECE_PEC.BLN_STAGIAIRE = 0)
          					)
          					)
-         				-- piŠce absente ou non conforme
+
          				AND ((ARRIVEE_PIECE_PEC.BLN_ACTIF = 0) OR ((ARRIVEE_PIECE_PEC.BLN_ACTIF = 1) AND (EXISTS (select * from NR210 WHERE NR210.ID_ARRIVEE_PIECE_PEC = ARRIVEE_PIECE_PEC.ID_ARRIVEE_PIECE_PEC))))
          		UNION
-         		-- piŠces de niveau stagiaire
+
          		SELECT	DISTINCT ARRIVEE_PIECE_PEC.ID_ARRIVEE_PIECE_PEC
          		FROM    ARRIVEE_PIECE_PEC
          				INNER JOIN PIECE_PEC ON ARRIVEE_PIECE_PEC.ID_PIECE_PEC = PIECE_PEC.ID_PIECE_PEC  
@@ -9977,7 +8047,7 @@ GO
          				INNER JOIN ETABLISSEMENT ON STAGIAIRE_PEC.ID_ETABLISSEMENT = ETABLISSEMENT.ID_ETABLISSEMENT
          				INNER JOIN MODULE_PEC ON ARRIVEE_PIECE_PEC.ID_MODULE_PEC = MODULE_PEC.ID_MODULE_PEC 
          				INNER JOIN ACTION_PEC ON MODULE_PEC.ID_ACTION_PEC = ACTION_PEC.ID_ACTION_PEC
-         
+
          		WHERE		(ARRIVEE_PIECE_PEC.DAT_RELANCE_ENGAGE_1 IS NULL) 
          				AND (ARRIVEE_PIECE_PEC.DAT_RELANCE_ENGAGE_2 IS NULL) 
          				AND (ARRIVEE_PIECE_PEC.DAT_RELANCE_ENGAGE_3 IS NULL)
@@ -9988,12 +8058,11 @@ GO
          				AND (PIECE_PEC.BLN_ACTIF=1)
          				AND (PIECE_PEC.BLN_STAGIAIRE =1)
          				AND ((ARRIVEE_PIECE_PEC.BLN_ACTIF = 0) OR ((ARRIVEE_PIECE_PEC.BLN_ACTIF = 1) AND ( EXISTS (select * from NR210 WHERE NR210.ID_ARRIVEE_PIECE_PEC = ARRIVEE_PIECE_PEC.ID_ARRIVEE_PIECE_PEC))))
-         
+
          		UPDATE ARRIVEE_PIECE_PEC
          		SET	   ARRIVEE_PIECE_PEC.DAT_RELANCE_ENGAGE_1 = GETDATE()
          		WHERE  ARRIVEE_PIECE_PEC.ID_ARRIVEE_PIECE_PEC IN (select #TEMP_RELANCE_1.ID_ARRIVEE_PIECE_PEC FROM #TEMP_RELANCE_1 )
-         		
-         		--2ere relance-------------------------------------------------------------------------
+
          		SELECT	DISTINCT ARRIVEE_PIECE_PEC.ID_ARRIVEE_PIECE_PEC
          		INTO	#TEMP_RELANCE_2
          		FROM    ARRIVEE_PIECE_PEC
@@ -10001,7 +8070,7 @@ GO
          				INNER JOIN MODULE_PEC ON ARRIVEE_PIECE_PEC.ID_MODULE_PEC = MODULE_PEC.ID_MODULE_PEC 
          				INNER JOIN ACTION_PEC ON MODULE_PEC.ID_ACTION_PEC = ACTION_PEC.ID_ACTION_PEC
          				CROSS JOIN PARAMETRES
-         
+
          		WHERE	    (ARRIVEE_PIECE_PEC.DAT_RELANCE_ENGAGE_1 IS NOT NULL)
          				AND (GETDATE()-ARRIVEE_PIECE_PEC.DAT_RELANCE_ENGAGE_1 >= PARAMETRES.DELAI_RELANCE_PEC)
          				AND (ARRIVEE_PIECE_PEC.DAT_RELANCE_ENGAGE_2 IS NULL) 
@@ -10012,9 +8081,9 @@ GO
          				AND (MODULE_PEC.BLN_ACTIF = 1)
          				AND (PIECE_PEC.BLN_ACTIF=1)
          				AND	(
-         					(PIECE_PEC.BLN_ADHERENT =1)				-- PiŠces adh‚rent
+         					(PIECE_PEC.BLN_ADHERENT =1)				
          					OR
-         					(										-- PiŠces module
+         					(										
          						(PIECE_PEC.BLN_MODULE = 1)
          						AND (PIECE_PEC.BLN_ADHERENT = 0)
          						AND (PIECE_PEC.BLN_STAGIAIRE = 0)
@@ -10030,7 +8099,7 @@ GO
          				INNER JOIN MODULE_PEC ON ARRIVEE_PIECE_PEC.ID_MODULE_PEC = MODULE_PEC.ID_MODULE_PEC 
          				INNER JOIN ACTION_PEC ON MODULE_PEC.ID_ACTION_PEC = ACTION_PEC.ID_ACTION_PEC
          				CROSS JOIN PARAMETRES
-         
+
          		WHERE		(ARRIVEE_PIECE_PEC.DAT_RELANCE_ENGAGE_1 IS NOT NULL)
          				AND (GETDATE()-ARRIVEE_PIECE_PEC.DAT_RELANCE_ENGAGE_1 >= PARAMETRES.DELAI_RELANCE_PEC)
          				AND (ARRIVEE_PIECE_PEC.DAT_RELANCE_ENGAGE_2 IS NULL) 
@@ -10042,12 +8111,11 @@ GO
          				AND (PIECE_PEC.BLN_ACTIF=1)
          				AND (PIECE_PEC.BLN_STAGIAIRE =1)
          				AND ((ARRIVEE_PIECE_PEC.BLN_ACTIF = 0) OR ((ARRIVEE_PIECE_PEC.BLN_ACTIF = 1) AND ( EXISTS (select * from NR210 WHERE NR210.ID_ARRIVEE_PIECE_PEC = ARRIVEE_PIECE_PEC.ID_ARRIVEE_PIECE_PEC))))
-         
+
          		UPDATE ARRIVEE_PIECE_PEC
          		SET	   ARRIVEE_PIECE_PEC.DAT_RELANCE_ENGAGE_2 = GETDATE()
          		WHERE  ARRIVEE_PIECE_PEC.ID_ARRIVEE_PIECE_PEC IN (select #TEMP_RELANCE_2.ID_ARRIVEE_PIECE_PEC FROM #TEMP_RELANCE_2 )
-         		
-         		--3ere relance-------------------------------------------------------------------------
+
          		SELECT	DISTINCT ARRIVEE_PIECE_PEC.ID_ARRIVEE_PIECE_PEC
          		INTO	#TEMP_RELANCE_3
          		FROM    ARRIVEE_PIECE_PEC
@@ -10055,7 +8123,7 @@ GO
          				INNER JOIN MODULE_PEC ON ARRIVEE_PIECE_PEC.ID_MODULE_PEC = MODULE_PEC.ID_MODULE_PEC 
          				INNER JOIN ACTION_PEC ON MODULE_PEC.ID_ACTION_PEC = ACTION_PEC.ID_ACTION_PEC
          				CROSS JOIN PARAMETRES
-         
+
          		WHERE		(ARRIVEE_PIECE_PEC.DAT_RELANCE_ENGAGE_2 IS NOT NULL)
          				AND (GETDATE()-ARRIVEE_PIECE_PEC.DAT_RELANCE_ENGAGE_2 >= PARAMETRES.DELAI_RELANCE_PEC)  
          				AND (ARRIVEE_PIECE_PEC.DAT_RELANCE_ENGAGE_3 IS NULL)
@@ -10065,9 +8133,9 @@ GO
          				AND (MODULE_PEC.BLN_ACTIF = 1)
          				AND (PIECE_PEC.BLN_ACTIF=1)
          				AND	(
-         					(PIECE_PEC.BLN_ADHERENT =1)				-- PiŠces adh‚rent
+         					(PIECE_PEC.BLN_ADHERENT =1)				
          					OR
-         					(										-- PiŠces module
+         					(										
          						(PIECE_PEC.BLN_MODULE = 1)
          						AND (PIECE_PEC.BLN_ADHERENT = 0)
          						AND (PIECE_PEC.BLN_STAGIAIRE = 0)
@@ -10083,7 +8151,7 @@ GO
          				INNER JOIN MODULE_PEC ON ARRIVEE_PIECE_PEC.ID_MODULE_PEC = MODULE_PEC.ID_MODULE_PEC 
          				INNER JOIN ACTION_PEC ON MODULE_PEC.ID_ACTION_PEC = ACTION_PEC.ID_ACTION_PEC
          				CROSS JOIN PARAMETRES
-         
+
          		WHERE		(ARRIVEE_PIECE_PEC.DAT_RELANCE_ENGAGE_2 IS NOT NULL)
          				AND (GETDATE()-ARRIVEE_PIECE_PEC.DAT_RELANCE_ENGAGE_2 >= PARAMETRES.DELAI_RELANCE_PEC)  
          				AND (ARRIVEE_PIECE_PEC.DAT_RELANCE_ENGAGE_3 IS NULL)
@@ -10094,13 +8162,12 @@ GO
          				AND (PIECE_PEC.BLN_ACTIF=1)
          				AND (PIECE_PEC.BLN_STAGIAIRE =1)
          				AND ((ARRIVEE_PIECE_PEC.BLN_ACTIF = 0) OR ((ARRIVEE_PIECE_PEC.BLN_ACTIF = 1) AND ( EXISTS (select * from NR210 WHERE NR210.ID_ARRIVEE_PIECE_PEC = ARRIVEE_PIECE_PEC.ID_ARRIVEE_PIECE_PEC))))
-         		
+
          		UPDATE ARRIVEE_PIECE_PEC
          		SET	   ARRIVEE_PIECE_PEC.DAT_RELANCE_ENGAGE_3 = GETDATE()
          		WHERE  ARRIVEE_PIECE_PEC.ID_ARRIVEE_PIECE_PEC IN (select #TEMP_RELANCE_3.ID_ARRIVEE_PIECE_PEC FROM #TEMP_RELANCE_3 )
-         
+
          END
-         
 
  CREATE PROCEDURE [dbo].[EDT_GENERATION_EDITION_AVIS_VV]
           @ID_ETABLISSEMENT  INT,
@@ -10112,39 +8179,26 @@ GO
           @ID_TYPE_RECU   TINYINT = 3,
           @_Anomalie    VARCHAR(3)
          AS
-         -- =============================================
-         -- Author       : SBR
-         -- Create date  : 03/03/2008
-         -- Description  : Proc‚dure cr‚ant un avis de versement volontaire et g‚n‚rant les donn‚es XML
-         -- Le 09/02/09 par JSP - on remplace les frais de gestion par le disponible
-         -- Le 25/02/09 par SBR - gestion du cas de virement bancaire avec banque renseign‚e avec la valeur "non d‚finie"
-         -- Le 15/04/10 par SBR : adaptation suite r‚forme FPSPP
-         -- Le 23/04/10 par SBR : ID_ETABLISSEMENT_BENEFICIAIRE dans POSTE_RECU au lieu de ID_ETABLISSEMENT_EMETTEUR
-         -- Le 15/06/12 par DSZ : 13601 @RaisonSociale varchar(50) -> (64)
-         -- Le 21/02/13 par ASD : 14976 : Sortir cet avis ‚galement pour les pr‚lŠvements automatiques
-         -- Le 16/05/13 par HBO : 15169 : modif de "pr‚lŠvlement automatique de Non d‚finie" en "pr‚lŠvlement automatique"
-         -- Le 16/05/13 par HBO : 15169 : modif de "pr‚lŠvlement automatique de Non d‚finie" en "pr‚lŠvlement automatique"
-         -- Le 28/10/15 par BBL : TINYINT en decimal sur les frais de gestion
-         -- =============================================
+
          BEGIN
           DECLARE
            @LibelleFonction VARCHAR(50),
            @RaisonSociale  VARCHAR(64),
            @ID_ADHERENT  INT
-          
+
           SET
            @ID_ADHERENT = (SELECT TOP 1 ID_ADHERENT FROM ETABLISSEMENT WHERE ID_ETABLISSEMENT = @ID_ETABLISSEMENT)
-          
+
           DECLARE
            @NUM_SIRET VARCHAR(14)
-          
+
           SET
            @NUM_SIRET = (SELECT NUM_SIRET FROM ETABLISSEMENT WHERE ID_ETABLISSEMENT = @ID_ETABLISSEMENT)
-          
+
           DECLARE
            @annee_ms INT,
            @annee_col INT
-          
+
           SELECT
            @annee_ms = PERIODE.NUM_ANNEE,
            @annee_col = PERIODE.NUM_ANNEE + 1
@@ -10153,10 +8207,10 @@ GO
           WHERE
            PERIODE.BLN_ACTIF = 1
            AND ID_PERIODE = @ID_PERIODE
-          
+
           IF (@_Anomalie = 'non')
           BEGIN
-           -- Avis VV
+
            IF (@ID_TYPE_RECU = 3)
            BEGIN 
             EXEC dbo.INS_RECU_VV
@@ -10164,11 +8218,10 @@ GO
              @ID_PERIODE
            END
           END
-         
-          -- R‚cup‚ration de l'id re‡u de l'adh‚rent
+
           DECLARE
            @ID_RECU INT
-          
+
           SELECT
            @ID_RECU = MAX(RECU.ID_RECU)
           FROM
@@ -10180,11 +8233,10 @@ GO
            AND RECU.ID_RECU_REMP IS NULL
            AND RECU.ID_PERIODE = @ID_PERIODE
            AND RECU.ID_TYPE_RECU = @ID_TYPE_RECU
-          
-          -- R‚cup‚ration du pourcentage de frais de gestion … appliquer
+
           DECLARE
            @PRC_FRAIS_GESTION DECIMAL(5,2)
-          
+
           SELECT
            @PRC_FRAIS_GESTION = t2.PRC_FRAIS_GESTION
           FROM
@@ -10194,8 +8246,8 @@ GO
           WHERE
            t1.ID_ETABLISSEMENT = @ID_ETABLISSEMENT
            AND t2.ID_PERIODE = @ID_PERIODE
-          
-          IF (@TYPE_BENEFICIAIRE = 1)   -- Adherent
+
+          IF (@TYPE_BENEFICIAIRE = 1)   
           BEGIN
            SELECT
             @RaisonSociale = ADHERENT.LIB_RAISON_SOCIALE
@@ -10205,7 +8257,7 @@ GO
              ON ETABLISSEMENT.ID_ADHERENT = ADHERENT.ID_ADHERENT
            WHERE
             ETABLISSEMENT.ID_ETABLISSEMENT = @ID_BENEFICIAIRE
-         
+
            SELECT
             @LibelleFonction = FONCTION.LIBL_FONCTION
            FROM
@@ -10216,7 +8268,7 @@ GO
             NR31.ID_CONTACT = @ID_CONTACT
             AND NR31.ID_ETABLISSEMENT = @ID_BENEFICIAIRE
           END
-          ELSE IF (@TYPE_BENEFICIAIRE = 2) -- O.F.
+          ELSE IF (@TYPE_BENEFICIAIRE = 2) 
           BEGIN
            SELECT
             @RaisonSociale = ORGANISME_FORMATION.LIB_RAISON_SOCIALE
@@ -10226,7 +8278,7 @@ GO
              ON ETABLISSEMENT_OF.ID_OF = ORGANISME_FORMATION.ID_OF
            WHERE
             ETABLISSEMENT_OF.ID_ETABLISSEMENT_OF = @ID_BENEFICIAIRE
-         
+
            SELECT
             @LibelleFonction = FONCTION.LIBL_FONCTION
            FROM
@@ -10237,7 +8289,7 @@ GO
             NR34.ID_CONTACT = @ID_CONTACT
             AND NR34.ID_ETABLISSEMENT_OF = @ID_BENEFICIAIRE
           END
-          ELSE IF (@TYPE_BENEFICIAIRE = 3) -- TIERS
+          ELSE IF (@TYPE_BENEFICIAIRE = 3) 
           BEGIN
            SELECT
             @RaisonSociale = TIERS.LIB_NOM
@@ -10245,7 +8297,7 @@ GO
             TIERS
            WHERE
             TIERS.ID_TIERS = @ID_BENEFICIAIRE
-           
+
            SELECT
             @LibelleFonction = FONCTION.LIBL_FONCTION
            FROM
@@ -10256,21 +8308,17 @@ GO
             NR33.ID_CONTACT = @ID_CONTACT
             AND NR33.ID_TIERS = @ID_BENEFICIAIRE
           END;
-         
-          -- XML Generation
+
           WITH XMLNAMESPACES (
            DEFAULT 'GENERATION_EDITION_AVIS_VV'
           )
           SELECT
-           -- Recuperation des informations sur le contact
+
            dbo.GetXmlBenefiaireContact(@ID_BENEFICIAIRE, @TYPE_BENEFICIAIRE, @ID_ADRESSE, @ID_CONTACT) AS BENEFICIAIRE,
-            
-           /**********************************************************************************************/
-           /***************** ENTETE DE LA LETTRE *******************************************************/
-           /**********************************************************************************************/
+
            (
             SELECT
-             /******************* Recuperation des informations de l'entete ****************************/
+
              isnull(COD_ADHERENT, '')    as COD_ADHERENT,
              dbo.GetFullDate(getDate()) as DATE,
              (
@@ -10295,7 +8343,7 @@ GO
                @annee_ms as ANNEE
               FOR XML PATH('PERIODE'), TYPE
              ),
-             -- Recuperation des informations sur la periode en cours
+
              (
               SELECT
                (
@@ -10377,16 +8425,14 @@ GO
              )
             FOR XML PATH('CORPS'), TYPE
            ),
-           /*********   PERIODE PIED DE PAGE     ****************/
+
            (
             SELECT
              @annee_ms AS ANNEE_MS,
              @annee_col AS ANNEE_COL
             FOR XML PATH('PERIODE_PIED'), TYPE
            ),
-           /***************************************************************/
-           /*********    SIGNATURE       ****************/
-           /***************************************************************/
+
            (
             SELECT
              NOM_PNM_DIRECTEUR
@@ -10404,37 +8450,18 @@ GO
          END
 
  CREATE PROCEDURE [BATCH_TRANSFERT_REGUL_FRAIS_GESTION_VV]
-         /*
-         =============================================  
-         Author  : MBL
-         Create date : 02/07/2015
-         Description : Proc‚dure permettant de lancer des tranferts de r‚gularisation des frais de gesttion VV
          
-         Le traitement fait appel a la fonction de table F_TRANSFERT_REGUL_FRAIS_GESTION_VV constituant un outil d'aide … la d‚cision 
-         afin de g‚n‚rer ces transferts.
-         
-         -- CONDITION DE LANCEMENT
-         Parametre : la valorisation du parametre @ID_ADHERENT_TRAITE est optionnelle. 
-            S'il est valorise, le traitement n'est declenche que pour l'adherent de mˆme ID
-            S'il n'est pas valorise, le traitement est declenche pour tous les adherents
-            
-         US 1034: Int‚gration de scripts Evolution de service
-         -- =============================================
-         */
          @NUM_ANNEE_N       int,
          @ID_ADHERENT_TRAITE      int
-         
+
          AS
          BEGIN
-         
-         
-         
+
           IF OBJECT_ID('tempdb..#TMP_TRANSFERT', 'U') IS NOT NULL 
           BEGIN
            drop table #TMP_TRANSFERT
           END
-         
-         
+
           DECLARE 
           @DAT       DATETIME,
           @ID_TYPE_EVENEMENT_TRANSFERT INTEGER,
@@ -10452,61 +8479,55 @@ GO
           @BLN_COMPTE_VERS_ENVELOPPE  TINYINT,
           @ID_TRANSFERT     INT,
           @ID_TYPE_FINANCEMENT   INT
-         
+
           DECLARE @COD_TYPE_EVENEMENT_REGUL_FRAIS_GESTION_VV varchar(8)
           SET @COD_TYPE_EVENEMENT_REGUL_FRAIS_GESTION_VV = 'REGUFGVV'
-         
-         
+
           select @ID_TYPE_EVENEMENT_TRANSFERT = ID_TYPE_EVENEMENT FROM TYPE_EVENEMENT where COD_TYPE_EVENEMENT = @COD_TYPE_EVENEMENT_REGUL_FRAIS_GESTION_VV 
-          
+
           IF @ID_TYPE_EVENEMENT_TRANSFERT IS NULL 
           BEGIN
            SELECT 'Le type d''evenement associe au code evenement passe en parametre : ' + @COD_TYPE_EVENEMENT_REGUL_FRAIS_GESTION_VV + ' n''existe pas'
           END
           ELSE
           BEGIN
-         
-           SELECT @ID_TYPE_FINANCEMENT = 3 -- Compte Versement Obligatoire
-           
+
+           SELECT @ID_TYPE_FINANCEMENT = 3 
+
            SELECT t.*, ADHERENT.ID_ETABLISSEMENT_PRINCIPAL
            INTO #TMP_TRANSFERT 
            FROM F_TRANSFERT_REGUL_FRAIS_GESTION_VV(@NUM_ANNEE_N, @ID_ADHERENT_TRAITE) t
            INNER JOIN ADHERENT ON ADHERENT.ID_ADHERENT = t.ID_ADHERENT
-         
-           --SELECT * FROM  #TMP_TRANSFERT 
-         
+
            SELECT @DAT = GETDATE()
-         
+
            SELECT @ID_PERIODE_N = ID_PERIODE   
            from PERIODE     
            where NUM_ANNEE  = @NUM_ANNEE_N 
            AND  ID_TYPE_PERIODE = 1   
-         
+
            SET @LIBL_EVENEMENT  = 'R‚gularisation Frais Gestion VV ' + CAST(@NUM_ANNEE_N AS VARCHAR(4)) 
            SET @LIBL_MVT   = 'R‚gularisation Frais Gestion VV '  + CAST(@NUM_ANNEE_N AS VARCHAR(4)) 
-         
-         
+
            DECLARE cu_transfert CURSOR FOR
            SELECT ID_ADHERENT,  ID_GROUPE, ID_BRANCHE, MNT_TRANSFERT, ID_ETABLISSEMENT_PRINCIPAL
            FROM #TMP_TRANSFERT
            WHERE ABS(MNT_TRANSFERT) > 0
-         
+
            OPEN cu_transfert
-         
+
            FETCH cu_transfert INTO
            @ID_ADHERENT, @ID_GROUPE, @ID_BRANCHE, @MNT_TRANSFERT, @ID_ETABLISSEMENT
-         
-         
+
            WHILE (@@FETCH_STATUS <> -1)
            BEGIN 
-            -- Recherche de l'enveloppe de collecte PIVOT
+
             SELECT  @ID_ENVELOPPE = ID_ENVELOPPE , @LIBL_ENVELOPPE = LIBL_ENVELOPPE 
             FROM  TYPE_ENVELOPPE 
             INNER JOIN ENVELOPPE ON ENVELOPPE.ID_TYPE_ENVELOPPE = TYPE_ENVELOPPE.ID_TYPE_ENVELOPPE
             WHERE  TYPE_ENVELOPPE.BLN_FRAIS_GESTION_COLLECTE = 1 
             AND   TYPE_ENVELOPPE.ID_BRANCHE = @ID_BRANCHE
-         
-            -- SELECT ID_ENVELOPPE = @ID_ENVELOPPE , LIBL_ENVELOPPE = @LIBL_ENVELOPPE 
+
             IF @MNT_TRANSFERT >0
             BEGIN
              SET @BLN_COMPTE_VERS_ENVELOPPE  = 0
@@ -10516,21 +8537,7 @@ GO
              SET @MNT_TRANSFERT = - @MNT_TRANSFERT
              SET @BLN_COMPTE_VERS_ENVELOPPE  = 1
             END
-         
-            --SELECT '@ID_TRANSFERT = INS_TRANSFERT ',
-            -- LIBL_TRANSFERT    = @LIBL_EVENEMENT,
-            -- BLN_COMPTE_VERS_ENVELOPPE = @BLN_COMPTE_VERS_ENVELOPPE,  
-            -- ID_GROUPE     = @ID_GROUPE,
-            -- ID_ENVELOPPE    = @ID_ENVELOPPE,
-            -- DAT_TRANSFERT    = @DAT,
-            -- MNT_TRANSFERT    = @MNT_TRANSFERT, 
-            -- ID_TYPE_FINANCEMENT   = @ID_TYPE_FINANCEMENT,   -- Type de financement sur Compte Historique
-            -- ID_UTILISATEUR    = 82, 
-            -- ID_PERIODE     = @ID_PERIODE_N,
-            -- COM_TRANSFERT    = @LIBL_MVT, 
-            -- LIBL_MVT_BUDGETAIRE   = @LIBL_MVT,
-            -- ID_TYPE_EVENEMENT   = @ID_TYPE_EVENEMENT_TRANSFERT
-              
+
             exec @ID_TRANSFERT = INS_TRANSFERT 
              @LIBL_TRANSFERT    = @LIBL_EVENEMENT,
              @BLN_COMPTE_VERS_ENVELOPPE = @BLN_COMPTE_VERS_ENVELOPPE,  
@@ -10538,50 +8545,40 @@ GO
              @ID_ENVELOPPE    = @ID_ENVELOPPE,
              @DAT_TRANSFERT    = @DAT,
              @MNT_TRANSFERT    = @MNT_TRANSFERT, 
-             @ID_TYPE_FINANCEMENT  = @ID_TYPE_FINANCEMENT,   -- Type de financement sur Compte Historique
+             @ID_TYPE_FINANCEMENT  = @ID_TYPE_FINANCEMENT,   
              @ID_UTILISATEUR    = 82, 
              @ID_PERIODE     = @ID_PERIODE_N,
              @COM_TRANSFERT    = @LIBL_MVT, 
              @LIBL_MVT_BUDGETAIRE  = @LIBL_MVT,
              @ID_TYPE_EVENEMENT   = @ID_TYPE_EVENEMENT_TRANSFERT,
              @ID_ETABLISSEMENT   = @ID_ETABLISSEMENT
-         
+
             FETCH cu_transfert INTO
             @ID_ADHERENT, @ID_GROUPE, @ID_BRANCHE, @MNT_TRANSFERT, @ID_ETABLISSEMENT
-         
-         
+
            END
-         
+
            CLOSE cu_transfert
            DEALLOCATE cu_transfert
           END
-          
+
           IF OBJECT_ID('tempdb..#TMP_TRANSFERT', 'U') IS NOT NULL 
           BEGIN
            drop table #TMP_TRANSFERT
           END
-         
+
          END
 
-
-         
-         -- =============================================
-         -- Author:		Woollams
-         -- Create date: 24 janvier 2008
-         -- Description:	Mise … jour de la date de refus 
-         -- pour les contrat de la liste
-         -- =============================================
-         
          CREATE PROCEDURE [dbo].[UPD_DATE_REFUS_CONTRAT_PRO_ADH]
-         	@CODS_CONTRAT_PRO TEXT	-- List of COD_CONTRAT_PRO separated with ',' without spaces - i.e.: 1,2,3,4,5,6
+         	@CODS_CONTRAT_PRO TEXT	
          AS
-         
+
          BEGIN
-         
+
          	DECLARE @Item varchar(10);
-         	-- Create a temporary table which contains IDs
+
          	CREATE TABLE #List(Item VARCHAR(10) collate French_CI_AI)
-         	
+
          	DECLARE @Delimiter char
          	SET @Delimiter = ','
          	WHILE CHARINDEX(@Delimiter,@CODS_CONTRAT_PRO,0) <> 0
@@ -10589,126 +8586,93 @@ GO
          		SELECT
          			@Item=RTRIM(LTRIM(SUBSTRING(@CODS_CONTRAT_PRO,1,CHARINDEX(@Delimiter,@CODS_CONTRAT_PRO,0)-1))),
          			@CODS_CONTRAT_PRO=RTRIM(LTRIM(SUBSTRING(@CODS_CONTRAT_PRO,CHARINDEX(@Delimiter,@CODS_CONTRAT_PRO,0)+1,DATALENGTH(@CODS_CONTRAT_PRO))))
-         
+
          		IF LEN(@Item) > 0
          			INSERT INTO #List SELECT cast(@Item as varchar)
          	END
-         
+
          	IF DATALENGTH(@CODS_CONTRAT_PRO) > 0
          		begin
          			select @Item = cast(@CODS_CONTRAT_PRO as varchar(10))
-         			INSERT INTO #List SELECT @Item -- Put the last item in
+         			INSERT INTO #List SELECT @Item 
          		end
-         
-         	--Mise … jour des date de rejet
+
          	UPDATE CONTRAT_PRO
          	SET	   CONTRAT_PRO.DAT_LETTRE_REFUS = GETDATE()
          	WHERE  CONTRAT_PRO.COD_CONTRAT_PRO IN (SELECT Item FROM #List)
-         
+
          END
 
-
          CREATE PROCEDURE PORTAIL_UPD_LETTRAGE_MANUEL_FACTURE
-         /*   
-         -- =============================================  
-         -- Author  : MBL  
-         -- Create date : 01/12/2014  
-         -- Description : LETTRAGE MANUEL D'UNE FACTURE
-         -- =============================================  
            
-         --------------------------  
-         Fonctionnement du SCRIPT :  
-         --------------------------  
-           
-         Pour DELETTRER manuellement une facture, il faut valoriser :  
-          - la variable @cod_facture avec une valeur non nulle  correspondant Nø interne DEFI de la FACTURE
-           
-           
-         Des controles prealables sont effectues afin de verifier :  
-           
-         - que la facture existe pour le code facture pass‚ en paramŠtre
-         - que la facture n'est pas deja lettr‚e
-         - qu'il n'y a pas de DR/session PRO actives des reglements en cours non valides associes a la facture
-           
-         */  
          	@cod_facture	varchar(50),  
          	@bln_ok			tinyint   out,  
          	@message		varchar(7000) out  
          AS  
-         
+
          BEGIN  
-         
+
          	DECLARE
          	@ID_FACTURE						int,  
          	@ID_UTILISATEUR					int,  
          	@COM_EVENEMENT					varchar(7600),
          	@BLN_LETTRE						int, 
          	@TOTAL_FACTURE_NON_VALIDE_HT	decimal(18, 2)
-              
+
          	SET @bln_ok = 1
          	SET @message = ''  
-         	
-         	-- Code Facture non valoris‚
+
          	IF @cod_facture is null 
          	BEGIN   
          		SET @bln_ok = 0
          		SELECT @message = '!! ALERTE !! La valorisation du Nø Interne facture est obligatoire. Lettrage facture impossible'  
          	END  
-         	
+
          	IF @bln_ok = 1
          	BEGIN  
          		SELECT @id_facture = ID_FACTURE, @BLN_LETTRE = BLN_LETTRE, @TOTAL_FACTURE_NON_VALIDE_HT = TOTAL_FACTURE_NON_VALIDE_HT
          		FROM  VUE_LETTRAGE_FACTURE
          		WHERE COD_FACTURE = @cod_facture
-              
-         		-- Aucune facture associ‚e au Code Facture 
+
          		IF @id_facture  IS NULL  
          		BEGIN  
          			SET @bln_ok = 0
          			SELECT @message = '!! ALERTE !! Facture avec Nø Interne facture= ' + CAST(@cod_facture AS VARCHAR)+ ' inexistante. Lettrage facture impossible.'  
          		END  
          	END
-         	
+
          	IF @bln_ok = 1
          	BEGIN  
          		SELECT @id_facture = ID_FACTURE, @BLN_LETTRE = ISNULL(BLN_LETTRE, 0), @TOTAL_FACTURE_NON_VALIDE_HT = TOTAL_FACTURE_NON_VALIDE_HT
          		FROM  VUE_LETTRAGE_FACTURE
          		WHERE COD_FACTURE = @cod_facture
-              
-         		-- Facture deja lettree
+
          		IF @BLN_LETTRE = 1  
          		BEGIN  
          			SET @bln_ok = 0
          			SELECT @message = '!! ALERTE !! La Facture avec Nø Interne facture= ' + CAST(@cod_facture AS VARCHAR)+ ' est d‚j… lettr‚e. Lettrage facture impossible.'  
          		END  
          	END
-         	
+
          	IF @bln_ok = 1
          	BEGIN  
-         		-- Facture associ‚es … des DR/Session non encore valid‚es
+
          		IF ABS(@TOTAL_FACTURE_NON_VALIDE_HT) >0
          		BEGIN  
          			SET @bln_ok = 0
          			SELECT @message = '!! ALERTE !! La Facture avec Nø Interne facture= ' + CAST(@cod_facture AS VARCHAR)+ ' est associ‚e … des Demandes de RŠglements PEC/Session PRO actives dont le rŠglement n''est pas valid‚. Lettrage facture impossible.'  
          		END  
          	END
-         
+
          	IF @bln_ok = 1
          	BEGIN  
-         		-- Facture deja lettree
+
          		UPDATE FACTURE SET BLN_LETTRE = 1 WHERE ID_FACTURE = @ID_FACTURE
          		SELECT @message = 'Lettrage de la facture ayant pour Nø Interne '+ CAST(@cod_facture AS VARCHAR)+ ' effectu‚.'
          	END
-         	
+
          END
 
-
-         -- =============================================
-         -- Author:		EOU
-         -- Create date: 16 05 2012
-         -- Description:	Inserer SALARIE_STATS
-         -- =============================================
-         
          CREATE PROCEDURE [dbo].[INS_SALARIE_STATS]
          	 @ID_SALARIE INT,
          	 @BLN_BENEFICIAIRE_ANI tinyint,
@@ -10741,54 +8705,6 @@ GO
          	)
          END
 
-
-         -- =======================================================================================
-         -- AUTHOR		: M. ELHABOUSSI
-         -- CREATE DATE	: 10/06/2013
-         -- DESCRIPTION	: CREATION MAJ FACTURE 
-         -- MANTIS		: B15254 [PANIERS] RALISATION DES PS PANIERS
-         -- =======================================================================================
-         -- AUTHOR		: M. ELHABOUSSI
-         -- UPDATE DATE	: 18/06/2013
-         -- DESCRIPTION	: AJOUT DE LA JOINTURE AVEC LA VUE VUE_MODULES_VISIBLES_PANIERS 
-         -- MANTIS		: B15254 [PANIERS] RALISATION DES PS PANIERS
-         -- =======================================================================================
-         -- 20/11/2013 TLE : REMPLACEMENT DE LA FONCTION GETACTIONPECCODE PAR GETPECCODEPADDED
-         -- =======================================================================================
-         -- 16/12/2013 BBL : GETACTIONPECCODE PAR GETPECCODEPADDED PARTOUT
-         -- =======================================================================================
-         -- 28/01/2014 WKH : EVOLUTION DE L'ENREGISTREMENT DE L'IBAN ET DU STATUT DE LA FACTURE POUR D3R
-         -- =======================================================================================
-         -- OPA - US#172	S#2 EN TANT QU'UTILISATEUR SYSTÔME OPTIFORM JE DOIS POUVOIR LISTER LES LIBELLS DE LA TABLE ETAT IBAN FACTURE
-         -- =======================================================================================
-         -- WKH, 16810, 28/01/2014
-         -- =======================================================================================
-         -- DSZ - 16963 US #195 "LA VARIABLE COD_D3R_TVA ": "MILLSIME/CODE"" OU ""MULTI""), MULTI = '00')
-         -- AVEC LA VERIFICATION DE LA PRESENCE DE '/'
-         -- =======================================================================================
-         -- DSZ 11/03/2014 US#174
-         -- SEULE LA PREMIÔRE TAPE POUR LAQUELLE LE CAS EST VALIDE DCLENCHE LE CHANGEMENT D'TAT. 
-         -- PROCEDURE UPD_FACTURE APELLE AVEC DES MAUVAIS PARAMETRES
-         -- =======================================================================================
-         -- DSZ 12/03/2014 US#195 
-         -- PRISE EN COMPTE DU COD_D3R_TVA APRÔS LE '/'
-         -- ET AJOUT DE VALORISATION DE L'IBAN 
-         -- =======================================================================================
-         -- DSZ 14/03 AJUSTEMENTS VUS AVEC ASD 
-         -- =======================================================================================
-         -- OPA 18/03/2014 #115	EN TANT QU'UTILISATEUR SYSTÔME OPTIFORM, JE SOUHAITE HISTORISER 
-         --				LE MONTANT TTC DE MES FACTURES LORS DE LEUR CRATION VIA LA NUMRISATION.
-         -- =======================================================================================
-         -- DSZ US242 ameliorer perf 5 fois
-         -- =======================================================================================
-         -- DSZ US273 supprimer les espaces dans IBAN pass‚ et ne sauvegarder que 34 premieres characteres
-         -- =======================================================================================
-         -- DSZ US232  si le num‚ro de facture ‚metteur pour cet ‚metteur pour l'ann‚e de la date d'‚mission de la facture est connu d'Optiform, 
-         -- la facture ne doit pas ˆtre mise … jour, mais seulement une relation au dossier peut ˆtre ajout‚e si elle n'existe pas d‚j…
-         -- =======================================================================================
-         -- LDE 22/08/2014 #476
-         -- =======================================================================================
-         
          CREATE PROCEDURE [dbo].[INS_UPD_FACTURE_DEMAT]
          	@ID_FACTURE INT,
          	@ID_EMETTEUR_ETABLISSEMENT_ADH INT,
@@ -10819,38 +8735,34 @@ GO
          		@BLN_LETTRE INT,
          		@COD_FACTURE VARCHAR(50),
          		@TIMESTAMP TIMESTAMP = NULL
-         
+
          	SET @BLN_ACTIF = 1
-         	
+
          	SELECT
          		@ID_UTILISATEUR = ID_UTILISATEUR
          	FROM
          		UTILISATEUR
          	WHERE
          		COD_UTIL  = 'ADMIN_D3R'
-         	
-         
+
          	SELECT	@DUREE_CLOTURE = CAST(dbo.GET_PARAM_VALUE_ALERTES_PANIERS('DUREE_CLOTURE') AS INT)
-         
-         	--GET ID_EMETTEUR_OF
+
          	SELECT
          		@ID_EMETTEUR_OF = ETABLISSEMENT_OF.ID_OF 
          	FROM
          		ETABLISSEMENT_OF 
          	WHERE
          		ETABLISSEMENT_OF.ID_ETABLISSEMENT_OF = @ID_EMETTEUR_ETABLISSEMENT_OF
-         
-         	--GET ID_EMETTEUR_ADHERENT
+
          	SELECT
          		@ID_EMETTEUR_ADHERENT = ETABLISSEMENT.ID_ADHERENT 
          	FROM
          		ETABLISSEMENT 
          	WHERE
          		ETABLISSEMENT.ID_ETABLISSEMENT = @ID_EMETTEUR_ETABLISSEMENT_ADH
-         
-         	--UNE TRANSACTION DE RÔGLEMENT PRINCIPALE ACTIVE POUR L'TABLISSEMENT DE LA FACTURE ET SON IBAN
+
          	DECLARE @IBAN_PRINCIPAL VARCHAR(34)
-         
+
          	SELECT
          		@ID_TRANSACTION = [TRANSACTION].ID_TRANSACTION,
          		@IBAN_PRINCIPAL = NUM_IBAN
@@ -10868,8 +8780,7 @@ GO
          		AND [TRANSACTION].BLN_TRANSACTION_REGLEMENT_PRINCIPAL = 1
          	ORDER BY
          		DAT_MODIF DESC
-         	
-         	--DETERMINATION DU COD TVA
+
          	SET @ID_TYPE_TVA  = NULL
          	DECLARE @C INT
          	SET @C = CHARINDEX('/',@COD_D3R_TVA)
@@ -10882,7 +8793,7 @@ GO
          		WHERE
          			COD_TYPE_TVA = SUBSTRING(@COD_D3R_TVA,@C+1,6)
          	END
-         
+
          	IF @ID_TYPE_TVA IS NULL
          	BEGIN
          		SELECT
@@ -10890,84 +8801,60 @@ GO
          		FROM
          			TYPE_TVA
          		WHERE
-         			COD_TYPE_TVA = '00' --MULTI
+         			COD_TYPE_TVA = '00' 
          	END
-         
-         	----------------------DETERMINER ETAT IBAN --------------------------
-         	--ETAPE 1 : UN IBAN EST TRANSMIS EN PARAMÔTRE ET IL EST IDENTIQUE · LA TRANSACTION PRINCIPALE. 
-         	--- 	LE STATUT INSTRUCTION RÔGLEMENT DE LA FACTURE EST ® OK ¯
-         	--- 	LA FACTURE EST RATTACHE · LA TRANSACTION PRINCIPALE RÔGLEMENT ACTIVE.
-         
+
          	DECLARE
          		@ID_ETAT_IBAN_FACTURE INT,
          		@COD_ETAT_IBAN_FACTURE VARCHAR(8) = NULL
          	set @IBAN = left(REPLACE(@IBAN, ' ', ''),34)
-         
+
          	IF (@IBAN IS NOT NULL)
          	BEGIN 
-         		IF (@IBAN_PRINCIPAL = @IBAN) --EXPLICIT: @IBAN_PRINCIPAL NOT NULL
+         		IF (@IBAN_PRINCIPAL = @IBAN) 
          		BEGIN
          			SET @COD_ETAT_IBAN_FACTURE = 'EGALPPAL'
          		END
-         
-         		--O	ETAPE 2 : L'IBAN EST TRANSMIS ET IL EST DIFFRENT DE CELUI DE LA TRANSACTION PRINCIPALE
-         		---	LE STATUT INSTRUCTION RÔGLEMENT DE LA FACTURE EST ® IBAN FACTURE DIFFRENT DE IBAN TRANSACTION RÔGLEMENT PRINCIPAL¯
-         		---	LA FACTURE N'EST RATTACHE · AUCUNE TRANSACTION
-         		
+
          		ELSE IF (@IBAN_PRINCIPAL <> @IBAN AND @IBAN_PRINCIPAL IS NOT NULL)
          		BEGIN
          			SET @COD_ETAT_IBAN_FACTURE = 'DIFFPPAL'
          			SET @ID_TRANSACTION = NULL
          		END
-         
-         	--O	ETAPE 3 : L'IBAN EST TRANSMIS MAIS IL N'EXISTE PAS D'IBAN SUR LA TRANSACTION PRINCIPALE
-         
-         	--	-	LE STATUT INSTRUCTION RÔGLEMENT EST : ® PAS D'IBAN TRANSACTION ¯
-         	--	-	LA FACTURE EST RATTACHE · LA TRANSACTION PRINCIPALE
-         		
+
          		ELSE IF (@IBAN_PRINCIPAL IS NULL)
          		BEGIN
          			SET @COD_ETAT_IBAN_FACTURE = 'PPALNULL' 
          		END
          	END	
-         	ELSE --@IBAN  NULL = AUCUN IBAN N'EST TRANSMIS 
+         	ELSE 
          	BEGIN
-         		--O	ETAPE 4 A : AUCUN IBAN N'EST TRANSMIS ET LA TRANSACTION PRINCIPALE CONTIENT UN IBAN
-         
-         		--	-	LE STATUT INSTRUCTION RÔGLEMENT EST : ® PAS D'IBAN FACTURE ¯
-         		--	-	LA FACTURE EST RATTACHE · LA TRANSACTION PRINCIPALE ACTIVE
-         	
+
          		IF ( @IBAN_PRINCIPAL IS NOT NULL)
          		BEGIN
          			SET @COD_ETAT_IBAN_FACTURE = 'FACTNULL' 
          		END
-         
-         		--O	ETAPE 4 B : AUCUN IBAN N'EST TRANSMIS ET ABSENCE D'IBAN DANS LA TRANSACTION PRINCIPALE : 
-         
-         		---	LE STATUT INSTRUCTION RÔGLEMENT EST : ® ABSENCE D'IBAN FACTURE ET TRANSACTION¯
-         		---	LA FACTURE EST RATTACHE · LA TRANSACTION PRINCIPALE ACTIVE
-         	
-         		ELSE -- @IBAN_PRINCIPAL IS  NULL)
+
+         		ELSE 
          		BEGIN
          			SET @COD_ETAT_IBAN_FACTURE = 'NULLNULL' 
          		END 
          	END	
-         	
-         	--DETERMINER SI FACTURE EXISTE
+
          	IF NOT EXISTS (SELECT TOP 1 1 FROM FACTURE WHERE ID_FACTURE = @ID_FACTURE)
          	BEGIN
          		SET @ID_FACTURE = NULL
          		DECLARE
          			@YEAR_EMISSION INT = YEAR(@DAT_EMISSION),
          			@TMP_ID_FACT int = null
-         			
+
          		EXEC @TMP_ID_FACT = dbo.IS_NUM_FACTURE_EXISTE
          			@ID_EMETTEUR_ETABLISSEMENT_OF = @ID_EMETTEUR_ETABLISSEMENT_OF,
          			@ID_EMETTEUR_ETABLISSEMENT_ADH = @ID_EMETTEUR_ETABLISSEMENT_ADH ,
          			@ANNEE_EMISSION_FACTURE = @YEAR_EMISSION,
          			@NUM_FACTURE = @NUM_FACTURE,
          			@ID_FACTURE = NULL
-         			
+
          		IF coalesce(@TMP_ID_FACT,0) = 0
          		BEGIN
          			SET @ID_FACTURE = NULL
@@ -10975,8 +8862,7 @@ GO
          		else
          			set @ID_FACTURE = @TMP_ID_FACT
          	END
-         
-         	-- LDE 22/08/2014 #476
+
          	DECLARE @cod INT, @annee INT, @n INT, @tmpCode VARCHAR(11)
          	IF @TYPE_DOSSIER = 'PEC'
          	BEGIN		
@@ -10988,13 +8874,12 @@ GO
          			SET @annee = CAST(SUBSTRING(@tmpCode, @n+1, 4) AS INT)
          		END
          	END
-         	-- /LDE 22/08/2014 #476
-         
-         	IF @ID_FACTURE IS NULL -- FACTURE N'EXISTE PAS 
+
+         	IF @ID_FACTURE IS NULL 
          	BEGIN		
          		DECLARE @MNT_TTC_NUMERISE DECIMAL(18,2)
          		SET @MNT_TTC_NUMERISE = @MNT_TTC
-         	
+
          		EXECUTE dbo.INS_FACTURE   
          			@ID_EMETTEUR_OF,
          			@ID_EMETTEUR_ADHERENT,
@@ -11015,9 +8900,8 @@ GO
          			@COD_FACTURE OUTPUT,
          			@ID_FACTURE OUTPUT,
          			@MNT_TTC_NUMERISE
-         
-         				
-         		IF (@TYPE_DOSSIER = 'PEC' AND @cod IS NOT NULL AND @annee IS NOT NULL) -- LDE 22/08/2014 #476
+
+         		IF (@TYPE_DOSSIER = 'PEC' AND @cod IS NOT NULL AND @annee IS NOT NULL) 
          		BEGIN
          			DECLARE @ID_MODULE_PEC INT
          			DECLARE CUR_MODULE_PEC CURSOR FOR
@@ -11029,7 +8913,7 @@ GO
          						AND NOT EXISTS(SELECT 1 FROM MODULE_FACTURE
          											WHERE MODULE_FACTURE.ID_FACTURE = @ID_FACTURE AND
          												MODULE_FACTURE.ID_MODULE_PEC = MODULE_PEC.ID_MODULE_PEC)
-         			
+
          			OPEN CUR_MODULE_PEC
          			FETCH NEXT FROM CUR_MODULE_PEC INTO @ID_MODULE_PEC
          			WHILE @@FETCH_STATUS = 0   
@@ -11038,7 +8922,7 @@ GO
          					@ID_FACTURE,
          					@ID_MODULE_PEC,
          					NULL
-         				
+
          					FETCH NEXT FROM CUR_MODULE_PEC INTO @ID_MODULE_PEC
          			END
          			CLOSE	CUR_MODULE_PEC
@@ -11055,7 +8939,7 @@ GO
          						AND NOT EXISTS(SELECT 1 FROM MODULE_FACTURE
          										   WHERE MODULE_FACTURE.ID_FACTURE = @ID_FACTURE AND
          												MODULE_FACTURE.ID_MODULE_PRO = MODULE_PRO.ID_MODULE_PRO)
-         		
+
          			OPEN CUR_MODULE_PRO
          			FETCH NEXT FROM CUR_MODULE_PRO INTO @ID_MODULE_PRO
          			WHILE @@FETCH_STATUS = 0   
@@ -11064,22 +8948,20 @@ GO
          					@ID_FACTURE,
          					NULL,
          					@ID_MODULE_PRO			
-         			
+
          					FETCH NEXT FROM CUR_MODULE_PRO INTO @ID_MODULE_PRO
          			END
          			CLOSE	CUR_MODULE_PRO
          			DEALLOCATE CUR_MODULE_PRO
          		END
-         		
-         		--FACTURE A T INSERE  : TOUJOURS SAUVEGARDE L'IBAN TRANSMIS
+
          		UPDATE
          			FACTURE
          		SET
          			NUM_IBAN_NUMERISE = @IBAN
          		WHERE
          			FACTURE.ID_FACTURE = @ID_FACTURE
-         		
-         		-- UPDATE ETAT IBAN SI TROUV
+
          		IF (@COD_ETAT_IBAN_FACTURE IS NOT NULL)
          		BEGIN
          			UPDATE
@@ -11091,20 +8973,17 @@ GO
          			WHERE
          				FACTURE.ID_FACTURE = @ID_FACTURE
          		END
-         	
-         		
-         		-- RETURN
+
          		IF @ID_FACTURE IS NOT NULL
          		BEGIN
          			SET @RESULT_FACTURE = @ID_FACTURE
          		END
-         
+
          	END	
-         	ELSE --LA FACTURE EXISTE 
+         	ELSE 
          	BEGIN	
-         		
-         
-         		IF (@TYPE_DOSSIER = 'PEC' AND @cod IS NOT NULL AND @annee IS NOT NULL) -- LDE 22/08/2014 #476
+
+         		IF (@TYPE_DOSSIER = 'PEC' AND @cod IS NOT NULL AND @annee IS NOT NULL) 
          			BEGIN
          				DECLARE CUR_MODULE_PEC CURSOR FOR
          					SELECT	MODULE_PEC.ID_MODULE_PEC FROM MODULE_PEC 
@@ -11115,7 +8994,7 @@ GO
          							AND NOT EXISTS(SELECT 1 FROM MODULE_FACTURE
          											   WHERE MODULE_FACTURE.ID_FACTURE = @ID_FACTURE AND
          													MODULE_FACTURE.ID_MODULE_PEC = MODULE_PEC.ID_MODULE_PEC)
-         		
+
          				OPEN CUR_MODULE_PEC
          				FETCH NEXT FROM CUR_MODULE_PEC INTO @ID_MODULE_PEC
          				WHILE @@FETCH_STATUS = 0   
@@ -11124,7 +9003,7 @@ GO
          					@ID_FACTURE,
          					@ID_MODULE_PEC,
          					NULL
-         			
+
          					FETCH NEXT FROM CUR_MODULE_PEC INTO @ID_MODULE_PEC
          				END
          				CLOSE	CUR_MODULE_PEC
@@ -11144,58 +9023,36 @@ GO
          				FETCH NEXT FROM CUR_MODULE_PRO INTO @ID_MODULE_PRO
          				WHILE @@FETCH_STATUS = 0   
          				BEGIN
-         
+
          					EXECUTE dbo.INS_MODULE_FACTURE 
          					@ID_FACTURE,
          					NULL,
          					@ID_MODULE_PRO
-         			
+
          					FETCH NEXT FROM CUR_MODULE_PRO INTO @ID_MODULE_PRO
          				END
          				CLOSE	CUR_MODULE_PRO
          				DEALLOCATE CUR_MODULE_PRO
          			END
-         		
-         		-- RETURN
-         
+
          		SET @RESULT_FACTURE = @ID_FACTURE
          	END
-         	
-         	
+
          END
-         
+
  CREATE PROCEDURE [BATCH_TRANSFERT_COMPENSATION_FRAIS_GESTION_VO_PLAN]
-         /*
-         =============================================  
-         Author  : MBL
-         Create date : 02/07/2015
-         Description : Proc‚dure permettant de lancer des tranferts de compensation des frais de gestion VO PLAN
          
-         Le traitement fait appel a la fonction de table F_TRANSFERT_COMPENSATION_FRAIS_GESTION_VO_PLAN constituant un outil d'aide … la d‚cision 
-         afin de g‚n‚rer ces transferts.
-         
-         -- CONDITION DE LANCEMENT
-         Parametre : la valorisation du parametre @ID_ADHERENT_TRAITE est optionnelle. 
-            S'il est valorise, le traitement n'est declenche que pour l'adherent de mˆme ID
-            S'il n'est pas valorise, le traitement est declenche pour tous les adherents
-            
-         US 1034: Int‚gration de scripts Evolution de service
-         -- =============================================
-         */
          @NUM_ANNEE_N       int,
          @ID_ADHERENT_TRAITE      int
-         
+
          AS
          BEGIN
-         
-         
-         
+
           IF OBJECT_ID('tempdb..#TMP_TRANSFERT', 'U') IS NOT NULL 
           BEGIN
            drop table #TMP_TRANSFERT
           END
-         
-         
+
           DECLARE 
           @DAT       DATETIME,
           @ID_TYPE_EVENEMENT_TRANSFERT INTEGER,
@@ -11214,66 +9071,60 @@ GO
           @BLN_COMPTE_VERS_ENVELOPPE  TINYINT,
           @ID_TRANSFERT     INT,
           @ID_TYPE_FINANCEMENT   INT
-         
+
           DECLARE @COD_TYPE_EVENEMENT_COMPENSATION_FRAIS_GESTION_VV varchar(8)
           SET @COD_TYPE_EVENEMENT_COMPENSATION_FRAIS_GESTION_VV = 'COMPFGVO'
-         
-         
+
           select @ID_TYPE_EVENEMENT_TRANSFERT = ID_TYPE_EVENEMENT FROM TYPE_EVENEMENT where COD_TYPE_EVENEMENT = @COD_TYPE_EVENEMENT_COMPENSATION_FRAIS_GESTION_VV 
-          
+
           IF @ID_TYPE_EVENEMENT_TRANSFERT IS NULL 
           BEGIN
            SELECT 'Le type d''evenement associe au code evenement passe en parametre : ' + @COD_TYPE_EVENEMENT_COMPENSATION_FRAIS_GESTION_VV + ' n''existe pas'
           END
           ELSE
           BEGIN
-         
-           SELECT @ID_TYPE_FINANCEMENT = 4 -- Compte Versement Obligatoire
-         
+
+           SELECT @ID_TYPE_FINANCEMENT = 4 
+
            SELECT t.*, ADHERENT.ID_ETABLISSEMENT_PRINCIPAL
            INTO #TMP_TRANSFERT 
            FROM F_TRANSFERT_COMPENSATION_FRAIS_GESTION_VO_PLAN (@NUM_ANNEE_N, @ID_ADHERENT_TRAITE) t
            INNER JOIN ADHERENT ON ADHERENT.ID_ADHERENT = t.ID_ADHERENT
-         
-           --SELECT * FROM  #TMP_TRANSFERT 
-         
+
            SELECT @DAT = GETDATE()
-         
+
            SELECT @ID_PERIODE_N = ID_PERIODE   
            from PERIODE     
            where NUM_ANNEE  = @NUM_ANNEE_N 
            AND  ID_TYPE_PERIODE = 1   
-         
+
            SELECT @ID_PERIODE_N_PLUS1  = ID_PERIODE
            from PERIODE     
            where NUM_ANNEE    = @NUM_ANNEE_N + 1
            AND  ID_TYPE_PERIODE   = 1   
-         
+
            SET @LIBL_EVENEMENT  = 'Dotation Taux Retour 100% ' + CAST(@NUM_ANNEE_N + 1 AS VARCHAR(4)) 
            SET @LIBL_MVT   = 'Dotation Taux Retour 100% '  + CAST(@NUM_ANNEE_N + 1 AS VARCHAR(4)) 
-         
-         
+
            DECLARE cu_transfert CURSOR FOR
            SELECT ID_ADHERENT,  ID_GROUPE, ID_BRANCHE, MNT_TRANSFERT, ID_ETABLISSEMENT_PRINCIPAL
            FROM #TMP_TRANSFERT
            WHERE ABS(MNT_TRANSFERT) > 0
-         
+
            OPEN cu_transfert
-         
+
            FETCH cu_transfert INTO
            @ID_ADHERENT, @ID_GROUPE, @ID_BRANCHE, @MNT_TRANSFERT, @ID_ETABLISSEMENT
-         
-         
+
            WHILE (@@FETCH_STATUS <> -1)
            BEGIN 
-            -- Recherche de l'enveloppe de collecte PIVOT
+
             SELECT  @ID_ENVELOPPE = ID_ENVELOPPE , @LIBL_ENVELOPPE = LIBL_ENVELOPPE 
             FROM  TYPE_ENVELOPPE 
             INNER JOIN ENVELOPPE ON ENVELOPPE.ID_TYPE_ENVELOPPE = TYPE_ENVELOPPE.ID_TYPE_ENVELOPPE
             WHERE  TYPE_ENVELOPPE.BLN_FRAIS_GESTION_COLLECTE = 1 
             AND   TYPE_ENVELOPPE.ID_BRANCHE = @ID_BRANCHE
-         
-            -- SELECT ID_ENVELOPPE = @ID_ENVELOPPE , LIBL_ENVELOPPE = @LIBL_ENVELOPPE 
+
             IF @MNT_TRANSFERT >0
             BEGIN
              SET @BLN_COMPTE_VERS_ENVELOPPE  = 0
@@ -11283,21 +9134,7 @@ GO
              SET @MNT_TRANSFERT = - @MNT_TRANSFERT
              SET @BLN_COMPTE_VERS_ENVELOPPE  = 1
             END
-         
-            --SELECT '@ID_TRANSFERT = INS_TRANSFERT ',
-            -- LIBL_TRANSFERT    = @LIBL_EVENEMENT,
-            -- BLN_COMPTE_VERS_ENVELOPPE = @BLN_COMPTE_VERS_ENVELOPPE,  
-            -- ID_GROUPE     = @ID_GROUPE,
-            -- ID_ENVELOPPE    = @ID_ENVELOPPE,
-            -- DAT_TRANSFERT    = @DAT,
-            -- MNT_TRANSFERT    = @MNT_TRANSFERT, 
-            -- ID_TYPE_FINANCEMENT   = @ID_TYPE_FINANCEMENT,   -- Type de financement sur Compte Historique
-            -- ID_UTILISATEUR    = 82, 
-            -- ID_PERIODE     = @ID_PERIODE_N_PLUS1,
-            -- COM_TRANSFERT    = @LIBL_MVT, 
-            -- LIBL_MVT_BUDGETAIRE   = @LIBL_MVT,
-            -- ID_TYPE_EVENEMENT   = @ID_TYPE_EVENEMENT_TRANSFERT
-              
+
             exec @ID_TRANSFERT = INS_TRANSFERT 
              @LIBL_TRANSFERT    = @LIBL_EVENEMENT,
              @BLN_COMPTE_VERS_ENVELOPPE = @BLN_COMPTE_VERS_ENVELOPPE,  
@@ -11305,79 +9142,50 @@ GO
              @ID_ENVELOPPE    = @ID_ENVELOPPE,
              @DAT_TRANSFERT    = @DAT,
              @MNT_TRANSFERT    = @MNT_TRANSFERT, 
-             @ID_TYPE_FINANCEMENT  = @ID_TYPE_FINANCEMENT,   -- Type de financement sur Compte Historique
+             @ID_TYPE_FINANCEMENT  = @ID_TYPE_FINANCEMENT,   
              @ID_UTILISATEUR    = 82, 
              @ID_PERIODE     = @ID_PERIODE_N_PLUS1,
              @COM_TRANSFERT    = @LIBL_MVT, 
              @LIBL_MVT_BUDGETAIRE  = @LIBL_MVT,
              @ID_TYPE_EVENEMENT   = @ID_TYPE_EVENEMENT_TRANSFERT,
              @ID_ETABLISSEMENT   = @ID_ETABLISSEMENT
-         
+
             FETCH cu_transfert INTO
             @ID_ADHERENT, @ID_GROUPE, @ID_BRANCHE, @MNT_TRANSFERT, @ID_ETABLISSEMENT
-         
-         
+
            END
-         
+
            CLOSE cu_transfert
            DEALLOCATE cu_transfert
           END
-          
+
           IF OBJECT_ID('tempdb..#TMP_TRANSFERT', 'U') IS NOT NULL 
           BEGIN
            drop table #TMP_TRANSFERT
           END
-         
+
          END
 
  CREATE PROCEDURE [dbo].[INS_RECU_VV]
           @ID_ETABLISSEMENT AS INT,
           @ID_PERIODE AS INT
          AS
-         -- =============================================
-         -- Author:   S. BRUGAIT
-         -- Create date:  17/03/2008
-         -- Description:  proc‚dure g‚n‚rant un recu et des postes recu pour les avis de versement volontaire
-         -- Modification: Le XX/XX/XXXX par XXXX
-         -- ---------------------------------------------
-         -- Author:  : SBR
-         -- Modified date: 06 mai 2009
-         -- comment  : Correction mauvaise gestion sur existence d'un recu de versement pour le versement concern‚
-         -- ---------------------------------------------
-         -- Le 03/05/10 par SBR : ID_ETABLISSEMENT_BENEFICIAIRE dans POSTE_RECU au lieu de ID_ETABLISSEMENT_EMETTEUR
-         ----------------------------------------------
-         -- Le 08/10/10 par SBR : Le test d'existence d'un recu VV est fait pour le versement et l'‚tablissement
-         --       b‚n‚ficiaire concern‚. Nouveau champ RECU_MODE_VERSEMENT.ID_ETABLISSEMENT_BENEFICIAIRE.
-         ----------------------------------------------
-         -- Le 26/07/11 par SBR : Les avis de VV sont ‚ditables pour les -10
-         ----------------------------------------------
-         -- Le 23/12/11 par ASD : 10-50
-         ------------------------------------------------------------
-         -- ASD 07/01/2013 14822 : remplacer la condition !=3 via type_activite = plan 
-         ------------------------------------------------------------
-         -- ASD 13/03/2013 14976 : g‚n‚rer ‚galement un re‡u pour les pr‚lŠvements automatiques : au lieu d'inclure 1, 2, exclure 3 pour ajouter 4 ?
-         ------------------------------------------------------------
-         -- ASD 05/12/2014 : #697 : (compl‚ment … #695) ne plus filtrer sur la pr‚sence d'une imputation sur du plan
-         -- =============================================
+
          BEGIN
-          -------------------------------------------------------------------------------
-          --       VARIABLES LOCALES
-          -------------------------------------------------------------------------------
+
           DECLARE
            @COD_RECU_PREFIXE AS CHAR(1),
            @ID_TYPE_RECU INT,
            @ID_RECU INT,
            @ID_RECU_A_REMP INT,
            @ANNULER_RECU INT
-          
-          -------------------------------------------------------------------------------
+
           SET @ANNULER_RECU = 1
           SET @COD_RECU_PREFIXE = 'A'
-          -- type re‡u = Avis versement volontaire
+
           SET @ID_TYPE_RECU = 3
           SET @ID_RECU_A_REMP = NULL
-         
-          -- R‚cup‚ration de l'ID de l'adh‚rent
+
           DECLARE
            @ID_ADHERENT INT
           SELECT
@@ -11386,9 +9194,7 @@ GO
            ETABLISSEMENT
           WHERE
            ID_ETABLISSEMENT = @ID_ETABLISSEMENT
-         
-          -- pr‚contr“le du compteur utilis‚ pour le code recu et incr‚mentation si besoin
-          -- un d‚phasage peut survenir en cas de plantage de l'application par exemple et provoquer une erreur … la cr‚ation d'un nouveau re‡u par doublonage du code re‡u
+
           WHILE EXISTS (
            SELECT
             1 
@@ -11415,9 +9221,7 @@ GO
            WHERE
             COMPTEUR.COD_CPT = (SELECT TYPE_RECU.COD_TYPE_RECU FROM TYPE_RECU WHERE ID_TYPE_RECU = @ID_TYPE_RECU)
           END
-          -------------------------------------------------------------------------------
-          --       GENERATION D'UN RECU
-          -------------------------------------------------------------------------------
+
           INSERT INTO RECU
           (
            COD_RECU,
@@ -11450,15 +9254,10 @@ GO
             ON PERIODE.ID_PERIODE = @ID_PERIODE
           WHERE
            TYPE_RECU.ID_TYPE_RECU = @ID_TYPE_RECU
-          
-          -- RECUPERATION DE L'ID_RECU
+
           SELECT
            @ID_RECU = SCOPE_IDENTITY()
-         
-          -------------------------------------------------------------------------------
-          -------------------------------------------------------------------------------
-          --        UPDATE COMPTEUR
-          -------------------------------------------------------------------------------
+
           UPDATE
            COMPTEUR
           SET
@@ -11467,11 +9266,7 @@ GO
            COMPTEUR
           WHERE 
            COMPTEUR.COD_CPT = (SELECT TYPE_RECU.COD_TYPE_RECU FROM TYPE_RECU WHERE ID_TYPE_RECU = @ID_TYPE_RECU)
-         
-          -------------------------------------------------------------------------------
-          -------------------------------------------------------------------------------
-          --       GENERATION D'UN POSTE_RECU
-          -------------------------------------------------------------------------------
+
           INSERT INTO POSTE_RECU
           (
            ID_RECU,
@@ -11500,7 +9295,7 @@ GO
            VERSEMENT.BLN_IMPAYE = 0
            AND VERSEMENT.BLN_ACTIF  = 1
            AND
-           -- AVIS VV
+
            @ID_TYPE_RECU = 3
            AND POSTE_VERSEMENT.ID_TYPE_VERSEMENT = 3
            AND VERSEMENT.ID_MODE_VERSEMENT IN (1,2,4)
@@ -11522,16 +9317,12 @@ GO
            AND POSTE_VERSEMENT.ID_ETABLISSEMENT_BENEFICIAIRE = @ID_ETABLISSEMENT
           GROUP BY
            POSTE_VERSEMENT.ID_PERIODE, POSTE_IMPUTATION.ID_ACTIVITE, POSTE_VERSEMENT.ID_ETABLISSEMENT_BENEFICIAIRE
-         
-          -------------------------------------------------------------------------------
-          -------------------------------------------------------------------------------
-          --     HISTORISATION DU LIEN RECUS - MODE VERSEMENT
-          -------------------------------------------------------------------------------
+
           DELETE FROM
            RECU_MODE_VERSEMENT
           WHERE
            ID_RECU = @ID_RECU
-         
+
           INSERT INTO RECU_MODE_VERSEMENT
           (
            ID_RECU,
@@ -11582,12 +9373,7 @@ GO
                 AND  POSTE_RECU.ID_ETABLISSEMENT_BENEFICIAIRE = pv.ID_ETABLISSEMENT_BENEFICIAIRE
                 AND  RECU_MODE_VERSEMENT.ID_ETABLISSEMENT_BENEFICIAIRE = pv.ID_ETABLISSEMENT_BENEFICIAIRE
                )
-          -------------------------------------------------------------------------------
-          -------------------------------------------------------------------------------
-          --        MAJ DES RECUS
-          -------------------------------------------------------------------------------
-         
-          -- PREPARATION
+
           SELECT
            RECU.ID_RECU,
            SUM(POSTE_RECU.MNT_HT * dbo.ONEIF(ID_TYPE_RECU,3)) AS MNT_RECU_HT,
@@ -11606,8 +9392,7 @@ GO
           GROUP BY
            RECU.ID_RECU,
            ID_TYPE_RECU
-          
-          -- ENREGISTREMENT
+
           UPDATE
            RECU
           SET
@@ -11618,48 +9403,29 @@ GO
            RECU
            INNER JOIN #RECU
             ON RECU.ID_RECU = #RECU.ID_RECU
-          
+
           SET @ANNULER_RECU = 0
           IF EXISTS (SELECT ID_RECU FROM RECU WHERE MNT_RECU_HT = 0)
           BEGIN
            SET @ANNULER_RECU = 1
           END
-          ------------------------------------------------------------------------------- 
+
           RETURN @ANNULER_RECU
          END
 
  CREATE PROCEDURE [BATCH_TRANSFERT_COMPENSATION_FRAIS_GESTION_VV]
-         /*
-         =============================================  
-         Author  : MBL
-         Create date : 02/07/2015
-         Description : Proc‚dure permettant de lancer des tranferts de compensation des frais de gesttion VV
          
-         Le traitement fait appel a la fonction de table TRANSFERT_COMPENSATION_FRAIS_GESTION_VV constituant un outil d'aide … la d‚cision 
-         afin de g‚n‚rer ces transferts.
-         
-         -- CONDITION DE LANCEMENT
-         Parametre : la valorisation du parametre @ID_ADHERENT_TRAITE est optionnelle. 
-            S'il est valorise, le traitement n'est declenche que pour l'adherent de mˆme ID
-            S'il n'est pas valorise, le traitement est declenche pour tous les adherents
-            
-         US 1034: Int‚gration de scripts Evolution de service
-         -- =============================================
-         */
          @NUM_ANNEE_N       int,
          @ID_ADHERENT_TRAITE      int
-         
+
          AS
          BEGIN
-         
-         
-         
+
           IF OBJECT_ID('tempdb..#TMP_TRANSFERT', 'U') IS NOT NULL 
           BEGIN
            drop table #TMP_TRANSFERT
           END
-         
-         
+
           DECLARE 
           @DAT       DATETIME,
           @ID_TYPE_EVENEMENT_TRANSFERT INTEGER,
@@ -11677,61 +9443,55 @@ GO
           @BLN_COMPTE_VERS_ENVELOPPE  TINYINT,
           @ID_TRANSFERT     INT,
           @ID_TYPE_FINANCEMENT   INT
-         
+
           DECLARE @COD_TYPE_EVENEMENT_COMPENSATION_FRAIS_GESTION_VV varchar(8)
           SET @COD_TYPE_EVENEMENT_COMPENSATION_FRAIS_GESTION_VV = 'COMPFGVV'
-         
-         
+
           select @ID_TYPE_EVENEMENT_TRANSFERT = ID_TYPE_EVENEMENT FROM TYPE_EVENEMENT where COD_TYPE_EVENEMENT = @COD_TYPE_EVENEMENT_COMPENSATION_FRAIS_GESTION_VV 
-          
+
           IF @ID_TYPE_EVENEMENT_TRANSFERT IS NULL 
           BEGIN
            SELECT 'Le type d''evenement associe au code evenement passe en parametre : ' + @COD_TYPE_EVENEMENT_COMPENSATION_FRAIS_GESTION_VV + ' n''existe pas'
           END
           ELSE
           BEGIN
-         
-           SELECT @ID_TYPE_FINANCEMENT = 3 -- Compte Versement Obligatoire
-           
+
+           SELECT @ID_TYPE_FINANCEMENT = 3 
+
            SELECT t.*, ADHERENT.ID_ETABLISSEMENT_PRINCIPAL
            INTO #TMP_TRANSFERT 
            FROM F_TRANSFERT_COMPENSATION_FRAIS_GESTION_VV (@NUM_ANNEE_N, @ID_ADHERENT_TRAITE) t
            INNER JOIN ADHERENT ON ADHERENT.ID_ADHERENT = t.ID_ADHERENT
-         
-           --SELECT * FROM  #TMP_TRANSFERT 
-         
+
            SELECT @DAT = GETDATE()
-         
+
            SELECT @ID_PERIODE_N = ID_PERIODE   
            from PERIODE     
            where NUM_ANNEE  = @NUM_ANNEE_N 
            AND  ID_TYPE_PERIODE = 1   
-         
+
            SET @LIBL_EVENEMENT  = 'Compensation des Frais Gestion ' + CAST(@NUM_ANNEE_N AS VARCHAR(4)) 
            SET @LIBL_MVT   = 'Compensation des Frais Gestion '  + CAST(@NUM_ANNEE_N AS VARCHAR(4)) 
-         
-         
+
            DECLARE cu_transfert CURSOR FOR
            SELECT ID_ADHERENT,  ID_GROUPE, ID_BRANCHE, MNT_TRANSFERT, ID_ETABLISSEMENT_PRINCIPAL
            FROM #TMP_TRANSFERT
            WHERE ABS(MNT_TRANSFERT) > 0
-         
+
            OPEN cu_transfert
-         
+
            FETCH cu_transfert INTO
            @ID_ADHERENT, @ID_GROUPE, @ID_BRANCHE, @MNT_TRANSFERT, @ID_ETABLISSEMENT
-         
-         
+
            WHILE (@@FETCH_STATUS <> -1)
            BEGIN 
-            -- Recherche de l'enveloppe de collecte PIVOT
+
             SELECT  @ID_ENVELOPPE = ID_ENVELOPPE , @LIBL_ENVELOPPE = LIBL_ENVELOPPE 
             FROM  TYPE_ENVELOPPE 
             INNER JOIN ENVELOPPE ON ENVELOPPE.ID_TYPE_ENVELOPPE = TYPE_ENVELOPPE.ID_TYPE_ENVELOPPE
             WHERE  TYPE_ENVELOPPE.BLN_FRAIS_GESTION_COLLECTE = 1 
             AND   TYPE_ENVELOPPE.ID_BRANCHE = @ID_BRANCHE
-         
-            -- SELECT ID_ENVELOPPE = @ID_ENVELOPPE , LIBL_ENVELOPPE = @LIBL_ENVELOPPE 
+
             IF @MNT_TRANSFERT >0
             BEGIN
              SET @BLN_COMPTE_VERS_ENVELOPPE  = 0
@@ -11741,21 +9501,7 @@ GO
              SET @MNT_TRANSFERT = - @MNT_TRANSFERT
              SET @BLN_COMPTE_VERS_ENVELOPPE  = 1
             END
-         
-            --SELECT '@ID_TRANSFERT = INS_TRANSFERT ',
-            -- LIBL_TRANSFERT    = @LIBL_EVENEMENT,
-            -- BLN_COMPTE_VERS_ENVELOPPE = @BLN_COMPTE_VERS_ENVELOPPE,  
-            -- ID_GROUPE     = @ID_GROUPE,
-            -- ID_ENVELOPPE    = @ID_ENVELOPPE,
-            -- DAT_TRANSFERT    = @DAT,
-            -- MNT_TRANSFERT    = @MNT_TRANSFERT, 
-            -- ID_TYPE_FINANCEMENT   = @ID_TYPE_FINANCEMENT,   -- Type de financement sur Compte Historique
-            -- ID_UTILISATEUR    = 82, 
-            -- ID_PERIODE     = @ID_PERIODE_N,
-            -- COM_TRANSFERT    = @LIBL_MVT, 
-            -- LIBL_MVT_BUDGETAIRE   = @LIBL_MVT,
-            -- ID_TYPE_EVENEMENT   = @ID_TYPE_EVENEMENT_TRANSFERT
-              
+
             exec @ID_TRANSFERT = INS_TRANSFERT 
              @LIBL_TRANSFERT    = @LIBL_EVENEMENT,
              @BLN_COMPTE_VERS_ENVELOPPE = @BLN_COMPTE_VERS_ENVELOPPE,  
@@ -11763,51 +9509,40 @@ GO
              @ID_ENVELOPPE    = @ID_ENVELOPPE,
              @DAT_TRANSFERT    = @DAT,
              @MNT_TRANSFERT    = @MNT_TRANSFERT, 
-             @ID_TYPE_FINANCEMENT  = @ID_TYPE_FINANCEMENT,   -- Type de financement sur Compte Historique
+             @ID_TYPE_FINANCEMENT  = @ID_TYPE_FINANCEMENT,   
              @ID_UTILISATEUR    = 82, 
              @ID_PERIODE     = @ID_PERIODE_N,
              @COM_TRANSFERT    = @LIBL_MVT, 
              @LIBL_MVT_BUDGETAIRE  = @LIBL_MVT,
              @ID_TYPE_EVENEMENT   = @ID_TYPE_EVENEMENT_TRANSFERT,
              @ID_ETABLISSEMENT   = @ID_ETABLISSEMENT
-         
+
             FETCH cu_transfert INTO
             @ID_ADHERENT, @ID_GROUPE, @ID_BRANCHE, @MNT_TRANSFERT, @ID_ETABLISSEMENT
-         
-         
+
            END
-         
+
            CLOSE cu_transfert
            DEALLOCATE cu_transfert
           END
-          
+
           IF OBJECT_ID('tempdb..#TMP_TRANSFERT', 'U') IS NOT NULL 
           BEGIN
            drop table #TMP_TRANSFERT
           END
-         
+
          END
 
-
-         
-         
-         -- =============================================
-         -- Author:		Woollams
-         -- Create date: 24 janvier 2008
-         -- Description:	Mise … jour de la date de rejet 
-         -- pour les contrat de la liste
-         -- =============================================
-         
          CREATE PROCEDURE [dbo].[UPD_DATE_REJET_CONTRAT_PRO_ADH]
-         	@CODS_CONTRAT_PRO TEXT	-- List of COD_CONTRAT_PRO separated with ',' without spaces - i.e.: 1,2,3,4,5,6
+         	@CODS_CONTRAT_PRO TEXT	
          AS
-         
+
          BEGIN
-         
+
          	DECLARE @Item varchar(10);
-         	-- Create a temporary table which contains IDs
+
          	CREATE TABLE #List(Item VARCHAR(10) collate French_CI_AI)
-         	
+
          	DECLARE @Delimiter char
          	SET @Delimiter = ','
          	WHILE CHARINDEX(@Delimiter,@CODS_CONTRAT_PRO,0) <> 0
@@ -11815,31 +9550,23 @@ GO
          		SELECT
          			@Item=RTRIM(LTRIM(SUBSTRING(@CODS_CONTRAT_PRO,1,CHARINDEX(@Delimiter,@CODS_CONTRAT_PRO,0)-1))),
          			@CODS_CONTRAT_PRO=RTRIM(LTRIM(SUBSTRING(@CODS_CONTRAT_PRO,CHARINDEX(@Delimiter,@CODS_CONTRAT_PRO,0)+1,DATALENGTH(@CODS_CONTRAT_PRO))))
-         
+
          		IF LEN(@Item) > 0
          			INSERT INTO #List SELECT cast(@Item as varchar)
          	END
-         
+
          	IF DATALENGTH(@CODS_CONTRAT_PRO) > 0
          		begin
          			select @Item = cast(@CODS_CONTRAT_PRO as varchar(10))
-         			INSERT INTO #List SELECT @Item -- Put the last item in
+         			INSERT INTO #List SELECT @Item 
          		end
-         
-         	--Mise … jour des date de rejet
+
          	UPDATE CONTRAT_PRO
          	SET	   CONTRAT_PRO.DAT_LETTRE_REJET = GETDATE()
          	WHERE  CONTRAT_PRO.COD_CONTRAT_PRO IN (SELECT Item FROM #List)
-         
+
          END
 
- -- =============================================
-         -- Author		: KW
-         -- Create date	: 21 NOVEMBRE 2007
-         -- Description	: proc‚dure d'insertion des virements interne pro
-         -- =============================================
-         -- HBO - 141113 - M16371: Lot 1 - Modification structure de donn‚es / proc‚dures stock‚es
-         -- =============================================
          CREATE PROCEDURE INS_VIREMENT_INTERNE_PRO
          AS
          	BEGIN
@@ -11858,7 +9585,7 @@ GO
          			ID_ACTIVITE = 3
          		GROUP BY
          			ID_ACTIVITE, NUM_IBAN
-         
+
          		INSERT INTO dbo.VIREMENT_INTERNE_PRO
          		(
          			DAT_EDIT_VIREMENT_INTERNE_PRO, 
@@ -11868,7 +9595,7 @@ GO
          			DAT_GENERATION_SEPA,
          			ID_ACTIVITE
          		)
-         
+
          		SELECT
          			DAT_EDIT_VIREMENT_INTERNE_PRO,
          			DAT_COMPTA_VIREMENT_INTERNE_PRO,
@@ -11931,17 +9658,17 @@ GO
          	NUM_SIRET = @NUM_SIRET,
          	ID_UTILISATEUR = @ID_UTILISATEUR,
          	BLN_GESTION_GROUPE = @BLN_GESTION_GROUPE,
-         	DAT_MODIF	= getDate(), /* MBT - MANTIS 12277 */
+         	DAT_MODIF	= getDate(), 
          	DAT_SITUATION_ECONOMIQUE = @DAT_SITUATION_ECONOMIQUE,
          	LIB_TIERS_MANDATAIRE = @LIB_TIERS_MANDATAIRE
          FROM ORGANISME_FORMATION
          WHERE ID_OF = @ID_OF AND TIME_STAMP = @TIME_STAMP
-         
+
          IF @@ROWCOUNT = 0   
          	BEGIN  
          	   IF EXISTS(SELECT * FROM ORGANISME_FORMATION WHERE ID_OF  = @ID_OF)      
          	   BEGIN  
-         	      /* ProblÇùme de Concurrence d'accÇùs */  			
+
          			IF EXISTS (SELECT * FROM ORGANISME_FORMATION WHERE ID_OF = @ID_OF AND TIME_STAMP = @TIME_STAMP)				
          				RAISERROR(50001, 16, 1)  
          			ELSE
@@ -11950,18 +9677,16 @@ GO
          	   END  
          	   ELSE  
          	   BEGIN  
-         	      /* L'enregistrement a Ç¸tÇ¸ dÇ¸truit */  
+
          	      RAISERROR(50002, 16, 1)  
          	   END  
          	END
-         
-         
-         -- changement DSZ 29/10/09 Mantis 12243
+
          IF (coalesce(@NUM_SIRET,'') <> '')
          BEGIN
          	IF LEN(@NUM_SIRET) < 9
          		SET @NUM_SIRET = @NUM_SIRET + replicate('0',9-LEN(@NUM_SIRET))
-         
+
          	UPDATE ETABLISSEMENT_OF
          	SET NUM_SIRET = @NUM_SIRET + SUBSTRING(NUM_SIRET,10,5)
          	WHERE ETABLISSEMENT_OF.ID_OF = @ID_OF
@@ -11970,40 +9695,19 @@ GO
          	UPDATE ETABLISSEMENT_OF
          	SET NUM_SIRET = NULL
          	WHERE ETABLISSEMENT_OF.ID_OF = @ID_OF
-         
-         
-         
-         -- fin changement DSZ
-         
-         --DSZ ajout 05/10/11  12865
+
          if (@BLN_ACTIF = 1) and (@ID_ETABLISSEMENT_OF_PRINCIPAL is not null)
          	update ETABLISSEMENT_OF
          	set BLN_ACTIF = 1
          	where ID_ETABLISSEMENT_OF = @ID_ETABLISSEMENT_OF_PRINCIPAL
-         
-         
+
 GO
-         
+
  CREATE PROCEDURE [dbo].[GENERER_PREFACTURE] 
           @ID_MODULE_PEC INT,
           @ID_UTILISATEUR INT
          AS
-         -- =============================================
-         -- Author:  DSZ
-         -- Create date: 18/07/2012
-         -- Description: 13638 : G‚nerer pr‚-facture et sa DR
-         -- attention : avoir execut‚ d'abord 2.4.20.0\101_DSZ_20120718_alter_facture_13638.sql
-         -- =============================================
-         -- DSZ 08/08/12 13716 ajout @id_utilisateur 
-         -- =============================================
-         -- DSZ 11/02/2013 14764 id_PCE doit etre null en pfus, car pcr rempli
-         -- =============================================
-         -- LDE 11/02/2013 #14707: AB_PEC_Pr‚factures taux horaire proratis‚ et TVA
-         -- =============================================
-         -- DSZ 23/05/2013 15229 : trop de lignes de pfus g‚ner‚s pour plusieurs pcr.
-         -- =============================================
-         -- DSZ 24/01/2014 : 15636: SBR - ne pas generer des PFUS … 0 sans aucune source de financement.
-         -- =============================================
+
          BEGIN
           SELECT
            ETABLISSEMENT.ID_ADHERENT,
@@ -12016,22 +9720,21 @@ GO
            dbo.GET_ETABS_PREFACTURE(@ID_MODULE_PEC) AS GEP
            INNER JOIN ETABLISSEMENT
             ON ETABLISSEMENT.ID_ETABLISSEMENT = GEP.ID_ETABLISSEMENT
-          
+
           DECLARE
            @ID_ADHERENT  INT,
            @ID_ETABLISSEMENT INT,
            @COD_FACTURE  VARCHAR(50),
            @ID_FACTURE   INT,
            @DATE    DATETIME
-          
+
           SET @DATE = Getdate()
-          
+
           BEGIN TRY
            BEGIN TRAN TRAN_GENERER_PREFACTURE
-           -- g‚n‚rer une facture de type pr‚-facture (d'abord sans montants, ni TVA, ni num‚ro de facture) associ‚e … l'adh‚rent et au premier ‚tablissement "retenu pour l'affichage du bouton"
+
            DECLARE CURS_ETABS CURSOR FOR
-           -- en regroupant par adh‚rent les ‚tablissements retenus pour l'affichage du bouton
-           -- un ‚tablissement principal par adherent pour la facture, principal si on peut, sinon max id
+
            SELECT DISTINCT
             ISNULL(MAX(CASE #ETABS.BLN_PRINCIPAL WHEN 0 THEN NULL ELSE #ETABS.ID_ETABLISSEMENT END),MAX(#ETABS.ID_ETABLISSEMENT)) AS ID_ETABLISSEMENT,
             #ETABS.ID_ADHERENT
@@ -12039,35 +9742,35 @@ GO
             #ETABS
            GROUP BY
             #ETABS.ID_ADHERENT
-           
+
            OPEN CURS_ETABS
            FETCH NEXT FROM CURS_ETABS
            INTO
             @ID_ETABLISSEMENT,
             @ID_ADHERENT
-           
+
            WHILE (@@FETCH_STATUS = 0)
            BEGIN
             EXEC @ID_FACTURE = INS_FACTURE
-             NULL,    --@ID_EMETTEUR_OF
-             @ID_ADHERENT,  --@ID_EMETTEUR_ADHERENT
-             @ID_ETABLISSEMENT, --@ID_EMETTEUR_ETABLISSEMENT_ADH
-             NULL,    --@ID_EMETTEUR_ETABLISSEMENT_OF
-             NULL,    --@NUM_FACTURE
-             NULL,    --@DAT_RECEPTION
-             @DATE,   --@DAT_EMISSION
-             NULL,    --@ID_TYPE_TVA
-             NULL,    --@MNT_HT
-             NULL,    --@MNT_TTC
-             NULL,    --@TAU_TVA
-             NULL,    --@ID_TRANSACTION
-             @ID_UTILISATEUR, --@ID_UTILISATEUR
-             1,     --@BLN_ACTIF
-             3,     --@ID_TYPE_FACTURE
-             NULL,    --@ID_FACTURE_ASSOCIEE_AVOIR
-             @COD_FACTURE OUTPUT, --OUTPUT
-             @ID_FACTURE   --output
-            
+             NULL,    
+             @ID_ADHERENT,  
+             @ID_ETABLISSEMENT, 
+             NULL,    
+             NULL,    
+             NULL,    
+             @DATE,   
+             NULL,    
+             NULL,    
+             NULL,    
+             NULL,    
+             NULL,    
+             @ID_UTILISATEUR, 
+             1,     
+             3,     
+             NULL,    
+             @COD_FACTURE OUTPUT, 
+             @ID_FACTURE   
+
             SELECT
              ROUND(PLAN_FINANCEMENT_US.MNT_PLAN_FINANCEMENT_US * (US_SES.NB_HEURE_REM/US_MOD.NB_HEURE_REM),2) AS MNT_PLAN_FINANCEMENT_US,
              US_SES.ID_UNITE_STAGIAIRE,
@@ -12076,7 +9779,7 @@ GO
              PLAN_FINANCEMENT_US.ID_POSTE_COUT_ENGAGE,
              0 as MNT_PLAN_FINANCEMENT_US_TVA,
              SESSION_PEC.ID_SESSION_PEC,
-             #ETABS.ID_ETABLISSEMENT --LE VRAI ETABLISSEMENT POUR LA DR
+             #ETABS.ID_ETABLISSEMENT 
             INTO
              #PFUS
             FROM
@@ -12111,7 +9814,7 @@ GO
               ID_ENVELOPPE IS NOT NULL
               OR ID_TYPE_FINANCEMENT IS NOT NULL
              )
-            
+
             INSERT INTO POSTE_COUT_REGLE
             (
              COD_POSTE_COUT_REGLE,
@@ -12141,38 +9844,38 @@ GO
              ID_FACTURE
             )
             SELECT
-             0,                --(COD_POSTE_COUT_REGLE
-             SUM(MNT_PLAN_FINANCEMENT_US) ,         --MNT_REGLE_HT
-             SUM(MNT_PLAN_FINANCEMENT_US_TVA) ,        --MNT_REGLE_TVA
-             SUM(MNT_PLAN_FINANCEMENT_US) + SUM(MNT_PLAN_FINANCEMENT_US_TVA), --MNT_REGLE_TTC
-             0,                --BLN_FACTURE_DIRECTE
-             0,                --TAU_TVA
-             1,       --BLN_ACTIF
-             NULL,      --ID_TRANSACTION
-             5,       --ID_SOUS_TYPE_COUT
-             @ID_MODULE_PEC,    --ID_MODULE_PEC
-             SUM(MNT_PLAN_FINANCEMENT_US),--MNT_DEMANDE_HT
-             1,       --BLN_A_CONTROLER
-             #PFUS.ID_ETABLISSEMENT,  --ID_ETABLISSEMENT
-             3,       --ID_TYPE_FACTURE
-             5,       --ID_ETAT_PEC
-             0,       --BLN_OK_PIECE
-             0,       --BLN_OK_FINANCEMENT
-             NULL,      --MNT_DEMANDE_TVA
-             SUM(MNT_PLAN_FINANCEMENT_US),--MNT_DEMANDE_TTC = MNT_DEMANDE_HT
-             GetDate(),     --DAT_CREATION
+             0,                
+             SUM(MNT_PLAN_FINANCEMENT_US) ,         
+             SUM(MNT_PLAN_FINANCEMENT_US_TVA) ,        
+             SUM(MNT_PLAN_FINANCEMENT_US) + SUM(MNT_PLAN_FINANCEMENT_US_TVA), 
+             0,                
+             0,                
+             1,       
+             NULL,      
+             5,       
+             @ID_MODULE_PEC,    
+             SUM(MNT_PLAN_FINANCEMENT_US),
+             1,       
+             #PFUS.ID_ETABLISSEMENT,  
+             3,       
+             5,       
+             0,       
+             0,       
+             NULL,      
+             SUM(MNT_PLAN_FINANCEMENT_US),
+             GetDate(),     
              @ID_UTILISATEUR,
-             8,       --ID_TYPE_VALIDATION
-             #PFUS.ID_POSTE_COUT_ENGAGE, --ID_POSTE_COUT_ENGAGE
-             #PFUS.ID_SESSION_PEC,  --ID_SESSION_PEC
-             @ID_FACTURE     --ID_FACTURE
+             8,       
+             #PFUS.ID_POSTE_COUT_ENGAGE, 
+             #PFUS.ID_SESSION_PEC,  
+             @ID_FACTURE     
             FROM
              #PFUS
             GROUP BY 
              ID_SESSION_PEC, 
              ID_ETABLISSEMENT,
-             ID_POSTE_COUT_ENGAGE --sachant qu'il y a qu'une PCE, car pour REM
-         
+             ID_POSTE_COUT_ENGAGE 
+
             INSERT INTO PLAN_FINANCEMENT_US
             (
              DAT_PLAN_FINANCEMENT_US,
@@ -12195,17 +9898,17 @@ GO
              #PFUS.ID_UNITE_STAGIAIRE,
              #PFUS.ID_TYPE_FINANCEMENT,
              #PFUS.ID_ENVELOPPE,
-             null, --ID_POSTE_COUT_ENGAGE,
+             null, 
              POSTE_COUT_REGLE.ID_POSTE_COUT_REGLE,
-             1, --[BLN_ATTENTE_FONDS]
+             1, 
              #PFUS.MNT_PLAN_FINANCEMENT_US_TVA
             FROM
              #PFUS 
              INNER JOIN POSTE_COUT_REGLE
               ON POSTE_COUT_REGLE.ID_FACTURE = @ID_FACTURE
                AND POSTE_COUT_REGLE.ID_SESSION_PEC = #PFUS.ID_SESSION_PEC
-               AND POSTE_COUT_REGLE.ID_ETABLISSEMENT = #PFUS.ID_ETABLISSEMENT --on recupere les ids qu'on vient d'inserer
-         
+               AND POSTE_COUT_REGLE.ID_ETABLISSEMENT = #PFUS.ID_ETABLISSEMENT 
+
             UPDATE
              FACTURE
             SET
@@ -12214,17 +9917,17 @@ GO
              FACTURE
             WHERE
              ID_FACTURE = @ID_FACTURE
-         
+
             DROP TABLE #PFUS
-            
+
             FETCH NEXT FROM CURS_ETABS INTO
              @ID_ETABLISSEMENT,
              @ID_ADHERENT
            END
-         
+
            CLOSE CURS_ETABS
            DEALLOCATE CURS_ETABS
-         
+
            COMMIT TRAN TRAN_GENERER_PREFACTURE 
           END TRY
           BEGIN CATCH
@@ -12235,11 +9938,7 @@ GO
             ERROR_MESSAGE() as ErrorMessage,
             ERROR_LINE(),
             ERROR_PROCEDURE();
-         
-           -- Test XACT_STATE for 1 or -1.
-           -- XACT_STATE = 0 means there is no transaction and
-           -- a COMMIT or ROLLBACK would generate an error.
-           -- Test if the transaction is uncommittable.
+
            IF ((XACT_STATE()) = -1)
            BEGIN
             PRINT
@@ -12247,8 +9946,7 @@ GO
              'Rolling back transaction.'
             ROLLBACK TRANSACTION TRAN_GENERER_PREFACTURE;
            END
-         
-           -- Test if the transaction is active and valid.
+
            IF (XACT_STATE()) = 1
            BEGIN
             PRINT
@@ -12270,146 +9968,24 @@ GO
           @COMM_DIFF    VARCHAR(255),
           @POURC_AIC    DECIMAL(10,5)
          AS
-         -- =============================================
-         -- Author:  Dorota Szeliga
-         -- Create date: 03/04/2008
-         -- Description: Inserer les donn‚es dans PLAN_FINANCEMENT_US pour CHIFFRAGE_PEC
-         ------------------------------------------------
-         -- 30/04/08 DSZE
-         -- changement pour prendre en compte OPTION de l'etablissement
-         ------------------------------------------------
-         -- 13/05/08 DSZE
-         -- corrige calcul operation financiere pour plan moins10
-         ------------------------------------------------
-         -- 14/05/08 ASDI
-         -- corrige s‚lection op‚ration financiŠre pour Action individuelle (coch‚es Defaut uniquement)
-         ------------------------------------------------
-         -- 27/05/08 ASDI
-         -- corrige libell‚s messages erreur et IF/ELSE PLUS10 et OPTION
-         ------------------------------------------------
-         -- 04/07/2008 DSZE
-         -- ajout condition if (@ID_PUBLIC_FAF is not null or @ID_ENVELOPPE is not null) pour l'insert final
-         -- ca sert a rien d'ajouter les lignes si pas d'enveloppe ni compte courant
-         ------------------------------------------------
-         -- 07/07/2008 DSZE
-         -- ajout condition if (@ID_ENVELOPPE_moins10 <> @ID_ENVELOPPE)
-         -- sinon on somme le montant chiffre et diff, pour pas creer les doubles lignes
-         ------------------------------------------------
-         -- 08/07/2008 DSZE
-         -- compte courant peut exister uniquement pour plan 10+
-         -- ajout condition if (@MNT_CHIFFRE <> 0)
-         ------------------------------------------------
-         -- 09/07/2008 DSZE
-         -- compte courant peut exister uniquement pour groupe avec option. voir NPEC 102
-         ------------------------------------------------
-         -- 10/09/2008 AMA
-         -- troncature de MNT_PLAN_FINANCEMENT_US … 2 chiffres + stockage des montants
-         -- non arrondis dans une nouvelle colonne MNT_PLAN_FINANCEMENT_US_THEORIQUE
-         -- qui permettra de redistribuer les erreurs d'arrondis
-         ------------------------------------------------
-         -- 02/03/2009 ASD
-         -- ne pas charger l'enveloppe -10 si l'adh‚rent est 10+
-         ------------------------------------------------
-         -- 02/03/2009 ASD
-         -- ne pas charger l'enveloppe 10+ si l'adh‚rent est 10+ 
-         -- et que le compte courant est "interdit" (@BLN_COMPTE_COURANT_EXISTS=0)
-         ------------------------------------------------
-         -- 07/12/09 DSZ
-         -- round -> cast as decimal (18,2)
-         ------------------------------------------------
-         -- 14/04/2011 DSZ 12636
-         -- suppresion de @OPE_FIN_moins10 : on se base uniquement sur @ID_OPERATION_FINANCIERE
-         ------------------------------------------------
-         -- DSZ 09/12/2011 13040
-         --  proc GET_OPTION_PLAN10_POUR_UNITE_STAG EST devenue function table GET_OPTION_PLAN_POUR_UNITE_STAG\
-         ------------------------------------------------
-         -- 18/01/12 DSZ 13120
-         -- Ne pas chiffrer dans les enveloppes pas compatibles au dispositif
-         ------------------------------------------------
-         -- 02/02/12 DSZ 13202
-         -- recuperation lib_groupe de GET_OPTION_PLAN_POUR_UNITE_STAG 
-         ------------------------------------------------
-         -- 06/02/2012 DSZ 13220 
-         -- Permettre le chiffrage dans les enveloppes des fonds mut et subventions
-         ------------------------------------------------
-         -- 09/02/2012 DSZ 13220
-         -- refection filtrage enveloppe selon dispositifs (vu avec DNE/ASD)
-         -- correction dans la selection de l'enveloppe (select top 1 : sinon la DERNIERE ligne est prise en compte, non pas la premiere!)
-         -----------------------------------------------
-         -- 08/03/2012 DSZ 13305 pourcentage AIC
-         -- prise en compte de la nouvelle colonnes des regles chiffrage : POURC_AIC
-         -- ajout parametre @POURC_AIC
-         -----------------------------------------------
-         -- 21/03/2012 DSZ 13358 
-         -- modification du recherche d'enveloppe pour PLAN >10 : ne pas prendre en compte les enveloppes -10
-         -----------------------------------------------
-         -- 29/03/2012 DSZ 13358
-         -- modification du recherche d'enveloppe pour PLAN >10 : prendre en compte d'abord le cc, ensuite seulement les enveloppes du plan
-         -----------------------------------------------
-         -- 10/04/2012 DSZ 13411 
-         -- AIC uniquement pour le groupe avec la gestion de plan
-         -----------------------------------------------
-         -- 11/04/2012 DSZ 13319 2.2
-         -- cr‚ation des mouvements budg‚taires et pfus avec les CC-10 … la place des env-10, A PARTIR du 2102
-         -----------------------------------------------
-         -- 25/04/2012 DSZ 13340 2.2
-         -- gestion des cc selon l'agr‚ment (activit‚). attention, necessite id_activite retourn‚ par GET_OPTION_PLAN_POUR_UNITE_STAG
-         ------------------------------------------------------------
-         -- ASD 06/01/2013 14822 : remplacer la condition !=3 par cod_type_activite = plan 
-         ----------------------------------------------  
-         -- OPA 31/05/2013 : 15031 : SBR - suppression du type FLOAT et REAL dans le SQL : 2- FLOAT
-         ----------------------------------------------  
-         -- SBR 08/10/2013 : Ano li‚e … la pr‚c‚dente modification.
-         --     Message d'erreur lors de la conversion de la variable @POURC_AIC decimal(10,5) en varchar(5). Correction = conversion en varchar.
-         --     Mˆme problŠme potentiel sur @MNT_AIC decimal(18,2) converti en varchar(9). Correction = conversion en varchar
-         ------------------------------------------------
-         -- DSZ 24/01/2014 : 15636: SBR - ne pas generer des PFUS … 0 sans aucune source de financement.
-         ------------------------------------------------
-         -- LDE 21/11/2014 #661: Suppression ID_PUBLIC_FAF
-         ------------------------------------------------
-         -- DSZ 18/12/2014 #620 : 1.chiffrer dans compte courant si on  a trouv‚
-         -- 2. pour les types d'activite des enveloppes exclure plan au lieu de se limiter … prof (= on prend tout enveloppe qui n'est pas plan)
-         ------------------------------------------------
-         -- DSZ 18/12/2014 #668 : l'int‚gralit‚ du montant r‚siduel (ou solde non financ‚ automatiquement sur les enveloppes) 
-         -- est imput‚ int‚gralement sur le premier compte autoris‚ trouv‚ selon le num‚ro d'ordre d‚fini dans type de financement. 
-         -- ATTENTION : le calcul de @ID_PREMIER_TYPE_FINANCEMENT est repris selon LEC_GRP_AVAILABLE_FINANC_CHIFFRAGE
-         -- je ne centralise pas le code car trŠs complexe et le passege en EF est pr‚vu bient“t : faut penser … le centraliser … ce moment
-         ------------------------------------------------
-         -- ASD 22/12/2014 #668 : ajout gestion dispositif Plan.
-         -- suppression rŠgles -10 + revu selon la rŠgle … ‚crire vue … l'oral avec DNE
-         ------------------------------------------------
-         -- HBO - #780 : suppression des PFUS appartenant au PCE qui n'est pas encore engag‚ pour les ins‚rer proprement aprŠs
-         ------------------------------------------------
-         -- DSZ 04/03/2015 #795 la ligne du reliquat est … tort remplac‚ par la ligne normale, … la fin
-         ------------------------------------------------
-         -- DSZ 02/04/2015 #824 rŠgles d'autorisation sur les comptes en fonction du param‚trage li‚ … l'option de gestion du groupe pour la p‚riode
-         ------------------------------------------------
-         -- DSZ 22/04/2015 #827 suppression d'appel … GET_OPTION_PLAN_POUR_UNITE_STAG
-         ------------------------------------------------
-         -- DSZ 16/06/2015 #932 prendre en compte les rŠgles d'autorisation sur les enveloppes definis par PARAM_COMPATIBILITE_TYPE_ENVELOPPE_DISPOSITIF
-         ------------------------------------------------
-         -- DSZ 19/06/2015 #932 ne pas chiffrer dans une enveloppe que si son activit‚ correspond … l'activit‚ de l'adherent
-         ------------------------------------------------
-         -- DSZ 29/07/2015 #1045 ne pas chiffrer dans une enveloppe que si son dispositif correspond au dispositif donn‚. 
-         -- prendre en compte la compatibilit‚, mais AUSSI le dispositif du type de l'enveloppe
-         --===============================================
+
          BEGIN
           SET NOCOUNT ON
-         
+
           DECLARE
-           @ID_PERIODE     INT, --du module
+           @ID_PERIODE     INT, 
            @ID_OPERATION_FINANCIERE INT,
            @CIBLE_ACTION    INT,
-           @ID_TYPE_FINANCEMENT  INT, --celui qu'on va determiner 
-           @ID_ENVELOPPE    INT, -- celle qu'on va determiner
+           @ID_TYPE_FINANCEMENT  INT, 
+           @ID_ENVELOPPE    INT, 
            @ID_AGENCE     INT,
-           @ID_BRANCHE     INT, --du stagiaire
+           @ID_BRANCHE     INT, 
            @ID_ACTIVITE_PLAN_STAGIAIRE INT,
-           @ID_STC INT, -- du PCE en cours (en parametre)
-           @COD_DISPOSITIF VARCHAR(8), --uniquement informatif
-           @LIB_GROUPE     VARCHAR(35), -- du groupe du stagiaire, uniquement informatif
+           @ID_STC INT, 
+           @COD_DISPOSITIF VARCHAR(8), 
+           @LIB_GROUPE     VARCHAR(35), 
            @DISP_IS_PLAN TINYINT 
-         
+
           SELECT
            @ID_PERIODE = MODULE_PEC.ID_PERIODE,
            @ID_OPERATION_FINANCIERE = ACTION_PEC.ID_OPERATION_FINANCIERE,
@@ -12420,7 +9996,7 @@ GO
            INNER JOIN ACTION_PEC
             ON ACTION_PEC.ID_ACTION_PEC = MODULE_PEC.ID_ACTION_PEC
           AND MODULE_PEC.ID_MODULE_PEC = @ID_MODULE
-         
+
          select  
             @LIB_GROUPE = GROUPE.LIB_GROUPE,
             @ID_BRANCHE = STAGIAIRE_PEC.ID_BRANCHE,
@@ -12429,16 +10005,14 @@ GO
            inner join STAGIAIRE_PEC ON STAGIAIRE_PEC.ID_STAGIAIRE_PEC = UNITE_STAGIAIRE.ID_STAGIAIRE_PEC 
            inner join GROUPE ON STAGIAIRE_PEC.ID_GROUPE = GROUPE.ID_GROUPE
           where UNITE_STAGIAIRE.ID_UNITE_STAGIAIRE = @ID_UNITE_STAGIAIRE
-          
-         
+
           SELECT
            @ID_STC = POSTE_COUT_ENGAGE.ID_SOUS_TYPE_COUT
           FROM
            POSTE_COUT_ENGAGE
           WHERE
            ID_POSTE_COUT_ENGAGE = @ID_POSTE_COUT_ENGAGE
-         
-          -- TRAITEMENT DE l'action individuelle
+
           IF (@CIBLE_ACTION = 1)
           BEGIN
            SELECT
@@ -12452,23 +10026,19 @@ GO
             ID_PERIODE = @ID_PERIODE AND
             BLN_DEFAUT = 1
           END
-         
-         
+
           SELECT
            @COD_DISPOSITIF = COD_DISPOSITIF , @Disp_is_Plan=BLN_PLAN
           FROM
            DISPOSITIF
           WHERE
            ID_DISPOSITIF = @ID_DISPOSITIF
-         
-          -------------------------------------------------------
-          --- selectionner le premier compte autoris‚
+
           DECLARE
            @ID_PREMIER_TYPE_FINANCEMENT INT = null,
            @ID_ADHERENT INT,
            @ID_OPTION INT = null
-         
-         
+
            SELECT
             @ID_ADHERENT = ID_ADHERENT,
             @ID_OPTION = R20bis.ID_OPTION
@@ -12482,7 +10052,7 @@ GO
                 and R20bis.ID_PERIODE = @ID_PERIODE) 
            WHERE
             UNITE_STAGIAIRE.ID_UNITE_STAGIAIRE = @ID_UNITE_STAGIAIRE
-         
+
            SELECT TOP 1
             @ID_PREMIER_TYPE_FINANCEMENT = PLAN_FINANCEMENT_OPERATION.ID_TYPE_FINANCEMENT 
            FROM
@@ -12504,36 +10074,31 @@ GO
             AND ID_OPERATION_FINANCIERE = @ID_OPERATION_FINANCIERE
             AND
             (
-          --il faut exclure les plans qui ne sont pas les plan du stagiaire : @ID_ACTIVITE ‚tant activit‚ plan du stagiaire
+
           (
-           -- on prend tout ce qui n'est PLAN 
+
            TYPE_ACTIVITE.COD_TYPE_ACTIVITE <> 'PLAN'
            AND R19.ID_ACTIVITE IS NOT NULL
           )
           OR
-          -- plus le compte plan de l'activit‚ du stagiaire qui lui peut ˆtre absent dans R19 car l'historisation sert justement … Çõa
+
           PLAN_FINANCEMENT_OPERATION.ID_ACTIVITE = @ID_ACTIVITE_PLAN_STAGIAIRE
             )
            ORDER BY
             TYPE_FINANCEMENT.NUM_ORDRE
-         
-         --=======================================================
-         --                 TRAITEMENT PRINCIPAL
-         --=======================================================
-           -- SELECT THE CORRECT PLAN_FINANCEMENT_OPERATION
+
           IF (@DISP_IS_PLAN = 1) 
           BEGIN
-           --compte courant
-           --chiffrer dans le compte
+
            SET @ID_TYPE_FINANCEMENT = @ID_PREMIER_TYPE_FINANCEMENT
            SET @ID_ENVELOPPE = NULL
           END
-          ELSE  --dispositif non PLAN, cherchons l'enveloppe correspondante
+          ELSE  
           BEGIN 
-           --enveloppe correspondant au dispositif, periode, agence, branche et activit‚ non plan
+
            SET @ID_TYPE_FINANCEMENT = NULL
-           
-           SELECT TOP 1 --top 1 necessaire ici, DSZ 13129
+
+           SELECT TOP 1 
           @ID_ENVELOPPE = ENVELOPPE.ID_ENVELOPPE
            FROM
           PLAN_FINANCEMENT_OPERATION
@@ -12545,7 +10110,7 @@ GO
              AND TYPE_ENVELOPPE.ID_ACTIVITE IS NOT NULL
              AND TYPE_ENVELOPPE.ID_AGENCE = @ID_AGENCE
              AND TYPE_ENVELOPPE.ID_BRANCHE = @ID_BRANCHE
-             AND TYPE_ENVELOPPE.ID_DISPOSITIF = @ID_DISPOSITIF  --#1045
+             AND TYPE_ENVELOPPE.ID_DISPOSITIF = @ID_DISPOSITIF  
           INNER JOIN PARAM_COMPATIBILITE_TYPE_ENVELOPPE_DISPOSITIF compat on compat.ID_DISPOSITIF = @ID_DISPOSITIF 
             and compat.ID_TYPE_ENVELOPPE = TYPE_ENVELOPPE.ID_TYPE_ENVELOPPE      
           INNER JOIN ACTIVITE ON TYPE_ENVELOPPE.ID_ACTIVITE = ACTIVITE.ID_ACTIVITE
@@ -12562,7 +10127,7 @@ GO
             AND PLAN_FINANCEMENT_OPERATION.ID_SOUS_TYPE_COUT = @ID_STC
            ORDER BY
           TYPE_ENVELOPPE.ID_ACTIVITE DESC
-         
+
            IF (@ID_ENVELOPPE IS NULL)
            BEGIN
             IF (object_id('tempdb..#CHIFFRAGE_LOG') IS NOT NULL)
@@ -12570,56 +10135,51 @@ GO
            IF (@MNT_CHIFFRE <> 0)
            BEGIN
              DECLARE @BRANCHE VARCHAR(255)
-         
+
              SELECT @BRANCHE = LIBC_BRANCHE
              FROM BRANCHE
              WHERE ID_BRANCHE = @ID_BRANCHE
-         
+
              DECLARE @SOUS_TYPE_COUT VARCHAR(8)
-         
+
              SELECT @SOUS_TYPE_COUT = COD_SOUS_TYPE_COUT 
              FROM SOUS_TYPE_COUT
              WHERE ID_SOUS_TYPE_COUT = @ID_STC 
-         
+
              DECLARE @DECOMPTE VARCHAR(40)  = ''
-         
+
              IF (@COMMENTAIRE LIKE 'Type de calcul PT%')
              BEGIN
                SET @DECOMPTE = 'd‚compt‚ du montant du plafond total et '
              END
-         
+
              INSERT INTO #CHIFFRAGE_LOG (LOG_MSG)
              VALUES
              (
               @SOUS_TYPE_COUT + ' : pas d''enveloppe correspondant au dispositif ' + @COD_DISPOSITIF + ' et branche ' + @BRANCHE + '. Le montant chiffr‚ de ' + ltrim(str(@MNT_CHIFFRE,10,2)) + ' est ' + @DECOMPTE + 'pris en charge sur le plan s''il est disponible.'
              )
            END
-          
-           -- mettre le montant sur le compte au lieu de l'enveloppe
+
            SET @ID_TYPE_FINANCEMENT = @ID_PREMIER_TYPE_FINANCEMENT
             END
-           END -- de (@ID_ENVELOPPE IS NULL)
-          END -- de dispositif non-PLAN
-          
+           END 
+          END 
+
           DELETE FROM PLAN_FINANCEMENT_US
           WHERE
            ID_UNITE_STAGIAIRE = @ID_UNITE_STAGIAIRE
            AND ID_POSTE_COUT_ENGAGE = @ID_POSTE_COUT_ENGAGE
-         
-         --=======================================================
-          --                     AIC
-          --=======================================================
+
           DECLARE
            @ID_ENVELOPPE_AIC INT,
            @MNT_AIC   DECIMAL(18,2)
-         
-          -- @MNT_DIFF
+
           IF (@MNT_DIFF IS NOT NULL) AND (@MNT_DIFF <> 0)
           BEGIN
-           --------traitement POURC AIC --ajout gestion de plan DSZ 10/04/2012
+
             IF (isnull(@POURC_AIC,0)>0) 
             BEGIN
-              --l'enveloppe AIC est-elle disponible?
+
               SELECT @ID_ENVELOPPE_AIC = ENVELOPPE.ID_ENVELOPPE
               FROM ENVELOPPE
             INNER JOIN TYPE_ENVELOPPE
@@ -12653,18 +10213,18 @@ GO
              AND PLAN_FINANCEMENT_OPERATION.ID_SOUS_TYPE_COUT = @ID_STC
              AND TYPE_ENVELOPPE.BLN_ACTIF = 1
                ORDER BY
-             TYPE_ENVELOPPE.COD_TYPE_ENVELOPPE --AP avant P 
-         
+             TYPE_ENVELOPPE.COD_TYPE_ENVELOPPE 
+
               IF (@ID_ENVELOPPE_AIC IS NOT NULL)
               BEGIN
              SET @MNT_AIC = CAST(@POURC_AIC / 100 * @MNT_DIFF AS DECIMAL(18,2))
              SET @MNT_DIFF = @MNT_DIFF - @MNT_AIC
               END
             END
-         
+
              IF (@ID_PREMIER_TYPE_FINANCEMENT IS NULL)
              BEGIN
-              --on a le montant diff chiffr‚, mais pas de compte disponible, donc il sera perdu
+
               INSERT INTO #CHIFFRAGE_LOG (LOG_MSG)
               VALUES
               (
@@ -12673,8 +10233,7 @@ GO
              END
              ELSE
              BEGIN
-           --@ID_PREMIER_TYPE_FINANCEMENT is not null
-           --mnt chiffr‚ ira sur l'enveloppe mais mnt_diff sur le compte
+
            IF (@ID_PREMIER_TYPE_FINANCEMENT IS NOT NULL AND @ID_TYPE_FINANCEMENT IS NULL)
            BEGIN
             IF NOT EXISTS(SELECT 1 FROM PLAN_FINANCEMENT_US WHERE ID_UNITE_STAGIAIRE = @ID_UNITE_STAGIAIRE AND ID_POSTE_COUT_ENGAGE = @ID_POSTE_COUT_ENGAGE)
@@ -12709,7 +10268,7 @@ GO
            NULL,
            @ID_POSTE_COUT_ENGAGE,
            NULL,
-           1, --attente fonds
+           1, 
            NULL,
            0
              )
@@ -12738,27 +10297,25 @@ GO
            END
            ELSE
             BEGIN
-              -- implicite if @ID_TYPE_FINANCEMENT = @ID_PREMIER_TYPE_FINANCEMENT, les deux non null
-              --on est deja dans le premier compte trouv‚ (@ID_TYPE_FINANCEMENT = premier) donc il faut y ajouter le montant de diff
+
               SET @MNT_CHIFFRE = @MNT_CHIFFRE + @MNT_DIFF
               SET @COMMENTAIRE = @COMMENTAIRE + '; ' + @COMM_DIFF
             END
           END
-          END --mnt_diff
-         
-          --AIC
+          END 
+
           IF (isnull(@MNT_AIC,0) > 0 AND @ID_ENVELOPPE_AIC IS NOT NULL)
           BEGIN
             IF (@ID_ENVELOPPE_AIC = @ID_ENVELOPPE)
             BEGIN
-              --la meme enveloppe : le MNT_AIC sera inclus dans l'insert final
+
               SET @MNT_CHIFFRE = @MNT_CHIFFRE + @MNT_AIC
               SET @COMMENTAIRE = @COMMENTAIRE + '; dont AIC: ' + CAST(@MNT_AIC AS VARCHAR)
               SET @MNT_AIC = NULL
             END
-           ELSE --(@ID_ENVELOPPE_AIC <> @ID_ENVELOPPE)
+           ELSE 
            BEGIN
-             --enveloppe AIC differente de l'enveloppe generale, donc insertion … part
+
              INSERT INTO PLAN_FINANCEMENT_US
              (
             DAT_PLAN_FINANCEMENT_US,
@@ -12786,41 +10343,32 @@ GO
             NULL,
             @ID_ENVELOPPE_AIC,
             @ID_POSTE_COUT_ENGAGE,
-            1, --attente fonds
+            1, 
             0
            )
            END
-          END --fin traitement AIC
-         
-         
-         --================================================================================
-         --         ERREUR
-          -- le cas general d'erreur : pas de compte et pas d'enveloppe, ou resultat bizarre
-         --================================================================================
+          END 
+
           IF ((@ID_TYPE_FINANCEMENT IS NULL AND @ID_ENVELOPPE IS NULL)
           OR (@ID_TYPE_FINANCEMENT IS NOT NULL AND @ID_PREMIER_TYPE_FINANCEMENT IS NULL))
           BEGIN
            SET @MNT_CHIFFRE = 0
            SET @COMMENTAIRE = 'problŠme … remonter … l''administrateur'
           END
-         
-         --================================================================================
-         --            INSERT FINAL
-         -- du chiffr‚ ‚ventuellement augment‚ du diff
-         --================================================================================
+
           IF (@ID_TYPE_FINANCEMENT IS NOT NULL OR @ID_ENVELOPPE IS NOT NULL)
           BEGIN
            IF(@ID_TYPE_FINANCEMENT IS NOT NULL)
            BEGIN
           SET @ID_ENVELOPPE = NULL
            END
-         
+
            IF NOT EXISTS(SELECT 1 FROM PLAN_FINANCEMENT_US WHERE 
                ID_UNITE_STAGIAIRE = @ID_UNITE_STAGIAIRE AND 
                ID_POSTE_COUT_ENGAGE = @ID_POSTE_COUT_ENGAGE
                and coalesce(ID_ENVELOPPE,0)= coalesce(@ID_ENVELOPPE,0)
                and coalesce(ID_TYPE_FINANCEMENT,0)= coalesce(@ID_TYPE_FINANCEMENT,0))
-           BEGIN --insert le chiffrage 
+           BEGIN 
              INSERT INTO PLAN_FINANCEMENT_US
              (
             DAT_PLAN_FINANCEMENT_US,
@@ -12848,11 +10396,11 @@ GO
             @ID_TYPE_FINANCEMENT,
             @ID_ENVELOPPE,
             @ID_POSTE_COUT_ENGAGE,
-            1, --attente fonds
+            1, 
             0
              )
            END
-           ELSE --update la ligne plan existante
+           ELSE 
            BEGIN
            UPDATE
             PLAN_FINANCEMENT_US
@@ -12874,42 +10422,6 @@ GO
           END
          END
 
- -- =============================================
-         -- Author:		WK
-         -- Create date: XX XXXX XXXX
-         -- Description:	insertion de reglement pro
-         -- =============================================
-         -- Author:		KSA
-         -- Create date: XX XXXX XXXX
-         -- Description:	ajout critŠre ID CONTRAT PRO
-         -- =============================================
-         -- Author:		GiO
-         -- Create date: 11 AVRIL 2008
-         -- Description:	COrrection du Regroupment
-         -- ---------------------------------------------
-         -- Author		: RMA 
-         -- Modified date: 05/12/2008
-         -- comment		: # Evol.1 210 
-         --				  [DAT_BAP] => [DAT_BAP_OF - DAT_BAP_ADH]
-         --				  [ID_SESSION_BAP_PRO] => [ID_SESSION_BAP_PRO_OF - ID_SESSION_BAP_PRO_ADH]
-         -- =============================================
-         -- Author:		SAFI : 12239
-         -- Create date: 03/11/2009
-         -- Description:	Correction dans la mise … jour le numero de compteur
-         -- ---------------------------------------------
-         -- Author:		ASD : 12237
-         -- Create date: 23/02/2011
-         -- Description:	Ajout en pr‚ambule de la Suppression des liens SESSION_PRO et REGLEMENT_PRO si RP.BLN_ACTIF=0
-         --              anciennement fait dans UPD_ANNULATION_VIREMENT_PRO
-         -- ---------------------------------------------
-         -- Author:		ASD : 12836
-         -- Create date: 11/7/2011
-         -- Description:	correction coquille du 23/02/2011 : REGLEMENT => REGLEMENT_PRO
-         -- =============================================
-         -- Author:		RVI : 13138
-         -- Create date: 19/01/2012
-         -- Description:	Regroupement par transaction/IBAN au lieu de contrat
-         -- =============================================
          CREATE PROCEDURE INS_REGLEMENT_PRO
          (
          	@ID_TRANSACTION	INT,
@@ -12917,10 +10429,7 @@ GO
          )
          AS
          BEGIN
-         	--ASD 20110223
-         	--suppression des liens SESSION_PRO et REGLEMENT_PRO si RP.BLN_ACTIF=0 faite ici
-         	--permet la correction de la 12237 qui localisait cette modification pr‚c‚demment dans [UPD_ANNULATION_VIREMENT_PRO]
-         	--ASD 20110711
+
          	UPDATE
          		SESSION_PRO
          	SET
@@ -12938,9 +10447,7 @@ GO
          									OR RP.ID_REGLEMENT_PRO =SESSION_PRO.ID_REGLEMENT_PRO_OF
          	WHERE
          		RP.BLN_ACTIF=0
-         	--fin ASD 20110711
-         	--fin ASD 20110223
-         	
+
          	SET NOCOUNT ON
          	DECLARE
          		@COMPTEUR_ORDRE_VIREMENT_PRO	AS INT,
@@ -12952,19 +10459,16 @@ GO
          		@ID_BENEF						AS INT,
          		@ID_REGLEMENT_PRO				AS INT,
          		@ID_CONTRAT_PRO					AS INT
-         	
+
          	SET @COMPTEUR = 0
          	SET @COD_REGLEMENT_PRO_PREFIXE = ''
          	SET	@COMPTEUR_ORDRE_VIREMENT_PRO = coalesce((SELECT NUM_CPT_TMP FROM COMPTEUR WHERE COD_CPT = 'VIREMENT_PRO'), 0)
-         	
+
          	IF @COMPTEUR_ORDRE_VIREMENT_PRO = 0
          		BEGIN
          			SET @COMPTEUR_ORDRE_VIREMENT_PRO = coalesce((SELECT NUM_CPT FROM COMPTEUR WHERE COD_CPT = 'VIREMENT_PRO'), 0)
          		END
-         	
-         	---------------------------------------------------------------------------------------------------------------------------
-         	--								Creation des lignes REGLEMENT PRO dans une table temporaire #REGLEMENT_PRO
-         	---------------------------------------------------------------------------------------------------------------------------
+
          	SELECT
          		-1													AS COD_REGLEMENT_PRO,
          		-1													AS NUM_VIREMENT,
@@ -12998,30 +10502,27 @@ GO
          		SESSION_PRO_POUR_REGLEMENT.ID_TYPE_DESTINATAIRE,
          		SESSION_PRO_POUR_REGLEMENT.ID_TYPE_BENEFICIAIRE,
          		SESSION_PRO_POUR_REGLEMENT.ID_BENEFICIAIRE
-         	
-         	---------------------------------------------------------------------------------------------------------------------------
-         	--								MAJ des lignes REGLEMENT_PRO et insertion dans la table REGLEMENT_PRO
-         	---------------------------------------------------------------------------------------------------------------------------
+
          	SET @NBLIGNES = @@ROWCOUNT
          	SET ROWCOUNT 1
          	SET NOCOUNT OFF
          	WHILE @NBLIGNES > 0
          		BEGIN
          			SET ROWCOUNT 0
-         			
+
          			DELETE FROM
          				#REGLEMENT_PRO
          			WHERE
          				TRAITE = 1
-         			
+
          			SET ROWCOUNT 1
          			SET @NBLIGNES = (SELECT count(*) FROM #REGLEMENT_PRO WHERE TRAITE = 1)
-         			
+
          			IF @NBLIGNES > 0
          				BEGIN
          					SET @COMPTEUR = @COMPTEUR + 1
          				END
-         			
+
          			UPDATE
          				#REGLEMENT_PRO
          			SET
@@ -13030,14 +10531,14 @@ GO
          				TRAITE = 1
          			WHERE
          				NUM_VIREMENT < 0
-         			
+
          			SET @NBLIGNES = (SELECT count(*) FROM #REGLEMENT_PRO WHERE TRAITE = 1)
-         
+
          			IF @NBLIGNES > 0
          				BEGIN
          					SET @COMPTEUR = @COMPTEUR + 1
          				END
-         
+
          			INSERT INTO REGLEMENT_PRO
          			(
          				COD_REGLEMENT_PRO,
@@ -13073,29 +10574,23 @@ GO
          				ID_TRANSACTION,
          				DAT_GENERATION_SEPA,
          				ID_AGENCE,
-         				NULL --ID_CONTRAT_PRO
+         				NULL 
          			FROM
          				#REGLEMENT_PRO
          			WHERE
          				TRAITE = 1
-         			
+
          			SET @NBLIGNES = @@ROWCOUNT
-         			
+
          			UPDATE
          				REGLEMENT_PRO
          			SET
          				COD_REGLEMENT_PRO = ID_REGLEMENT_PRO
          			WHERE
          				ID_REGLEMENT_PRO = scope_identity()
-         
-         			--Completer la table temporaire avec le bon identifiant pour 
-         			--pouvoir l'utiliser plus loin
-         			/*=======================================================
-         					UPDATE	#REGLEMENT_PRO 
-         					SET		#RP.ID_REGLEMENT_PRO = SCOPE_IDENTITY()
-         			=======================================================*/
-         			-- en principe il n'y a qu'une ligne, mais mieux vaut pr‚venir ...
-         
+
+         			
+
          			SELECT	TOP 1
          				@ID_REGLEMENT_PRO		= scope_identity(),
          				@ID_TYPE_DESTINATAIRE	= ID_TYPE_DESTINATAIRE,
@@ -13109,13 +10604,11 @@ GO
          				REGLEMENT_PRO RP
          			WHERE
          				ID_REGLEMENT_PRO = @ID_REGLEMENT_PRO
-         			
+
          			SET ROWCOUNT 0
          			SET NOCOUNT ON
-         			---------------------------------------------------------------------------------------------------------------------------
-         			--											MAJ de la table SESSION PRO
-         			---------------------------------------------------------------------------------------------------------------------------
-         			IF @ID_TYPE_DESTINATAIRE = 1 --Cas TYPE_DESTINATAIRE =1 (Le destinataire est dela transaction est un adherent)
+
+         			IF @ID_TYPE_DESTINATAIRE = 1 
          				BEGIN
          					UPDATE
          						SESSION_PRO
@@ -13124,13 +10617,13 @@ GO
          					FROM
          						SESSION_PRO
          						INNER JOIN REGLEMENT_PRO RP	ON RP.ID_TRANSACTION = SESSION_PRO.ID_TRANSACTION_ADH
-         						INNER JOIN SESSION_BAP_PRO	ON SESSION_PRO.ID_SESSION_BAP_PRO_ADH = SESSION_BAP_PRO.ID_SESSION_BAP_PRO --Evol.1 210 --INNER JOIN SESSION_BAP_PRO	ON SESSION_PRO.ID_SESSION_BAP_PRO = SESSION_BAP_PRO.ID_SESSION_BAP_PRO
+         						INNER JOIN SESSION_BAP_PRO	ON SESSION_PRO.ID_SESSION_BAP_PRO_ADH = SESSION_BAP_PRO.ID_SESSION_BAP_PRO 
          						INNER JOIN [TRANSACTION] T	ON T.ID_TRANSACTION = SESSION_PRO.ID_TRANSACTION_ADH
          						INNER JOIN MODULE_PRO		ON MODULE_PRO.ID_MODULE_PRO		= SESSION_PRO.ID_MODULE_PRO
          						INNER JOIN CONTRAT_PRO		ON MODULE_PRO.ID_CONTRAT_PRO	= CONTRAT_PRO.ID_CONTRAT_PRO
          					WHERE
-         						SESSION_PRO.BLN_ACTIF	= 1			-- Ne pas modifier les inactifs
-         						AND SESSION_PRO.DAT_BAP_ADH	IS NOT NULL --Evol.1 210 --AND [SESSION_PRO].DAT_BAP	IS NOT NULL
+         						SESSION_PRO.BLN_ACTIF	= 1			
+         						AND SESSION_PRO.DAT_BAP_ADH	IS NOT NULL 
          						AND SESSION_PRO.ID_REGLEMENT_PRO_ADH	IS NULL
          						AND SESSION_BAP_PRO.DAT_PAIEMENT	IS NULL
          						AND SESSION_BAP_PRO.DAT_RECEPTION IS NOT NULL
@@ -13143,15 +10636,15 @@ GO
          						(
          							@ID_TYPE_BENEFICIAIRE = 1
          							AND T.ID_ETABLISSEMENT_BENEF = @ID_BENEF
-         						
+
          							OR @ID_TYPE_BENEFICIAIRE = 2
          							AND T.ID_ETABLISSEMENT_OF_BENEF = @ID_BENEF
-         						
+
          							OR @ID_TYPE_BENEFICIAIRE = 3
          							AND T.ID_TIERS_BENEF = @ID_BENEF
          						)
          				END
-         			ELSE --Cas TYPE_DESTINATAIRE =2 (Le destinataire de la transaction est un OF)
+         			ELSE 
          				BEGIN
          					UPDATE
          						SESSION_PRO
@@ -13160,13 +10653,13 @@ GO
          					FROM
          						SESSION_PRO
          						INNER JOIN REGLEMENT_PRO RP	ON RP.ID_TRANSACTION = SESSION_PRO.ID_TRANSACTION_OF
-         						INNER JOIN SESSION_BAP_PRO	ON SESSION_PRO.ID_SESSION_BAP_PRO_OF = SESSION_BAP_PRO.ID_SESSION_BAP_PRO --Evol.1 210 --INNER JOIN SESSION_BAP_PRO	ON SESSION_PRO.ID_SESSION_BAP_PRO = SESSION_BAP_PRO.ID_SESSION_BAP_PRO
+         						INNER JOIN SESSION_BAP_PRO	ON SESSION_PRO.ID_SESSION_BAP_PRO_OF = SESSION_BAP_PRO.ID_SESSION_BAP_PRO 
          						INNER JOIN [TRANSACTION] T	ON T.ID_TRANSACTION = SESSION_PRO.ID_TRANSACTION_OF
          						INNER JOIN MODULE_PRO		ON MODULE_PRO.ID_MODULE_PRO		= SESSION_PRO.ID_MODULE_PRO
          						INNER JOIN CONTRAT_PRO		ON MODULE_PRO.ID_CONTRAT_PRO	= CONTRAT_PRO.ID_CONTRAT_PRO
          					WHERE
-         						SESSION_PRO.BLN_ACTIF	= 1			-- Ne pas modifier les inactifs
-         						AND SESSION_PRO.DAT_BAP_OF IS NOT NULL --Evol.1 210 --AND [SESSION_PRO].DAT_BAP	IS NOT NULL
+         						SESSION_PRO.BLN_ACTIF	= 1			
+         						AND SESSION_PRO.DAT_BAP_OF IS NOT NULL 
          						AND SESSION_PRO.ID_REGLEMENT_PRO_OF	IS NULL
          						AND SESSION_BAP_PRO.DAT_PAIEMENT	IS NULL
          						AND SESSION_BAP_PRO.DAT_RECEPTION IS NOT NULL
@@ -13179,21 +10672,19 @@ GO
          						(
          							@ID_TYPE_BENEFICIAIRE = 1
          							AND T.ID_ETABLISSEMENT_BENEF = @ID_BENEF
-         							
+
          							OR @ID_TYPE_BENEFICIAIRE = 2
          							AND T.ID_ETABLISSEMENT_OF_BENEF = @ID_BENEF
-         							
+
          							OR @ID_TYPE_BENEFICIAIRE = 3
          							AND T.ID_TIERS_BENEF = @ID_BENEF
          						)
          				END
          		END
-         
+
          	UPDATE
          		COMPTEUR
-         	-- SAFI AJOUTER --->
-         	-- 03/10/2009 Ano ID : 12239
-         	-- SET NUM_CPT_TMP = @COMPTEUR_ORDRE_VIREMENT_PRO + @COMPTEUR
+
          	SET
          		NUM_CPT_TMP = (SELECT isnull(max(NUM_VIREMENT), 0) + 1 FROM REGLEMENT_PRO RP)
          	WHERE
@@ -13201,17 +10692,7 @@ GO
          END
 
  CREATE PROCEDURE [dbo].[MVT_BUDGETAIRE_PEC_INS_EVENEMENT_PEC]
-         /* *****************************************************************************************
-         -- Auteur   : MBL
-         -- Date Creation : 31/05/2012
          
-         -- Role    : Insertion d'un evenement et appel de la procedure generique de generation des mouvements budgetaires associes
-         
-         ------------------------------------------------------------------------------------------------
-         -- Modif MB du 26/05/2014 : Rajout des mouvements budgetaires lies a l'evenement de DECLOTURE
-         ------------------------------------------------------------------------------------------------
-         
-         ***************************************************************************************** */
           @LIBL_EVENEMENT   varchar(50), 
           @DAT_EVENEMENT   datetime, 
           @ID_TYPE_EVENEMENT  int, 
@@ -13232,23 +10713,15 @@ GO
            @ID_EVENEMENT_MIN     int,
            @COD_DERNIER_TYPE_EVENEMENT   varchar(8),
            @MNT_SOLDE_ENGAGEMENT    float
-          
+
           BEGIN
-         
-           /* Detection de cas d'anomalie lies a la tentative d'association de plusieurs evenements de meme type a un meme poste de cout :
-            Un mˆme poste de co–t engag‚, identifi‚ par son ID_POSTE_COUT_ENGAGE, ne peut ˆtre associ‚ :
-            - qu'… un et un seul ‚v‚nement de type Engagement
-            - qu'… un et un seul ‚v‚nement de type D‚sengagement
-            - qu'… un et un seul ‚v‚nement de type Cl“ture Module
+
            
-            Un mˆme poste de co–t r‚gl‚, identifi‚ par son ID_POSTE_COUT_REGLE, ne peut ˆtre associ‚ :
-            - qu'… un et un seul ‚v‚nement de type rŠglement.
-           */
            SET @BLN_PB_EVENEMENT = 0
            SELECT @COD_TYPE_EVENEMENT = COD_TYPE_EVENEMENT
            FROM TYPE_EVENEMENT
            WHERE ID_TYPE_EVENEMENT = @ID_TYPE_EVENEMENT
-         
+
            IF @ID_POSTE_COUT_ENGAGE IS NOT NULL 
            BEGIN
             IF EXISTS (
@@ -13263,50 +10736,45 @@ GO
              SET @BLN_PB_EVENEMENT = 1
              SET @LIB_PB_EVENEMENT = 'Detection tentative d association de plusieurs evenements de meme type a un meme poste de cout'
             END
-           
-           
-            IF @COD_TYPE_EVENEMENT = 'ANCLOPEC' -- DECLOTURE
+
+            IF @COD_TYPE_EVENEMENT = 'ANCLOPEC' 
             BEGIN   
-            
+
              SELECT @ID_MODULE_PEC = ID_MODULE_PEC 
              FROM POSTE_COUT_ENGAGE
              WHERE ID_POSTE_COUT_ENGAGE = @ID_POSTE_COUT_ENGAGE
-            
+
              SELECT @ID_EVENEMENT_MAX = MAX(MVT_BUDGETAIRE.ID_EVENEMENT)
              from MVT_BUDGETAIRE
              INNER JOIN EVENEMENT ON EVENEMENT.ID_EVENEMENT = MVT_BUDGETAIRE.ID_EVENEMENT
              WHERE ID_MODULE_PEC = @ID_MODULE_PEC
              AND ID_POSTE_COUT_ENGAGE = @ID_POSTE_COUT_ENGAGE
-         
+
              SELECT @COD_DERNIER_TYPE_EVENEMENT = COD_TYPE_EVENEMENT
              FROM EVENEMENT  
              INNER JOIN TYPE_EVENEMENT ON EVENEMENT .ID_TYPE_EVENEMENT = TYPE_EVENEMENT.ID_TYPE_EVENEMENT
              WHERE ID_EVENEMENT = @ID_EVENEMENT_MAX
-         
-         
+
              IF @COD_DERNIER_TYPE_EVENEMENT NOT IN ('CLOMOPEC', 'CLOTACT') 
              BEGIN
-              -- Calcul du reliquat d'engagement du module
+
               SELECT @MNT_SOLDE_ENGAGEMENT = CAST(SUM(MNT_MVT_BUDGETAIRE) AS DECIMAL(15,2))
               FROM MVT_BUDGETAIRE
               WHERE P_E_R IN ('E')
               AND  MVT_BUDGETAIRE.ID_MODULE_PEC = @ID_MODULE_PEC
               GROUP BY MVT_BUDGETAIRE.ID_MODULE_PEC
-             
+
               IF ABS(@MNT_SOLDE_ENGAGEMENT)>0
               BEGIN
                SET @BLN_PB_EVENEMENT = 1
                SELECT @LIB_PB_EVENEMENT = 'Le dernier evenement associe a ce module n est pas une cloture et le solde d engagement du module > 0. Decloture impossible'
               END
              END
-            
+
              IF NOT @BLN_PB_EVENEMENT = 1
              BEGIN
-              /* 
-              *** Recherche du Premier et du dernier evenement associe a la derniere cloture du module *** 
-              */
-                 
-              -- Recherche du dernier evenement associe a la derniere cloture
+              
+
               SELECT @ID_EVENEMENT_MAX = MAX(MVT_BUDGETAIRE.ID_EVENEMENT)
               FROM MVT_BUDGETAIRE
               INNER JOIN EVENEMENT  ON EVENEMENT.ID_EVENEMENT = MVT_BUDGETAIRE.ID_EVENEMENT 
@@ -13314,8 +10782,7 @@ GO
               WHERE COD_TYPE_EVENEMENT IN ('CLOMOPEC', 'CLOTACT')
               AND ID_MODULE_PEC = @ID_MODULE_PEC
               AND ID_POSTE_COUT_ENGAGE = @ID_POSTE_COUT_ENGAGE
-         
-              -- Recherche du premier evenement associe a la derniere cloture
+
               SELECT @ID_EVENEMENT_MIN = MIN(MVT_BUDGETAIRE.ID_EVENEMENT)
               FROM  MVT_BUDGETAIRE
               INNER JOIN EVENEMENT  ON EVENEMENT.ID_EVENEMENT = MVT_BUDGETAIRE.ID_EVENEMENT 
@@ -13336,8 +10803,7 @@ GO
                AND M.ID_EVENEMENT > MVT_BUDGETAIRE.ID_EVENEMENT
                AND ID_POSTE_COUT_ENGAGE = @ID_POSTE_COUT_ENGAGE
               )
-             
-             
+
              END
             END
            END
@@ -13355,12 +10821,10 @@ GO
              SET @LIB_PB_EVENEMENT = 'Detection tentative d association de plusieurs evenements de meme type a un meme poste de cout'
             END
            END 
-         
-          
+
            IF @BLN_PB_EVENEMENT = 1
            BEGIN
-           
-            -- Trace de l'anomalie
+
             INSERT INTO PB_EVENEMENT_MVT_BUDGETAIRE_PEC
             (ID_EVENEMENT   ,
             LIB_PB_EVENEMENT  ,
@@ -13387,15 +10851,13 @@ GO
            END
            ELSE
            BEGIN
-          
-            -- Insertion de l'evenement
+
             INSERT INTO EVENEMENT 
             (LIBL_EVENEMENT, DAT_EVENEMENT, ID_TYPE_EVENEMENT, ID_POSTE_COUT_ENGAGE, ID_POSTE_COUT_REGLE)
             VALUES
             (@LIBL_EVENEMENT, @DAT_EVENEMENT, @ID_TYPE_EVENEMENT, @ID_POSTE_COUT_ENGAGE, @ID_POSTE_COUT_REGLE)
             SET @ID_EVENEMENT = @@IDENTITY   
-           
-            -- Insertion du commentaire permettant de renseigner la source du financement
+
             SET @TYPE_OBJET_COMMENTAIRE_EVENEMENT = 16
             IF @ID_UTILISATEUR IS NOT NULL AND LEN(LTRIM(RTRIM(@COM_EVENEMENT)))>0
             BEGIN
@@ -13404,13 +10866,11 @@ GO
              VALUES
              (@TYPE_OBJET_COMMENTAIRE_EVENEMENT, @ID_EVENEMENT, @COM_EVENEMENT, @ID_UTILISATEUR, @DAT_EVENEMENT)  
             END
-         
-           
-            -- Generation des mouvements budgetaires associes a l'evenement
+
             EXEC dbo.MVT_BUDGETAIRE_PEC_GENERATION @ID_EVENEMENT, @ID_EVENEMENT_MIN, @ID_EVENEMENT_MAX
-          
+
            END 
-          
+
           END
          END
 
@@ -13418,37 +10878,16 @@ GO
           @ID_MODULE INT,
           @RETURN_BLN_MODIFIED INT OUTPUT
          AS
-         -- ==========================================================================================
-         -- Author:  DSZ
-         -- Create date: 07/09/2011
-         -- Description: Mantis 12802. Validation du chiffrage du module
-         -- V‚rifier si PCR existent d‚j… et si pas de d‚synchro 
-         -- ------------------------------------------------------------------------------------------
-         -- Author:  DSZ
-         -- Modif date: 04/10/2011
-         -- Description: 12802 cont. etat_pec = 4 pour la DR existante
-         -- ==========================================================================================
-         -- OPA 31/05/2013 : 15031 : SBR - suppression du type FLOAT et REAL dans le SQL : 2- FLOAT
-         -- ========================================================================================== 
-         -- DSZ 25/09/2103 : 16177 : taux_glo_appel passe sur decimal(10,5)
-         -- ==========================================================================================
-         -- OPA 21/11/2014 : #665 PEC2 - CHIFFRAGE_VALIDATION V1 (Suppression de ID_PUBLIC_FAF)
-         -- ==========================================================================================
-         -- HBO - #578 - On ne supprime pas les PFUS
-         --    En fin de compte si, mais avec la condition que ce ne soit pas encore bap‚.
-         -- ==========================================================================================
-         -- OPA 22/04/2015 : #821 En tant que DBA, je souhaite que tous les PFUS cr‚‚s ne possŠdent
-         --  plus de cod_pfus
-         -- ==========================================================================================
+
          BEGIN
           SET NOCOUNT ON;
-         
+
           DECLARE
            @ID_OPE_FIN INT,
            @CIBLE_ACTION INT
-          
+
           SET @RETURN_BLN_MODIFIED = 0
-          
+
           SELECT
            @ID_OPE_FIN = ID_OPERATION_FINANCIERE,
            @CIBLE_ACTION = CIBLE_ACTION
@@ -13458,13 +10897,12 @@ GO
             ON ACTION_PEC.ID_ACTION_PEC = MODULE_PEC.ID_ACTION_PEC
           WHERE
            ID_MODULE_PEC = @ID_MODULE
-          
+
           IF (@CIBLE_ACTION = 1)
           BEGIN
-           RETURN   -- on ne traite pas des actions individuelles
+           RETURN   
           END
-         
-          --la liste des enveloppes pour l'operation financiere en cours, avec les stc 
+
           SELECT
            PLAN_FINANCEMENT_OPERATION.ID_ENVELOPPE,
            ID_SOUS_TYPE_COUT
@@ -13481,10 +10919,7 @@ GO
            ID_OPERATION_FINANCIERE = @ID_OPE_FIN
            AND ID_TYPE_FINANCEMENT IS NULL
            AND PLAN_FINANCEMENT_OPERATION.ID_ENVELOPPE IS NOT NULL  
-         
-          -- obtenir la liste de toutes les DR qui devront ˆtre r‚cr‚es, c-…-d dont au moins
-          -- un plan de financement se rŠfŠre … une enveloppe qui n'existe plus dans l'ope fin
-          -- (suite au changement d'ope fin par exemple)
+
           DECLARE
            @ID_PCR    INT,
            @ID_STC    INT,
@@ -13493,7 +10928,7 @@ GO
            @ID_UNITE_STAGIAIRE INT,
            @HR_ENGAGE   DECIMAL(18,2),
            @HR_REGLE   DECIMAL(18,2)
-         
+
           DECLARE CURS_PCR CURSOR FOR 
           SELECT DISTINCT
            POSTE_COUT_REGLE.ID_POSTE_COUT_REGLE,
@@ -13522,7 +10957,7 @@ GO
             WHERE
              #ENVELOPPES.ID_SOUS_TYPE_COUT = POSTE_COUT_REGLE.ID_SOUS_TYPE_COUT
            )
-         
+
           OPEN CURS_PCR
           FETCH NEXT FROM CURS_PCR INTO
            @ID_PCR,
@@ -13531,10 +10966,10 @@ GO
            @ID_UNITE_STAGIAIRE,
            @HR_ENGAGE,
            @HR_REGLE
-         
+
           WHILE (@@FETCH_STATUS = 0)
           BEGIN
-           --trouver le PCE li‚ … ce sous-type cout et ses pfus
+
            SELECT
             @ID_PCE = ID_POSTE_COUT_ENGAGE
            FROM
@@ -13543,15 +10978,13 @@ GO
             ID_SOUS_TYPE_COUT = @ID_STC
             AND ID_MODULE_PEC = @ID_MODULE
             AND DAT_DESENGAGEMENT IS NULL
-         
-           --supprimer tous les pfus de ce PCR et de ce US
+
            DELETE FROM
             PLAN_FINANCEMENT_US
            WHERE 
             ID_POSTE_COUT_REGLE = @ID_PCR
             AND ID_UNITE_STAGIAIRE = @ID_UNITE_STAGIAIRE
-         
-           --refaire les pfus de PCR en se basant sur les pfus du PCE
+
            INSERT INTO dbo.PLAN_FINANCEMENT_US
            (
             DAT_PLAN_FINANCEMENT_US,
@@ -13587,8 +11020,7 @@ GO
            WHERE
             ID_POSTE_COUT_ENGAGE = @ID_PCE
             AND ID_POSTE_COUT_REGLE IS NULL
-         
-           -- exiger la validation de PCR
+
            UPDATE
             POSTE_COUT_REGLE
            SET
@@ -13596,10 +11028,9 @@ GO
             ID_ETAT_PEC = 4
            WHERE
             ID_POSTE_COUT_REGLE = @ID_PCR
-            
-         
+
            SET @RETURN_BLN_MODIFIED = 1
-         
+
            FETCH NEXT FROM CURS_PCR INTO
             @ID_PCR,
             @ID_STC,
@@ -13612,27 +11043,17 @@ GO
           DEALLOCATE CURS_PCR
          END
 
- -- =============================================
-         -- Author:		MBL/SBR
-         -- Create date: 06/01/15
-         -- Description:	D‚lais de traitement des factures
-         --				Sert … g‚n‚rer un fichier EXCEL Delai_Facture.xlsx
-         -- SBR le 08/01/14: modif date saisie facture
-         -- =============================================
          CREATE PROCEDURE [dbo].[SP_SUIVI_DELAI_FACTURE]
-         	@annee_ref int = NULL -- ann‚e de r‚f‚rence pour le traitement
+         	@annee_ref int = NULL 
          AS
          BEGIN
          SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED
-         -- *********************
-         -- A LANCER EN PROD !!
-         -- *********************
+
          if object_id('tempdb..#TMP_FACT') is not null
          	drop table #TMP_FACT
          if object_id('TMP_DELAI_FACT') is not null
          	drop table TMP_DELAI_FACT
-         
-         
+
          SELECT *
          INTO #TMP_FACT
          FROM
@@ -13642,9 +11063,9 @@ GO
          [Type Facture] = TYPE_FACTURE.LIBC_TYPE_FACTURE,
          [Code Interne Facture] = FACTURE.COD_FACTURE,
          [Code Externe Facture] = FACTURE.NUM_FACTURE,
-         -- SOURCE
+
          SOURCE = CASE WHEN FACTURE.ID_UTILISATEUR_CREATEUR = 79 THEN 'D3R' ELSE 'OPTIFORM' END,
-         -- EMETTEUR_FACTURE
+
   Type_Emetteur_Facture = CASE 
        WHEN ET_OF_EMET_FAC.ID_ETABLISSEMENT_OF		IS NOT NULL		THEN 'OF'
        WHEN ET_ADH_EMET_FAC.ID_ETABLISSEMENT		IS NOT NULL		THEN 'ADH'
@@ -13670,26 +11091,23 @@ GO
          [Mnt Facture HT]		= FACTURE.MNT_HT,
          [Date Emission Facture]	= FACTURE.DAT_EMISSION,
          [Date Reception Facture] = FACTURE.DAT_RECEPTION,
-         --[Date Saisie Facture]	= ISNULL(FACTURE.DAT_MODIF, FACTURE.DAT_CREATION),
-         [Date Saisie Facture]	= FACTURE.DAT_CREATION, -- SBR le 08/01/14
+
+         [Date Saisie Facture]	= FACTURE.DAT_CREATION, 
          [Facture Lettree]	= FACTURE.BLN_LETTRE,
-         
+
          ID_PCR=POSTE_COUT_REGLE.ID_POSTE_COUT_REGLE,
          [Date Creation PCR] = CONVERT(VARCHAR, POSTE_COUT_REGLE.DAT_CREATION, 103),
          ID_MODULE = MODULE_PEC.ID_MODULE_PEC,
          ID_SESSION = SESSION_PEC.ID_SESSION_PEC,
          PERIMETRE = 'PEC', 
          [Date BAP] = POSTE_COUT_REGLE.DAT_BAP,
-         --[JOUR BAP]= DAY(POSTE_COUT_REGLE.DAT_BAP),
-         --[MOIS BAP]= MONTH(POSTE_COUT_REGLE.DAT_BAP),
-         --[ANNEE BAP]= YEAR(POSTE_COUT_REGLE.DAT_BAP),
-         
+
          [Date Creation SESSION BAP]		= S_BAP.DAT_CREATION, 
          [Date Edition SESSION BAP]		= S_BAP.DAT_EDITION, 
          [Date Reception SESSION BAP]	= S_BAP.DAT_RECEPTION, 
          [NOM UTILISATEUR SESSION BAP]	= U_BAP .LIB_NOM,
          [DT UTILISATEUR SESSION BAP]	= DT_U_BAP.LIBC_AGENCE,
-         
+
          [Code Reglement] =	CAST(
          					CASE 
          					WHEN REGLEMENT.NUM_CHEQUE IS NOT NULL THEN 'Cheque Nø ' + REGLEMENT.NUM_CHEQUE
@@ -13697,12 +11115,12 @@ GO
          					ELSE '?'
          					END
          					AS VARCHAR (30)),
-         										
+
          IBAN_REGLEMENT = TRANS_REGL.NUM_IBAN,
          [Date Creation Reglement] = REGLEMENT.DAT_REGLEMENT,
          [Date Edition Reglement] = REGLEMENT.DAT_EDITION,
          [Date Validation Reglement] = REGLEMENT.DAT_VALID_REGLEMENT,
-         
+
          [Code DOSSIER]			= dbo.GetActionPECCode(ACTION_PEC.COD_ACTION_PEC, ACTION_PEC.ANNEE_ACTION_PEC),
          [Code Module]			= MODULE_PEC.COD_MODULE_PEC  ,
          [Code Session]			= SESSION_PEC.COD_SESSION_PEC  ,
@@ -13723,12 +11141,11 @@ GO
          						WHEN (SOURCE_FINANCEMENT.NB_SOURCE_FINANCEMENT = 1 AND SOURCE_FINANCEMENT.ID_ENVELOPPE IS NULL)
          							THEN 'Compte Groupe'					
          						END,
-         
+
          [Montant Impute HT]  =POSTE_COUT_REGLE.MNT_REGLE_HT,
          [Montant BAPE HT]	 = CASE WHEN POSTE_COUT_REGLE.DAT_BAP IS NOT NULL THEN POSTE_COUT_REGLE.MNT_REGLE_HT ELSE 0 END,
          [Montant Regle HT]	 = CASE WHEN REGLEMENT.DAT_VALID_REGLEMENT IS NOT NULL THEN POSTE_COUT_REGLE.MNT_REGLE_HT ELSE 0 END,
-         
-         -- ETablissement Financeur
+
          [Code Adherent Financeur] = ADHERENT.COD_ADHERENT,
          [Raison Sociale Adherent Financeur] = ADHERENT.LIB_RAISON_SOCIALE,
          [SIRET Financeur] = ETABLISSEMENT.NUM_SIRET,
@@ -13740,11 +11157,9 @@ GO
          [Code Departement Etablissement Financeur] = ISNULL(DEPARTEMENT.COD_DEPARTEMENT, '?'),
          [Region Admin Etablissement Financeur] = ISNULL(REGION_ADMINISTRATIVE.LIBC_REGION_ADMINISTRATIVE, '?'),
          [Montant Finance] = FINANCE_ETABLISSEMENT.MNT_FINANCE,
-         
-         -- TRANSACTION REGLEMENT
+
 TRANS_REGL	.ID_TRANSACTION,
-         
--- DESTINATAIRE TRANSACTION REGLEMENT
+
   Type_Destinataire = CASE 
        WHEN TRANS_REGL.ID_ETABLISSEMENT_OF_DEST		IS NOT NULL		THEN 'OF'
        WHEN TRANS_REGL.ID_ETABLISSEMENT_DEST		IS NOT NULL		THEN 'ADH'
@@ -13767,7 +11182,7 @@ TRANS_REGL	.ID_TRANSACTION,
        WHEN TRANS_REGL.ID_ETABLISSEMENT_DEST  IS NOT NULL THEN ET_ADH_DEST.NUM_SIRET
        ELSE '?'
        END,  
--- BENEFICIARE TRANSACTION REGLEMENT
+
   Type_Beneficiaire = CASE 
        WHEN  TRANS_REGL.ID_TIERS_BENEF    IS NOT NULL THEN 'Tiers'
        WHEN TRANS_REGL.ID_ETABLISSEMENT_OF_BENEF IS NOT NULL THEN 'OF'
@@ -13794,8 +11209,7 @@ TRANS_REGL	.ID_TRANSACTION,
        WHEN TRANS_REGL.ID_ETABLISSEMENT_BENEF  IS NOT NULL THEN ET_ADH_BENEF.NUM_SIRET 
        ELSE '?'
        END
-         
-         
+
          FROM POSTE_COUT_REGLE
          INNER JOIN SESSION_PEC		ON SESSION_PEC.ID_SESSION_PEC			= POSTE_COUT_REGLE.ID_SESSION_PEC
          INNER JOIN MODULE_PEC		ON MODULE_PEC.ID_MODULE_PEC				= SESSION_PEC.ID_MODULE_PEC
@@ -13804,15 +11218,14 @@ TRANS_REGL	.ID_TRANSACTION,
          LEFT JOIN [SESSION] S_BAP	ON POSTE_COUT_REGLE.ID_SESSION			= S_BAP.ID_SESSION
          LEFT JOIN UTILISATEUR U_BAP ON U_BAP .ID_UTILISATEUR				= S_BAP.ID_UTILISATEUR
          LEFT JOIN REGLEMENT			ON POSTE_COUT_REGLE.ID_REGLEMENT		= REGLEMENT .ID_REGLEMENT 
-         
+
          LEFT JOIN ETABLISSEMENT_OF		ETOF_MODULE ON MODULE_PEC.ID_ETABLISSEMENT_OF	= ETOF_MODULE.ID_ETABLISSEMENT_OF
          LEFT JOIN ORGANISME_FORMATION	OF_MODULE	ON OF_MODULE.ID_OF					= ETOF_MODULE.ID_OF
-         
+
          LEFT JOIN AGENCE DT_U_BAP	ON U_BAP.ID_AGENCE						= DT_U_BAP.ID_AGENCE
          INNER JOIN FACTURE			ON POSTE_COUT_REGLE.ID_FACTURE			= FACTURE.ID_FACTURE		
          INNER JOIN TYPE_FACTURE		ON TYPE_FACTURE.ID_TYPE_FACTURE			= FACTURE.ID_TYPE_FACTURE
-         
--- EMETTEUR FACTURE
+
 left join ETABLISSEMENT_OF		ET_OF_EMET_FAC		ON FACTURE.ID_EMETTEUR_ETABLISSEMENT_OF = ET_OF_EMET_FAC.ID_ETABLISSEMENT_OF
 left join ORGANISME_FORMATION	OF_EMET_FAC			ON ET_OF_EMET_FAC.ID_OF					= OF_EMET_FAC.ID_OF
 left join ETABLISSEMENT			ET_ADH_EMET_FAC		ON FACTURE.ID_EMETTEUR_ETABLISSEMENT_ADH= ET_ADH_EMET_FAC.ID_ETABLISSEMENT
@@ -13828,10 +11241,10 @@ left join ADHERENT				ADH_EMET_FAC		ON ADH_EMET_FAC.ID_ADHERENT				= ET_ADH_EMET
          LEFT JOIN ENVELOPPE			ON ENVELOPPE.ID_ENVELOPPE = SOURCE_FINANCEMENT	.ID_ENVELOPPE 
          LEFT JOIN TYPE_ENVELOPPE	ON ENVELOPPE.ID_TYPE_ENVELOPPE = TYPE_ENVELOPPE.ID_TYPE_ENVELOPPE
          LEFT JOIN DISPOSITIF		ON DISPOSITIF.ID_DISPOSITIF = TYPE_ENVELOPPE.ID_DISPOSITIF
-         
+
          INNER JOIN
          	(
-         
+
          	SELECT ID_POSTE_COUT_REGLE, ID_ETABLISSEMENT, MNT_FINANCE = SUM(MNT_PLAN_FINANCEMENT_US)
          	FROM STAGIAIRE_PEC 
          	INNER JOIN UNITE_STAGIAIRE		ON UNITE_STAGIAIRE .ID_STAGIAIRE_PEC = STAGIAIRE_PEC.ID_STAGIAIRE_PEC
@@ -13842,23 +11255,21 @@ left join ADHERENT				ADH_EMET_FAC		ON ADH_EMET_FAC.ID_ADHERENT				= ET_ADH_EMET
          INNER JOIN ETABLISSEMENT			ON  FINANCE_ETABLISSEMENT.ID_ETABLISSEMENT = ETABLISSEMENT.ID_ETABLISSEMENT 
          INNER JOIN ADHERENT					ON  ADHERENT.ID_ADHERENT = ETABLISSEMENT.ID_ADHERENT
          INNER JOIN GROUPE					ON  GROUPE.ID_GROUPE = ETABLISSEMENT.ID_GROUPE
-         
+
          INNER JOIN ADRESSE					ON	ADRESSE.ID_ADRESSE = ETABLISSEMENT.ID_ADRESSE_PRINCIPALE
          INNER JOIN BRANCHE					ON  ETABLISSEMENT.ID_BRANCHE = BRANCHE .ID_BRANCHE 
          INNER JOIN AGENCE DT_ETAB			ON  ETABLISSEMENT.ID_AGENCE = DT_ETAB.ID_AGENCE
          LEFT JOIN DEPARTEMENT				ON	DEPARTEMENT.ID_DEPARTEMENT = LEFT(ADRESSE.LIB_CP_CEDEX, 2)
          LEFT JOIN REGION_ADMINISTRATIVE		ON	REGION_ADMINISTRATIVE.ID_REGION_ADMINISTRATIVE = DEPARTEMENT.ID_REGION_ADMINISTRATIVE
          LEFT JOIN UTILISATEUR AGF_ETAB		ON	AGF_ETAB.ID_UTILISATEUR = ETABLISSEMENT.ID_CHARGEE_RELATION
-         
+
          LEFT JOIN [TRANSACTION]	TRANS_REGL	ON  POSTE_COUT_REGLE.ID_TRANSACTION = TRANS_REGL.ID_TRANSACTION
-         
--- DESTINATAIRE TRANSACTION
+
 left join ETABLISSEMENT_OF		ET_OF_DEST		ON TRANS_REGL.ID_ETABLISSEMENT_OF_DEST   = ET_OF_DEST.ID_ETABLISSEMENT_OF
 left join ORGANISME_FORMATION	OF_DEST			ON OF_DEST.ID_OF      = ET_OF_DEST.ID_OF
 left join ETABLISSEMENT			ET_ADH_DEST		ON TRANS_REGL.ID_ETABLISSEMENT_DEST    = ET_ADH_DEST.ID_ETABLISSEMENT
 left join ADHERENT				ADH_DEST		ON ADH_DEST.ID_ADHERENT     = ET_ADH_DEST.ID_ADHERENT
 
--- BENEFICIAIRE TRANSACTION
 left join ETABLISSEMENT_OF		ET_OF_BENEF		ON TRANS_REGL.ID_ETABLISSEMENT_OF_BENEF = ET_OF_BENEF.ID_ETABLISSEMENT_OF
 left join ORGANISME_FORMATION	OF_BENEF		ON OF_BENEF.ID_OF						= ET_OF_BENEF.ID_OF
 left join ETABLISSEMENT			ET_ADH_BENEF	ON TRANS_REGL.ID_ETABLISSEMENT_BENEF    = ET_ADH_BENEF.ID_ETABLISSEMENT
@@ -13867,15 +11278,14 @@ left join TIERS					TIERS			ON TIERS.ID_TIERS						= TRANS_REGL.ID_TIERS_BENEF
 
 UNION
 
-         -- Partie CPRO - OF
          SELECT 
          [ID Facture]				= FACTURE.ID_FACTURE,
          [Type Facture] = TYPE_FACTURE.LIBC_TYPE_FACTURE,
          [Code Interne Facture]		= FACTURE.COD_FACTURE,
          [Code Externe Facture]		= FACTURE.NUM_FACTURE,
-         -- SOURCE
+
          SOURCE = CASE WHEN FACTURE.ID_UTILISATEUR_CREATEUR = 79 THEN 'D3R' ELSE 'OPTIFORM' END,
-         -- EMETTEUR_FACTURE
+
   Type_Emetteur_Facture = CASE 
        WHEN ET_OF_EMET_FAC.ID_ETABLISSEMENT_OF		IS NOT NULL		THEN 'OF'
        WHEN ET_ADH_EMET_FAC.ID_ETABLISSEMENT		IS NOT NULL		THEN 'ADH'
@@ -13903,23 +11313,20 @@ UNION
          [Date Reception Facture] = FACTURE.DAT_RECEPTION,
          [Date Saisie Facture]	= ISNULL(FACTURE.DAT_MODIF, FACTURE.DAT_CREATION),
          [Facture Lettree]	= FACTURE.BLN_LETTRE,
-         
+
          ID_PCR						= SESSION_PRO.ID_SESSION_PRO,
          [Date Creation PCR]			= SESSION_PRO.DAT_CREATION,
          ID_MODULE					= MODULE_PRO.ID_MODULE_PRO,
          ID_SESSION					= SESSION_PRO.ID_SESSION_PRO,
          PERIMETRE					= 'CPRO_OF', 
          [Date BAP]					= SESSION_PRO.DAT_BAP_OF,
-         --[JOUR BAP]					= DAY(SESSION_PRO.DAT_BAP_OF),
-         --[MOIS BAP]					= MONTH(SESSION_PRO.DAT_BAP_OF),
-         --[ANNEE BAP]					= YEAR(SESSION_PRO.DAT_BAP_OF),
-         
+
          [Date Creation SESSION BAP]		= S_BAP.DAT_CREATION, 
          [Date Edition SESSION BAP]		= S_BAP.DAT_EDITION, 
          [Date Reception SESSION BAP]	= S_BAP.DAT_RECEPTION, 
          [NOM UTILISATEUR SESSION BAP]	= U_BAP .LIB_NOM,
          [DT UTILISATEUR SESSION BAP]	= DT_U_BAP.LIBC_AGENCE,
-         
+
          [Code Reglement] =	CAST(
          					CASE 
          					WHEN REGLEMENT_PRO.NUM_CHEQUE IS NOT NULL THEN 'Cheque Nø ' + REGLEMENT_PRO.NUM_CHEQUE
@@ -13927,12 +11334,12 @@ UNION
          					ELSE '?'
          					END
          					AS VARCHAR (30)),
-         										
+
          IBAN_REGLEMENT = TRANS_REGL.NUM_IBAN,
          [Date Creation Reglement]	= REGLEMENT_PRO.DAT_REGLEMENT, 
          [Date Edition Reglement]	= REGLEMENT_PRO.DAT_EDITION, 
          [Date Validation Reglement] = REGLEMENT_PRO.DAT_VALID_REGLEMENT, 
-         
+
          [Code DOSSIER]				= CONTRAT_PRO.COD_CONTRAT_PRO,
          [Code Module]				= MODULE_PRO.COD_MODULE_PRO  ,
          [Code Session]				= SESSION_PRO.COD_SESSION_PRO  ,
@@ -13945,12 +11352,11 @@ UNION
          [Sous Type Cout]			= DISPOSITIF.LIBC_DISPOSITIF + ' '+ TYPE_FORMATION.LIBC_TYPE_FORMATION,
          [Nb Source Financement]		= 1,
          [Dispositif Financement]	= DISPOSITIF.LIBL_DISPOSITIF,
-         
+
          [Montant Impute HT]		 =	SESSION_PRO.MNT_VERSE_HT_OF,
          [Montant BAPE HT]	 =		CASE WHEN SESSION_PRO.DAT_BAP_OF IS NOT NULL THEN SESSION_PRO.MNT_VERSE_HT_OF ELSE 0 END,
          [Montant Regle HT]	 =		CASE WHEN REGLEMENT_PRO.DAT_VALID_REGLEMENT IS NOT NULL THEN SESSION_PRO.MNT_VERSE_HT_OF ELSE 0 END,
-         
-         -- ETablissement Financeur
+
          [Code Adherent Financeur] = ADHERENT.COD_ADHERENT,
          [Raison Sociale Adherent Financeur] = ADHERENT.LIB_RAISON_SOCIALE,
          [SIRET Financeur] = ETABLISSEMENT.NUM_SIRET,
@@ -13962,11 +11368,9 @@ UNION
          [Code Departement Etablissement Financeur] = ISNULL(DEPARTEMENT.COD_DEPARTEMENT, '?'),
          [Region Admin Etablissement Financeur] = ISNULL(REGION_ADMINISTRATIVE.LIBC_REGION_ADMINISTRATIVE, '?'),
          [Montant Finance] = SESSION_PRO.MNT_VERSE_HT_OF,
-         
--- TRANSACTION REGLEMENT
+
 TRANS_REGL	.ID_TRANSACTION,
-         
--- DESTINATAIRE TRANSACTION REGLEMENT
+
   Type_Destinataire = CASE 
        WHEN TRANS_REGL.ID_ETABLISSEMENT_OF_DEST		IS NOT NULL		THEN 'OF'
        WHEN TRANS_REGL.ID_ETABLISSEMENT_DEST		IS NOT NULL		THEN 'ADH'
@@ -13989,7 +11393,7 @@ TRANS_REGL	.ID_TRANSACTION,
        WHEN TRANS_REGL.ID_ETABLISSEMENT_DEST  IS NOT NULL THEN ET_ADH_DEST.NUM_SIRET
        ELSE '?'
        END,  
--- BENEFICIARE TRANSACTION REGLEMENT
+
   Type_Beneficiaire = CASE 
        WHEN  TRANS_REGL.ID_TIERS_BENEF    IS NOT NULL THEN 'Tiers'
        WHEN TRANS_REGL.ID_ETABLISSEMENT_OF_BENEF IS NOT NULL THEN 'OF'
@@ -14016,8 +11420,7 @@ TRANS_REGL	.ID_TRANSACTION,
        WHEN TRANS_REGL.ID_ETABLISSEMENT_BENEF  IS NOT NULL THEN ET_ADH_BENEF.NUM_SIRET 
        ELSE '?'
        END
-         
-         
+
          FROM	   SESSION_PRO		
          INNER JOIN MODULE_PRO							ON MODULE_PRO.ID_MODULE_PRO				= SESSION_PRO.ID_MODULE_PRO
          INNER JOIN CONTRAT_PRO							ON CONTRAT_PRO.ID_CONTRAT_PRO			= MODULE_PRO.ID_CONTRAT_PRO
@@ -14025,43 +11428,40 @@ TRANS_REGL	.ID_TRANSACTION,
          LEFT JOIN SESSION_BAP_PRO S_BAP					ON SESSION_PRO.ID_SESSION_BAP_PRO_OF	= S_BAP.ID_SESSION_BAP_PRO
          LEFT JOIN UTILISATEUR U_BAP						ON U_BAP .ID_UTILISATEUR				= S_BAP.ID_UTILISATEUR
          LEFT JOIN REGLEMENT_PRO							ON SESSION_PRO.ID_REGLEMENT_PRO_OF		= REGLEMENT_PRO .ID_REGLEMENT_PRO
-         
+
          LEFT JOIN ETABLISSEMENT_OF	ETOF_MODULE 		ON MODULE_PRO.ID_ETABLISSEMENT_OF		= ETOF_MODULE.ID_ETABLISSEMENT_OF
          LEFT JOIN ORGANISME_FORMATION	OF_MODULE		ON OF_MODULE.ID_OF						= ETOF_MODULE.ID_OF
-         
+
          LEFT JOIN AGENCE	DT_U_BAP					ON U_BAP.ID_AGENCE						= DT_U_BAP.ID_AGENCE
          INNER JOIN FACTURE								ON SESSION_PRO.ID_FACTURE_OF			= FACTURE.ID_FACTURE		
          INNER JOIN TYPE_FACTURE							ON TYPE_FACTURE.ID_TYPE_FACTURE			= FACTURE.ID_TYPE_FACTURE
-         
--- EMETTEUR FACTURE
+
 left join ETABLISSEMENT_OF		ET_OF_EMET_FAC		ON FACTURE.ID_EMETTEUR_ETABLISSEMENT_OF = ET_OF_EMET_FAC.ID_ETABLISSEMENT_OF
 left join ORGANISME_FORMATION	OF_EMET_FAC			ON ET_OF_EMET_FAC.ID_OF					= OF_EMET_FAC.ID_OF
 left join ETABLISSEMENT			ET_ADH_EMET_FAC		ON FACTURE.ID_EMETTEUR_ETABLISSEMENT_ADH= ET_ADH_EMET_FAC.ID_ETABLISSEMENT
 left join ADHERENT				ADH_EMET_FAC		ON ADH_EMET_FAC.ID_ADHERENT				= ET_ADH_EMET_FAC.ID_ADHERENT
 
          INNER JOIN DISPOSITIF							ON DISPOSITIF.ID_DISPOSITIF = TYPE_FORMATION.ID_DISPOSITIF
-         
+
          INNER JOIN ETABLISSEMENT						ON  CONTRAT_PRO.ID_ETABLISSEMENT = ETABLISSEMENT.ID_ETABLISSEMENT 
          INNER JOIN ADHERENT								ON  ADHERENT.ID_ADHERENT = ETABLISSEMENT.ID_ADHERENT
          INNER JOIN GROUPE								ON  GROUPE.ID_GROUPE = ETABLISSEMENT.ID_GROUPE
-         
+
          INNER JOIN ADRESSE								ON	ADRESSE.ID_ADRESSE = ETABLISSEMENT.ID_ADRESSE_PRINCIPALE
          INNER JOIN BRANCHE								ON  ETABLISSEMENT.ID_BRANCHE = BRANCHE .ID_BRANCHE 
          INNER JOIN AGENCE DT_ETAB						ON  ETABLISSEMENT.ID_AGENCE = DT_ETAB.ID_AGENCE
-         
+
          LEFT JOIN DEPARTEMENT							ON	DEPARTEMENT.ID_DEPARTEMENT = LEFT(ADRESSE.LIB_CP_CEDEX, 2)
          LEFT JOIN REGION_ADMINISTRATIVE					ON	REGION_ADMINISTRATIVE.ID_REGION_ADMINISTRATIVE = DEPARTEMENT.ID_REGION_ADMINISTRATIVE
          LEFT JOIN UTILISATEUR AGF_ETAB					ON	AGF_ETAB.ID_UTILISATEUR = ETABLISSEMENT.ID_CHARGEE_RELATION
-         
+
          LEFT JOIN [TRANSACTION]	TRANS_REGL				ON  SESSION_PRO.ID_TRANSACTION_OF = TRANS_REGL.ID_TRANSACTION
-         
--- DESTINATAIRE TRANSACTION
+
 left join ETABLISSEMENT_OF		ET_OF_DEST		ON TRANS_REGL.ID_ETABLISSEMENT_OF_DEST   = ET_OF_DEST.ID_ETABLISSEMENT_OF
 left join ORGANISME_FORMATION	OF_DEST			ON OF_DEST.ID_OF      = ET_OF_DEST.ID_OF
 left join ETABLISSEMENT			ET_ADH_DEST		ON TRANS_REGL.ID_ETABLISSEMENT_DEST    = ET_ADH_DEST.ID_ETABLISSEMENT
 left join ADHERENT				ADH_DEST		ON ADH_DEST.ID_ADHERENT     = ET_ADH_DEST.ID_ADHERENT
 
--- BENEFICIAIRE TRANSACTION
 left join ETABLISSEMENT_OF		ET_OF_BENEF		ON TRANS_REGL.ID_ETABLISSEMENT_OF_BENEF = ET_OF_BENEF.ID_ETABLISSEMENT_OF
 left join ORGANISME_FORMATION	OF_BENEF		ON OF_BENEF.ID_OF						= ET_OF_BENEF.ID_OF
 left join ETABLISSEMENT			ET_ADH_BENEF	ON TRANS_REGL.ID_ETABLISSEMENT_BENEF    = ET_ADH_BENEF.ID_ETABLISSEMENT
@@ -14070,15 +11470,14 @@ left join TIERS					TIERS			ON TIERS.ID_TIERS						= TRANS_REGL.ID_TIERS_BENEF
 
 UNION
 
-         -- Partie CPRO - ADH
          SELECT
          [ID Facture]				= FACTURE.ID_FACTURE,
          [Type Facture]			= TYPE_FACTURE.LIBC_TYPE_FACTURE,
          [Code Interne Facture]		= FACTURE.COD_FACTURE,
          [Code Externe Facture]		= FACTURE.NUM_FACTURE,
-         -- SOURCE
+
          SOURCE = CASE WHEN FACTURE.ID_UTILISATEUR_CREATEUR = 79 THEN 'D3R' ELSE 'OPTIFORM' END,
-         -- EMETTEUR_FACTURE
+
   Type_Emetteur_Facture = CASE 
        WHEN ET_OF_EMET_FAC.ID_ETABLISSEMENT_OF		IS NOT NULL		THEN 'OF'
        WHEN ET_ADH_EMET_FAC.ID_ETABLISSEMENT		IS NOT NULL		THEN 'ADH'
@@ -14106,23 +11505,20 @@ UNION
          [Date Reception Facture] = FACTURE.DAT_RECEPTION,
          [Date Saisie Facture]	= ISNULL(FACTURE.DAT_MODIF, FACTURE.DAT_CREATION),
          [Facture Lettree]		= FACTURE.BLN_LETTRE,
-         
+
          ID_PCR						= SESSION_PRO.ID_SESSION_PRO,
          [Date Creation PCR]			= SESSION_PRO.DAT_CREATION, 
          ID_MODULE					= MODULE_PRO.ID_MODULE_PRO,
          ID_SESSION					= SESSION_PRO.ID_SESSION_PRO,
          PERIMETRE					= 'CPRO_ADH', 
          [Date BAP]					= SESSION_PRO.DAT_BAP_ADH,
-         --[JOUR BAP]					= DAY(SESSION_PRO.DAT_BAP_ADH),
-         --[MOIS BAP]					= MONTH(SESSION_PRO.DAT_BAP_ADH),
-         --[ANNEE BAP]					= YEAR(SESSION_PRO.DAT_BAP_ADH),
-         
+
          [Date Creation SESSION BAP]		= S_BAP.DAT_CREATION, 
          [Date Edition SESSION BAP]		= S_BAP.DAT_EDITION, 
          [Date Reception SESSION BAP]	= S_BAP.DAT_RECEPTION, 
          [NOM UTILISATEUR SESSION BAP]	= U_BAP .LIB_NOM,
          [DT UTILISATEUR SESSION BAP]	= DT_U_BAP.LIBC_AGENCE,
-         
+
          [Code Reglement] =	CAST(
          					CASE 
          					WHEN REGLEMENT_PRO.NUM_CHEQUE IS NOT NULL THEN 'Cheque Nø ' + REGLEMENT_PRO.NUM_CHEQUE
@@ -14130,12 +11526,12 @@ UNION
          					ELSE '?'
          					END
          					AS VARCHAR (30)),
-         										
+
          IBAN_REGLEMENT = TRANS_REGL.NUM_IBAN,
          [Date Creation Reglement] = REGLEMENT_PRO.DAT_REGLEMENT,
          [Date Edition Reglement] = REGLEMENT_PRO.DAT_EDITION, 
          [Date Validation Reglement] = REGLEMENT_PRO.DAT_VALID_REGLEMENT, 
-         
+
          [Code DOSSIER]				= CONTRAT_PRO.COD_CONTRAT_PRO,
          [Code Module]				= MODULE_PRO.COD_MODULE_PRO  ,
          [Code Session]				= SESSION_PRO.COD_SESSION_PRO  ,
@@ -14151,8 +11547,7 @@ UNION
          [Montant Impute HT]		 =	SESSION_PRO.MNT_VERSE_HT_ADH,
          [Montant BAPE HT]	 =		CASE WHEN SESSION_PRO.DAT_BAP_ADH IS NOT NULL THEN SESSION_PRO.MNT_VERSE_HT_ADH ELSE 0 END,
          [Montant Regle HT]	 =		CASE WHEN REGLEMENT_PRO.DAT_VALID_REGLEMENT IS NOT NULL THEN SESSION_PRO.MNT_VERSE_HT_ADH ELSE 0 END,
-         
-         -- ETablissement Financeur
+
          [Code Adherent Financeur] = ADHERENT.COD_ADHERENT,
          [Raison Sociale Adherent Financeur] = ADHERENT.LIB_RAISON_SOCIALE,
          [SIRET Financeur] = ETABLISSEMENT.NUM_SIRET,
@@ -14164,11 +11559,9 @@ UNION
          [Code Departement Etablissement Financeur] = ISNULL(DEPARTEMENT.COD_DEPARTEMENT, '?'),
          [Region Admin Etablissement Financeur] = ISNULL(REGION_ADMINISTRATIVE.LIBC_REGION_ADMINISTRATIVE, '?'),
          [Montant Finance] = SESSION_PRO.MNT_VERSE_HT_ADH,
-         
--- TRANSACTION REGLEMENT
+
 TRANS_REGL	.ID_TRANSACTION,
-         
--- DESTINATAIRE TRANSACTION REGLEMENT
+
   Type_Destinataire = CASE 
        WHEN TRANS_REGL.ID_ETABLISSEMENT_OF_DEST		IS NOT NULL		THEN 'OF'
        WHEN TRANS_REGL.ID_ETABLISSEMENT_DEST		IS NOT NULL		THEN 'ADH'
@@ -14191,7 +11584,7 @@ TRANS_REGL	.ID_TRANSACTION,
        WHEN TRANS_REGL.ID_ETABLISSEMENT_DEST  IS NOT NULL THEN ET_ADH_DEST.NUM_SIRET
        ELSE '?'
        END,  
--- BENEFICIARE TRANSACTION REGLEMENT
+
   Type_Beneficiaire = CASE 
        WHEN  TRANS_REGL.ID_TIERS_BENEF    IS NOT NULL THEN 'Tiers'
        WHEN TRANS_REGL.ID_ETABLISSEMENT_OF_BENEF IS NOT NULL THEN 'OF'
@@ -14218,8 +11611,7 @@ TRANS_REGL	.ID_TRANSACTION,
        WHEN TRANS_REGL.ID_ETABLISSEMENT_BENEF  IS NOT NULL THEN ET_ADH_BENEF.NUM_SIRET 
        ELSE '?'
        END
-         
-         
+
          FROM	   SESSION_PRO		
          INNER JOIN MODULE_PRO							ON MODULE_PRO.ID_MODULE_PRO				= SESSION_PRO.ID_MODULE_PRO
          INNER JOIN CONTRAT_PRO							ON CONTRAT_PRO.ID_CONTRAT_PRO			= MODULE_PRO.ID_CONTRAT_PRO
@@ -14227,43 +11619,40 @@ TRANS_REGL	.ID_TRANSACTION,
          LEFT JOIN SESSION_BAP_PRO S_BAP				    ON SESSION_PRO.ID_SESSION_BAP_PRO_ADH	= S_BAP.ID_SESSION_BAP_PRO
          LEFT JOIN UTILISATEUR U_BAP						ON U_BAP .ID_UTILISATEUR				= S_BAP.ID_UTILISATEUR
          LEFT JOIN REGLEMENT_PRO							ON SESSION_PRO.ID_REGLEMENT_PRO_ADH		= REGLEMENT_PRO .ID_REGLEMENT_PRO
-         
+
          LEFT JOIN ETABLISSEMENT_OF	ETOF_MODULE 		ON MODULE_PRO.ID_ETABLISSEMENT_OF		= ETOF_MODULE.ID_ETABLISSEMENT_OF
          LEFT JOIN ORGANISME_FORMATION	OF_MODULE		ON OF_MODULE.ID_OF						= ETOF_MODULE.ID_OF
-         
+
          LEFT JOIN AGENCE	DT_U_BAP					ON U_BAP.ID_AGENCE						= DT_U_BAP.ID_AGENCE
          INNER JOIN FACTURE								ON SESSION_PRO.ID_FACTURE_ADHERENT		= FACTURE.ID_FACTURE		
          INNER JOIN TYPE_FACTURE							ON TYPE_FACTURE.ID_TYPE_FACTURE			= FACTURE.ID_TYPE_FACTURE
-         
-         -- EMETTEUR FACTURE
+
 left join ETABLISSEMENT_OF		ET_OF_EMET_FAC		ON FACTURE.ID_EMETTEUR_ETABLISSEMENT_OF = ET_OF_EMET_FAC.ID_ETABLISSEMENT_OF
 left join ORGANISME_FORMATION	OF_EMET_FAC			ON ET_OF_EMET_FAC.ID_OF					= OF_EMET_FAC.ID_OF
 left join ETABLISSEMENT			ET_ADH_EMET_FAC		ON FACTURE.ID_EMETTEUR_ETABLISSEMENT_ADH= ET_ADH_EMET_FAC.ID_ETABLISSEMENT
 left join ADHERENT				ADH_EMET_FAC		ON ADH_EMET_FAC.ID_ADHERENT				= ET_ADH_EMET_FAC.ID_ADHERENT
 
          INNER JOIN DISPOSITIF							ON DISPOSITIF.ID_DISPOSITIF = TYPE_FORMATION.ID_DISPOSITIF
-         
+
          INNER JOIN ETABLISSEMENT						ON  CONTRAT_PRO.ID_ETABLISSEMENT = ETABLISSEMENT.ID_ETABLISSEMENT 
          INNER JOIN ADHERENT								ON  ADHERENT.ID_ADHERENT = ETABLISSEMENT.ID_ADHERENT
          INNER JOIN GROUPE								ON  GROUPE.ID_GROUPE = ETABLISSEMENT.ID_GROUPE
-         
+
          INNER JOIN ADRESSE								ON	ADRESSE.ID_ADRESSE = ETABLISSEMENT.ID_ADRESSE_PRINCIPALE
          INNER JOIN BRANCHE								ON  ETABLISSEMENT.ID_BRANCHE = BRANCHE .ID_BRANCHE 
          INNER JOIN AGENCE DT_ETAB						ON  ETABLISSEMENT.ID_AGENCE = DT_ETAB.ID_AGENCE
-         
+
          LEFT JOIN DEPARTEMENT							ON	DEPARTEMENT.ID_DEPARTEMENT = LEFT(ADRESSE.LIB_CP_CEDEX, 2)
          LEFT JOIN REGION_ADMINISTRATIVE					ON	REGION_ADMINISTRATIVE.ID_REGION_ADMINISTRATIVE = DEPARTEMENT.ID_REGION_ADMINISTRATIVE
          LEFT JOIN UTILISATEUR AGF_ETAB					ON	AGF_ETAB.ID_UTILISATEUR = ETABLISSEMENT.ID_CHARGEE_RELATION
-         
+
          LEFT JOIN [TRANSACTION]	TRANS_REGL				ON  SESSION_PRO.ID_TRANSACTION_ADH = TRANS_REGL.ID_TRANSACTION
-         
--- DESTINATAIRE TRANSACTION
+
 left join ETABLISSEMENT_OF		ET_OF_DEST		ON TRANS_REGL.ID_ETABLISSEMENT_OF_DEST  = ET_OF_DEST.ID_ETABLISSEMENT_OF
 left join ORGANISME_FORMATION	OF_DEST			ON OF_DEST.ID_OF						= ET_OF_DEST.ID_OF
 left join ETABLISSEMENT			ET_ADH_DEST		ON TRANS_REGL.ID_ETABLISSEMENT_DEST		= ET_ADH_DEST.ID_ETABLISSEMENT
 left join ADHERENT				ADH_DEST		ON ADH_DEST.ID_ADHERENT					= ET_ADH_DEST.ID_ADHERENT
 
--- BENEFICIAIRE TRANSACTION
 left join ETABLISSEMENT_OF		ET_OF_BENEF		ON TRANS_REGL.ID_ETABLISSEMENT_OF_BENEF = ET_OF_BENEF.ID_ETABLISSEMENT_OF
 left join ORGANISME_FORMATION	OF_BENEF		ON OF_BENEF.ID_OF						= ET_OF_BENEF.ID_OF
 left join ETABLISSEMENT			ET_ADH_BENEF	ON TRANS_REGL.ID_ETABLISSEMENT_BENEF    = ET_ADH_BENEF.ID_ETABLISSEMENT
@@ -14271,15 +11660,15 @@ left join ADHERENT				ADH_BENEF		ON ADH_BENEF.ID_ADHERENT				= ET_ADH_BENEF.ID_A
 left join TIERS					TIERS			ON TIERS.ID_TIERS						= TRANS_REGL.ID_TIERS_BENEF
 
 UNION
--- Facture Sans DR/Session PRO
+
          SELECT
          [ID Facture]				= FACTURE.ID_FACTURE,
          [Type Facture]				= TYPE_FACTURE.LIBC_TYPE_FACTURE,
          [Code Interne Facture]		= FACTURE.COD_FACTURE,
          [Code Externe Facture]		= FACTURE.NUM_FACTURE,
-         -- SOURCE
+
          SOURCE = CASE WHEN FACTURE.ID_UTILISATEUR_CREATEUR = 79 THEN 'D3R' ELSE 'OPTIFORM' END,
-         -- EMETTEUR_FACTURE
+
   Type_Emetteur_Facture = CASE 
        WHEN ET_OF_EMET_FAC.ID_ETABLISSEMENT_OF		IS NOT NULL		THEN 'OF'
        WHEN ET_ADH_EMET_FAC.ID_ETABLISSEMENT		IS NOT NULL		THEN 'ADH'
@@ -14307,27 +11696,27 @@ UNION
          [Date Reception Facture] = FACTURE.DAT_RECEPTION,
          [Date Saisie Facture]	= ISNULL(FACTURE.DAT_MODIF, FACTURE.DAT_CREATION),
          [Facture Lettree]		= FACTURE.BLN_LETTRE,
-         
+
          ID_PCR						= NULL,
          [Date Creation PCR]			= NULL,
          ID_MODULE					= NULL,
          ID_SESSION					= NULL,
          PERIMETRE					= NULL,
          [Date BAP]					= NULL,
-         
+
          [Date Creation SESSION BAP]		= NULL, 
          [Date Edition SESSION BAP]		= NULL,
          [Date Reception SESSION BAP]	= NULL,
          [NOM UTILISATEUR SESSION BAP]	= U_FAC.LIB_NOM,
          [DT UTILISATEUR]				= AGENCE.LIBC_AGENCE,
-         
+
          [Code Reglement] =	NULL,
-         										
+
          IBAN_REGLEMENT = NULL,
          [Date Creation Reglement] = NULL,
          [Date Edition Reglement] = NULL,
          [Date Validation Reglement] = NULL,
-         
+
          [Code DOSSIER]				= NULL,
          [Code Module]				= NULL,
          [Code Session]				= NULL,
@@ -14343,8 +11732,7 @@ UNION
          [Montant Impute HT]			= 0,
          [Montant BAPE HT]			= 0,
          [Montant Regle HT]			= 0,
-         
-         -- ETablissement Financeur
+
          [Code Adherent Financeur] = NULL,
          [Raison Sociale Adherent Financeur] = NULL,
          [SIRET Financeur] = NULL,
@@ -14356,34 +11744,31 @@ UNION
          [Code Departement Etablissement Financeur] = NULL,
          [Region Admin Etablissement Financeur] = NULL,
          [Montant Finance] = 0,
-         
--- TRANSACTION REGLEMENT
+
 ID_TRANSACTION = NULL,
-         
--- DESTINATAIRE TRANSACTION REGLEMENT
+
   Type_Destinataire = NULL,
   COD_Destinataire = NULL,
   RAISON_SOCIALE_Destinataire      = NULL,
   SIRET_Destinataire = NULL,
--- BENEFICIARE TRANSACTION REGLEMENT
+
   Type_Beneficiaire = NULL,
   COD_Beneficiaire = NULL,
   RAISON_SOCIALE_Beneficiaire = NULL,
   SIRET_BENEFICIAIRE = NULL
-         
+
          FROM	   
-         
+
          FACTURE								
          INNER JOIN TYPE_FACTURE							ON TYPE_FACTURE.ID_TYPE_FACTURE			= FACTURE.ID_TYPE_FACTURE
-         
-         -- EMETTEUR FACTURE
+
 left join ETABLISSEMENT_OF		ET_OF_EMET_FAC		ON FACTURE.ID_EMETTEUR_ETABLISSEMENT_OF = ET_OF_EMET_FAC.ID_ETABLISSEMENT_OF
 left join ORGANISME_FORMATION	OF_EMET_FAC			ON ET_OF_EMET_FAC.ID_OF					= OF_EMET_FAC.ID_OF
 left join ETABLISSEMENT			ET_ADH_EMET_FAC		ON FACTURE.ID_EMETTEUR_ETABLISSEMENT_ADH= ET_ADH_EMET_FAC.ID_ETABLISSEMENT
 left join ADHERENT				ADH_EMET_FAC		ON ADH_EMET_FAC.ID_ADHERENT				= ET_ADH_EMET_FAC.ID_ADHERENT
 LEFT JOIN UTILISATEUR			U_FAC				ON U_FAC .ID_UTILISATEUR				= FACTURE.ID_UTILISATEUR_CREATEUR
          LEFT JOIN AGENCE									ON U_FAC.ID_AGENCE						= AGENCE.ID_AGENCE
-         
+
          WHERE 
          FACTURE.BLN_ACTIF = 1
          AND NOT EXISTS
@@ -14392,34 +11777,22 @@ LEFT JOIN UTILISATEUR			U_FAC				ON U_FAC .ID_UTILISATEUR				= FACTURE.ID_UTILIS
          (SELECT 1 FROM SESSION_PRO WHERE BLN_ACTIF = 1 AND SESSION_PRO .ID_FACTURE_ADHERENT  = FACTURE.ID_FACTURE )
          AND NOT EXISTS
          (SELECT 1 FROM SESSION_PRO WHERE BLN_ACTIF = 1 AND SESSION_PRO .ID_FACTURE_OF  = FACTURE.ID_FACTURE)
-         
+
 ) VUE_BAP_UTILISATEUR
          WHERE [Type Facture] != 'Pr‚-facture'
-         --AND [Code Interne Facture] IN ('F0000009/2014', 'F0000014/2014', 'F0000016/2014')
-         --AND [Code Dossier] = 'PL285291'
-         --AND [Code Module] = '288149 01/2012'
-         --AND [ANNEE BAP] = 2012
+
          AND 
-         
-         -- Recuperation de toutes les factures saisies (Date Creation/Date Modif) en annee N-1 et dans l'annee courante sur les mois pr‚c‚dents le mois courant
+
          ( 
          	( 
-         		-- factures saisies en annee N-1 
+
          		YEAR ([Date Saisie Facture] ) >= coalesce(@annee_ref,YEAR(GETDATE())) - 1
          	) 
-         	--OR
-         	--( 
-         	--	-- factures saisies dans l'annee courante sur les mois pr‚c‚dents le mois courant
-         	--	YEAR ([Date Saisie Facture] ) = YEAR(GETDATE())  	
-         	--	AND 
-         	--	MONTH ([Date Saisie Facture] ) <= MONTH (GETDATE()) -1    
-         	--) 
+
          )
-         --AND [DT UTILISATEUR SESSION BAP] = 'Sud Ouest'
+
          ORDER BY [Code Interne Facture] , ID_PCR
-         
-         
-         
+
          SELECT 
          [Code Interne Facture] ,
          [Code Externe Facture] ,
@@ -14435,11 +11808,11 @@ SIRET_Emetteur_Facture= MAX(  SIRET_Emetteur_Facture),
          [Facture Lettree]		=		CASE WHEN ISNULL(MAX ([Facture Lettree]), 0) =1 THEN 'Oui' ELSE 'Non' END,
          [Date Emission Facture]	= CONVERT(VARCHAR, MIN([Date Emission Facture]), 103),
          [Date Reception Facture] = CONVERT(VARCHAR, MIN([Date Reception Facture]) , 103),
-         
+
          [Delai Reception] = CONVERT(int, MIN([Date Reception Facture]) - MIN([Date Emission Facture])) ,
-         
+
          [Date Saisie Facture]	= CONVERT(VARCHAR, MIN([Date Saisie Facture]), 103),
-         
+
          [Delai Saisie Facture] = CONVERT(int, MIN([Date Saisie Facture]) - MIN([Date Reception Facture])) ,
          [Date Creation DR] = CONVERT(VARCHAR, MAX([Date Creation PCR] ), 103),
          [Date BAP MIN]= CONVERT(VARCHAR, MIN([Date BAP]), 103),
@@ -14448,8 +11821,7 @@ SIRET_Emetteur_Facture= MAX(  SIRET_Emetteur_Facture),
          [NB_PCR] = COUNT (distinct ID_PCR),
          [NB_MODULE] = COUNT (distinct ID_MODULE),
          [NB_SESSION] = COUNT (distinct ID_SESSION),
-         
-         
+
          [Date Creation SESSION BAP]		= CONVERT(VARCHAR, MAX([Date Creation SESSION BAP]	), 103),
          [Date Edition SESSION BAP]		=  CONVERT(VARCHAR, MAX([Date Edition SESSION BAP]), 103),
          [Date Reception SESSION BAP]	=  CONVERT(VARCHAR, MAX([Date Reception SESSION BAP]), 103),
@@ -14475,27 +11847,13 @@ SIRET_Emetteur_Facture= MAX(  SIRET_Emetteur_Facture),
          [Code Interne Facture] ,
          [Code Externe Facture] 
          ORDER BY MIN([Date Saisie Facture]), [Code Interne Facture]
-         
-         
+
          SELECT * FROM TMP_DELAI_FACT
-         
+
          END
-         
 
 CREATE PROCEDURE [dbo].[MVT_BUDGETAIRE_PEC_GENERATION]  
-         /* *****************************************************************************************
-         -- Auteur   : MBL
-         -- Date Creation : 31/05/2012
          
-         -- Role    : Procedure generique de generation des mouvements budgetaires associes a un evenement
-               Cette PS permet de declencher la generation des differents mouvements budgetaires associes a un type d'evenement
-               pour les differents types de mouvement a generer.
-         
-         ------------------------------------------------------------------------------------------------
-         -- Modif MB du 26/05/2014 : Rajout des mouvements budgetaires lies a l'evenement de DECLOTURE
-         ------------------------------------------------------------------------------------------------
-         
-         ***************************************************************************************** */
           @ID_EVENEMENT  INT   ,
           @ID_EVENEMENT_MIN INT = NULL , 
           @ID_EVENEMENT_MAX INT = NULL 
@@ -14504,18 +11862,17 @@ CREATE PROCEDURE [dbo].[MVT_BUDGETAIRE_PEC_GENERATION]
            @ID_TYPE_MOUVEMENT int   ,
            @P_E_R    varchar(1) ,
            @LIB_PB_EVENEMENT varchar(100)
-         
+
          BEGIN
-          
+
           IF EXISTS (SELECT 1 FROM MVT_BUDGETAIRE WHERE ID_EVENEMENT = @ID_EVENEMENT)
           BEGIN
            select 'Pb : Mvt Budgetaires deja generes pour cet evenement ', *
            FROM EVENEMENT
            WHERE ID_EVENEMENT = @ID_EVENEMENT  
-           
+
            SET @LIB_PB_EVENEMENT = 'Detection tentative de generation de Mvt Budgetaires deja generes pour cet evenement'
-           
-           -- Trace de l'anomalie
+
            INSERT INTO PB_EVENEMENT_MVT_BUDGETAIRE_PEC
            (ID_EVENEMENT   ,
            LIB_PB_EVENEMENT  ,
@@ -14542,118 +11899,88 @@ CREATE PROCEDURE [dbo].[MVT_BUDGETAIRE_PEC_GENERATION]
            FROM EVENEMENT 
            INNER JOIN TYPE_EVENEMENT ON TYPE_EVENEMENT.ID_TYPE_EVENEMENT = EVENEMENT.ID_TYPE_EVENEMENT 
            WHERE ID_EVENEMENT = @ID_EVENEMENT
-             
+
            IF @COD_TYPE_EVENEMENT = 'CHIF_PEC'
            BEGIN
-            -- Generation des Mouvements Budgetaires d'annulation de Pr‚vision
-            -- permettant de remettre a zero les Montants Previsionnels lies au sous type de cout du PCE associe a l'evenement
-            SET @ID_TYPE_MOUVEMENT = 19 -- Mouvement d'annulation de Pr‚vision
+
+            SET @ID_TYPE_MOUVEMENT = 19 
             SET @P_E_R = 'P'
             EXEC MVT_BUDGETAIRE_PEC_ANNULATION @ID_EVENEMENT, @ID_TYPE_MOUVEMENT, @P_E_R 
-         
-            -- Generation des Mouvements Budgetaires lies a la validation des chiffrages
-            --    Les mouvements budgetaires generes sont des mouvements previsionnels bases 
-            --    sur le plan de financement du PCE associe a l'evenement de Chiffrage
-            SET @ID_TYPE_MOUVEMENT = 18 -- Mouvement de Pr‚vision
+
+            SET @ID_TYPE_MOUVEMENT = 18 
             SET @P_E_R = 'P'
             EXEC MVT_BUDGETAIRE_PEC_INS_PLAN_FINANCEMENT @ID_EVENEMENT, @ID_TYPE_MOUVEMENT, @P_E_R 
            END
-           
+
            IF @COD_TYPE_EVENEMENT = 'DESENG'
            BEGIN
-            -- Generation des Mouvements Budgetaires d'annulation d'Engagement
-            -- permettant de remettre a zero les Montants Engages lies au sous type de cout du PCE associe a l'evenement
-            SET @ID_TYPE_MOUVEMENT = 21 -- Desengagement
+
+            SET @ID_TYPE_MOUVEMENT = 21 
             SET @P_E_R = 'E'
             EXEC MVT_BUDGETAIRE_PEC_ANNULATION @ID_EVENEMENT, @ID_TYPE_MOUVEMENT, @P_E_R 
-            
+
            END
-           
+
            IF @COD_TYPE_EVENEMENT = 'ENGAGMT'
            BEGIN
-            -- Generation des Mouvements Budgetaires d'annulation de Pr‚vision
-            -- permettant de remettre a zero les Montants Previsionnels lies au sous type de cout du PCE associe a l'evenement
-            SET @ID_TYPE_MOUVEMENT = 19 -- Mouvement d'annulation de Pr‚vision
+
+            SET @ID_TYPE_MOUVEMENT = 19 
             SET @P_E_R = 'P'
             EXEC MVT_BUDGETAIRE_PEC_ANNULATION @ID_EVENEMENT , @ID_TYPE_MOUVEMENT, @P_E_R 
-         
-            -- Generation des Mouvements Budgetaires lies a l'engagement d'un sous type de cout
-            --    Les mouvements budgetaires generes sont des mouvements d'engagement bases 
-            --    sur le plan de financement du PCE engage
-            SET @ID_TYPE_MOUVEMENT = 20 -- Engagement
+
+            SET @ID_TYPE_MOUVEMENT = 20 
             SET @P_E_R = 'E'
             EXEC MVT_BUDGETAIRE_PEC_INS_PLAN_FINANCEMENT @ID_EVENEMENT, @ID_TYPE_MOUVEMENT, @P_E_R  
            END 
-         
+
            IF @COD_TYPE_EVENEMENT = 'ANNULATI'
            BEGIN   
-            -- Generation des Mouvements Budgetaires d'annulation de Pr‚vision
-            -- permettant de remettre a zero les Montants Previsionnels lies au sous type de cout du PCE associe a l'evenement
-            SET @ID_TYPE_MOUVEMENT = 19 -- Mouvement d'annulation de Pr‚vision
+
+            SET @ID_TYPE_MOUVEMENT = 19 
             SET @P_E_R = 'P'
             EXEC MVT_BUDGETAIRE_PEC_ANNULATION @ID_EVENEMENT , @ID_TYPE_MOUVEMENT, @P_E_R 
-         
-            -- Generation des Mouvements Budgetaires de desengagement
-            -- permettant de remettre a zero les Montants Engages lies au sous type de cout du PCE associe a l'evenement
-            SET @ID_TYPE_MOUVEMENT = 21 -- D‚sengagement
+
+            SET @ID_TYPE_MOUVEMENT = 21 
             SET @P_E_R = 'E'
             EXEC MVT_BUDGETAIRE_PEC_ANNULATION @ID_EVENEMENT , @ID_TYPE_MOUVEMENT, @P_E_R 
            END   
-         
+
            IF @COD_TYPE_EVENEMENT = 'CLOMOPEC'
            BEGIN
-            -- Generation des Mouvements Budgetaires d'annulation de Pr‚vision
-            -- permettant de remettre a zero les Montants Previsionnels lies au sous type de cout du PCE associe a l'evenement
-            SET @ID_TYPE_MOUVEMENT = 19 -- Mouvement d'annulation de Pr‚vision
+
+            SET @ID_TYPE_MOUVEMENT = 19 
             SET @P_E_R = 'P'
             EXEC MVT_BUDGETAIRE_PEC_ANNULATION @ID_EVENEMENT , @ID_TYPE_MOUVEMENT, @P_E_R 
-         
-            -- Generation des Mouvements Budgetaires de desengagement
-            -- permettant de remettre a zero les Montants Engages lies au sous type de cout du PCE associe a l'evenement
-            SET @ID_TYPE_MOUVEMENT = 21 -- D‚sengagement
+
+            SET @ID_TYPE_MOUVEMENT = 21 
             SET @P_E_R = 'E'
             EXEC MVT_BUDGETAIRE_PEC_ANNULATION @ID_EVENEMENT , @ID_TYPE_MOUVEMENT, @P_E_R 
            END   
-         
-         
+
            IF @COD_TYPE_EVENEMENT = 'REGLEMT'
            BEGIN
-            -- Generation des Mouvements Budgetaires de DESENGAGEMENT (P_E_R = 'E') lies au reglement d'un PCR
-            --    Les mouvements budgetaires generes sont des mouvements d'engagement (P_E_R = 'E') bases 
-            --    sur le plan de financement du PCR regle dans la limite du montant engage
-            SET @ID_TYPE_MOUVEMENT = 21 -- Mouvement de desengagement
+
+            SET @ID_TYPE_MOUVEMENT = 21 
             SET @P_E_R = 'E'
             EXEC MVT_BUDGETAIRE_PEC_INS_PLAN_FINANCEMENT @ID_EVENEMENT , @ID_TYPE_MOUVEMENT, @P_E_R 
-           
-            -- Generation des Mouvements Budgetaires de REGLEMENT (P_E_R = 'R') lies au reglement d'un PCR
-            --    Les mouvements budgetaires generes sont des mouvements de reglements (P_E_R = 'R') bases 
-            --    sur le plan de financement du PCR regle
-            SET @ID_TYPE_MOUVEMENT = 22 -- Reglement
+
+            SET @ID_TYPE_MOUVEMENT = 22 
             SET @P_E_R = 'R'
             EXEC MVT_BUDGETAIRE_PEC_INS_PLAN_FINANCEMENT @ID_EVENEMENT, @ID_TYPE_MOUVEMENT, @P_E_R  
            END  
-           
-           -- Modif MB du 26/05/2014 : Rajout des mouvements budgetaires lies a l'evenement de DECLOTURE
-           IF @COD_TYPE_EVENEMENT = 'ANCLOPEC' -- DECLOTURE
+
+           IF @COD_TYPE_EVENEMENT = 'ANCLOPEC' 
            BEGIN
-              
-            -- Generation des Mouvements Budgetaires d 'annulation de cloture (P_E_R = 'E') 
-            --    Les mouvements budgetaires generes sont des mouvements d'engagement (P_E_R = 'E') bases 
-            --    sur le montant du dernier desengagement effectue lors de la cloture
-            SET @ID_TYPE_MOUVEMENT = 20 -- Engagement
+
+            SET @ID_TYPE_MOUVEMENT = 20 
             SET @P_E_R = 'E'         
             EXEC MVT_BUDGETAIRE_PEC_ANNULATION @ID_EVENEMENT , @ID_TYPE_MOUVEMENT, @P_E_R, @ID_EVENEMENT_MIN, @ID_EVENEMENT_MAX
-         
-         
-            -- Generation des Mouvements Budgetaires d 'annulation de cloture (P_E_R = 'P') 
-            --    Les mouvements budgetaires generes sont des mouvements de chiffrage (P_E_R = 'P') bases 
-            --    sur le montant de la derniere annulation de chiffrage effectue lors de la cloture
-            SET @ID_TYPE_MOUVEMENT = 18 -- Chiffrage
+
+            SET @ID_TYPE_MOUVEMENT = 18 
             SET @P_E_R = 'P'         
             EXEC MVT_BUDGETAIRE_PEC_ANNULATION @ID_EVENEMENT , @ID_TYPE_MOUVEMENT, @P_E_R, @ID_EVENEMENT_MIN, @ID_EVENEMENT_MAX
            END  
-           
-           
+
           END
          END
 
@@ -14664,50 +11991,27 @@ GO
           @MONTANT   decimal(18,2),
           @MONTANT_TVA  decimal(18,2),
           @ID_POSTE_COUT_REGLE int,
-          @ID_TYPE int, -- <0 comptes
-              -- >0 ID Enveloppe
+          @ID_TYPE int, 
+
           @ID_POSTE_COUT_ENGAGE int
          AS
-         -- =============================================
-         -- Author:  XX
-         -- Create date: XX XXXX 2007
-         -- Description: Proc‚dure d'insertion/MaJ de plan de financement en fonction du type de plan.
-         -- =============================================
-         -- Author:  KS
-         -- Create date: 03 d‚c. 2007
-         -- Description: ajout du montant TVA dans les plans de financement
-         -- =============================================
-         -- Author:  DSZ
-         -- Create date: 02/06/09
-         -- Description: changement float -> decimal. Mantis 11589.
-         -- =============================================
-         -- Author:  ASD
-         -- Create date: 06/07/09
-         -- Description: Am‚lioration correction pr‚c‚dente (typage decimal avec virgules)
-         -- =============================================
-         -- OPA 31/05/2013 : 15031 : SBR - suppression du type FLOAT et REAL dans le SQL : 2- FLOAT
-         -- =============================================
-         -- DSZ 24/01/2014 : 15636: nettoyage du code comment‚
-         -- =============================================
-         -- DSZ 21/11/2014 : #682 dynamisation des comptes
-         -- =============================================
+
          BEGIN
-         
+
           DECLARE @COUNT INT
           DECLARE @ID_TEMP INT
           DECLARE @MNT_TEMP decimal(18,2)
-          
+
           IF (@ID_TYPE < 0)
           BEGIN
-         
-         
+
            SELECT @COUNT = COUNT(*)
            FROM PLAN_FINANCEMENT_US
            WHERE ID_TYPE_FINANCEMENT = - @ID_TYPE
             AND ID_ENVELOPPE IS NULL
             AND ID_UNITE_STAGIAIRE = @ID_UNITE_STAGIAIRE
             AND ID_POSTE_COUT_REGLE = @ID_POSTE_COUT_REGLE
-         
+
            IF @COUNT = 0 OR @COUNT IS NULL
            BEGIN
             INSERT INTO PLAN_FINANCEMENT_US
@@ -14729,18 +12033,18 @@ GO
              AND ID_UNITE_STAGIAIRE = @ID_UNITE_STAGIAIRE
              AND ID_POSTE_COUT_REGLE = @ID_POSTE_COUT_REGLE
            END
-           
+
           END
-          ELSE --  (@ID_TYPE > 0)
+          ELSE 
           BEGIN
-         
+
            SELECT @COUNT = COUNT(*)
            FROM PLAN_FINANCEMENT_US
            WHERE ID_TYPE_FINANCEMENT IS NULL
             AND ID_ENVELOPPE = @ID_TYPE
             AND ID_UNITE_STAGIAIRE = @ID_UNITE_STAGIAIRE
             AND ID_POSTE_COUT_REGLE = @ID_POSTE_COUT_REGLE
-         
+
            IF @COUNT = 0 OR @COUNT IS NULL
            BEGIN
             INSERT INTO PLAN_FINANCEMENT_US
@@ -14751,7 +12055,7 @@ GO
              (GETDATE(), @MONTANT, 
              1, @ID_UNITE_STAGIAIRE, NULL, 
              @ID_TYPE, @ID_POSTE_COUT_REGLE, 1, @MONTANT_TVA)
-          
+
            END
            ELSE
            BEGIN
@@ -14763,14 +12067,12 @@ GO
              AND ID_UNITE_STAGIAIRE = @ID_UNITE_STAGIAIRE
              AND ID_POSTE_COUT_REGLE = @ID_POSTE_COUT_REGLE
            END 
-         
+
           END
          END
 
-		          
 create procedure CKParser.TheEnd 
 as 
 begin         
 	print 'Everything worked';
 end
-

@@ -1,31 +1,15 @@
 ﻿
-         
          CREATE PROCEDURE [BATCH_TRANSFERT_DOTATION_EXCEPTIONNELLE_PME_2015]
-         /*
-         =============================================  
-         Author  : MBL
-         Create date : 22/09/2015
-         Description : Proc‚dure permettant de lancer des tranferts des dotations exceptionnelles 2015 pour les adh‚rents de type PME (champ application P10-49)
-         sur le compte Selection DEFI	(@COD_TYPE_EVENEMENT_DOTATION = 'DOTPME15')
-         Le traitement fait appel a la fonction de table F_TRANSFERT_DOTATION_EXCEPTIONNELLE_PME_2015 constituant un outil d'aide … la d‚cision 
-         afin de g‚n‚rer ces transferts.
          
-         -- CONDITION DE LANCEMENT
-         Parametre : la valorisation du parametre @ID_ADHERENT_TRAITE est optionnelle. 
-         			S'il est valorise, le traitement n'est declenche que pour l'adherent de mˆme ID
-         			S'il n'est pas valorise, le traitement est declenche pour tous les adherents
-         -- =============================================
-         */
          @ID_ADHERENT_TRAITE						int
          AS
          BEGIN
-         
+
          	IF OBJECT_ID('tempdb..#TMP_TRANSFERT', 'U') IS NOT NULL 
          	BEGIN
          		drop table #TMP_TRANSFERT
          	END
-         
-         
+
          	DECLARE 
          	@DAT							DATETIME,
          	@ID_TYPE_EVENEMENT_TRANSFERT	INTEGER,
@@ -46,54 +30,50 @@
          	@BLN_COMPTE_VERS_ENVELOPPE		TINYINT,
          	@ID_TRANSFERT					INT,
          	@ID_TYPE_FINANCEMENT			INT
-         
+
          	SELECT @NUM_ANNEE_N = 2015
-         
+
          	SET @COD_TYPE_EVENEMENT_DOTATION = 'DOTPME15'
          	SELECT @ID_TYPE_EVENEMENT_TRANSFERT = ID_TYPE_EVENEMENT
          	FROM TYPE_EVENEMENT
          	WHERE COD_TYPE_EVENEMENT = @COD_TYPE_EVENEMENT_DOTATION 
-         
-         		
+
          	SELECT t.*, ADHERENT.ID_ETABLISSEMENT_PRINCIPAL
          	INTO #TMP_TRANSFERT 
          	FROM F_TRANSFERT_DOTATION_EXCEPTIONNELLE_PME_2015(@NUM_ANNEE_N, @ID_ADHERENT_TRAITE, @COD_TYPE_EVENEMENT_DOTATION ) t
          	INNER JOIN ADHERENT ON ADHERENT.ID_ADHERENT = t.ID_ADHERENT
          	INNER JOIN ETABLISSEMENT ON ETABLISSEMENT.ID_ETABLISSEMENT = ADHERENT.ID_ETABLISSEMENT_PRINCIPAL
-         
-         
+
          	SELECT @DAT = GETDATE()
-         
-         	SELECT @ID_TYPE_FINANCEMENT = 5 -- Compte selection DEFI
-         
+
+         	SELECT @ID_TYPE_FINANCEMENT = 5 
+
          	SELECT	@ID_PERIODE_N	= ID_PERIODE   
          	from	PERIODE     
          	where	NUM_ANNEE		= @NUM_ANNEE_N -1
          	AND		ID_TYPE_PERIODE = 1   
-         
+
          	SELECT	@ID_PERIODE_N_PLUS1		= ID_PERIODE
          	from	PERIODE     
          	where	NUM_ANNEE				= @NUM_ANNEE_N 
          	AND		ID_TYPE_PERIODE			= 1   
-         
+
          	SET @LIBL_EVENEMENT		= 'Transfert Dotation Exceptionnelle PME '	+ CAST(@NUM_ANNEE_N AS VARCHAR(4)) 
          	SET @LIBL_MVT			= 'Doublement exceptionnel dotation PME '		+ CAST(@NUM_ANNEE_N AS VARCHAR(4)) 
-         
-         
+
          	DECLARE cu_transfert CURSOR FOR
          	SELECT ID_ADHERENT, ID_GROUPE = ID_GROUPE_DOTATION, ID_BRANCHE, [ID_ACTIVITE_PLAN_N+1], MNT_TRANSFERT, ID_ETABLISSEMENT_PRINCIPAL
          	FROM #TMP_TRANSFERT
          	WHERE ABS(MNT_TRANSFERT) > 0
-         
+
          	OPEN cu_transfert
-         
+
          	FETCH cu_transfert INTO
          	@ID_ADHERENT, @ID_GROUPE, @ID_BRANCHE, @ID_ACTIVITE, @MNT_TRANSFERT, @ID_ETABLISSEMENT
-         
-         
+
          	WHILE (@@FETCH_STATUS <> -1)
          	BEGIN	
-         		--Recherche de l'enveloppe de collecte PIVOT
+
          		SELECT		@ID_ENVELOPPE = ID_ENVELOPPE , @LIBL_ENVELOPPE = LIBL_ENVELOPPE 
          		FROM		TYPE_ENVELOPPE 
          		INNER JOIN	ENVELOPPE ON ENVELOPPE.ID_TYPE_ENVELOPPE = TYPE_ENVELOPPE.ID_TYPE_ENVELOPPE
@@ -101,8 +81,7 @@
          		AND			TYPE_ENVELOPPE.ID_ACTIVITE	= @ID_ACTIVITE 
          		AND			ENVELOPPE.ID_PERIODE		= @ID_PERIODE_N
          		AND			TYPE_ENVELOPPE.ID_BRANCHE	= @ID_BRANCHE
-         
-         		--SELECT LIBL_ENVELOPPE = @LIBL_ENVELOPPE 
+
          		IF @MNT_TRANSFERT >0
          		BEGIN
          			SET @BLN_COMPTE_VERS_ENVELOPPE  = 0
@@ -112,22 +91,7 @@
          			SET @MNT_TRANSFERT = - @MNT_TRANSFERT
          			SET @BLN_COMPTE_VERS_ENVELOPPE  = 1
          		END
-         
-         		--SELECT '@ID_TRANSFERT = INS_TRANSFERT ',
-         		--	LIBL_TRANSFERT				= @LIBL_EVENEMENT,
-         		--	BLN_COMPTE_VERS_ENVELOPPE	= @BLN_COMPTE_VERS_ENVELOPPE,  
-         		--	ID_GROUPE					= @ID_GROUPE,
-         		--	ID_ENVELOPPE				= @ID_ENVELOPPE,
-         		--	DAT_TRANSFERT				= @DAT,
-         		--	MNT_TRANSFERT				= @MNT_TRANSFERT, 
-         		--	ID_TYPE_FINANCEMENT			= @ID_TYPE_FINANCEMENT,   
-         		--	ID_UTILISATEUR				= 82, 
-         		--	ID_PERIODE					= @ID_PERIODE_N_PLUS1,
-         		--	COM_TRANSFERT				= @LIBL_MVT, 
-         		--	LIBL_MVT_BUDGETAIRE			= @LIBL_MVT,
-         		--	ID_TYPE_EVENEMENT			= @ID_TYPE_EVENEMENT_TRANSFERT,
-         		--	ID_ETABLISSEMENT			= @ID_ETABLISSEMENT
-         				
+
          		exec @ID_TRANSFERT = INS_TRANSFERT 
          			@LIBL_TRANSFERT				= @LIBL_EVENEMENT,
          			@BLN_COMPTE_VERS_ENVELOPPE	= @BLN_COMPTE_VERS_ENVELOPPE,  
@@ -135,41 +99,29 @@
          			@ID_ENVELOPPE				= @ID_ENVELOPPE,
          			@DAT_TRANSFERT				= @DAT,
          			@MNT_TRANSFERT				= @MNT_TRANSFERT, 
-         			@ID_TYPE_FINANCEMENT		= @ID_TYPE_FINANCEMENT,   -- Type de financement sur Compte Historique
+         			@ID_TYPE_FINANCEMENT		= @ID_TYPE_FINANCEMENT,   
          			@ID_UTILISATEUR				= 82, 
          			@ID_PERIODE					= @ID_PERIODE_N_PLUS1,
          			@COM_TRANSFERT				= @LIBL_MVT, 
          			@LIBL_MVT_BUDGETAIRE		= @LIBL_MVT,
          			@ID_TYPE_EVENEMENT			= @ID_TYPE_EVENEMENT_TRANSFERT,
          			@ID_ETABLISSEMENT			= @ID_ETABLISSEMENT
-         
+
          		FETCH cu_transfert INTO
          		@ID_ADHERENT, @ID_GROUPE, @ID_BRANCHE, @ID_ACTIVITE, @MNT_TRANSFERT, @ID_ETABLISSEMENT
-         
-         
+
          	END
-         
+
          	CLOSE cu_transfert
          	DEALLOCATE cu_transfert
-         
+
          	IF OBJECT_ID('tempdb..#TMP_TRANSFERT', 'U') IS NOT NULL 
          	BEGIN
          		drop table #TMP_TRANSFERT
          	END
-         
+
          END		
-         
-         -- =================================================  
-         -- Author  : KW  
-         -- Create date : 17 avril 2008  
-         -- Description : Edition de la lettre de stat 2483  
-         -- =================================================  
-         -- Author  : KW  
-         -- Modif date : 23 avril 2008  
-         -- Description : Correction bugs
-         			-- Transco des ouvriers 
-         			-- Suppression filtre sur id_action_pec en dur
-         -- ================================================  
+
          CREATE PROCEDURE [dbo].[EDT_LETTRE_ETAT_2483]  
            @ID_ETABLISSEMENT INT,  
            @ID_BENEFICIAIRE INT,  
@@ -178,19 +130,16 @@
            @ID_CONTACT INT,  
            @ID_PERIODE INT  
          AS  
-           
+
          BEGIN  
-           
-         --[LEC_EDT_2483] 21,2008  
-           
+
           DECLARE @NUM_ANNEE SMALLINT  
           DECLARE @ID_ADHERENT SMALLINT  
-           
-          -- Recuperation de l'annee  
+
           SELECT @NUM_ANNEE = NUM_ANNEE   
           FROM PERIODE   
           WHERE PERIODE.ID_PERIODE = @ID_PERIODE  
-           
+
           SELECT AGENCE.ID_AGENCE,  
             ADHERENT.ID_ADHERENT,  
             ADHERENT.COD_ADHERENT,  
@@ -201,12 +150,10 @@
             INNER JOIN ETABLISSEMENT ON ADHERENT.ID_ETABLISSEMENT_PRINCIPAL = ETABLISSEMENT.ID_ETABLISSEMENT  
             INNER JOIN AGENCE ON AGENCE.ID_AGENCE = ADHERENT.ID_AGENCE  
           WHERE ADHERENT.ID_ETABLISSEMENT_PRINCIPAL = @ID_ETABLISSEMENT   
-           
+
           SELECT @ID_ADHERENT = #TEMP_INFOS.ID_ADHERENT  
           FROM #TEMP_INFOS  
-            
-           
-          -- Tableau des donn‚es  
+
           CREATE TABLE #TMP_CSP  
           (  
            ID_ADHERENT   INT,  
@@ -217,8 +164,7 @@
            NB_SAL_DIF   INT DEFAULT 0,  
            NB_HEURE_DIF  INT DEFAULT 0  
           )  
-           
-          -- Tableau des totaux  
+
           CREATE TABLE #TMP_TOTAL  
           (  
            ID_ADHERENT   INT,  
@@ -232,8 +178,7 @@
            NB_SAL_ALLOC   INT DEFAULT 0,  
            NB_HEURE_ALLOC  INT DEFAULT 0  
           )  
-           
-          /* Calcul du nombre de stagiaire et du nombre d'heure par CSP et par sexe */  
+
           SELECT ID_CSP, BLN_MASCULIN, INDIVIDU.ID_INDIVIDU, SUM(NB_HEURE_REGLE) NB_HEURE_REGLE  
           INTO #TMP1  
           FROm STAGIAIRE_PEC, INDIVIDU, SESSION_PEC, ETABLISSEMENT, MODULE_PEC,ACTION_PEC  
@@ -251,27 +196,26 @@
           GROUP BY ID_CSP, BLN_MASCULIN, INDIVIDU.ID_INDIVIDU  
           HAVING SUM(NB_HEURE_REGLE) > 0  
           ORDER BY 1, 2  
-           
+
           UPDATE #TMP1 SET ID_CSP = 2 WHERE ID_CSP = 1  
-           
+
           INSERT INTO #TMP_CSP (ID_ADHERENT, ID_CSP) SELECT @ID_ADHERENT, ID_CSP FROM CSP WHERE ID_CSP > 1  
-           
+
           UPDATE #TMP_CSP  
           SET NB_SAL_HOMME = TOT.NB_INDIVIDU  
           FROM (SELECT ID_CSP, NB_INDIVIDU = COUNT(DISTINCT ID_INDIVIDU) FROm #TMP1  WHERE BLN_MASCULIN = 1 GROUP BY ID_CSP) TOT  
           WHERE #TMP_CSP.ID_CSP = TOT.ID_CSP   
-           
+
           UPDATE #TMP_CSP  
           SET NB_SAL_FEMME = TOT.NB_INDIVIDU  
           FROM (SELECT ID_CSP, NB_INDIVIDU = COUNT(DISTINCT ID_INDIVIDU) FROm #TMP1  WHERE BLN_MASCULIN = 0 GROUP BY ID_CSP) TOT  
           WHERE #TMP_CSP.ID_CSP = TOT.ID_CSP   
-           
+
           UPDATE #TMP_CSP  
           SET NB_HEURE_TOT = TOT.NB_HEURE_REGLE  
           FROM (SELECT ID_CSP, NB_HEURE_REGLE = SUM(NB_HEURE_REGLE) FROm #TMP1 GROUP BY ID_CSP) TOT  
           WHERE #TMP_CSP.ID_CSP = TOT.ID_CSP   
-           
-          /* Calcul du nombre de stagiaire et du nb heure par CSP pour le DIF */  
+
           SELECT ID_CSP, INDIVIDU.ID_INDIVIDU, SUM(UNITE_STAGIAIRE.NB_HEURE_REGLE) NB_HEURE_REGLE  
           INTO #TMP2  
           FROm STAGIAIRE_PEC, INDIVIDU, SESSION_PEC, ETABLISSEMENT, MODULE_PEC,ACTION_PEC, UNITE_STAGIAIRE  
@@ -291,19 +235,19 @@
           GROUP BY ID_CSP, BLN_MASCULIN, INDIVIDU.ID_INDIVIDU  
           HAVING SUM(UNITE_STAGIAIRE.NB_HEURE_REGLE) > 0  
           ORDER BY 1, 2  
-         
+
           UPDATE #TMP2 SET ID_CSP = 2 WHERE ID_CSP = 1  
-         
+
           UPDATE #TMP_CSP  
           SET NB_SAL_DIF = TOT.NB_SAL  
           FROM (SELECT ID_CSP, NB_SAL =  COUNT(DISTINCT ID_INDIVIDU) FROm #TMP2 GROUP BY ID_CSP) TOT  
           WHERE #TMP_CSP.ID_CSP = TOT.ID_CSP   
-         
+
           UPDATE #TMP_CSP  
           SET NB_HEURE_DIF = TOT.NB_HEURE_REGLE  
           FROM (SELECT ID_CSP, NB_HEURE_REGLE = SUM(NB_HEURE_REGLE) FROm #TMP2 GROUP BY ID_CSP) TOT  
           WHERE #TMP_CSP.ID_CSP = TOT.ID_CSP   
-             
+
           INSERT INTO #TMP_TOTAL  
           (  
            ID_ADHERENT,  
@@ -320,8 +264,7 @@
             SUM(NB_SAL_DIF) ,  
             SUM(NB_HEURE_DIF)  
           FROM #TMP_CSP  
-           
-          /* Calcul du nombre de stagiaire et du nombre heures pour la PP*/  
+
           SELECT INDIVIDU.ID_INDIVIDU, SUM(UNITE_STAGIAIRE.NB_HEURE_REGLE) NB_HEURE_REGLE  
           INTO #TMP3  
           FROm STAGIAIRE_PEC, INDIVIDU, SESSION_PEC, ETABLISSEMENT, MODULE_PEC, UNITE_STAGIAIRE, ACTION_PEC
@@ -341,18 +284,15 @@
           GROUP BY INDIVIDU.ID_INDIVIDU  
           HAVING SUM(UNITE_STAGIAIRE.NB_HEURE_REGLE) > 0  
           ORDER BY 1, 2  
-         
-           
+
           UPDATE #TMP_TOTAL  
           SET NB_SAL_PP= TOT.NB_SAL  
           FROM (SELECT NB_SAL =  COUNT(DISTINCT ID_INDIVIDU) FROm #TMP3) TOT  
-           
+
           UPDATE #TMP_TOTAL  
           SET NB_HEURE_PP  = TOT.NB_HEURE_REGLE  
           FROM (SELECT NB_HEURE_REGLE = ISNULL(SUM(NB_HEURE_REGLE),0) FROm #TMP3 ) TOT  
-           
-           
-          /* Calcul du nombre de stagiaire et du nombre heures pour l'allocation de formation*/  
+
           SELECT INDIVIDU.ID_INDIVIDU, SUM(NB_HEURES_HORS_TT) NB_HEURE_REGLE  
           INTO #TMP4  
           FROm STAGIAIRE_PEC, INDIVIDU, SESSION_PEC, ETABLISSEMENT, MODULE_PEC, ACTION_PEC  
@@ -373,38 +313,33 @@
           GROUP BY INDIVIDU.ID_INDIVIDU  
           HAVING SUM(NB_HEURES_HORS_TT) > 0  
           ORDER BY 1, 2  
-           
+
           UPDATE #TMP_TOTAL  
           SET NB_SAL_ALLOC= TOT.NB_SAL  
           FROM (SELECT NB_SAL =  COUNT(DISTINCT ID_INDIVIDU) FROm #TMP4) TOT  
-           
+
           UPDATE #TMP_TOTAL  
           SET NB_HEURE_ALLOC  = TOT.NB_HEURE_REGLE  
           FROM (SELECT NB_HEURE_REGLE = ISNULL(SUM(NB_HEURE_REGLE),0) FROm #TMP4 ) TOT;  
-           
-           
-          /*SELECT * FROM #TMP_CSP  
-          ORDER BY 1;  
-          SELECT * FROM #TMP_TOTAL;*/  
-           
-          --- XML Generation -------------------------------------------------------------------------------------------------------  
+
+            
+
           WITH XMLNAMESPACES (  
            DEFAULT 'EDT_LETTRE_ETAT_2483'  
           )  
-           
+
           SELECT   
            (  
             SELECT   
-             -- Recuperation des informations sur l'agence  
+
              dbo.GetXmlAgenceContact(#TEMP_INFOS.ID_AGENCE) AS EMETTEUR,  
-               
-             -- Recuperation des informations sur le contact  
+
              dbo.GetXmlBenefiaireContact(@ID_BENEFICIAIRE, @TYPE_BENEFICIAIRE, @ID_ADRESSE, @ID_CONTACT) AS BENEFICIAIRE,  
-           
+
              #TEMP_INFOS.COD_ADHERENT     AS COD_ADHERENT,  
              dbo.GetFullDate(GETDATE())     AS DATE,  
              @NUM_ANNEE         AS NUM_ANNEE  
-           
+
             FOR XML RAW('ENTETE'), ELEMENTS, TYPE  
            ),  
            (   
@@ -461,8 +396,7 @@
                   WHERE #TMP_CSP.ID_CSP = 5  
                   FOR XML RAW(''), ELEMENTS, TYPE  
                  ),  
-           
-                 -- Colonne 2  
+
                  (  
                   SELECT #TMP_CSP.NB_HEURE_TOT AS NB_HEURE_TOT_OUVRIERS  
                   FROM #TMP_CSP  
@@ -487,8 +421,7 @@
                   WHERE #TMP_CSP.ID_CSP = 5  
                   FOR XML RAW(''), ELEMENTS, TYPE  
                  ),  
-                   
-                 -- Colonne 3  
+
                  (  
                   SELECT #TMP_CSP.NB_SAL_DIF AS NB_SAL_DIF_OUVRIERS  
                   FROM #TMP_CSP  
@@ -513,8 +446,7 @@
                   WHERE #TMP_CSP.ID_CSP = 5  
                   FOR XML RAW(''), ELEMENTS, TYPE  
                  ),  
-           
-                 -- Colonne 4  
+
                  (  
                   SELECT #TMP_CSP.NB_HEURE_DIF AS NB_HEURE_DIF_OUVRIERS  
                   FROM #TMP_CSP  
@@ -539,7 +471,7 @@
                   WHERE #TMP_CSP.ID_CSP = 5  
                   FOR XML RAW(''), ELEMENTS, TYPE  
                  )  
-           
+
                 FOR XML RAW('DETAIL'), ELEMENTS, TYPE  
                ),  
                (  
@@ -570,9 +502,8 @@
            )  
           FROM #TEMP_INFOS  
           FOR XML RAW('LETTRE'), ELEMENTS  
-           
+
          END  
-           
 
          CREATE PROCEDURE [dbo].[EDT_LETTRE_PEC_ENGAGEMENT_ADH]
           @ID_ETABLISSEMENT INT,
@@ -582,129 +513,14 @@
           @ID_CONTACT   INT,
           @CODE_ACTION_PEC VARCHAR(11)
          AS
-         -- ===========================================================================================================================================================================================
-         -- Author  : KW
-         -- Date   : XX XXXX 2007
-         -- Description : Cr‚ation
-         -- ===========================================================================================================================================================================================
-         -- Author  : SV
-         -- Date   : 23 ao–t 2007
-         -- Description : Modification du flux X.M.L.
-         --      --> Suppression du tag TABLEAU_TYPE_COUT dans la partie INDIVIDU
-         --      --> Remplacement de la chaŒne "Financements Professionalisation" par "Financements Pro."
-         -- ===========================================================================================================================================================================================
-         -- Author  : SV
-         -- Date   : 24 ao–t 2007
-         -- Description : Utilisation de l'activit‚ du type d'enveloppe et non pas du dispositif dans la cr‚ation de la table temporaire #PLAN_FINANCEMENTS_INDIVIDUS
-         --      Ajout d'un filtre sur la pr‚sence de l'individu dans le dispositif lors de la cr‚ation du tag TABLEAU_MODULE
-         -- ===========================================================================================================================================================================================
-         -- Author  : SV
-         -- Date   : 07 septembre 2007
-         -- Description : Utilisation des montants calcul‚s pour la d‚finition de la pr‚sence des colonnes CC, FM et ENV des individus
-         --      Suppression du champ ID_ACTIVITE qui ne sert plus … rien dans la table temporaire #PLAN_FINANCEMENTS_INDIVIDUS
-         -- ===========================================================================================================================================================================================
-         -- Author  : SV
-         -- Date   : 27 novembre 2007
-         -- Description : Ajout d'une v‚rification sur le nombre d'heure engag‚ d'une unit‚ stagiaire (des stagiaires avec 0 ‚taient remont‚s)
-         --    - #TMP_MODULES_INDIVIDUS
-         --    - #TMP_NB_HEURES_INDIVIDUS
-         --    - #TMP_DISPOSITIFS_INDIVIDUS 
-         --    - #PLAN_FINANCEMENTS_INDIVIDUS
-         -- ===========================================================================================================================================================================================
-         -- Author  : AMA
-         -- Date   : 06 Mai 2008
-         -- Description : Ajout des noms et pr‚noms du charg‚ de relation.
-         -- ===========================================================================================================================================================================================
-         -- Author  : SBR
-         -- Date   : 27/05/2008
-         -- Description : La partie Emetteur est renseign‚e … partir de la fonction GetXmlAdrChargeRelation (au lieu de GetXmlAgenceContact)
-         --      Le paramŠtre en entr‚e @ID_ACTION_PEC est remplac‚ par @CODE_ACTION_PEC, concat‚nation de COD_ACTION_PEC et ANNEE_ACTION_PEC
-         -- ===========================================================================================================================================================================================
-         -- Author  : SBR
-         -- Date   : 30/06/08
-         -- Description : On ‚carte les modules non imputables
-         -- ===========================================================================================================================================================================================
-         -- Author  : SBR
-         -- Date   : 23/07/08
-         -- Description : R‚‚criture de la proc‚dure sur la base d'une nouvelle matrice d'‚dition
-         -- ===========================================================================================================================================================================================
-         -- Author  : SBR
-         -- Date   : 08/09/08
-         -- Description : Impact nouvelle charte graphique sur ‚dition et ajout num interne action et module
-         -- ===========================================================================================================================================================================================
-         -- Le 29/12/08 par SBR -  Correction bug, pour les actions collectives, le tableau de financement renvoyait le financement 
-         --        global de l'action et pas de l'‚tablissement concern‚.
-         --        Ajout du filtre sur l'‚tablissement au moment du calcul du financement (#TMP_FINANCEMENTS)
-         -- ===========================================================================================================================================================================================
-         -- Le 23/02/09 par SBR -  Adaptation suite au groupe de travail sur les ‚ditions
-         --        Correction bug mauvaise gestion des engagements successifs ==> mauvaise gestion conditions rŠglement CP
-         -- ===========================================================================================================================================================================================
-         -- Le 24/02/09 par SBR -  Correction mauvaise gestion de la source financement P-10. Apparaissait dans colonne … la charge de l'entreprise, 
-         --        apparait d‚sormais dans la colonne Autres
-         -- ===========================================================================================================================================================================================
-         -- Le 25/02/09 par SBR -  Ajout d'un filtre suppl‚mentaire lors de la r‚cup‚ration des modules: on ne r‚cupŠre que les modules auxquels des stagiaires de l'‚tablissement concern‚ participent
-         -- ===========================================================================================================================================================================================
-         -- Le 11/03/09 par SBR -  Calcul du montant … la charge de l'entreprise uniquement dans le cas des actions individuelles. Pour les actions co, affichage du libell‚ Action Co.
-         -- ===========================================================================================================================================================================================
-         -- Le 28/07/09 par SBR -  Correction caclul des montants demand‚s par module, type de co–t qui prennaient en compte les postes de cout d‚sengag‚s
-         -- ===========================================================================================================================================================================================
-         -- Le 20/10/09 par SBR -  Suppression de la condition PLAN_FINANCEMENT_US.MNT_PLAN_FINANCEMENT_US > 0 afin d'afficher les modules qui ne sont pas financ‚s par C2P
-         -- ===========================================================================================================================================================================================
-         -- Le 24/11/09 par SBR -  Correction alimentation colonnes Fonds mutualis‚s et Autres qui n'‚taient pas correctement g‚r‚es dans le cadre des actions CO
-         -- ===========================================================================================================================================================================================
-         -- Le 02/12/09 par SBR -  Ajout du Nø d'action sur 1Šre page du courrier (partie entˆte, champ REFERENCE)
-         -- ===========================================================================================================================================================================================
-         -- Le 21/12/09 par SBR -  Pour les actions CO, si un ‚tablissement n'a aucun stagiaire dans un module donn‚, les informations relatives … ce module sont ‚cart‚es
-         -- ===========================================================================================================================================================================================
-         -- Le 09/07/10 par SBR -  Ajout du dispositif DIF portable
-         -- ===========================================================================================================================================================================================
-         -- Le 07/03/11 par SBR - Ajout nveau STC subrog‚ "Repas factur‚s/OF"
-         -- ===========================================================================================================================================================================================
-         -- Le 02/12/11 par BBL - Ajout supplement
-         -- ===========================================================================================================================================================================================
-         -- Le 01/06/12 par SLAH : 13531 BBL-Modification libelle OPCA 
-         -- ===========================================================================================================================================================================================
-         -- Le 18/09/12 par DSZ - 13697 Ajout num tel de l'emetteur; politesse_bas recuper‚ de 2.3 (13761)
-         -- ===========================================================================================================================================================================================
-         -- Le 08/11/12 par LDE #14239: SUPPRESSION DES SALARIES SUR LES ACCORDS DE PRISE EN CHARGE
-         -- ===========================================================================================================================================================================================
-         -- Le 12/11/12 par DSZ : 13910 la condition dur dispositf actif ne concerne PLPPDIF
-         -- ===========================================================================================================================================================================================
-         -- Le 28/11/12 par EOU : 14346 
-         -- ===========================================================================================================================================================================================
-         -- Le 18/02/13 par DSZ - 14832 : suppression Signature
-         -- ===========================================================================================================================================================================================
-         -- Le 15/04/13 par TLE - 14978 : R‚cup‚ration du Charg‚ de Relation au lieu du Charg‚ de Mission pour les accords d'actions collectives
-         -- ===========================================================================================================================================================================================
-         -- Le 14/05/13 par EOU - 15161 : [Demandeur d'emploi] - (3) - R‚duire les cas de g‚n‚ration de la lettre d'engagement PEC
-         -- ===========================================================================================================================================================================================
-         -- Le 23/07/13 par DSZ - 15613 (selon la spec dans 14987) : pour les actions collectives : le gestionnaire (charg‚ de relation) du premier ‚tablissement saisi de l'action 
-         -- ===========================================================================================================================================================================================
-         -- Le 27/08/13 par DSZ - 15818 traiter  le cas ou COD_PUBLIC_PRIORITAIRE est null
-         -- ===========================================================================================================================================================================================
-         -- LDE 22/05/2014 #213
-         -- ===========================================================================================================================================================================================
-         -- LDE/OPA 23/05/2014 : #213 En tant qu'utilisateur OPTIFORM, 
-         -- lorsque j'‚dite un courrier (PEC, PRO) … destination d'un Adh‚rent ou d'un OF, je veux que, 
-         -- l'adresse … afficher dans la zone "correspondance" soit l'adresse TSA propre … ce type de courrier 
-         -- si le mode "TSA" s'applique sinon qu'elle soit l'adresse actuelle
-         -- ===========================================================================================================================================================================================
-         -- DSZ 19/12/2014 US#627 reforme 2015 : modif MNT_FIN_xxx  : nommage et calcul
-         -- ===========================================================================================================================================================================================
-         -- LDE 22/12/2014 #627: retrait de ID_PUBLIC_FAF et modification du calcul de "Autres"
-         -- ===========================================================================================================================================================================================
-         -- DSZ 21/04/2015 #826: utilisation des balises conditionnelles dans CK
-         -- ===========================================================================================================================================================================================
-         -- DSZ 23/04/2015 #826: ajout du code pour cpf-sup
-         -- ===========================================================================================================================================================================================
+
          BEGIN
-          -- r‚cup‚ration de l'ID_ACTION_PEC en fonction de @CODE_ACTION_PEC
+
           DECLARE  @ID_ACTION_PEC INT
            SELECT  @ID_ACTION_PEC = dbo.GetActionPECId(@CODE_ACTION_PEC)
-          
-          -- action individuelle ou collective?
+
           DECLARE  @ACTION_CO BIT
-          
+
           SELECT
            @ACTION_CO =
             CASE
@@ -716,9 +532,7 @@
            ACTION_PEC
           WHERE
            ID_ACTION_PEC = @ID_ACTION_PEC
-          
-          --pour les actions collectives on selectionne le charge de relation
-          --de l'‚tablissement du  premier stagiaire saisi, dont les heures sont valoris‚es >0.  (14978)
+
           DECLARE  @ID_CR INT
           IF (@ACTION_CO = 1)
           BEGIN
@@ -743,14 +557,14 @@
               AND MODULE_PEC.BLN_ACTIF = 1
             )
           END
-          
+
           SELECT
            ETABLISSEMENT.ID_ETABLISSEMENT,
            ADHERENT.ID_ADHERENT,
            ADHERENT.COD_ADHERENT,
            ETABLISSEMENT.NUM_SIRET,
            ADRESSE.LIB_CP_CEDEX,
-           RTRIM(CASE WHEN PATINDEX('%CEDEX%', ADRESSE.LIB_VIL_CEDEX) <> 0 THEN LEFT(ADRESSE.LIB_VIL_CEDEX, PATINDEX('%CEDEX%', ADRESSE.LIB_VIL_CEDEX)-1) ELSE ADRESSE.LIB_VIL_CEDEX END) AS LIB_VIL_CEDEX, -- RETRAITEMENT DE LA VILLE AU CAS Oë DE LA FORME COMMUNE CEDEX 999
+           RTRIM(CASE WHEN PATINDEX('%CEDEX%', ADRESSE.LIB_VIL_CEDEX) <> 0 THEN LEFT(ADRESSE.LIB_VIL_CEDEX, PATINDEX('%CEDEX%', ADRESSE.LIB_VIL_CEDEX)-1) ELSE ADRESSE.LIB_VIL_CEDEX END) AS LIB_VIL_CEDEX, 
            COALESCE(dbo.IS_EMPTY(ETABLISSEMENT.LIB_ENSEIGNE), ADHERENT.LIB_RAISON_SOCIALE) AS NOM_ADH,
            CR.ID_UTILISATEUR AS ID_UTIL,
            CR.LIB_PNM   AS LIB_PRENOM_CHARGE_RELATION,
@@ -771,14 +585,13 @@
              AND  NR140.ID_ACTION_PEC = @ID_ACTION_PEC
            INNER JOIN ACTION_PEC
             ON ACTION_PEC.ID_ACTION_PEC = NR140.ID_ACTION_PEC
-           LEFT JOIN UTILISATEUR CR -- charg‚ de relation (14978)
+           LEFT JOIN UTILISATEUR CR 
             ON CR.ID_UTILISATEUR =
              (CASE
               WHEN  @ACTION_CO = 1 THEN @ID_CR
               ELSE  ETABLISSEMENT.ID_CHARGEE_RELATION
              END)
-          
-          /** R‚cup‚ration les informations sur l'action PEC choisie pour l'‚tablissement choisi **/
+
           SELECT
            ACTION_PEC.ID_ACTION_PEC,
            ACTION_PEC.LIBL_ACTION_PEC,
@@ -793,8 +606,7 @@
           WHERE
            ACTION_PEC.ID_ACTION_PEC = @ID_ACTION_PEC
            AND  NR140.ID_ETABLISSEMENT = @ID_ETABLISSEMENT;
-          
-          /** R‚cup‚ration des infos sur les modules ***************************************************************/
+
           SELECT DISTINCT
            MODULE_PEC.ID_ACTION_PEC,
            MODULE_PEC.ID_MODULE_PEC,
@@ -831,12 +643,12 @@
             ON POSTE_COUT_ENGAGE.ID_MODULE_PEC = MODULE_PEC.ID_MODULE_PEC
              AND  POSTE_COUT_ENGAGE.ID_ENGAGEMENT = ENGAGEMENT.ID_ENGAGEMENT
           WHERE
-           MODULE_PEC.BLN_ACTIF = 1 -- module actif
-           AND MODULE_PEC.BLN_IMPUTABLE = 1 -- module imputable
-           AND POSTE_COUT_ENGAGE.DAT_DESENGAGEMENT IS NULL -- pas d‚sengagement
-           AND POSTE_COUT_ENGAGE.ID_ENGAGEMENT IS NOT NULL -- poste de cout engag‚
-           AND #TMP_ACTION_PEC.ID_ETABLISSEMENT = @ID_ETABLISSEMENT -- filtre sur l'‚tablissmeent concern‚
-           -- modif du 25/02/09 par SBR - on ne r‚cupŠre que les modules auxquels des stagiaires de l'‚tablissement concern‚ participent
+           MODULE_PEC.BLN_ACTIF = 1 
+           AND MODULE_PEC.BLN_IMPUTABLE = 1 
+           AND POSTE_COUT_ENGAGE.DAT_DESENGAGEMENT IS NULL 
+           AND POSTE_COUT_ENGAGE.ID_ENGAGEMENT IS NOT NULL 
+           AND #TMP_ACTION_PEC.ID_ETABLISSEMENT = @ID_ETABLISSEMENT 
+
            AND EXISTS 
            (SELECT 1 FROM STAGIAIRE_PEC  WHERE STAGIAIRE_PEC.ID_MODULE_PEC = MODULE_PEC.ID_MODULE_PEC AND STAGIAIRE_PEC.ID_ETABLISSEMENT = @ID_ETABLISSEMENT)
           GROUP BY
@@ -854,8 +666,7 @@
            MODULE_PEC.BLN_EXTERNE
           ORDER BY
            MODULE_PEC.COD_MODULE_PEC;
-          
-          /** R‚cup‚ration de la liste des individus concern‚s *******************************************************/
+
           SELECT DISTINCT
            #TMP_MODULE.ID_MODULE_PEC,
            INDIVIDU.ID_INDIVIDU,
@@ -873,7 +684,7 @@
             ON PLAN_FINANCEMENT_US.ID_UNITE_STAGIAIRE = UNITE_STAGIAIRE.ID_UNITE_STAGIAIRE
            INNER JOIN STAGIAIRE_PEC
             ON UNITE_STAGIAIRE.ID_STAGIAIRE_PEC = STAGIAIRE_PEC.ID_STAGIAIRE_PEC
-             AND STAGIAIRE_PEC.ID_ETABLISSEMENT = @ID_ETABLISSEMENT -- filtre sur l'‚tablissement concern‚ (SBR le 29/12/08)
+             AND STAGIAIRE_PEC.ID_ETABLISSEMENT = @ID_ETABLISSEMENT 
            INNER JOIN INDIVIDU
             ON INDIVIDU.ID_INDIVIDU = STAGIAIRE_PEC.ID_INDIVIDU
            INNER JOIN DISPOSITIF
@@ -881,13 +692,12 @@
            LEFT JOIN PUBLIC_PRIORITAIRE
             ON PUBLIC_PRIORITAIRE.ID_PUBLIC_PRIORITAIRE = UNITE_STAGIAIRE.ID_PUBLIC_PRIORITAIRE
           WHERE
-           STAGIAIRE_PEC.NB_HEURE_ENGAGE > 0    -- LDE 08/11/2012 #14239
+           STAGIAIRE_PEC.NB_HEURE_ENGAGE > 0    
            AND ((DISPOSITIF.COD_DISPOSITIF <> 'CSP' AND (DISPOSITIF.COD_DISPOSITIF <> 'DIFPORT' OR COALESCE(PUBLIC_PRIORITAIRE.COD_PUBLIC_PRIORITAIRE,'') <> 'X97')) OR UNITE_STAGIAIRE.NB_HEURE_ENGAGE = 0)
           ORDER BY
            INDIVIDU.NOM_INDIVIDU,
            INDIVIDU.PRENOM_INDIVIDU;
-          
-          /** R‚cup‚ration des modules o— les individus participent ****************************************************************/
+
           SELECT DISTINCT
            #TMP_INDIVIDUS.ID_INDIVIDU,
            #TMP_MODULE.ID_MODULE_PEC,
@@ -906,13 +716,12 @@
             ON PLAN_FINANCEMENT_US.ID_UNITE_STAGIAIRE = UNITE_STAGIAIRE.ID_UNITE_STAGIAIRE
            INNER JOIN STAGIAIRE_PEC
             ON UNITE_STAGIAIRE.ID_STAGIAIRE_PEC = STAGIAIRE_PEC.ID_STAGIAIRE_PEC
-             AND  STAGIAIRE_PEC.ID_ETABLISSEMENT = @ID_ETABLISSEMENT -- filtre sur l'‚tablissement concern‚ (SBR le 29/12/08)
+             AND  STAGIAIRE_PEC.ID_ETABLISSEMENT = @ID_ETABLISSEMENT 
            INNER JOIN INDIVIDU
             ON INDIVIDU.ID_INDIVIDU = STAGIAIRE_PEC.ID_INDIVIDU
           ORDER BY
            #TMP_INDIVIDUS.ID_INDIVIDU;
-          
-          /** R‚cup‚ration des heures engag‚es pour chaque individus *************************************************/
+
           SELECT DISTINCT
            DISPOSITIF.ID_DISPOSITIF,
            DISPOSITIF.LIBC_DISPOSITIF,
@@ -932,7 +741,7 @@
             ON PLAN_FINANCEMENT_US.ID_UNITE_STAGIAIRE = UNITE_STAGIAIRE.ID_UNITE_STAGIAIRE
            INNER JOIN STAGIAIRE_PEC
             ON UNITE_STAGIAIRE.ID_STAGIAIRE_PEC = STAGIAIRE_PEC.ID_STAGIAIRE_PEC
-             AND  STAGIAIRE_PEC.ID_ETABLISSEMENT = @ID_ETABLISSEMENT -- filtre sur l'‚tablissement concern‚
+             AND  STAGIAIRE_PEC.ID_ETABLISSEMENT = @ID_ETABLISSEMENT 
            INNER JOIN #TMP_INDIVIDUS
             ON STAGIAIRE_PEC.ID_INDIVIDU = #TMP_INDIVIDUS.ID_INDIVIDU
            INNER JOIN DISPOSITIF
@@ -941,10 +750,9 @@
             ON PUBLIC_PRIORITAIRE.ID_PUBLIC_PRIORITAIRE = UNITE_STAGIAIRE.ID_PUBLIC_PRIORITAIRE
           WHERE
            (DISPOSITIF.BLN_ACTIF = 1 OR DISPOSITIF.COD_DISPOSITIF = 'PLPPDIF' )
-           AND (STAGIAIRE_PEC.NB_HEURE_ENGAGE > 0 )  -- LDE 08/11/2012 #14239
+           AND (STAGIAIRE_PEC.NB_HEURE_ENGAGE > 0 )  
            AND (DISPOSITIF.COD_DISPOSITIF <> 'CSP' and (DISPOSITIF.COD_DISPOSITIF <> 'DIFPORT' or coalesce(PUBLIC_PRIORITAIRE.COD_PUBLIC_PRIORITAIRE,'') <> 'X97'))
-         
-          /** R‚cup‚ration des financements *********************************************/
+
           CREATE TABLE #TMP_FINANCEMENTS
           (
            ID_MODULE_PEC INT,
@@ -960,8 +768,7 @@
            MNT_DEMANDE DECIMAL(18,2),
            MNT_CHARGE_ENT DECIMAL(18,2)
           );
-          
-          -- calcul des montants financ‚s par type de co–t
+
           INSERT INTO
            #TMP_FINANCEMENTS
           (
@@ -987,7 +794,7 @@
               THEN PLAN_FINANCEMENT_US.MNT_PLAN_FINANCEMENT_US
              ELSE  0
             END
-           ) AS MNT_FIN_COMPTE, --compte adh‚rent selon r‚forme 2015
+           ) AS MNT_FIN_COMPTE, 
            SUM
            (
             CASE
@@ -995,7 +802,7 @@
               THEN PLAN_FINANCEMENT_US.MNT_PLAN_FINANCEMENT_US
              ELSE  0
             END
-           ) AS MNT_FIN_CPF, -- CPF selon r‚forme 2015
+           ) AS MNT_FIN_CPF, 
            SUM
            (
             CASE
@@ -1003,7 +810,7 @@
               THEN PLAN_FINANCEMENT_US.MNT_PLAN_FINANCEMENT_US
              ELSE  0
             END
-           ) AS MNT_FIN_DIF_PPRO, -- DIF PRIO, DIF Portable et PERIODE PRO : ensemble selon la r‚forme 2015
+           ) AS MNT_FIN_DIF_PPRO, 
            SUM
            (
             CASE
@@ -1011,11 +818,11 @@
               THEN PLAN_FINANCEMENT_US.MNT_PLAN_FINANCEMENT_US
              ELSE  0
             END
-           ) AS MNT_FIN_FDS_MUT, --laiss‚ inchang‚ pour le moment
+           ) AS MNT_FIN_FDS_MUT, 
            SUM
            (
             CASE
-            -- /!\ ATTENTION: si vous modifiez les conditions ci-dessus, merci de reporter la modification ci-dessous /!\ --
+
              WHEN  PLAN_FINANCEMENT_US.ID_TYPE_FINANCEMENT IS NULL
                 AND NOT (DISP_ENV.COD_DISPOSITIF IS NOT NULL AND DISP_ENV.COD_DISPOSITIF IN ('CPF'))
                 AND NOT (DISP_ENV.COD_DISPOSITIF IS NOT NULL AND DISP_ENV.COD_DISPOSITIF IN ('DIFPRIO', 'DIFPORT', 'PPPRIO'))
@@ -1023,7 +830,7 @@
               THEN PLAN_FINANCEMENT_US.MNT_PLAN_FINANCEMENT_US
              ELSE  0
             END
-           ) AS MNT_FIN_AUTRES --fonction tutorale, formation tuteur, financements publics: selon la r‚forme 2015
+           ) AS MNT_FIN_AUTRES 
           FROM
            #TMP_MODULE
            INNER JOIN POSTE_COUT_ENGAGE
@@ -1049,23 +856,21 @@
            PLAN_FINANCEMENT_US.BLN_ACTIF = 1
            AND  TYPE_COUT.BLN_ACTIF = 1
            AND  SOUS_TYPE_COUT.BLN_ACTIF = 1
-           AND  POSTE_COUT_ENGAGE.DAT_DESENGAGEMENT IS NULL -- pas d‚sengagement
-           AND  POSTE_COUT_ENGAGE.ID_ENGAGEMENT IS NOT NULL -- poste de cout engag‚
+           AND  POSTE_COUT_ENGAGE.DAT_DESENGAGEMENT IS NULL 
+           AND  POSTE_COUT_ENGAGE.ID_ENGAGEMENT IS NOT NULL 
           GROUP BY
            #TMP_MODULE.ID_MODULE_PEC,
            STAGIAIRE_PEC.ID_ETABLISSEMENT,
            TYPE_COUT.ID_TYPE_COUT,
            TYPE_COUT.COD_TYPE_COUT,
            TYPE_COUT.LIBL_TYPE_COUT;
-         
-          -- calcul du total des montants financ‚s par type de co–t
+
           UPDATE
            #TMP_FINANCEMENTS
           SET
            MNT_TOTAL = MNT_FIN_COMPTE + MNT_FIN_DIF_PPRO + MNT_FIN_CPF + MNT_FIN_FDS_MUT + MNT_FIN_AUTRES;
-          
-          -- calcul des montants demand‚s par module, type de co–t. Pour les actions co, les montants … la charge de l'entreprise ne peuvent pas ˆtre calcul‚s
-          IF (@ACTION_CO = 0) -- action individuelle
+
+          IF (@ACTION_CO = 0) 
           BEGIN
            UPDATE
             T1
@@ -1086,8 +891,8 @@
               INNER JOIN #TMP_MODULE
                ON #TMP_MODULE.ID_MODULE_PEC = POSTE_COUT_ENGAGE.ID_MODULE_PEC
              WHERE
-              POSTE_COUT_ENGAGE.DAT_DESENGAGEMENT IS NULL -- pas d‚sengagement
-              AND POSTE_COUT_ENGAGE.ID_ENGAGEMENT IS NOT NULL -- poste de cout engag‚
+              POSTE_COUT_ENGAGE.DAT_DESENGAGEMENT IS NULL 
+              AND POSTE_COUT_ENGAGE.ID_ENGAGEMENT IS NOT NULL 
              GROUP BY
               #TMP_MODULE.ID_MODULE_PEC,
               SOUS_TYPE_COUT.ID_TYPE_COUT
@@ -1095,8 +900,7 @@
              ON T1.ID_MODULE_PEC = T2.ID_MODULE_PEC
               AND T1.ID_TYPE_COUT = T2.ID_TYPE_COUT;
           END
-          
-          -- calcul du montant … la charge de l'entreprise. Pour les actions co le co–t total de l'action n'est pas calcul‚
+
           UPDATE
            #TMP_FINANCEMENTS
           SET
@@ -1106,8 +910,7 @@
               THEN (MNT_DEMANDE - MNT_TOTAL)
              ELSE  -1
             END;
-            
-            --y a-t-il le dispositif CPF dans un des modules? # 826
+
           declare @CONTIENT_CPF int = 0
            if exists(select 1 from #TMP_MODULE
            INNER JOIN POSTE_COUT_ENGAGE
@@ -1122,35 +925,29 @@
             ON DISP_ENV.ID_DISPOSITIF = TYPE_ENVELOPPE.ID_DISPOSITIF
             WHERE DISP_ENV.COD_DISPOSITIF in ('CPF', 'CPF-SUP'))
            set @CONTIENT_CPF = 1
-          
-          -- modif du 11/03/09 par SBR: si montant demand‚ < montant engag‚ alors montant … la charge de l'entreprise = 0
+
           UPDATE
            #TMP_FINANCEMENTS
           SET
            MNT_CHARGE_ENT = 0
           WHERE
            MNT_CHARGE_ENT < 0
-          
-          /** RŠglement des co–ts p‚dagogiques *********************************************/ 
-          -- module avec sous type de cout CP
+
           UPDATE
            #TMP_MODULE
           SET
-           CONTIENT_CP = 1, --sinon 0
+           CONTIENT_CP = 1, 
            LIMITE_CP = #TMP_FINANCEMENTS.MNT_TOTAL
           FROM
            #TMP_MODULE
            INNER JOIN #TMP_FINANCEMENTS
             ON #TMP_MODULE.ID_MODULE_PEC = #TMP_FINANCEMENTS.ID_MODULE_PEC
-             AND #TMP_FINANCEMENTS.COD_TYPE_COUT = 'CP'; -- co–ts p‚dagogiques
-         
-          
-         
-          -- module avec sous type de cout REPOF
+             AND #TMP_FINANCEMENTS.COD_TYPE_COUT = 'CP'; 
+
           with repof as
           (
           select 
-          
+
           #TMP_MODULE.ID_MODULE_PEC,
           CAST(SUM(COALESCE(POSTE_COUT_ENGAGE.MNT_ENGAGE_HT,0)) AS MONEY) as limite_repof
            FROM
@@ -1165,7 +962,7 @@
             POSTE_COUT_ENGAGE.DAT_DESENGAGEMENT IS NULL
             AND  SOUS_TYPE_COUT.COD_SOUS_TYPE_COUT = 'REPOF'
             AND  ENGAGEMENT.DAT_BAE IS NOT NULL
-            AND  ENGAGEMENT.ID_TYPE_ENGAGEMENT <> 2 -- pas d‚sengagement
+            AND  ENGAGEMENT.ID_TYPE_ENGAGEMENT <> 2 
             AND  ENGAGEMENT.ID_ENGAGEMENT = POSTE_COUT_ENGAGE.ID_ENGAGEMENT
             group by #TMP_MODULE.ID_MODULE_PEC
           )
@@ -1176,35 +973,27 @@
            #TMP_MODULE.LIMITE_REPOF = repof.limite_repof 
           FROM repof
           WHERE repof.ID_MODULE_PEC = #TMP_MODULE.ID_MODULE_PEC;
-          
-         
-          /*****  Creation du flux XML *******************************************************************************/
+
           WITH XMLNAMESPACES (
            DEFAULT 'LETTRE_PEC_ENGAGEMENT_ADH'
           )
-          /************************************************************************************************************/
-         
+
           SELECT
-           -- R‚cup‚ration des informations sur le contact et le b‚n‚ficiaire
+
            dbo.GetXmlBenefiaireContact(@ID_BENEFICIAIRE, @TYPE_BENEFICIAIRE, @ID_ADRESSE, @ID_CONTACT) AS BENEFICIAIRE,
-         
-           /**********************************************************************************************/
-           /***************** ENTETE DE LA LETTRE *******************************************************/
-           /**********************************************************************************************/
+
            (
             SELECT
-             /******************* Recuperation des informations de l'entete ****************************/
+
              ISNULL(COD_ADHERENT, '')    AS COD_ADHERENT,
              ISNULL(LIB_PRENOM_CHARGE_RELATION, '') AS LIB_PRENOM_CHARGE_RELATION,
              ISNULL(LIB_NOM_CHARGE_RELATION, '')  AS LIB_NOM_CHARGE_RELATION,
              ISNULL(EMAIL_CHARGE_RELATION, '')  AS EMAIL,
-         
-             -- R‚cup‚ration des informations sur l'‚metteur
-             dbo.GetXmlAdrUtilAvecTel(ENTETE.ID_UTIL, (SELECT TOP 1 BLN_TSA FROM ETABLISSEMENT WHERE ID_ETABLISSEMENT = @ID_BENEFICIAIRE), 1) as EMETTEUR, -- LDE 22/05/2014 #213
-         
-             -- ajout du 02/12/09 par SBR
+
+             dbo.GetXmlAdrUtilAvecTel(ENTETE.ID_UTIL, (SELECT TOP 1 BLN_TSA FROM ETABLISSEMENT WHERE ID_ETABLISSEMENT = @ID_BENEFICIAIRE), 1) as EMETTEUR, 
+
              @CODE_ACTION_PEC as REFERENCE,
-             RTRIM(CASE WHEN PATINDEX('%CEDEX%', LIB_VILLE) <> 0 THEN LEFT(LIB_VILLE, PATINDEX('%CEDEX%', LIB_VILLE)-1) ELSE LIB_VILLE END) AS LIB_VILLE, -- retraitement de la ville au cas o— de la forme COMMUNE CEDEX 999
+             RTRIM(CASE WHEN PATINDEX('%CEDEX%', LIB_VILLE) <> 0 THEN LEFT(LIB_VILLE, PATINDEX('%CEDEX%', LIB_VILLE)-1) ELSE LIB_VILLE END) AS LIB_VILLE, 
              dbo.GetFullDate(GETDATE()) AS DATE,
              (
               SELECT TOP 1
@@ -1225,13 +1014,9 @@
              CIVILITE
             FOR XML PATH('POLITESSE_BAS'), TYPE
            ),
-           /**********************************************************************************************/
-           /***************** CODE ADHERENT ****************************************************/
-           /**********************************************************************************************/
+
            ISNULL(COD_ADHERENT, '')    AS COD_ADHERENT,
-           /**********************************************************************************************/
-           /***************** ANNEXES (Les tableaux) ****************************************************/
-           /**********************************************************************************************/
+
            (
             SELECT
              ISNULL(LETTRE.NUM_SIRET, '')  AS NUM_SIRET,
@@ -1305,7 +1090,7 @@
                   #TMP_FINANCEMENTS.ID_MODULE_PEC
                  FOR XML RAW('TOTAL_FINANCEMENT'), ELEMENTS, TYPE
                 ),
-                
+
                 BLN_DELEGATION_PAIEMENT AS SUBROGE,
                 CONTIENT_REPOF, 
                 CONTIENT_CP ,
@@ -1378,27 +1163,19 @@
            #TMP_GENERAL as LETTRE
           FOR XML AUTO, ELEMENTS
          END
-         
+
 		CREATE PROCEDURE [dbo].[INS_R19_SIMPLE]
           @ID_ADHERENT INT,
           @ID_ACTIVITE INT,
           @ID_PERIODE INT
          AS
-         -- =============================================  
-         -- Author:  SFEIR - DSZ  
-         -- Create date: 04/11/2014 
-         -- Description: Insertion simple (i.e. sans v‚rification de contraintes m‚tier) d'une ligne dans R19.
-         -- Remarques: en vue de la reforme 2015 insertion ligne simple
-         --    sans verification si le type d'activite existe deja
-         --    pour ne pas retoucher INS_R19 car impact possible
-         --    non ‚tudi‚ (s–r : Synchro Extranet).
-         -- =============================================  
+
          BEGIN
           if not exists(select 1 from R19 
           where ID_ACTIVITE = @ID_ACTIVITE
           and ID_ADHERENT = @ID_ADHERENT 
           and ID_PERIODE = @ID_PERIODE)
-           -- <--fin ajout DSZ
+
            INSERT INTO R19
            (
             ID_ADHERENT,
@@ -1412,7 +1189,7 @@
             @ID_PERIODE
            )
          END
-		          
+
 create procedure CKParser.TheEnd 
 as 
 begin         
