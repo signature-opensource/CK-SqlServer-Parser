@@ -54,11 +54,23 @@ namespace CK.SqlServer.Transform
             if( node == Node ) return this;
             if( _qualifiedCache != null && _qualifiedCache.TryGetValue( node, out loc ) ) return loc;
             loc = GetFullLocation( position );
-            while( loc != null )
+            if( loc != null )
             {
                 if( loc.Node == node ) return loc;
                 loc = loc.Parent;
-                Debug.Assert(  loc == null || _qualifiedCache == null || _qualifiedCache.ContainsKey( loc.Node ), "Already cached if qualified cache exists." );
+                if( node.Width == 0 )
+                {
+                    loc = new SqlNodeLocation( loc, node, position );
+                    if( _qualifiedCache != null ) _qualifiedCache.Add( node, loc );
+                    return loc;
+                }
+                do
+                {
+                    if( loc.Node == node ) return loc;
+                    loc = loc.Parent;
+                    Debug.Assert( loc == null || _qualifiedCache == null || _qualifiedCache.ContainsKey( loc.Node ), "Already cached if qualified cache exists." );
+                }
+                while( loc != null );
             }
             throw new ArgumentException( "Node does not exist at this position." );
         }

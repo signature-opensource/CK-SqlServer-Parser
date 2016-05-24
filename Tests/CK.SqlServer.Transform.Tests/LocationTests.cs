@@ -17,8 +17,6 @@ namespace CK.SqlServer.Transform.Tests
         {
             public readonly List<SqlNodeLocation> Collector = new List<SqlNodeLocation>();
 
-            public bool GetQualifiedNodeLocation;
-
             protected override ISqlNode VisitStandard( ISqlNode e ) => VisitStandardReadOnly( e );
 
             protected override bool BeforeVisitItem()
@@ -29,8 +27,7 @@ namespace CK.SqlServer.Transform.Tests
 
             static public List<SqlNodeLocation> GetAllLocations( 
                 string text, 
-                ParseMode mode = ParseMode.OneOrMoreStatements,
-                bool getQualifiedNodeLocation = false,
+                ParseMode mode = ParseMode.OneOrMoreStatements, 
                 bool buildQualifiedNodeLocation = false )
             {
                 List<SqlNodeLocation> locs;
@@ -39,7 +36,6 @@ namespace CK.SqlServer.Transform.Tests
                 {
                     var c = new AllLocations()
                     {
-                        GetQualifiedNodeLocation = getQualifiedNodeLocation,
                         BuildQualifiedNodeLocations = buildQualifiedNodeLocation
                     };
                     c.VisitRoot( n );
@@ -58,7 +54,7 @@ namespace CK.SqlServer.Transform.Tests
         [TestCase( false )]
         public void creating_all_locations( bool buildQualifiedNodeLocation )
         {
-            List<SqlNodeLocation> locs = AllLocations.GetAllLocations( "select W as A, C = Z;", ParseMode.Statement, true, buildQualifiedNodeLocation );
+            List<SqlNodeLocation> locs = AllLocations.GetAllLocations( "select W as A, C = Z;", ParseMode.Statement, buildQualifiedNodeLocation );
             Assert.That( locs.Count, Is.EqualTo( 15 ) );
             Assert.That( locs[8].Node.ToString(), Is.EqualTo( "A" ) );
             Assert.That( locs[9].Node.IsToken( SqlTokenType.Comma ) );
@@ -69,16 +65,16 @@ namespace CK.SqlServer.Transform.Tests
         [TestCase( false )]
         public void multi_statements_locations( bool buildQualifiedNodeLocation )
         {
-            List<SqlNodeLocation> locs = AllLocations.GetAllLocations( "break; select 1; continue; select 2;", ParseMode.OneOrMoreStatements, true, buildQualifiedNodeLocation );
-            Assert.That( locs.Count, Is.EqualTo( 23 ) );
-            Assert.That( locs[4].Node.ToString(), Is.EqualTo( "select 1;" ) );
-            Assert.That( locs[5].Node.ToString(), Is.EqualTo( "select 1" ) );
-            Assert.That( locs[6].Node.ToString(), Is.EqualTo( "select" ) );
+            List<SqlNodeLocation> locs = AllLocations.GetAllLocations( "break; select 1; continue; select 2;", ParseMode.OneOrMoreStatements, buildQualifiedNodeLocation );
+            Assert.That( locs.Count, Is.EqualTo( 25 ) );
+            Assert.That( locs[5].Node.ToString(), Is.EqualTo( "select 1;" ) );
+            Assert.That( locs[6].Node.ToString(), Is.EqualTo( "select 1" ) );
             Assert.That( locs[7].Node.ToString(), Is.EqualTo( "select" ) );
-            Assert.That( locs[8].Node, Is.InstanceOf<SelectColumnList>() );
-            Assert.That( locs[9].Node, Is.InstanceOf<SelectColumn>() );
-            Assert.That( locs[10].Node, Is.InstanceOf<SqlTokenLiteralInteger>() );
-            Assert.That( locs[11].Node.IsToken( SqlTokenType.SemiColon ) );
+            Assert.That( locs[8].Node.ToString(), Is.EqualTo( "select" ) );
+            Assert.That( locs[9].Node, Is.InstanceOf<SelectColumnList>() );
+            Assert.That( locs[10].Node, Is.InstanceOf<SelectColumn>() );
+            Assert.That( locs[11].Node, Is.InstanceOf<SqlTokenLiteralInteger>() );
+            Assert.That( locs[12].Node.IsToken( SqlTokenType.SemiColon ) );
         }
 
         [Test]

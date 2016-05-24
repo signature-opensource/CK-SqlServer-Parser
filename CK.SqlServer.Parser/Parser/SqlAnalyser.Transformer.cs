@@ -63,13 +63,13 @@ namespace CK.SqlServer.Parser
                 {
                     SqlParameterList parameters = IsParameterList( Parenthesis.Rejected, 1 );
                     if( parameters == null ) return null;
-                    SqlTokenIdentifier whereT;
-                    if( R.IsToken( out whereT, SqlTokenType.After, false ) || R.IsToken( out whereT, SqlTokenType.Before, false ) )
+                    SqlTokenIdentifier afterOrBeforeT;
+                    SqlTokenIdentifier paramName = null;
+                    if( R.IsToken( out afterOrBeforeT, SqlTokenType.After, false ) || R.IsToken( out afterOrBeforeT, SqlTokenType.Before, false ) )
                     {
-                        SqlTokenIdentifier paramName;
                         if( !R.IsToken( out paramName, t => t.IsVariable, true ) ) return null;
-                        return new SqlTAddParameter( initT, whatT, parameters, whereT, paramName, GetOptionalTerminator() ); 
                     }
+                    return new SqlTAddParameter( initT, whatT, parameters, afterOrBeforeT, paramName, GetOptionalTerminator() );
                 }
             }
             else if( R.IsToken( out initT, SqlTokenType.Insert, false ) )

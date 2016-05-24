@@ -233,16 +233,13 @@ namespace CK.SqlServer.Transform
         protected override ISqlNode VisitItem( ISqlNode e )
         {
             ISqlNode v = e;
-            if( e.Width != 0 )
+            var prev = _context.VisitedNode;
+            if( _context.Enter( prev, e ) )
             {
-                var prev = _context.VisitedNode;
-                if( _context.Enter( prev, e ) )
-                {
-                    bool doChildrenVisit = BeforeVisitItem() && !_stop;
-                    if( doChildrenVisit ) v = base.VisitItem( e );
-                    v = AfterVisitItem( v );
-                    _context.Leave( prev, !doChildrenVisit );
-                }
+                bool doChildrenVisit = BeforeVisitItem() && !_stop;
+                if( doChildrenVisit ) v = base.VisitItem( e );
+                v = AfterVisitItem( v );
+                _context.Leave( prev, !doChildrenVisit );
             }
             return v;
         }

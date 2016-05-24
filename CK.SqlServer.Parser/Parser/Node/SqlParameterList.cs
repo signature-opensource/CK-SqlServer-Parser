@@ -95,7 +95,7 @@ namespace CK.SqlServer.Parser
         /// <returns>A new list.</returns>
         public SqlParameterList InsertAt( int idx, SqlParameter p )
         {
-            return (SqlParameterList)base.DoInsertAt( idx, p );
+            return (SqlParameterList)base.DoInsertAt( idx, p, true );
         }
 
         [DebuggerStepThrough]

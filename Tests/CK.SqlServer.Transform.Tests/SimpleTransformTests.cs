@@ -17,7 +17,7 @@ namespace CK.SqlServer.Transform.Tests
     {
         [TestCase( "( @i int )", "@P int ", "( @i int, @P int )", null, null )]
         [TestCase( "( @i int )", "@P int ", "( @P int, @i int )", null, "@i" )]
-        [TestCase( "", "@P int", " @P int", null, null )]
+        [TestCase( "", "@P int", "(@P int)", null, null )]
         [TestCase( " @i int", "@P int = 0 output", " @i int, @P int = 0 output", null, null )]
         [TestCase( " @i int, @j float = 0.2", "@P int = 0 output", " @i int, @j float = 0.2, @P int = 0 output", null, null )]
         [TestCase( " @i int, @j float = 0.2", "@P int", " @i int, @j float = 0.2, @P int", "@j", null )]

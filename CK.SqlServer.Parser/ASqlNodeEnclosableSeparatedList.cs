@@ -112,7 +112,7 @@ namespace CK.SqlServer.Parser
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-        protected ASqlNodeEnclosableSeparatedList<TOpener, T, TSep, TCloser> DoInsertAt( int idx, T item )
+        protected ASqlNodeEnclosableSeparatedList<TOpener, T, TSep, TCloser> DoInsertAt( int idx, T item, bool encloseFirstItem = false )
         {
             if( item == null ) throw new ArgumentNullException( nameof( item ) );
             if( idx < 0 || idx > Count ) throw new IndexOutOfRangeException();
@@ -120,9 +120,16 @@ namespace CK.SqlServer.Parser
             int count = Count;
             if( count == 0 )
             {
-                result = DoSetRawContent( _enclosed == 0
-                                            ? new ISqlNode[] { item }
-                                            : new ISqlNode[] { Opener, item, Closer } );
+                if( !encloseFirstItem || _enclosed != 0 )
+                {
+                    result = DoSetRawContent( _enclosed == 0
+                                                ? new ISqlNode[] { item }
+                                                : new ISqlNode[] { Opener, item, Closer } );
+                }
+                else
+                {
+                    result = DoSetRawContent( new ISqlNode[] { CreateDefaultOpener(), item, CreateDefaultCloser() } );
+                }
             }
             else if( count == 1 )
             {
@@ -178,6 +185,28 @@ namespace CK.SqlServer.Parser
         {
             Debug.Assert( typeof( TSep ) == typeof( SqlTokenComma ), "Defaults to comma." );
             return SqlKeyword.CommaOneSpace as TSep;
+        }
+
+        /// <summary>
+        /// Returns the <see cref="SqlKeyword.OpenPar"/> by default.
+        /// This MUST be overridden if <typeparamref name="TOpener"/> is not a parenthesis.
+        /// </summary>
+        /// <returns>A default opener.</returns>
+        protected virtual TOpener CreateDefaultOpener()
+        {
+            Debug.Assert( typeof( TOpener ) == typeof( SqlTokenOpenPar ), "Defaults to OpenPar." );
+            return SqlKeyword.OpenPar as TOpener;
+        }
+
+        /// <summary>
+        /// Returns the <see cref="SqlKeyword.ClosePar"/> by default.
+        /// This MUST be overridden if <typeparamref name="TCloser"/> is not a parenthesis.
+        /// </summary>
+        /// <returns>A default opener.</returns>
+        protected virtual TCloser CreateDefaultCloser()
+        {
+            Debug.Assert( typeof( TCloser ) == typeof( SqlTokenClosePar ), "Defaults to ClosePar." );
+            return SqlKeyword.ClosePar as TCloser;
         }
     }
 }
