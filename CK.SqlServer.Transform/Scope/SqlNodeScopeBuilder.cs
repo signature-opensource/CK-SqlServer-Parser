@@ -64,14 +64,14 @@ namespace CK.SqlServer.Transform
         protected abstract void DoReset();
 
         /// <summary>
-        /// Called for each node, before visiting its children. Mey return a range.
+        /// Called for each node, before visiting its children. May return a range.
         /// </summary>
         /// <param name="context">The visited node and location manager to use.</param>
         /// <returns>Null or a range to consider.</returns>
         protected abstract ISqlNodeLocationRange DoEnter( SqlNodeLocationVisitor.IVisitContext context );
 
         /// <summary>
-        /// Called for each node, before visiting its children. Mey return a range.
+        /// Called for each node, before visiting its children. May return a range.
         /// </summary>
         /// <param name="context">The visited node and location manager to use.</param>
         /// <returns>Null or a range to consider.</returns>
@@ -87,14 +87,14 @@ namespace CK.SqlServer.Transform
         ISqlNodeLocationRange Handle( ISqlNodeLocationRangeInternal r )
         {
             if( r == null || r == SqlNodeLocationRange.EmptySet ) return null;
-            if( !_autoMergeSubsequent ) return r;
 
             ISqlNodeLocationRangeInternal result = _last;
             if( result != null )
             {
                 var l = result.Last;
                 if( l.End.Position > r.First.Beg.Position ) throw new InvalidOperationException( "Newly built range intersects previous one." );
-                if( l.End.Position == r.First.Beg.Position )
+
+                if( _autoMergeSubsequent && l.End.Position == r.First.Beg.Position )
                 {
                     _last = _last.InternalSetEnd( r.Last.End );
                     return null;

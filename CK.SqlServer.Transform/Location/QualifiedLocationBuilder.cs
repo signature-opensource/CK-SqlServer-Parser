@@ -42,7 +42,6 @@ namespace CK.SqlServer.Transform
 
         public int Position => _path[_path.Count - 1].CurChildPos;
 
-
         public void Reset( LocationRoot root )
         {
             Debug.Assert( root != null && root.Node != null );

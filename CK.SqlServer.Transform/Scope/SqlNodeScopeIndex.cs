@@ -12,7 +12,7 @@ namespace CK.SqlServer.Transform
     /// <summary>
     /// Filters a subset of ranges based on an index and an a count.
     /// </summary>
-    public class SqlNodeScopeIndex : SqlNodeScopeBuilder
+    public sealed class SqlNodeScopeIndex : SqlNodeScopeBuilder
     {
         readonly SqlNodeScopeBuilder _inner;
         readonly int _start;

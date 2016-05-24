@@ -31,23 +31,23 @@ namespace CK.SqlServer.Transform.Tests
                 return (SqlNodeLocationRange)range;
             };
 
-            var r0 = add( "∅", t.BuildRange( new SqlNodeScopePredicate( n => false ) ) );
-            var r = add( "[0,11[", t.BuildRange( new SqlNodeScopePredicate( n => true ) ) );
-            var r1 = add( "[0,10[", t.BuildRange( new SqlNodeScopePredicate( n => n is SelectSpec ) ) );
-            var r2 = add( "[10,11[", t.BuildRange( new SqlNodeScopePredicate( n => n.IsToken( SqlTokenType.SemiColon ) ) ) );
-            var r11 = add( "[0,1[", t.BuildRange( new SqlNodeScopePredicate( n => n.IsToken( SqlTokenType.Select ) ) ) );
-            var r12 = add( "[1,4[", t.BuildRange( new SqlNodeScopePredicate( n => n is SelectColumnList ) ) );
-            var r121 = add( "[1,2[", t.BuildRange( new SqlNodeScopePredicate( n => n.ToString() == "A" ) ) );
-            var r122 = add( "[2,3[", t.BuildRange( new SqlNodeScopePredicate( n => n.IsToken( SqlTokenType.Comma ) ) ) );
-            var r123 = add( "[3,4[", t.BuildRange( new SqlNodeScopePredicate( n => n.ToString() == "B" ) ) );
-            var r13 = add( "[4,6[", t.BuildRange( new SqlNodeScopePredicate( n => n is SelectFrom ) ) );
-            var r131 = add( "[4,5[", t.BuildRange( new SqlNodeScopePredicate( n => n.IsToken( SqlTokenType.From ) ) ) );
-            var r132 = add( "[5,6[", t.BuildRange( new SqlNodeScopePredicate( n => n.ToString() == "T" ) ) );
-            var r14 = add( "[6,7[", t.BuildRange( new SqlNodeScopePredicate( n => n.ToString() == "where" ) ) );
-            var r15 = add( "[7,10[", t.BuildRange( new SqlNodeScopePredicate( n => n is SqlBinaryOperator ) ) );
-            var r151 = add( "[7,8[", t.BuildRange( new SqlNodeScopePredicate( n => n.ToString() == "1" ) ) );
-            var r152 = add( "[8,9[", t.BuildRange( new SqlNodeScopePredicate( n => n.IsToken( SqlTokenType.Equal ) ) ) );
-            var r153 = add( "[9,10[", t.BuildRange( new SqlNodeScopePredicate( n => n.ToString() == "0" ) ) );
+            var r0 = add( "∅", t.BuildRange( new SqlNodeScopeBreadthPredicate( n => false ) ) );
+            var r = add( "[0,11[", t.BuildRange( new SqlNodeScopeBreadthPredicate( n => true ) ) );
+            var r1 = add( "[0,10[", t.BuildRange( new SqlNodeScopeBreadthPredicate( n => n is SelectSpec ) ) );
+            var r2 = add( "[10,11[", t.BuildRange( new SqlNodeScopeBreadthPredicate( n => n.IsToken( SqlTokenType.SemiColon ) ) ) );
+            var r11 = add( "[0,1[", t.BuildRange( new SqlNodeScopeBreadthPredicate( n => n.IsToken( SqlTokenType.Select ) ) ) );
+            var r12 = add( "[1,4[", t.BuildRange( new SqlNodeScopeBreadthPredicate( n => n is SelectColumnList ) ) );
+            var r121 = add( "[1,2[", t.BuildRange( new SqlNodeScopeBreadthPredicate( n => n.ToString() == "A" ) ) );
+            var r122 = add( "[2,3[", t.BuildRange( new SqlNodeScopeBreadthPredicate( n => n.IsToken( SqlTokenType.Comma ) ) ) );
+            var r123 = add( "[3,4[", t.BuildRange( new SqlNodeScopeBreadthPredicate( n => n.ToString() == "B" ) ) );
+            var r13 = add( "[4,6[", t.BuildRange( new SqlNodeScopeBreadthPredicate( n => n is SelectFrom ) ) );
+            var r131 = add( "[4,5[", t.BuildRange( new SqlNodeScopeBreadthPredicate( n => n.IsToken( SqlTokenType.From ) ) ) );
+            var r132 = add( "[5,6[", t.BuildRange( new SqlNodeScopeBreadthPredicate( n => n.ToString() == "T" ) ) );
+            var r14 = add( "[6,7[", t.BuildRange( new SqlNodeScopeBreadthPredicate( n => n.ToString() == "where" ) ) );
+            var r15 = add( "[7,10[", t.BuildRange( new SqlNodeScopeBreadthPredicate( n => n is SqlBinaryOperator ) ) );
+            var r151 = add( "[7,8[", t.BuildRange( new SqlNodeScopeBreadthPredicate( n => n.ToString() == "1" ) ) );
+            var r152 = add( "[8,9[", t.BuildRange( new SqlNodeScopeBreadthPredicate( n => n.IsToken( SqlTokenType.Equal ) ) ) );
+            var r153 = add( "[9,10[", t.BuildRange( new SqlNodeScopeBreadthPredicate( n => n.ToString() == "0" ) ) );
             var rEnd = add( "[7,11[", r15.Union( r2 ) );
             var rFront = add( "[0,9[", r1.Except( r153 ) );
             var rMid1 = add( "[1,9[", rFront.Except( r11 ) );
@@ -102,26 +102,25 @@ namespace CK.SqlServer.Transform.Tests
         [TestCase( "select 1; select 2", "[0,2[-[3,5[" )]
         public void simple_ScopePredicate_on_select_specification( string text, string result )
         {
-            SqlNodeScopePredicate p = new SqlNodeScopePredicate( n => n is SelectSpec );
-            SqlNodeTransformer t = new SqlNodeTransformer( new SqlAnalyser( text ).Parse(), TestHelper.ConsoleMonitor );
+            var p = new SqlNodeScopeBreadthPredicate( n => n is SelectSpec );
+            var t = new SqlNodeTransformer( new SqlAnalyser( text ).Parse(), TestHelper.ConsoleMonitor );
             Assert.That( t.BuildRange( p ).ToString(), Is.EqualTo( result ) );
         }
-
 
         [TestCase( "select 1; yo;", "∅" )]
         [TestCase( "yo; select 1, yo;", "[5,6[" )]
         [TestCase( "select 1, yo; select yo, 2; yo;", "[3,4[-[6,7[" )]
         public void range_intersection_between_select_specification_and_yo( string text, string result )
         {
-            SqlNodeScopePredicate pS = new SqlNodeScopePredicate( n => n is SelectSpec );
-            SqlNodeScopePredicate pY = new SqlNodeScopePredicate( n => n.IsToken( SqlTokenType.IdentifierStandard ) && n.ToString() == "yo" );
+            var pS = new SqlNodeScopeBreadthPredicate( n => n is SelectSpec );
+            var pY = new SqlNodeScopeBreadthPredicate( n => n.IsToken( SqlTokenType.IdentifierStandard ) && n.ToString() == "yo" );
             ISqlNode node = new SqlAnalyser( text ).Parse();
-            SqlNodeTransformer t = new SqlNodeTransformer( node, TestHelper.ConsoleMonitor );
+            var t = new SqlNodeTransformer( node, TestHelper.ConsoleMonitor );
 
-            SqlNodeScopeIntersect p = new SqlNodeScopeIntersect( pS, pY );
+            var p = new SqlNodeScopeIntersect( pS, pY );
             Assert.That( t.BuildRange( p ).ToString(), Is.EqualTo( result ) );
 
-            SqlNodeScopeIntersect pI = new SqlNodeScopeIntersect( pY, pS );
+            var pI = new SqlNodeScopeIntersect( pY, pS );
             Assert.That( t.BuildRange( pI ).ToString(), Is.EqualTo( result ) );
         }
 
@@ -133,10 +132,10 @@ namespace CK.SqlServer.Transform.Tests
         [TestCase( "select 1, yo; select yo, 2; yo;", "[0,4[-[5,9[-[10,11[" )]
         public void range_union_between_select_specification_and_yo( string text, string result )
         {
-            SqlNodeScopePredicate pS = new SqlNodeScopePredicate( n => n is SelectSpec );
-            SqlNodeScopePredicate pY = new SqlNodeScopePredicate( n => n.IsToken( SqlTokenType.IdentifierStandard ) && n.ToString() == "yo" );
+            var pS = new SqlNodeScopeBreadthPredicate( n => n is SelectSpec );
+            var pY = new SqlNodeScopeBreadthPredicate( n => n.IsToken( SqlTokenType.IdentifierStandard ) && n.ToString() == "yo" );
             ISqlNode node = new SqlAnalyser( text ).Parse();
-            SqlNodeTransformer t = new SqlNodeTransformer( node, TestHelper.ConsoleMonitor );
+            var t = new SqlNodeTransformer( node, TestHelper.ConsoleMonitor );
 
             SqlNodeScopeUnion p = new SqlNodeScopeUnion( pS, pY );
             Assert.That( t.BuildRange( p ).ToString(), Is.EqualTo( result ) );
@@ -144,6 +143,22 @@ namespace CK.SqlServer.Transform.Tests
             SqlNodeScopeUnion pI = new SqlNodeScopeUnion( pY, pS );
             Assert.That( t.BuildRange( pI ).ToString(), Is.EqualTo( result ) );
         }
+
+        [TestCase( true )]
+        [TestCase( false )]
+        public void depth_versus_breadth_node_predicate( bool useQualifiedLocationNodeBuilder )
+        {
+            string text = @"select * from (select * from (select * from sys.tables) t) t";
+            ISqlNode node = new SqlAnalyser( text ).Parse();
+            var t = new SqlNodeTransformer( node, TestHelper.ConsoleMonitor ) { BuildQualifiedNodeLocations = useQualifiedLocationNodeBuilder };
+
+            var pD = new SqlNodeScopeDepthPredicate( n => n.AllTokens.FirstOrDefault()?.TokenType == SqlTokenType.Select );
+            var rD = t.BuildRange( pD );
+            Assert.That( rD.ToString(), Is.EqualTo( "[0,1[-[4,5[-[8,9[" ) );
+
+            var pB = new SqlNodeScopeBreadthPredicate( n => n.AllTokens.FirstOrDefault()?.TokenType == SqlTokenType.Select );
+            var rB = t.BuildRange( pB );
+            Assert.That( rB.ToString(), Is.EqualTo( "[0,18[" ) );        }
 
     }
 }

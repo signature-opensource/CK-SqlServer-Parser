@@ -31,7 +31,7 @@ namespace CK.SqlServer.Transform
 
         /// <summary>
         /// Gets a raw location object for the position.
-        /// If a full location can efficiently be retrieved, the rteurned location may be a full one. 
+        /// If a full location can efficiently be retrieved, the returned location may be a full one. 
         /// </summary>
         /// <param name="position">The position of the node.</param>
         /// <returns>A location.</returns>

@@ -100,7 +100,7 @@ namespace CK.SqlServer.Transform.Tests.XmlTests
             SqlParameter pZoneId = a.IsParameter( true );
             t.Visit( new AddParameter( new[] { pZoneId }, null, "@GroupIdResult" ) );
 
-            ISqlNodeLocationRange ifStatements = t.BuildRange( new SqlNodeScopePredicate( n => n is SqlIf ) );
+            ISqlNodeLocationRange ifStatements = t.BuildRange( new SqlNodeScopeBreadthPredicate( n => n is SqlIf ) );
             SqlNodeLocation headLoc = ifStatements.First.End;
             a.Reset( "if @ZoneId = 1 throw 50000, 'Zone.SystemZoneHasNoGroup', 1;" );
             var newGuard = (ISqlStatement)a.Parse( ParseMode.Statement );

@@ -22,6 +22,13 @@ namespace CK.SqlServer.Transform
         }
 
         /// <summary>
+        /// Whether node location should internally be built as <see cref="SqlNodeLocation.IsQualifiedLocation"/>
+        /// by all <see cref="SqlNodeLocationVisitor"/> created by this transformer.
+        /// Defaults to false.
+        /// </summary>
+        public bool BuildQualifiedNodeLocations { get; set; }
+
+        /// <summary>
         /// Gets the current node. 
         /// This property tracks the transformed node.
         /// </summary>
@@ -43,7 +50,7 @@ namespace CK.SqlServer.Transform
             if( transformer == null ) throw new ArgumentNullException( nameof( transformer ) );
             if( transformer.TargetFullName != null )
             {
-                var target = new SqlNodeScopePredicate( n => n is ISqlFullNameHolder && ((ISqlFullNameHolder)n).FullName.ToStringHyperCompact() == transformer.TargetFullName.ToStringHyperCompact() );
+                var target = new SqlNodeScopeBreadthPredicate( n => n is ISqlFullNameHolder && ((ISqlFullNameHolder)n).FullName.ToStringHyperCompact() == transformer.TargetFullName.ToStringHyperCompact() );
                 if( scope == null ) scope = target;
                 else
                 {
@@ -54,6 +61,7 @@ namespace CK.SqlServer.Transform
             foreach( ISqlTransformStatement t in transformer.Body )
             {
                 SqlNodeLocationVisitor v = CreateVisitorFrom( t );
+                v.BuildQualifiedNodeLocations = BuildQualifiedNodeLocations;
                 if( Apply( v, scope ) )
                 {
                     needReparse |= v.HasUnParsedText;
@@ -136,6 +144,7 @@ namespace CK.SqlServer.Transform
             using( _monitor.OnError( () => success = false ) )
             {
                 if( transformer.Monitor == null ) transformer.Monitor = _monitor;
+                transformer.BuildQualifiedNodeLocations = BuildQualifiedNodeLocations;
                 ISqlNode r = transformer.VisitRoot( _root, filter );
                 if( r != _root.Node && success ) _root = new LocationRoot( r, false );
             }
@@ -219,7 +228,7 @@ namespace CK.SqlServer.Transform
             bool error = false;
             using( _monitor.OnError( () => error = true ) )
             {
-                var s = new ScopeResolver( builder, _monitor );
+                var s = new ScopeResolver( builder, _monitor ) { BuildQualifiedNodeLocations = BuildQualifiedNodeLocations };
                 s.VisitRoot( _root, rangeFilter );
                 return error ? null : s.Result;
             }

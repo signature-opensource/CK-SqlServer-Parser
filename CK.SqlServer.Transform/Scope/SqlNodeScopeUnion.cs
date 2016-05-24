@@ -12,7 +12,7 @@ namespace CK.SqlServer.Transform
     /// <summary>
     /// Builds intersected ranges.
     /// </summary>
-    public class SqlNodeScopeUnion : SqlNodeScopeBuilder
+    public sealed class SqlNodeScopeUnion : SqlNodeScopeBuilder
     {
         readonly SqlNodeScopeBuilder _left;
         readonly SqlNodeScopeBuilder _right;

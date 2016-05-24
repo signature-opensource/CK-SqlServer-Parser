@@ -19,7 +19,7 @@ namespace CK.SqlServer.Transform
         SqlNodeLocationRange First { get; }
 
         /// <summary>
-        /// Gets the number os <see cref="SqlNodeLocationRange"/> that this range contains.
+        /// Gets the number of <see cref="SqlNodeLocationRange"/> that this range contains.
         /// </summary>
         int Count { get; }
 

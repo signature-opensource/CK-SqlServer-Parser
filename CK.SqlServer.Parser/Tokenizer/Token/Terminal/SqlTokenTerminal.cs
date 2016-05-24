@@ -44,6 +44,9 @@ namespace CK.SqlServer.Parser
                 case SqlTokenType.DoubleColons: return new SqlTokenDoubleColon( lead, tail );
                 case SqlTokenType.DoubleDots:
                 case SqlTokenType.TripleDots: return new SqlTokenMultiDots( t, lead, tail );
+                case SqlTokenType.QuestionMark:
+                case SqlTokenType.DoubleQuestionMark:
+                case SqlTokenType.TripleQuestionMark: return new SqlTokenQuestionMarks( t, lead, tail );
             }
             return new SqlTokenTerminal( t, lead, tail );
         }
@@ -71,10 +74,8 @@ namespace CK.SqlServer.Parser
         public override string ToString() => SqlKeyword.ToString( TokenType );
 
         [DebuggerStepThrough]
-        internal protected override ISqlNode Accept( SqlNodeVisitor visitor )
-        {
-            return visitor.Visit( this );
-        }
+        internal protected override ISqlNode Accept( SqlNodeVisitor visitor ) => visitor.Visit( this );
+
     }
 
 }

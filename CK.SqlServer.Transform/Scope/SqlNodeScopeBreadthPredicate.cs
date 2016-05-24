@@ -1,6 +1,7 @@
 ﻿using CK.SqlServer.Parser;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,27 +12,26 @@ namespace CK.SqlServer.Transform
     /// <summary>
     /// Builds scopes based on a node predicate.
     /// </summary>
-    public class SqlNodeScopePredicate : SqlNodeScopeBuilder
+    public sealed class SqlNodeScopeBreadthPredicate : SqlNodeScopeBuilder
     {
         readonly Func<ISqlNode,bool> _predicate;
         readonly int _maxOccur;
         SqlNodeLocationRange _current;
-        ISqlNode _currentNode;
         int _currentRemainder;
 
-        public SqlNodeScopePredicate( Func<ISqlNode,bool> predicate, int maxOccur = -1 )
+        public SqlNodeScopeBreadthPredicate( Func<ISqlNode,bool> predicate, int maxOccur = -1 )
             : base( false )
         {
             if( predicate == null ) throw new ArgumentNullException( nameof( predicate ) );
             if( maxOccur == 0 ) throw new ArgumentException( "Must not be zero.", nameof( maxOccur ) );
             _predicate = predicate;
-            _currentRemainder = _maxOccur = maxOccur > 0 ? maxOccur : int.MaxValue;
+            _maxOccur = maxOccur > 0 ? maxOccur : int.MaxValue;
+            _currentRemainder = _maxOccur;
         }
 
         protected override void DoReset()
         {
             _current = null;
-            _currentNode = null;
             _currentRemainder = _maxOccur;
         }
 
@@ -40,20 +40,18 @@ namespace CK.SqlServer.Transform
             if( _current == null && _currentRemainder > 0 && _predicate( context.VisitedNode ) )
             {
                 --_currentRemainder;
-                _currentNode = context.VisitedNode;
                 var beg = context.GetCurrentLocation( true );
-                _current = new SqlNodeLocationRange( beg, context.LocationManager.GetRawLocation( beg.Position + _currentNode.Width ) );
-                return _current;
+                Debug.Assert( beg.Node == context.VisitedNode );
+                return _current = new SqlNodeLocationRange( beg, context.LocationManager.GetRawLocation( beg.Position + context.VisitedNode.Width ) );
             }
             return null;
         }
 
         protected override ISqlNodeLocationRange DoLeave( SqlNodeLocationVisitor.IVisitContext context )
         {
-            if( _currentNode != null && _currentNode == context.VisitedNode )
+            if( _current != null && _current.Beg.Node == context.VisitedNode )
             {
                 _current = null;
-                _currentNode = null;
             }
             return null;
         }

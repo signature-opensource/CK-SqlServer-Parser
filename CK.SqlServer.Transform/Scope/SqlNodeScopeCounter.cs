@@ -12,7 +12,7 @@ namespace CK.SqlServer.Transform
     /// <summary>
     /// Checks the number of ranges.
     /// </summary>
-    public class SqlNodeScopeCounter : SqlNodeScopeBuilder
+    public sealed class SqlNodeScopeCounter : SqlNodeScopeBuilder
     {
         readonly SqlNodeScopeBuilder _inner;
         readonly int _minCount;

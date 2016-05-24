@@ -75,6 +75,7 @@ namespace CK.SqlServer.Transform
             ISqlNodeLocationRange _rangeFilter;
             IEnumerator<SqlNodeLocationRange> _filteredRange;
             IActivityMonitor _monitor;
+            int _overridePos;
             bool _inScope;
 
             public ISqlNodeLocationRange RangeFilter => _rangeFilter;
@@ -155,7 +156,12 @@ namespace CK.SqlServer.Transform
 
             public int Depth => _builder.Depth;
 
-            public int Position => _builder.Position;
+            public int Position => _overridePos >= 0 ? _overridePos : _builder.Position;
+
+            public void OverridePosition( int pos = -1 )
+            {
+                _overridePos = pos;
+            }
 
             public SqlNodeLocation GetCurrentLocation( bool ensureQualifiedLocation )
             {
@@ -236,9 +242,17 @@ namespace CK.SqlServer.Transform
             var prev = _context.VisitedNode;
             if( _context.Enter( prev, e ) )
             {
+                // We use the stack here to restore the position of the visited
+                // item before calling AfterVisitItem: this enables the location builder
+                // to not use a stack (the LigthLocationBuilder does not use a stack).
+                int savePos = _context.Position;
                 bool doChildrenVisit = BeforeVisitItem() && !_stop;
                 if( doChildrenVisit ) v = base.VisitItem( e );
+                // Restores the item position by overriding it.
+                _context.OverridePosition( savePos );
                 v = AfterVisitItem( v );
+                // Clears the override.
+                _context.OverridePosition();
                 _context.Leave( prev, !doChildrenVisit );
             }
             return v;

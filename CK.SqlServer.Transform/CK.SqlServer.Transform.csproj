@@ -75,6 +75,7 @@
     <Compile Include="Scope\SqlNodeScopeIndex.cs" />
     <Compile Include="Scope\SqlNodeScopeCounter.cs" />
     <Compile Include="Scope\SqlNodeScopeExcept.cs" />
+    <Compile Include="Scope\SqlNodeScopeDepthPredicate.cs" />
     <Compile Include="Scope\SqlNodeScopeUnion.cs" />
     <Compile Include="Transformers\AddColumnInInsert.cs" />
     <Compile Include="Location\ISqlNodeLocationRange.cs" />
@@ -82,7 +83,7 @@
     <Compile Include="Location\ISqlNodeLocationBuilder.cs" />
     <Compile Include="Location\LightLocationBuilder.cs" />
     <Compile Include="Location\QualifiedLocationBuilder.cs" />
-    <Compile Include="Scope\SqlNodeScopePredicate.cs" />
+    <Compile Include="Scope\SqlNodeScopeBreadthPredicate.cs" />
     <Compile Include="Scope\SqlNodeScopeIntersect.cs" />
     <Compile Include="Scope\SqlNodeScopeBuilder.cs" />
     <Compile Include="Transformers\InsertUnParsedTextAroundTrivia.cs" />

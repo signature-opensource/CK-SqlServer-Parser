@@ -20,7 +20,7 @@ namespace CK.SqlServer.Transform
         internal LocationRangeList( IReadOnlyList<SqlNodeLocationRange> list )
         {
             Debug.Assert( list != null && list.Count > 1 && list.All( r => r != null ) );
-            Debug.Assert( list.Select( (r,idx) => idx == 0 || list[idx-1].End.Position < r.Beg.Position ).Any() );
+            Debug.Assert( list.Select( (r,idx) => idx == 0 || list[idx-1].End.Position < r.Beg.Position ).All( ordered => ordered ) );
             _v = list;
         }
         public int Count => _v.Count;
