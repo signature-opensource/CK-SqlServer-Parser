@@ -11,23 +11,23 @@ using CK.Text;
 namespace CK.SqlServer.Parser
 {
     /// <summary>
-    /// List of possibly empty <see cref="ISqlTransformStatement">transformer statements</see>. 
+    /// List of possibly empty <see cref="ISqlTStatement">transformer statements</see>. 
     /// </summary>
-    public sealed class SqlTransformStatementList : ASqlNodeList<ISqlTransformStatement>
+    public sealed class SqlTStatementList : ASqlNodeList<ISqlTStatement>
     {
-        public SqlTransformStatementList( IEnumerable<ISqlTransformStatement> statements )
+        public SqlTStatementList( IEnumerable<ISqlTStatement> statements )
             : base( 0, statements )
         {
         }
 
-        SqlTransformStatementList( SqlTransformStatementList o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> statements, ImmutableList<SqlTrivia> trailing )
+        SqlTStatementList( SqlTStatementList o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> statements, ImmutableList<SqlTrivia> trailing )
             : base( o, 0, leading, statements, trailing )
         {
         }
 
         protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IList<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
         {
-            return new SqlTransformStatementList( this, leading, content, trailing );
+            return new SqlTStatementList( this, leading, content, trailing );
         }
 
         [DebuggerStepThrough]

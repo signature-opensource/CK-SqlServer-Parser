@@ -96,6 +96,35 @@ namespace CK.SqlServer.Parser
             return Text;
         }
 
+
+        static public void ToMiddle<TL, TM, TR>( ref TL left, ref TM middle, ref TR right )
+            where TL : ISqlNode
+            where TM : ISqlNode
+            where TR : ISqlNode
+        {
+            ToRight( ref left, ref middle );
+            ToLeft( ref middle, ref right );
+        }
+
+        static public void ToLeft<TL, TR>( ref TL left, ref TR right )
+            where TL : ISqlNode
+            where TR : ISqlNode
+        {
+            var transfer = right.LeadingTrivias;
+            right = right.SetTrivias( null, right.TrailingTrivias );
+            left = left.SetTrivias( left.LeadingTrivias, left.TrailingTrivias.AddRange( transfer ) );
+        }
+
+
+        static public void ToRight<TL, TR>( ref TL left, ref TR right )
+            where TL : ISqlNode
+            where TR : ISqlNode
+        {
+            var transfer = left.TrailingTrivias;
+            left = left.SetTrivias( left.LeadingTrivias, null );
+            right = right.SetTrivias( transfer.AddRange( right.LeadingTrivias ), right.TrailingTrivias );
+        }
+
         static public void WhiteSpaceToMiddle<TL, TM, TR>( ref TL left, ref TM middle, ref TR right )
             where TL : ISqlNode
             where TM : ISqlNode
@@ -120,7 +149,7 @@ namespace CK.SqlServer.Parser
             where TR : ISqlNode
         {
             ISqlNode r = right;
-            left = left.ExtractTrailingTrivias( (t,idx) =>
+            left = left.ExtractTrailingTrivias( ( t, idx ) =>
             {
                 if( t.TokenType == SqlTokenType.None )
                 {
@@ -145,7 +174,7 @@ namespace CK.SqlServer.Parser
             where TR : ISqlNode
         {
             ISqlNode l = left;
-            right = right.ExtractLeadingTrivias( (t,idx) =>
+            right = right.ExtractLeadingTrivias( ( t, idx ) =>
             {
                 if( t.TokenType == SqlTokenType.None )
                 {
@@ -157,6 +186,8 @@ namespace CK.SqlServer.Parser
             } );
             left = (TL)l;
         }
+
+
         static public Tuple<TL, TR> WhiteSpaceToLeft<TL, TR>( TL left, TR right )
              where TL : ISqlNode
              where TR : ISqlNode

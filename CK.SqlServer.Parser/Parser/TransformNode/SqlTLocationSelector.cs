@@ -9,47 +9,69 @@ using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
-    public sealed class SqlTLocationSelector : SqlNonToken
-    {
-        readonly SNode<
+    using CNode = SNode<
             SqlTokenIdentifier,
             SqlTokenTerminal,
             SqlTokenLiteralInteger,
-            ISqlNode> _content;
+            SqlTokenIdentifier,
+            SqlTokenIdentifier,
+            SqlTokenLiteralInteger,
+            ISqlNode>;
 
-        public SqlTLocationSelector( SqlTokenIdentifier firtOrLastOrSingleOrAll, SqlTokenTerminal plusOrMinusT, SqlTokenLiteralInteger offset, ISqlNode rangeOrString )
-            : base( null, null )
+    public sealed class SqlTLocationSelector : SqlNonToken
+    {
+        readonly CNode _content;
+
+        public SqlTLocationSelector( 
+            SqlTokenIdentifier firtOrLastOrSingleOrAll, 
+            SqlTokenTerminal plusOrMinusT, 
+            SqlTokenLiteralInteger offset, 
+            SqlTokenIdentifier outT,
+            SqlTokenIdentifier ofT,
+            SqlTokenLiteralInteger expectedMatchCount, 
+            ISqlNode rangeOrString )
+               : base( null, null )
         {
-            _content = new SNode<SqlTokenIdentifier, SqlTokenTerminal, SqlTokenLiteralInteger, ISqlNode>( firtOrLastOrSingleOrAll, plusOrMinusT, offset, rangeOrString );
+            _content = new CNode( firtOrLastOrSingleOrAll, plusOrMinusT, offset, outT, ofT, expectedMatchCount, rangeOrString );
             CheckContent();
         }
 
         void CheckContent()
         {
             Helper.CheckToken( FirstOrLastOrSingleOrAllT, nameof( FirstOrLastOrSingleOrAllT ), SqlTokenType.First, SqlTokenType.Last, SqlTokenType.Single, SqlTokenType.All );
-            if( FirstOrLastOrSingleOrAllT != null )
+            if( FirstOrLastOrSingleOrAllT.TokenType == SqlTokenType.Single || FirstOrLastOrSingleOrAllT.TokenType == SqlTokenType.All )
             {
-                if( FirstOrLastOrSingleOrAllT.TokenType == SqlTokenType.Single || FirstOrLastOrSingleOrAllT.TokenType == SqlTokenType.All )
+                if( PlusOrMinusT != null || Offset != null ) throw new ArgumentException( "Invalid offset after 'single' or 'all'." );
+            }
+            else if( Offset != null )
+            {
+                if( FirstOrLastOrSingleOrAllT.TokenType == SqlTokenType.Last )
                 {
-                    if( PlusOrMinusT != null || Offset != null ) throw new ArgumentException( "Invalid offset after 'single' or 'all'." );
-                }
-                else if( Offset != null )
-                {
-                    if( FirstOrLastOrSingleOrAllT.TokenType == SqlTokenType.Last )
+                    if( PlusOrMinusT == null || PlusOrMinusT.TokenType == SqlTokenType.Plus )
                     {
-                        if( PlusOrMinusT == null || PlusOrMinusT.TokenType == SqlTokenType.Plus )
-                        {
-                            throw new ArgumentException( "'last' offset requires a minus sign: 'last - 2'." );
-                        }
-                    }
-                    else
-                    {
-                        if( PlusOrMinusT == null || PlusOrMinusT.TokenType == SqlTokenType.Minus )
-                        {
-                            throw new ArgumentException( "'first' offset requires a plus sign: 'first + 1'." );
-                        }
+                        throw new ArgumentException( "'last' offset requires a minus sign: 'last - 2'." );
                     }
                 }
+                else
+                {
+                    if( PlusOrMinusT == null || PlusOrMinusT.TokenType == SqlTokenType.Minus )
+                    {
+                        throw new ArgumentException( "'first' offset requires a plus sign: 'first + 1'." );
+                    }
+                }
+            }
+            Helper.CheckNullableToken( OutT, nameof( OutT ), SqlTokenType.Out );
+            Helper.CheckNullableToken( OfT, nameof( OfT ), SqlTokenType.Of );
+            if( FirstOrLastOrSingleOrAllT.TokenType == SqlTokenType.Last )
+            {
+                if( ExpectedMatchCount != null )
+                {
+                    Helper.CheckBothNullOrNot( OutT, nameof( OutT ), OfT, nameof( OfT ) );
+                }
+            }
+            else
+            {
+                Helper.CheckAllNullOrNot( OutT, nameof( OutT ), OfT, nameof( OfT ), ExpectedMatchCount, nameof( ExpectedMatchCount ) );
             }
             Helper.CheckNotNull( RangeOrString, nameof( RangeOrString ) );
         }
@@ -60,7 +82,7 @@ namespace CK.SqlServer.Parser
             if( items == null ) _content = o._content;
             else
             {
-                _content = new SNode<SqlTokenIdentifier, SqlTokenTerminal, SqlTokenLiteralInteger, ISqlNode>( items );
+                _content = new CNode( items );
                 CheckContent();
             }
         }
@@ -80,10 +102,18 @@ namespace CK.SqlServer.Parser
 
         public SqlTokenLiteralInteger Offset => _content.V3;
 
+        public SqlTokenIdentifier OutT => _content.V4;
+
+        public SqlTokenIdentifier OfT => _content.V5;
+
+        public SqlTokenLiteralInteger ExpectedMatchCount => _content.V6;
+
         /// <summary>
-        /// Gets a <see cref="SqlTokenLiteralString"/> or a range.
+        /// Gets a <see cref="ISqlHasStringValue"/> or a <see cref="SqlTNodeRange"/>.
         /// </summary>
-        public ISqlNode RangeOrString => _content.V4;
+        public ISqlNode RangeOrString => _content.V7;
+
+        public bool IsStringLocation => _content.V7 is ISqlHasStringValue;
 
         [DebuggerStepThrough]
         internal protected override ISqlNode Accept( SqlNodeVisitor visitor ) => visitor.Visit( this );

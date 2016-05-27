@@ -232,7 +232,7 @@ namespace CK.SqlServer.Parser
             }
             else if( keep != nb )
             {
-                return DoClone( LeadingTrivias.RemoveRange( keep, nb - keep ), null, TrailingTrivias );
+                return DoClone( LeadingTrivias.RemoveRange( 0, nb - keep ), null, TrailingTrivias );
             }
             return this;
         }

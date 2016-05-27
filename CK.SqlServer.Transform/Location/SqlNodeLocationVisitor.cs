@@ -218,6 +218,7 @@ namespace CK.SqlServer.Transform
         internal ISqlNode VisitRoot( LocationRoot root, ISqlNodeLocationRange rangeFilter )
         {
             Debug.Assert( root != null && root.Node != null );
+            if( rangeFilter == SqlNodeLocationRange.EmptySet ) return root.Node;
             _context.Reset( root, rangeFilter );
             return base.VisitRoot( root.Node );
         }

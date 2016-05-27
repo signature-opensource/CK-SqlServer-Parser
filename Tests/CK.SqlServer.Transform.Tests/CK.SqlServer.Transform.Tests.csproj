@@ -98,8 +98,11 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="XmlTests\Insert location.xml" />
     <Content Include="XmlTests\Transformer scope.xml" />
-    <Content Include="XmlTests\Insert location selector.xml" />
+    <Content Include="XmlTests\_Current.xml">
+      <SubType>Designer</SubType>
+    </Content>
     <Content Include="XmlTests\CK.DB.Basics.xml" />
   </ItemGroup>
   <ItemGroup>

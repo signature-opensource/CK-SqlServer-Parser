@@ -8,19 +8,21 @@ using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
+    using CNode = SNode<
+            SqlTokenIdentifier,
+            SqlTokenIdentifier,
+            ISqlIdentifier,
+            SqlTokenIdentifier,
+            ISqlIdentifier,
+            SqlTokenIdentifier,
+            SqlTokenIdentifier,
+            SqlTStatementList,
+            SqlTokenIdentifier,
+            SqlTokenTerminal>;
+
     public sealed class SqlTransformer : SqlNonToken, ISqlNamedStatement, ISqlServerTransformer, ISqlFullNameHolder
     {
-        readonly SNode<
-            SqlTokenIdentifier,
-            SqlTokenIdentifier,
-            ISqlIdentifier,
-            SqlTokenIdentifier,
-            ISqlIdentifier,
-            SqlTokenIdentifier,
-            SqlTokenIdentifier,
-            SqlTransformStatementList,
-            SqlTokenIdentifier,
-            SqlTokenTerminal> _content;
+        readonly CNode _content;
 
         public SqlTransformer( 
             SqlTokenIdentifier alterOrCreate, 
@@ -30,12 +32,12 @@ namespace CK.SqlServer.Parser
             ISqlIdentifier targetName,
             SqlTokenIdentifier asT,
             SqlTokenIdentifier beginT,
-            SqlTransformStatementList body,
+            SqlTStatementList body,
             SqlTokenIdentifier endT, 
             SqlTokenTerminal term )
             : base( null, null )
         {
-            _content = new SNode<SqlTokenIdentifier,SqlTokenIdentifier,ISqlIdentifier,SqlTokenIdentifier,ISqlIdentifier,SqlTokenIdentifier,SqlTokenIdentifier,SqlTransformStatementList,SqlTokenIdentifier,SqlTokenTerminal>(
+            _content = new CNode(
                 alterOrCreate,
                 transfomerT,
                 name,
@@ -55,7 +57,7 @@ namespace CK.SqlServer.Parser
             if( items == null ) _content = o._content;
             else
             {
-                _content = new SNode<SqlTokenIdentifier,SqlTokenIdentifier,ISqlIdentifier,SqlTokenIdentifier,ISqlIdentifier,SqlTokenIdentifier,SqlTokenIdentifier,SqlTransformStatementList,SqlTokenIdentifier,SqlTokenTerminal>( items );
+                _content = new CNode( items );
                 CheckContent();
             }
         }
@@ -102,7 +104,7 @@ namespace CK.SqlServer.Parser
 
         public SqlTokenIdentifier BeginT => _content.V7;
 
-        public SqlTransformStatementList Body => _content.V8;
+        public SqlTStatementList Body => _content.V8;
 
         public SqlTokenIdentifier EndT => _content.V9;
 

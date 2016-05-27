@@ -38,9 +38,15 @@ namespace CK.SqlServer.Parser
             ImmutableList<SqlTrivia> trailing )
             : base( leading, trailing )
         {
-            bool enclosed = this is ISqlStructurallyEnclosed;
+           bool enclosed = this is ISqlStructurallyEnclosed;
            if( items == null )
             {
+                if( enclosed && o._enclosed == 0 )
+                {
+                    throw new ArgumentException( string.Format( "{0}: Must always have Opener/Closer.",
+                                GetType().Name ),
+                                nameof( items ) );
+                }
                 _items = o._items;
                 _enclosed = o._enclosed;
             }
@@ -63,6 +69,31 @@ namespace CK.SqlServer.Parser
                 }
                 _items = a;
             }
+        }
+
+        protected ASqlNodeEnclosableList(
+            int minCount,
+            TOpener opener,
+            IEnumerable<ISqlNode> content,
+            TCloser closer,
+            ImmutableList<SqlTrivia> leading = null,
+            ImmutableList<SqlTrivia> trailing = null )
+            : this( null, 
+                    minCount,
+                    leading, 
+                    opener != null ? BuildEnclosed( null, opener, content, closer ) : content, 
+                    trailing )
+        {
+        }
+
+        static internal ISqlNode[] BuildEnclosed( ISqlNode prefix, TOpener opener, IEnumerable<ISqlNode> content, TCloser closer )
+        {
+            var a = new List<ISqlNode>();
+            if( prefix != null ) a.Add( prefix );
+            a.Add( opener );
+            a.AddRange( content );
+            a.Add( closer );
+            return a.ToArray();
         }
 
         static internal void CheckEnclosed( ISqlNode o, ISqlNode[] items, int startIdx = 0 )
@@ -104,6 +135,8 @@ namespace CK.SqlServer.Parser
         /// </summary>
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _items;
 
+        public override sealed IList<ISqlNode> GetRawContent() => _items.ToList();
+
         /// <summary>
         /// Gets the count of items in this list.
         /// </summary>
@@ -118,9 +151,7 @@ namespace CK.SqlServer.Parser
             return _items.Skip(1).Take( _items.Length-2 ).Cast<T>().GetEnumerator();
         }
 
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
     }
 }

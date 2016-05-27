@@ -1,5 +1,6 @@
 ﻿using CK.Core;
 using CK.SqlServer.Parser;
+using CK.Text;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -57,29 +58,32 @@ namespace CK.SqlServer.UtilTests
         {
             ISqlNode e = ParseAndCheckSqlText( Text );
             e = OnParsed( e );
-            if( ExpectedXml != null )
+            if( e != null )
             {
-                using( TestHelper.ConsoleMonitor.OpenInfo().Send( "Checking detailed Xml." ) )
+                if( ExpectedXml != null )
                 {
-                    XElement visited = new SqlToXmlVisitor( CombineElementType, ToStringCompactForms ).ToXml( "Sql", e );
-                    string visitedString = visited.ToString();
-                    TestHelper.ConsoleMonitor.Trace().Send( visitedString );
-                    if( !XNode.DeepEquals( visited, ExpectedXml ) )
+                    using( TestHelper.ConsoleMonitor.OpenInfo().Send( "Checking detailed Xml." ) )
                     {
-                        TestHelper.AssertXmlStringEqual( visitedString, ExpectedXml );
+                        XElement visited = new SqlToXmlVisitor( CombineElementType, ToStringCompactForms ).ToXml( "Sql", e );
+                        string visitedString = visited.ToString();
+                        TestHelper.ConsoleMonitor.Trace().Send( visitedString );
+                        if( !XNode.DeepEquals( visited, ExpectedXml ) )
+                        {
+                            TestHelper.AssertXmlStringEqual( visitedString, ExpectedXml );
+                        }
                     }
                 }
-            }
-            if( ExpectedStatementsXml != null )
-            {
-                using( TestHelper.ConsoleMonitor.OpenInfo().Send( "Checking statements only Xml." ) )
+                if( ExpectedStatementsXml != null )
                 {
-                    XElement visited = new SqlToXmlStatementVisitor().ToXml( "Statements", e );
-                    string visitedString = visited.ToString();
-                    TestHelper.ConsoleMonitor.Trace().Send( visitedString );
-                    if( !XNode.DeepEquals( visited, ExpectedStatementsXml ) )
+                    using( TestHelper.ConsoleMonitor.OpenInfo().Send( "Checking statements only Xml." ) )
                     {
-                        TestHelper.AssertXmlStringEqual( visitedString, ExpectedStatementsXml );
+                        XElement visited = new SqlToXmlStatementVisitor().ToXml( "Statements", e );
+                        string visitedString = visited.ToString();
+                        TestHelper.ConsoleMonitor.Trace().Send( visitedString );
+                        if( !XNode.DeepEquals( visited, ExpectedStatementsXml ) )
+                        {
+                            TestHelper.AssertXmlStringEqual( visitedString, ExpectedStatementsXml );
+                        }
                     }
                 }
             }
@@ -90,10 +94,28 @@ namespace CK.SqlServer.UtilTests
             ISqlNode e;
             SqlAnalyser.ErrorResult r = SqlAnalyser.Parse( out e, Mode, text );
             Assert.That( r.IsError, Is.False, r.ToString() );
-            Assert.That( e.ToString( true, true ).NormalizeEOL(), Is.EqualTo( text ) );
+            string backFromTree = e.ToString( true, true );
+            if( backFromTree != text )
+            {
+                var tokens = new SqlTokenizer().Parse( text )
+                                .Where( t => t.TokenType != SqlTokenType.EndOfInput )
+                                .ToList();
+
+                string backFromTokens = string.Join( "", tokens.Select( t => t.ToString( true, true ) ) );
+                if( backFromTokens != text )
+                {
+                    Assert.That( backFromTokens, Is.EqualTo( text ), "Bug in tokenizer." );
+                }
+                Assert.That( backFromTree, Is.EqualTo( text ), "Bug in parser." );
+            }
             return e;
         }
 
+        /// <summary>
+        /// If this returns null, all checks are skipped.
+        /// </summary>
+        /// <param name="e">The parsed node.</param>
+        /// <returns>The parsed node, a transformed node, or null.</returns>
         protected virtual ISqlNode OnParsed( ISqlNode e )
         {
             return e;

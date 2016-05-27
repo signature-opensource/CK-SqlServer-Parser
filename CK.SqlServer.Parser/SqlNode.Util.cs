@@ -141,6 +141,14 @@ namespace CK.SqlServer.Parser
                 }
             }
 
+            internal static void CheckAllNullOrNot( ISqlNode e1, string n1, ISqlNode e2, string n2, ISqlNode e3, string n3 )
+            {
+                if( (e1 != null) != (e2 != null) || (e1 != null) != (e3 != null) )
+                {
+                    throw new ArgumentException( $"{n1}, {n2} and {n3} must all be null or not null." );
+                }
+            }
+
             internal static void CheckXORNull( ISqlNode e1, string n1, ISqlNode e2, string n2 )
             {
                 if( (e1 != null) == (e2 != null) )

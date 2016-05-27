@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace CK.SqlServer.Parser
 {
-    public interface ISqlTransformStatement : ISqlNode
+    public interface ISqlTStatement : ISqlNode
     {
         SqlTokenTerminal StatementTerminator { get; }
     }

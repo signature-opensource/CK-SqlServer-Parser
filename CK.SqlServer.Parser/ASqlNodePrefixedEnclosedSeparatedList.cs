@@ -54,7 +54,7 @@ namespace CK.SqlServer.Parser
             : this( null, 
                     minCount,
                     null,
-                    ASqlNodeEnclosableSeparatedList < TOpener, T, TSep, TCloser > .BuildEnclosed( prefix, opener, content, closer ), 
+                    ASqlNodeEnclosableList<TOpener,T,TCloser>.BuildEnclosed( prefix, opener, content, closer ), 
                     null )
         {
             CheckContent( minCount );

@@ -71,19 +71,9 @@ namespace CK.SqlServer.Parser
             : this( null, 
                     minCount,
                     leading, 
-                    opener != null ? BuildEnclosed( null, opener, content, closer ) : content, 
+                    opener != null ? ASqlNodeEnclosableList<TOpener,T,TCloser>.BuildEnclosed( null, opener, content, closer ) : content, 
                     trailing )
         {
-        }
-
-        static internal ISqlNode[] BuildEnclosed( ISqlNode prefix, TOpener opener, IEnumerable<ISqlNode> content, TCloser closer )
-        {
-            var a = new List<ISqlNode>();
-            if( prefix != null ) a.Add( prefix );
-            a.Add( opener );
-            a.AddRange( content );
-            a.Add( closer );
-            return a.ToArray();
         }
 
         public bool IsEnclosed => _enclosed != 0;

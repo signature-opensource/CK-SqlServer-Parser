@@ -1055,7 +1055,8 @@ namespace CK.SqlServer.Parser
                 }
             }
             SqlTokenIdentifier outputClause;
-            R.IsToken( out outputClause, SqlTokenType.Output, false );
+            if( !R.IsToken( out outputClause, SqlTokenType.Output, false ))
+                R.IsToken( out outputClause, SqlTokenType.Out, false );
 
             SqlTokenIdentifier readonlyClause;
             R.IsToken( out readonlyClause, SqlTokenType.Readonly, false );

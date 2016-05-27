@@ -58,18 +58,18 @@ namespace CK.SqlServer.Transform
                 }
             }
             bool needReparse = false;
-            foreach( ISqlTransformStatement t in transformer.Body )
+            foreach( ISqlTStatement t in transformer.Body )
             {
                 SqlNodeLocationVisitor v = CreateVisitorFrom( t );
                 v.BuildQualifiedNodeLocations = BuildQualifiedNodeLocations;
                 if( Apply( v, scope ) )
                 {
                     needReparse |= v.HasUnParsedText;
-                    Monitor.Trace().Send( $"Successfully applied '{t.ToStringHyperCompact()}'" );
+                    Monitor.Trace().Send( $"Successfully applied '{t.ToString()}'" );
                 }
                 else
                 {
-                    using( Monitor.OpenError().Send( $"Failed to apply '{t.ToStringHyperCompact()}' to:" ) )
+                    using( Monitor.OpenError().Send( $"Failed to apply '{t.ToString()}' to:" ) )
                     {
                         Monitor.Trace().Send( Node.ToString( true ) );
                     }
@@ -94,7 +94,7 @@ namespace CK.SqlServer.Transform
             return true;
         }
 
-        private static SqlNodeLocationVisitor CreateVisitorFrom( ISqlTransformStatement t )
+        private static SqlNodeLocationVisitor CreateVisitorFrom( ISqlTStatement t )
         {
             var addParam = t as SqlTAddParameter;
             #region SqlTAddParameter

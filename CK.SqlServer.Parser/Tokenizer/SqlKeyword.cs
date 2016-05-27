@@ -322,6 +322,7 @@ namespace CK.SqlServer.Parser
         public static readonly SqlTokenIdentifier After;
         public static readonly SqlTokenIdentifier Before;
         public static readonly SqlTokenIdentifier Single;
+        public static readonly SqlTokenIdentifier Out;
 
         static Dictionary<string, SqlTokenType> _keywords;
         static Dictionary<SqlTokenType, string> _typeToString;
@@ -476,8 +477,8 @@ namespace CK.SqlServer.Parser
             SystemTime      = RegKeyword( "system_time", SqlTokenType.SystemTime );
             Ties            = RegKeyword( "ties", SqlTokenType.Ties );
             ReadOnly        = RegKeyword( "readonly", SqlTokenType.Readonly );
+            Out             = RegKeyword( "out", SqlTokenType.Out );
             Output          = RegKeyword( "output", SqlTokenType.Output );
-            _keywords.Add( "out", SqlTokenType.Output );
             Rows            = RegKeyword( "rows", SqlTokenType.Rows );
             _keywords.Add( "row", SqlTokenType.Rows );
             Offset          = RegKeyword( "offset", SqlTokenType.Offset );

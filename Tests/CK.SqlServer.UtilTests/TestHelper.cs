@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Xml.Linq;
 using System.Text.RegularExpressions;
 using CK.SqlServer.Parser;
+using CK.Text;
 
 namespace CK.SqlServer.UtilTests
 {

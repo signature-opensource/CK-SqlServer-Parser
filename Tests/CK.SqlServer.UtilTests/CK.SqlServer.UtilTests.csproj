@@ -67,7 +67,6 @@
     <Compile Include="SqlNodeExtension.cs" />
     <Compile Include="SqlToXmlStatementVisitor.cs" />
     <Compile Include="SqlToXmlVisitor.cs" />
-    <Compile Include="StringNormalizationExtension.cs" />
     <Compile Include="TestHelper.cs" />
     <Compile Include="XmlSqlTester.cs" />
   </ItemGroup>

@@ -1,0 +1,48 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Tests>
+
+  <Test>
+    <Text>
+      create procedure CK.sTest as
+      begin
+        /* a comment
+           around which
+           one can add stuff.
+        */
+      end
+    </Text>
+    <Description>
+      create transformer on CK.sTest as
+      begin
+        insert
+        {
+          -- Done!
+          end
+        }
+        after single "/* add stuff */";
+        insert
+        {
+          -- And done again!
+          if 1 = 0
+          begin
+        }
+        before single "/* around */";
+      end
+    </Description>
+    <ResultText>
+      create procedure CK.sTest as
+      begin
+        -- And done again!
+        if 1 = 0
+        begin
+        /* a comment
+           around which
+           one can add stuff.
+        */
+        -- Done!
+        end
+      end
+    </ResultText>
+  </Test>
+
+</Tests>

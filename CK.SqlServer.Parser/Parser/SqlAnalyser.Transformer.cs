@@ -44,7 +44,7 @@ namespace CK.SqlServer.Parser
             SqlTokenIdentifier begintT;
             if( !R.IsToken( out begintT, SqlTokenType.Begin, true ) ) return null;
 
-            SqlTransformStatementList s = IsList( false, IsTransformStatement, statements => new SqlTransformStatementList( statements ) );
+            SqlTStatementList s = IsList( false, IsTransformStatement, statements => new SqlTStatementList( statements ) );
             if( s == null ) return null;
 
             SqlTokenIdentifier endT;
@@ -53,7 +53,7 @@ namespace CK.SqlServer.Parser
             return new SqlTransformer( alterOrCreate, type, nameOrOnOrAs, onT, targetName, asT, begintT, s, endT, GetOptionalTerminator() );
         }
 
-        ISqlTransformStatement IsTransformStatement( bool expected )
+        ISqlTStatement IsTransformStatement( bool expected )
         {
             SqlTokenIdentifier initT;
             if( R.IsToken( out initT, SqlTokenType.Add, false ))
@@ -74,15 +74,13 @@ namespace CK.SqlServer.Parser
             }
             else if( R.IsToken( out initT, SqlTokenType.Insert, false ) )
             {
-                SqlTokenOpenPar openPar;
-                if( !R.IsToken( out openPar, true ) ) return null;
+                SqlTokenTerminal opener;
+                if( !R.IsToken( out opener, SqlTokenType.OpenCurly, true ) ) return null;
 
-                ISqlNode content;
-                content = IsOneOrMoreStatements( false );
-
-                if( content == null ) return null;
-                SqlTokenClosePar closePar;
-                if( !R.IsToken( out closePar, true ) ) return null;
+                SqlTokenTerminal closer;
+                ISqlNode content = IsSqlNodeList( out closer, t => t.TokenType == SqlTokenType.CloseCurly );
+                if( content == null ) content = new SqlEmptyStatement( null );
+                SqlTrivia.ToMiddle( ref opener, ref content, ref closer );
 
                 SqlTokenIdentifier beforeOrAfterT;
                 if( !R.IsToken( out beforeOrAfterT, SqlTokenType.Before, false ) && !R.IsToken( out beforeOrAfterT, SqlTokenType.After, true ) ) return null;
@@ -90,7 +88,7 @@ namespace CK.SqlServer.Parser
                 SqlTLocationSelector loc = IsSqlTLocation( true );
                 if( loc == null ) return null;
 
-                return new SqlTInsert( initT, openPar, content, closePar, beforeOrAfterT, loc, GetOptionalTerminator());
+                return new SqlTInsert( initT, opener, content, closer, beforeOrAfterT, loc, GetOptionalTerminator());
             }
             if( expected ) R.SetCurrentError( "Expected transform statement." );
             return null;
@@ -121,19 +119,55 @@ namespace CK.SqlServer.Parser
                 if( expected ) R.SetCurrentError( "Expected: first [+n] | last [-n] | single | all." );
                 return null;
             }
-            var text = R.Current as ISqlHasStringValue;
-            if( text != null )
+            SqlTokenIdentifier outT, ofT = null;
+            SqlTokenLiteralInteger expectedMatchCount = null;
+            if( R.IsToken( out outT, SqlTokenType.Out, false ) )
             {
-                R.MoveNext();
+                if( !R.IsToken( out ofT, SqlTokenType.Of, true ) ) return null;
+                if( !R.IsToken( out expectedMatchCount, true ) ) return null;
+                if( firstOrLastOrSingleOrAll.TokenType == SqlTokenType.Single )
+                {
+                    R.SetCurrentError( "Invalid 'out of n' specification after 'single'." );
+                    return null;
+                }
             }
-            else
+            else if( firstOrLastOrSingleOrAll.TokenType == SqlTokenType.All )
             {
-                R.SetCurrentError( @"Expected: string litteral [...] or ""..."" or '...'." );
-                return null;
+                R.IsToken( out expectedMatchCount, false );
             }
 
-            return new SqlTLocationSelector( firstOrLastOrSingleOrAll, plusOrMinusT, offset, text );
+            ISqlHasStringValue text = R.Current as ISqlHasStringValue;
+            ISqlNode textOrRange = null;
+            if( text != null )
+            {
+                if( !text.Value.StartsWith( "--" )
+                    && (!text.Value.StartsWith( "/*" ) || !text.Value.EndsWith( "*/" )) )
+                {
+                    R.SetCurrentError( @"Litteral string must start with -- or starts and ends with /* and */." );
+                    return null;
+                }
+                R.MoveNext();
+                textOrRange = text;
+            }
+            else textOrRange = IsNodeRange( false );
+            if( textOrRange == null )
+            {
+                R.SetCurrentError( @"Expected: string litteral [...] or ""..."" or '...' or {node range}." );
+                return null;
+            }
+            return new SqlTLocationSelector( firstOrLastOrSingleOrAll, plusOrMinusT, offset, outT, ofT, expectedMatchCount, textOrRange );
         }
+
+        SqlTNodeRange IsNodeRange( bool expected )
+        {
+            SqlTokenTerminal opener;
+            if( !R.IsToken( out opener, SqlTokenType.OpenCurly, expected ) ) return null;
+            SqlTokenTerminal closer;
+            List<ISqlNode> items = new List<ISqlNode>();
+            if( !R.CollectUntil( items, out closer, null, t => t.TokenType == SqlTokenType.CloseCurly ) ) return null;
+            return new SqlTNodeRange( opener, items, closer );
+        }
+
     }
 
 

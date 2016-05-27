@@ -17,21 +17,21 @@
       begin
       add parameter @Id int;
       insert
-      (
-      declare @i int;
-      )
+      {
+        declare @i int;
+      }
       after single "--[here]";
       end
     </Description>
     <ResultText>
       create procedure CK.sTest( @Id int ) as
       begin
-      --[here]
-      declare @i int;
+        --[here]
+        declare @i int;
       end
       create procedure CK.sTestOther as
-      begin
-      --[here]
+        begin
+        --[here]
       end
     </ResultText>
   </Test>

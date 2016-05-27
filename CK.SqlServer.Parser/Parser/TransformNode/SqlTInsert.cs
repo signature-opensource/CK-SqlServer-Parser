@@ -12,30 +12,30 @@ namespace CK.SqlServer.Parser
     /// <summary>
     /// insert (raw|statement) I
     /// </summary>
-    public sealed class SqlTInsert : SqlNonToken, ISqlTransformStatement
+    public sealed class SqlTInsert : SqlNonToken, ISqlTStatement
     {
         readonly SNode<
             SqlTokenIdentifier,
-            SqlTokenOpenPar,
+            SqlTokenTerminal,
             ISqlNode,
-            SqlTokenClosePar,
+            SqlTokenTerminal,
             SqlTokenIdentifier,
             SqlTLocationSelector,
             SqlTokenTerminal> _content;
 
-        public SqlTInsert( SqlTokenIdentifier insertT, SqlTokenOpenPar openPar, ISqlNode content, SqlTokenClosePar closePar, SqlTokenIdentifier afterOrBeforeT, SqlTLocationSelector location, SqlTokenTerminal terminator )
+        public SqlTInsert( SqlTokenIdentifier insertT, SqlTokenTerminal opener, ISqlNode content, SqlTokenTerminal closer, SqlTokenIdentifier afterOrBeforeT, SqlTLocationSelector location, SqlTokenTerminal terminator )
             : base( null, null )
         {
-            _content = new SNode<SqlTokenIdentifier, SqlTokenOpenPar, ISqlNode, SqlTokenClosePar, SqlTokenIdentifier, SqlTLocationSelector, SqlTokenTerminal>( insertT, openPar, content, closePar, afterOrBeforeT, location, terminator );
+            _content = new SNode<SqlTokenIdentifier, SqlTokenTerminal, ISqlNode, SqlTokenTerminal, SqlTokenIdentifier, SqlTLocationSelector, SqlTokenTerminal>( insertT, opener, content, closer, afterOrBeforeT, location, terminator );
             CheckContent();
         }
 
         void CheckContent()
         {
             Helper.CheckToken( InsertT, nameof( InsertT ), SqlTokenType.Insert );
-            Helper.CheckNotNull( OpenPar, nameof( OpenPar ) );
+            Helper.CheckToken( Opener, nameof( Opener ), SqlTokenType.OpenCurly );
             Helper.CheckNotNull( Content, nameof( Content ) );
-            Helper.CheckNotNull( ClosePar, nameof( ClosePar ) );
+            Helper.CheckToken( Closer, nameof( Closer ), SqlTokenType.CloseCurly );
             Helper.CheckToken( AfterOrBeforeT, nameof( AfterOrBeforeT ), SqlTokenType.After, SqlTokenType.Before );
             Helper.CheckNotNull( Location, nameof( Location ) );
         }
@@ -46,7 +46,7 @@ namespace CK.SqlServer.Parser
             if( items == null ) _content = o._content;
             else
             {
-                _content = new SNode<SqlTokenIdentifier, SqlTokenOpenPar, ISqlNode, SqlTokenClosePar, SqlTokenIdentifier, SqlTLocationSelector, SqlTokenTerminal>( items );
+                _content = new SNode<SqlTokenIdentifier, SqlTokenTerminal, ISqlNode, SqlTokenTerminal, SqlTokenIdentifier, SqlTLocationSelector, SqlTokenTerminal>( items );
                 CheckContent();
             }
         }
@@ -62,13 +62,13 @@ namespace CK.SqlServer.Parser
 
         public SqlTokenIdentifier InsertT => _content.V1;
 
-        public SqlTokenOpenPar OpenPar => _content.V2;
+        public SqlTokenTerminal  Opener => _content.V2;
 
         public ISqlNode Content => _content.V3;
 
         public string TextContent => Content is ISqlHasStringValue ? ((ISqlHasStringValue)Content).Value : Content.ToString( true, true );
 
-        public SqlTokenClosePar ClosePar => _content.V4;
+        public SqlTokenTerminal Closer => _content.V4;
 
         public SqlTokenIdentifier AfterOrBeforeT => _content.V5;
 

@@ -25,7 +25,7 @@ namespace CK.SqlServer.Parser
         {
             Helper.CheckIsVariable( Variable, nameof( Variable ) );
             Helper.CheckNullableToken( AssignT, nameof( AssignT ), SqlTokenType.Assign );
-            Helper.CheckNullableToken( OutputT, nameof( OutputT ), SqlTokenType.Output );
+            Helper.CheckNullableToken( OutputT, nameof( OutputT ), SqlTokenType.Output, SqlTokenType.Out );
             Helper.CheckNullableToken( ReadOnlyT, nameof( ReadOnlyT ), SqlTokenType.Readonly );
             return OutputT != null
                         ? GetAllTrivias( this )

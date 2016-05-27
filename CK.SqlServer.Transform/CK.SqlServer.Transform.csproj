@@ -98,7 +98,7 @@
     <Compile Include="Location\SqlNodeLocationVisitor.cs" />
     <Compile Include="SqlNodeTransformer.cs" />
     <Compile Include="SqlTransformExtension.cs" />
-    <Compile Include="Transformers\TriviaLocationMatcher.cs" />
+    <Compile Include="Transformers\LocationInserterTrivia.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CK.SqlServer.Parser\CK.SqlServer.Parser.csproj">

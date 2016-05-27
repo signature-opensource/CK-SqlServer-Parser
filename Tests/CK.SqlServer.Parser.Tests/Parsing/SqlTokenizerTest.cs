@@ -6,6 +6,7 @@ using NUnit.Framework;
 using CK.SqlServer;
 using System.Text.RegularExpressions;
 using CK.SqlServer.UtilTests;
+using CK.Text;
 
 namespace CK.SqlServer.Parser.Tests
 {
@@ -457,5 +458,6 @@ identifer2";
                 Assert.That( str.Value, Is.EqualTo( result ) );
             }
         }
+
     }
 }

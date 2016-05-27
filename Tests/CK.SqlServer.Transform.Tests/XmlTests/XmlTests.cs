@@ -10,6 +10,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using CK.SqlServer.Transform.Transformers;
+using CK.Text;
 
 namespace CK.SqlServer.Transform.Tests.XmlTests
 {
@@ -38,8 +39,7 @@ namespace CK.SqlServer.Transform.Tests.XmlTests
                         Transformer = n =>
                         {
                             SqlNodeTransformer host = new SqlNodeTransformer( n, TestHelper.ConsoleMonitor );
-                            Assert.That( host.Apply( t ) );
-                            return host.Node;
+                            return host.Apply( t )  ? host.Node : null;
                         };
                     }
                 }
@@ -48,9 +48,21 @@ namespace CK.SqlServer.Transform.Tests.XmlTests
 
             protected override ISqlNode OnParsed( ISqlNode e )
             {
-                if( Transformer != null ) e = Transformer( e );
+                IReadOnlyList<ActivityMonitorSimpleCollector.Entry> errors = null;
+                using( TestHelper.ConsoleMonitor.CollectEntries( err => errors = err ) )
+                {
+                    if( Transformer != null ) e = Transformer( e );
+                }
                 if( ResultText != null )
                 {
+                    if( ResultText.StartsWith( "ERROR:" ) )
+                    {
+                        string errContains = ResultText.Substring( 6 ).Trim();
+                        Assert.That( errors != null, $"Error expected '{errContains}'." );
+                        var all = errors.Select( err => err.Text ).Concatenate( Environment.NewLine );
+                        Assert.That( all, Is.StringContaining( errContains ), "Expected error not found." );
+                        return null;
+                    }
                     string actualText = e.ToString( true, true );
                     using( TestHelper.ConsoleMonitor.OpenInfo().Send( "Expected Result" ) )
                     {
@@ -82,10 +94,11 @@ namespace CK.SqlServer.Transform.Tests.XmlTests
                 return (SqlTransformer)r.Result;
             }
         }
-        
 
+
+        [TestCase( "_Current.xml" )]
         [TestCase( "CK.DB.Basics.xml" )]
-        [TestCase( "Insert location selector.xml" )]
+        [TestCase( "Insert location.xml" )]
         [TestCase( "Transformer scope.xml" )]
         public void file_test( string fileName )
         {
