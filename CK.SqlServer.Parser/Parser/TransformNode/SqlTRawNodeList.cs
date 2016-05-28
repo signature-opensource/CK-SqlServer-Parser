@@ -13,23 +13,23 @@ namespace CK.SqlServer.Parser
     /// <summary>
     /// List of one or more <see cref="ISqlNode"> enclosed in curly braces: {...}. 
     /// </summary>
-    public sealed class SqlTNodeRange : ASqlNodeEnclosableList<SqlTokenTerminal,ISqlNode,SqlTokenTerminal>, ISqlStructurallyEnclosed
+    public sealed class SqlTRawNodeList : ASqlNodeEnclosableList<SqlTokenTerminal,ISqlNode,SqlTokenTerminal>, ISqlStructurallyEnclosed
     {
-        public SqlTNodeRange( SqlTokenTerminal opener, IEnumerable<ISqlNode> items, SqlTokenTerminal closer )
+        public SqlTRawNodeList( SqlTokenTerminal opener, IEnumerable<ISqlNode> items, SqlTokenTerminal closer )
             : base( 1, opener, items, closer )
         {
             if( opener.TokenType != SqlTokenType.OpenCurly ) throw new ArgumentException();
             if( closer.TokenType != SqlTokenType.CloseCurly ) throw new ArgumentException();
         }
 
-        SqlTNodeRange( SqlTNodeRange o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> statements, ImmutableList<SqlTrivia> trailing )
+        SqlTRawNodeList( SqlTRawNodeList o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> statements, ImmutableList<SqlTrivia> trailing )
             : base( o, 1, leading, statements, trailing )
         {
         }
 
         protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IList<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
         {
-            return new SqlTNodeRange( this, leading, content, trailing );
+            return new SqlTRawNodeList( this, leading, content, trailing );
         }
 
         [DebuggerStepThrough]

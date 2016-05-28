@@ -15,6 +15,9 @@ namespace CK.SqlServer.Transform.Transformers
         readonly LocationInserterTrivia _matcher;
         readonly string _before;
         readonly string _after;
+        readonly SqlTNodeSimplePattern _nodePattern;
+        readonly bool _matchLargestNode;
+        readonly bool _matchDeepestNode;
 
         public InsertUnParsedTextAroundTrivia( SqlTInsert insertInTrivia )
         {
@@ -22,11 +25,46 @@ namespace CK.SqlServer.Transform.Transformers
             _matcher = new LocationInserterTrivia( insertInTrivia );
             if( insertInTrivia.IsBefore ) _before = insertInTrivia.TextContent;
             else _after = insertInTrivia.TextContent;
+
+            _nodePattern = insertInTrivia.Location.Pattern as SqlTNodeSimplePattern;
+            if( _nodePattern != null )
+            {
+                if( _nodePattern.IsLargest )
+                {
+                    _matchLargestNode = true;
+                }
+                else
+                {
+                    _matchDeepestNode = true;
+                }
+            }
         }
+
+        protected override bool BeforeVisitItem()
+        {
+            if( _matchLargestNode && _nodePattern.Match( VisitContext.VisitedNode ) )
+            {
+                VisitContext.Tag = this;
+                return false;
+            }
+            return true;
+        }
+
+        int _lastDeepestMatchLastPos;
 
         protected override ISqlNode AfterVisitItem( ISqlNode e )
         {
             if( _matcher.CanStop ) return e;
+            if( _matchDeepestNode )
+            {
+                if( VisitContext.Position < _lastDeepestMatchLastPos
+                    || !_nodePattern.Match( e ) )
+                {
+                    return e;
+                }
+                _lastDeepestMatchLastPos = VisitContext.Position + e.Width;
+            }
+            else if( _matchLargestNode && VisitContext.Tag == null ) return e;
             var m = _matcher.AddCandidate( Monitor, VisitContext.Position, e );
             if( m != null )
             {

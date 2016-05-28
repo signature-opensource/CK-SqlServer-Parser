@@ -20,9 +20,9 @@
     <Description>
       create transformer as
       begin
-      insert{
-        set @1 = 0;
-      }
+        insert {
+          set @1 = 0;
+        }
       before last "--[multiple]";
       end
     </Description>
@@ -479,6 +479,30 @@
         */
         -- Done!
         end
+      end
+    </ResultText>
+  </Test>
+
+   <Test>
+    <Text>
+      create procedure CK.sTest as
+      begin
+        insert into S.tTable default values;
+        insert into S.tOther default values;
+      end
+    </Text>
+    <Description>
+      create transformer on CK.sTest as
+      begin
+        insert { set @X = 0; } before all {insert into S.?};
+        insert { set @Table = 1; } before single {insert into S.tTable};
+      end
+    </Description>
+    <ResultText>
+      create procedure CK.sTest as
+      begin
+        set @Table = 1; set @X = 0; insert into S.tTable default values;
+        set @X = 0; insert into S.tOther default values;
       end
     </ResultText>
   </Test>

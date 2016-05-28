@@ -81,6 +81,7 @@ namespace CK.SqlServer.Parser
         ErrorNumberUnterminatedValue = SqlTokenTypeError.ErrorNumberUnterminatedValue,
         ErrorNumberValue = SqlTokenTypeError.ErrorNumberValue,
         ErrorNumberIdentifierStartsImmediately = SqlTokenTypeError.ErrorNumberIdentifierStartsImmediately,
+        ErrorMustDoubleOpenCurly = SqlTokenTypeError.ErrorMustDoubleOpenCurly,
         #endregion
 
         #region Operator precedence bits n°28 to 24 (5 bits - 32 levels - actual levels are between 0 to 15, bit n°28 is unused).
@@ -546,6 +547,9 @@ namespace CK.SqlServer.Parser
         After,
         Before,
         Single,
+        Largest,
+        Deepest,
+        Nodes,
 
         #endregion
 
@@ -857,6 +861,10 @@ namespace CK.SqlServer.Parser
         ClosePar = RoundBracket | CloseBracket,
         OpenCurly = CurlyBracket | OpenBracket,
         CloseCurly = CurlyBracket | CloseBracket,
+        // These are { and } inside a top level { curly braces string }.
+        // Open and close curly braces must be doubled inside a curly braces string.
+        OpenCurlyInCurly = CurlyBracket | OpenBracket | 32,
+        CloseCurlyInCurly = CurlyBracket | CloseBracket | 32,
 
     }
 

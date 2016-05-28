@@ -9,24 +9,26 @@ using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
-    /// <summary>
-    /// insert (raw|statement) I
-    /// </summary>
-    public sealed class SqlTInsert : SqlNonToken, ISqlTStatement
-    {
-        readonly SNode<
+    using CNode = SNode<
             SqlTokenIdentifier,
             SqlTokenTerminal,
             ISqlNode,
             SqlTokenTerminal,
             SqlTokenIdentifier,
             SqlTLocationSelector,
-            SqlTokenTerminal> _content;
+            SqlTokenTerminal>;
+
+    /// <summary>
+    /// insert (raw|statement) I
+    /// </summary>
+    public sealed class SqlTInsert : SqlNonToken, ISqlTStatement
+    {
+        readonly CNode _content;
 
         public SqlTInsert( SqlTokenIdentifier insertT, SqlTokenTerminal opener, ISqlNode content, SqlTokenTerminal closer, SqlTokenIdentifier afterOrBeforeT, SqlTLocationSelector location, SqlTokenTerminal terminator )
             : base( null, null )
         {
-            _content = new SNode<SqlTokenIdentifier, SqlTokenTerminal, ISqlNode, SqlTokenTerminal, SqlTokenIdentifier, SqlTLocationSelector, SqlTokenTerminal>( insertT, opener, content, closer, afterOrBeforeT, location, terminator );
+            _content = new CNode( insertT, opener, content, closer, afterOrBeforeT, location, terminator );
             CheckContent();
         }
 
@@ -46,7 +48,7 @@ namespace CK.SqlServer.Parser
             if( items == null ) _content = o._content;
             else
             {
-                _content = new SNode<SqlTokenIdentifier, SqlTokenTerminal, ISqlNode, SqlTokenTerminal, SqlTokenIdentifier, SqlTLocationSelector, SqlTokenTerminal>( items );
+                _content = new CNode( items );
                 CheckContent();
             }
         }

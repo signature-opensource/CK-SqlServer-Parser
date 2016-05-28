@@ -29,6 +29,8 @@ namespace CK.SqlServer.Parser
         public static readonly SqlTokenTerminal CloseBracket;
         public static readonly SqlTokenTerminal OpenCurly;
         public static readonly SqlTokenTerminal CloseCurly;
+        public static readonly SqlTokenTerminal OpenCurlyInCurly;
+        public static readonly SqlTokenTerminal CloseCurlyInCurly;
 
         public static readonly SqlTokenTerminal Assign;
         public static readonly SqlTokenTerminal BitwiseOrAssign;
@@ -322,6 +324,9 @@ namespace CK.SqlServer.Parser
         public static readonly SqlTokenIdentifier After;
         public static readonly SqlTokenIdentifier Before;
         public static readonly SqlTokenIdentifier Single;
+        public static readonly SqlTokenIdentifier Largest;
+        public static readonly SqlTokenIdentifier Deepest;
+        public static readonly SqlTokenIdentifier Nodes;
         public static readonly SqlTokenIdentifier Out;
 
         static Dictionary<string, SqlTokenType> _keywords;
@@ -701,6 +706,9 @@ namespace CK.SqlServer.Parser
             After = RegKeyword( "after", SqlTokenType.After );
             Before = RegKeyword( "before", SqlTokenType.Before );
             Single = RegKeyword( "single", SqlTokenType.Single );
+            Largest = RegKeyword( "largest", SqlTokenType.Largest );
+            Deepest = RegKeyword( "deepest", SqlTokenType.Deepest );
+            Nodes = RegKeyword( "nodes", SqlTokenType.Nodes );
 
             Debug.Assert( (int)SqlTokenType.AssignOperatorCount == 9 );
             Assign				    = RegTerminal( SqlTokenType.Assign, "=" );
@@ -754,6 +762,8 @@ namespace CK.SqlServer.Parser
             CloseBracket = RegTerminal( SqlTokenType.CloseBracket, "]" );
             OpenCurly = RegTerminal( SqlTokenType.OpenCurly, "{" );
             CloseCurly = RegTerminal( SqlTokenType.CloseCurly, "}" );
+            OpenCurlyInCurly = RegTerminal( SqlTokenType.OpenCurlyInCurly, "{{" );
+            CloseCurlyInCurly = RegTerminal( SqlTokenType.CloseCurlyInCurly, "}}" );
 
             _typeToString.Add( SqlTokenType.IdentifierStar, "*" );
             IdentifierStar = new SqlTokenIdentifier( SqlTokenType.IdentifierStar, "*", null, null );

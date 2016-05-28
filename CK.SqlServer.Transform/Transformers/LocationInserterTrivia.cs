@@ -39,6 +39,12 @@ namespace CK.SqlServer.Transform.Transformers
                 var e = Node;
                 int deltaInsert = 0;
                 bool inTrailing = false;
+                if( IdxTrivias == null )
+                {
+                    if( before != null ) e = e.AddLeadingTrivia( new SqlTrivia( SqlTokenType.None, before ) );
+                    if( after != null ) e = e.AddTrailingTrivia( new SqlTrivia( SqlTokenType.None, after ) );
+                    return e;
+                }
                 foreach( int idx in IdxTrivias )
                 {
                     ImmutableList<SqlTrivia> trivias;
@@ -78,9 +84,9 @@ namespace CK.SqlServer.Transform.Transformers
         {
             InsertClause = ins;
 
-            if( ins.Location.IsStringLocation )
+            var t = ins.Location.Pattern as ISqlHasStringValue;
+            if( t != null )
             {
-                ISqlHasStringValue t = (ISqlHasStringValue)ins.Location.RangeOrString;
                 if( t.Value.StartsWith( "--" ) )
                 {
                     string lineComment = t.Value.Substring( 2 ).Trim();
@@ -133,27 +139,24 @@ namespace CK.SqlServer.Transform.Transformers
             List<int> matchPos = null;
             if( _matcher == null )
             {
-                int idx = InsertClause.IsBefore
-                            ? 0
-                            : ~(n.TrailingTrivias.Count);
-                if( !HandleMatchCount( monitor, ref matchPos, idx ) ) return null;
+                if( !HandleMatchCount( monitor, ref matchPos, int.MaxValue ) ) return null;
             }
             else
             {
                 int idx = 0;
                 foreach( var t in n.LeadingTrivias ) 
                 {
-                    if( _matcher( t ) && !HandleMatchCount( monitor, ref matchPos, idx ) ) return null;
+                    if( _matcher( t ) && !HandleMatchCount( monitor, ref matchPos, idx ) && _hasError ) return null;
                     ++idx;
                 }
                 idx = 0;
                 foreach( var t in n.TrailingTrivias )
                 {
-                    if( _matcher( t ) && !HandleMatchCount( monitor, ref matchPos, ~idx ) ) return null;
+                    if( _matcher( t ) && !HandleMatchCount( monitor, ref matchPos, ~idx ) && _hasError ) return null;
                     ++idx;
                 }
+                if( matchPos == null ) return null;
             }
-            if( matchPos == null ) return null;
             MatchedNode m = new MatchedNode( position, n, matchPos );
             if( _lastBuffer != null )
             {
@@ -163,39 +166,23 @@ namespace CK.SqlServer.Transform.Transformers
             return m;
         }
 
-        bool HandleTrivia( IActivityMonitor monitor, ref List<int> matchPos, SqlTrivia t, int idx )
-        {
-            if( _matcher( t ) )
-            {
-                if( ++_matchCount > 1 && (_expectedMatchCount > 0 && _matchCount > _expectedMatchCount) )
-                {
-                    monitor.Error().Send( $"Too many matches found for: '{InsertClause}'. Max is {_expectedMatchCount}." );
-                    _hasError = true;
-                    return false;
-                }
-                if( !_fromFirst || (_all || _matchCount == _targetMatchCount) )
-                {
-                    if( matchPos == null ) matchPos = new List<int>();
-                    matchPos.Add( idx );
-                }
-            }
-            return true;
-        }
-
-        bool HandleMatchCount( IActivityMonitor monitor, ref List<int> matchPos, int idx )
+        bool HandleMatchCount( IActivityMonitor monitor, ref List<int> matchPos, int idx = int.MaxValue )
         {
             if( ++_matchCount > 1 && (_expectedMatchCount > 0 && _matchCount > _expectedMatchCount) )
             {
                 monitor.Error().Send( $"Too many matches found for: '{InsertClause}'. Max is {_expectedMatchCount}." );
                 _hasError = true;
-                return false;
             }
-            if( !_fromFirst || (_all || _matchCount == _targetMatchCount) )
+            else if( !_fromFirst || (_all || _matchCount == _targetMatchCount) )
             {
-                if( matchPos == null ) matchPos = new List<int>();
-                matchPos.Add( idx );
+                if( idx != int.MaxValue )
+                {
+                    if( matchPos == null ) matchPos = new List<int>();
+                    matchPos.Add( idx );
+                }
+                return true;
             }
-            return true;
+            return false;
         }
 
         public MatchedNode Conclude()

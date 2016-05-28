@@ -70,5 +70,10 @@ namespace CK.SqlServer.Parser
         /// </summary>
         ErrorNumberIdentifierStartsImmediately = ErrorTokenizerMask | 6,
 
+        /// <summary>
+        /// A curly brace has not been doubled inside a curly braces string.
+        /// </summary>
+        ErrorMustDoubleOpenCurly = ErrorTokenizerMask | 7
+
     }
 }

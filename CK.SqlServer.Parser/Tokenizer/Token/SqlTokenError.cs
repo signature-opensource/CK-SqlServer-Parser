@@ -51,6 +51,10 @@ namespace CK.SqlServer.Parser
             w.Write( base.TokenType, ErrorMessage ); 
         }
 
+        public override bool Equals( SqlToken t ) => ReferenceEquals( this, t );
+
+        protected override int DoGetHashCode() => 1;
+
         [DebuggerStepThrough]
         internal protected override ISqlNode Accept( SqlNodeVisitor visitor ) => visitor.Visit( this );
 

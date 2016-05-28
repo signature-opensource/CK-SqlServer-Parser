@@ -137,7 +137,7 @@ namespace CK.SqlServer.Parser
             }
 
             ISqlHasStringValue text = R.Current as ISqlHasStringValue;
-            ISqlNode textOrRange = null;
+            ISqlNode textOrSimplePattern = null;
             if( text != null )
             {
                 if( !text.Value.StartsWith( "--" )
@@ -147,25 +147,42 @@ namespace CK.SqlServer.Parser
                     return null;
                 }
                 R.MoveNext();
-                textOrRange = text;
+                textOrSimplePattern = text;
             }
-            else textOrRange = IsNodeRange( false );
-            if( textOrRange == null )
+            else textOrSimplePattern = IsTNodeSimplePattern( false );
+            if( textOrSimplePattern == null )
             {
                 R.SetCurrentError( @"Expected: string litteral [...] or ""..."" or '...' or {node range}." );
                 return null;
             }
-            return new SqlTLocationSelector( firstOrLastOrSingleOrAll, plusOrMinusT, offset, outT, ofT, expectedMatchCount, textOrRange );
+            return new SqlTLocationSelector( firstOrLastOrSingleOrAll, plusOrMinusT, offset, outT, ofT, expectedMatchCount, textOrSimplePattern );
         }
 
-        SqlTNodeRange IsNodeRange( bool expected )
+        SqlTNodeSimplePattern IsTNodeSimplePattern( bool expected )
+        {
+            SqlTokenIdentifier largestOrDeepestT, nodesT = null, likeT = null;
+            if( R.IsToken( out largestOrDeepestT, SqlTokenType.Largest, false )
+                || R.IsToken( out largestOrDeepestT, SqlTokenType.Deepest, false ) )
+            {
+                expected = true;
+                if( R.IsToken( out nodesT, SqlTokenType.Nodes, false ) )
+                {
+                    if( !R.IsToken( out likeT, SqlTokenType.Like, true ) ) return null;
+                }
+            }
+            SqlTRawNodeList nodeList = IsTRawNodeList( expected );
+            if( nodeList == null ) return null;
+            return new SqlTNodeSimplePattern( largestOrDeepestT, nodesT, likeT, nodeList );
+        }
+
+        SqlTRawNodeList IsTRawNodeList( bool expected )
         {
             SqlTokenTerminal opener;
             if( !R.IsToken( out opener, SqlTokenType.OpenCurly, expected ) ) return null;
             SqlTokenTerminal closer;
             List<ISqlNode> items = new List<ISqlNode>();
             if( !R.CollectUntil( items, out closer, null, t => t.TokenType == SqlTokenType.CloseCurly ) ) return null;
-            return new SqlTNodeRange( opener, items, closer );
+            return new SqlTRawNodeList( opener, items, closer );
         }
 
     }

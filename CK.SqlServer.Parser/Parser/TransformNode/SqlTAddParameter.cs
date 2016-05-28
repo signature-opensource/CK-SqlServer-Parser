@@ -9,20 +9,22 @@ using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
+    using CNode = SNode<
+            SqlTokenIdentifier,
+            SqlTokenIdentifier,
+            SqlParameterList,
+            SqlTokenIdentifier,
+            SqlTokenIdentifier,
+            SqlTokenTerminal>;
+
     public sealed class SqlTAddParameter : SqlNonToken, ISqlTStatement
     {
-        readonly SNode<
-            SqlTokenIdentifier, 
-            SqlTokenIdentifier, 
-            SqlParameterList, 
-            SqlTokenIdentifier, 
-            SqlTokenIdentifier, 
-            SqlTokenTerminal> _content;
+         readonly CNode _content;
 
         public SqlTAddParameter( SqlTokenIdentifier addT, SqlTokenIdentifier parameterT, SqlParameterList parameters, SqlTokenIdentifier beforeOrAfterT, SqlTokenIdentifier paramName, SqlTokenTerminal terminator )
             : base( null, null )
         {
-            _content = new SNode<SqlTokenIdentifier,SqlTokenIdentifier,SqlParameterList,SqlTokenIdentifier,SqlTokenIdentifier,SqlTokenTerminal>( addT, parameterT, parameters, beforeOrAfterT, paramName, terminator );
+            _content = new CNode( addT, parameterT, parameters, beforeOrAfterT, paramName, terminator );
             CheckContent();
         }
 
@@ -42,7 +44,7 @@ namespace CK.SqlServer.Parser
             if( items == null ) _content = o._content;
             else
             {
-                _content = new SNode<SqlTokenIdentifier, SqlTokenIdentifier, SqlParameterList, SqlTokenIdentifier, SqlTokenIdentifier, SqlTokenTerminal>( items );
+                _content = new CNode( items );
                 CheckContent();
             }
         }

@@ -50,6 +50,17 @@ namespace CK.SqlServer.Parser
             return new CKEnumeratorMono<SqlTokenIdentifier>( this );
         }
 
+        public override bool Equals( SqlToken t )
+        {
+            SqlTokenIdentifier id = t as SqlTokenIdentifier;
+            if( id == null ) return false;
+            if( TokenType == id.TokenType ) return _name == id._name;
+            // TODO: handle [] and ""...
+            return false;
+        }
+
+        protected override int DoGetHashCode() => _name.GetHashCode();
+
         public SqlTokenIdentifier RemoveQuoteIfPossible( bool keepIfReservedKeyword )
         {
             // Already quotes free.

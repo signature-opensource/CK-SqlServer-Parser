@@ -29,10 +29,10 @@ namespace CK.SqlServer.Parser
             SqlTokenIdentifier outT,
             SqlTokenIdentifier ofT,
             SqlTokenLiteralInteger expectedMatchCount, 
-            ISqlNode rangeOrString )
+            ISqlNode pattern )
                : base( null, null )
         {
-            _content = new CNode( firtOrLastOrSingleOrAll, plusOrMinusT, offset, outT, ofT, expectedMatchCount, rangeOrString );
+            _content = new CNode( firtOrLastOrSingleOrAll, plusOrMinusT, offset, outT, ofT, expectedMatchCount, pattern );
             CheckContent();
         }
 
@@ -73,7 +73,7 @@ namespace CK.SqlServer.Parser
             {
                 Helper.CheckAllNullOrNot( OutT, nameof( OutT ), OfT, nameof( OfT ), ExpectedMatchCount, nameof( ExpectedMatchCount ) );
             }
-            Helper.CheckNotNull( RangeOrString, nameof( RangeOrString ) );
+            Helper.CheckNotNull<ISqlHasStringValue,SqlTNodeSimplePattern>( Pattern, nameof( Pattern ) );
         }
 
         SqlTLocationSelector( SqlTLocationSelector o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
@@ -109,11 +109,9 @@ namespace CK.SqlServer.Parser
         public SqlTokenLiteralInteger ExpectedMatchCount => _content.V6;
 
         /// <summary>
-        /// Gets a <see cref="ISqlHasStringValue"/> or a <see cref="SqlTNodeRange"/>.
+        /// Gets a <see cref="ISqlHasStringValue"/> or a <see cref="SqlTNodeSimplePattern"/>.
         /// </summary>
-        public ISqlNode RangeOrString => _content.V7;
-
-        public bool IsStringLocation => _content.V7 is ISqlHasStringValue;
+        public ISqlNode Pattern => _content.V7;
 
         [DebuggerStepThrough]
         internal protected override ISqlNode Accept( SqlNodeVisitor visitor ) => visitor.Visit( this );

@@ -5,42 +5,25 @@
     <Text>
       create procedure CK.sTest as
       begin
-        /* a comment
-           around which
-           one can add stuff.
-        */
+        insert into S.tTable default values;
+        insert into S.tOther default values;
       end
     </Text>
     <Description>
       create transformer on CK.sTest as
       begin
-        insert
-        {
-          -- Done!
-          end
-        }
-        after single "/* add stuff */";
-        insert
-        {
-          -- And done again!
-          if 1 = 0
-          begin
-        }
-        before single "/* around */";
+       insert { set @X = 0; } before all {insert into S.?};
+       insert { set @Table = 1; } before single {insert into S.tTable};
+       insert { set @k = 9; } after single {insert into S.tOther};
+       insert { -- the end... } after single {insert into S.tTable};
       end
     </Description>
     <ResultText>
       create procedure CK.sTest as
       begin
-        -- And done again!
-        if 1 = 0
-        begin
-        /* a comment
-           around which
-           one can add stuff.
-        */
-        -- Done!
-        end
+        set @Table = 1; set @X = 0; insert into S.tTable default values;
+        -- the end..
+        set @X = 0; insert into S.tOther default values; set @k = 9;
       end
     </ResultText>
   </Test>

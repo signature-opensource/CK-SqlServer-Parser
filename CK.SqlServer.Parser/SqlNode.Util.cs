@@ -204,6 +204,21 @@ namespace CK.SqlServer.Parser
                 if( e == null ) throw new ArgumentNullException( name );
             }
 
+            public static void CheckNotNull<T>( ISqlNode e, string name )
+            {
+                if( e == null ) throw new ArgumentNullException( name );
+                if( !(e is T) ) throw new ArgumentException( $"Must be a '{typeof( T ).Name}'.", name );
+            }
+
+            public static void CheckNotNull<T1,T2>( ISqlNode e, string name )
+            {
+                if( e == null ) throw new ArgumentNullException( name );
+                if( !(e is T1) && !(e is T2) )
+                {
+                    throw new ArgumentException( $"Must be a '{typeof( T1 ).Name}' or '{typeof( T2 ).Name}'.", name );
+                }
+            }
+
             public static void CheckUnPar<T>( ISqlNode e, string name )
             {
                 if( e == null ) throw new ArgumentNullException( name );

@@ -47,6 +47,8 @@ namespace CK.SqlServer.Parser
 
         static char[] _moneyPrefix = new char[] { '\u0024', '\u00A2', '\u00A3', '\u00A4', '\u00A5', '\u09F2', '\u09F3', '\u0E3F', '\u17DB', '\u20A0', '\u20A1', '\u20A2', '\u20A3', '\u20A4', '\u20A5', '\u20A6', '\u20A7', '\u20A8', '\u20A9', '\u20AA', '\u20AB', '\u20AC', '\u20AD', '\u20AE', '\u20AF', '\u20B0', '\u20B1', '\u20B9', '\uFDFC', '\uFE69', '\uFF04', '\uFFE0', '\uFFE1', '\uFFE5', '\uFFE6' };
 
+        bool _inCurlyString;
+
         #endregion
 
         [DebuggerStepThrough]
@@ -73,6 +75,7 @@ namespace CK.SqlServer.Parser
             _inputIdx = -1;
             _headPos = 0;
             _lineHead = _colHead = 1;
+            _inCurlyString = false;
             if( (_curC0 = ReadInput()) != -1 ) _curC1 = ReadInput();
             _tokenType = 0;
             ClearBuffer();
@@ -211,10 +214,9 @@ namespace CK.SqlServer.Parser
             return ++_inputIdx >= _input.Length ? -1 : _input[_inputIdx];
         }
 
-        int Peek()
-        {
-            return _curC0;
-        }
+        int Peek() => _curC0;
+
+        int PeekLookup() => _curC1;
 
         bool Read( int c1, int c2 )
         {
@@ -274,8 +276,8 @@ namespace CK.SqlServer.Parser
         void CollectTrailingTrivias()
         {
             _trailingTrivias.Clear();
-            int ic;
             _buffer.Length = 0;
+            int ic;
             while( (ic = Peek()) != -1 ) 
             {
                 if( Read( '/', '*' ) )
@@ -302,8 +304,6 @@ namespace CK.SqlServer.Parser
                     _trailingTrivias.Add( BuildTrivia( SqlTokenType.LineComment, _buffer.ToString() ) );
                     // Line comment ends the trailing trivias.
                     return;
-                    //_buffer.Length = 0;
-                    //continue;
                 }
                 if( ic == '\r' || ic == '\n' || ic == '\u2028' || ic == '\u2029' )
                 {
@@ -312,9 +312,6 @@ namespace CK.SqlServer.Parser
                     _buffer.Append( Environment.NewLine );
                     // New line ends the current trailing trivia.
                     break;
-                    //_trailingTrivias.Add( BuildTrivia( SqlTokenType.None, _buffer.ToString() ) );
-                    //_buffer.Length = 0;
-                    //continue;
                 }
                 if( !char.IsWhiteSpace( (char)ic ) )
                 {
@@ -455,8 +452,21 @@ namespace CK.SqlServer.Parser
 
                 case '[': return ReadQuotedIdentifier( ']', SqlTokenType.IdentifierQuotedBracket );
                 case '"': return ReadQuotedIdentifier( '"', SqlTokenType.IdentifierQuoted );
-                case '{': return (int)SqlTokenType.OpenCurly;
-                case '}': return (int)SqlTokenType.CloseCurly;
+                case '{':
+                    if( _inCurlyString )
+                    {
+                        if( !Read( '{' ) ) return (int)SqlTokenTypeError.ErrorMustDoubleOpenCurly;
+                        return (int)SqlTokenType.OpenCurlyInCurly;
+                    }
+                    else _inCurlyString = true;
+                    return (int)SqlTokenType.OpenCurly;
+                case '}':
+                    if( _inCurlyString )
+                    {
+                        if( Read( '}' ) ) return (int)SqlTokenType.CloseCurlyInCurly;
+                        _inCurlyString = false;
+                    }
+                    return (int)SqlTokenType.CloseCurly;
                 case '(': return (int)SqlTokenType.OpenPar;
                 case ')': return (int)SqlTokenType.ClosePar;
                 case ';': return (int)SqlTokenType.SemiColon;
@@ -560,10 +570,20 @@ namespace CK.SqlServer.Parser
         {
             ClearBuffer();
             int ic;
-            while( (ic = Read()) != -1 )
+            while( (ic = Peek()) != -1 )
             {
-                if( ic == '*' && Read( '/' ) ) return (int)SqlTokenType.StarComment;
+                if( ic == '*' && PeekLookup() == '/' )
+                {
+                    Read(); Read();
+                    return (int)SqlTokenType.StarComment;
+                }
+                // When inside a curly braces string, the closing } alone ends the comment.
+                if( _inCurlyString && ic == '}' && PeekLookup() != '}' )
+                {
+                    return (int)SqlTokenType.StarComment;
+                }
                 _buffer.Append( (char)ic );
+                Read();
             }
             return (int)SqlTokenTypeError.EndOfInput;
         }
@@ -572,16 +592,23 @@ namespace CK.SqlServer.Parser
         {
             ClearBuffer();
             int ic;
-            while( (ic = Read()) != -1 )
+            while( (ic = Peek()) != -1 )
             {
                 // Eats the end of line.
                 // This is by design: LineComment eats the end-of-line (Line Separator \u2028 and Paragraph Separator \u2029).
                 if( ic == '\r' || ic == '\n' || ic == '\u2028' || ic == '\u2029' )
                 {
+                    Read();
                     if( ic == '\r' ) Read( '\n' );
                     break;
                 }
+                // When inside a curly braces string, the closing } alone ends the line comment.
+                if( _inCurlyString && ic == '}' && PeekLookup() != '}' )
+                {
+                    break;
+                }
                 _buffer.Append( (char)ic );
+                Read();
             }
             return (int)SqlTokenType.LineComment;
         }

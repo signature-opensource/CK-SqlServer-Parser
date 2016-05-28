@@ -14,7 +14,7 @@ namespace CK.SqlServer.Parser
     /// <summary>
     /// Base class for (non comment) tokens. 
     /// </summary>
-    public abstract class SqlToken : SqlNode, IEnumerable<SqlToken>
+    public abstract class SqlToken : SqlNode, IEquatable<SqlToken>, IEnumerable<SqlToken>
     {
         /// <summary>
         /// Private empty ctor for the EmptyToken.
@@ -54,6 +54,18 @@ namespace CK.SqlServer.Parser
         public override sealed IEnumerable<ISqlNode> TrailingNodes => Util.Array.Empty<ISqlNode>();
 
         public override sealed int Width => 1;
+
+        public sealed override bool Equals( object obj )
+        {
+            SqlToken t = obj as SqlToken;
+            return t != null ? Equals( t ) : false;
+        }
+
+        public sealed override int GetHashCode() => DoGetHashCode();
+
+        public abstract bool Equals( SqlToken t );
+
+        protected abstract int DoGetHashCode();
 
         /// <summary>
         /// Gets an empty node list.

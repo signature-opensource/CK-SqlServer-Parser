@@ -50,6 +50,13 @@ namespace CK.SqlServer.Transform
             ISqlNode VisitedNode { get; }
 
             /// <summary>
+            /// Gets or sets an optional object to the visited node.
+            /// This can be used to transfer information between <see cref="BeforeVisitItem"/>
+            /// and <see cref="AfterVisitItem"/> for a node.
+            /// </summary>
+            object Tag { get; set; }
+
+            /// <summary>
             /// Gets the current depth.
             /// </summary>
             int Depth { get; }
@@ -119,6 +126,7 @@ namespace CK.SqlServer.Transform
 
             public bool Enter( ISqlNode prev, ISqlNode n )
             {
+                Tag = null;
                 VisitedNode = n;
                 _builder.Enter( n );
                 if( !_inScope )
@@ -151,6 +159,8 @@ namespace CK.SqlServer.Transform
             public ISqlNodeLocationManager LocationManager => _builder.Root;
 
             public ISqlNode VisitedNode { get; private set; }
+
+            public object Tag { get; set; }
 
             public LocationRoot Root => _builder.Root;
 
@@ -243,14 +253,16 @@ namespace CK.SqlServer.Transform
             var prev = _context.VisitedNode;
             if( _context.Enter( prev, e ) )
             {
-                // We use the stack here to restore the position of the visited
+                // We use the stack here to restore the position and the Tag of the visited
                 // item before calling AfterVisitItem: this enables the location builder
                 // to not use a stack (the LigthLocationBuilder does not use a stack).
                 int savePos = _context.Position;
                 bool doChildrenVisit = BeforeVisitItem() && !_stop;
+                object tag = _context.Tag;
                 if( doChildrenVisit ) v = base.VisitItem( e );
                 // Restores the item position by overriding it.
                 _context.OverridePosition( savePos );
+                _context.Tag = tag;
                 v = AfterVisitItem( v );
                 // Clears the override.
                 _context.OverridePosition();
