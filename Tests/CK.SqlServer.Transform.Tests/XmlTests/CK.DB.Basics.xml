@@ -79,7 +79,7 @@
       as
       begin
         add parameter @ZoneId int = 0 before @GroupIdResult;
-        insert
+        inject
         {   -- from Zone...
             if @ZoneId = 1 throw 50000, 'Zone.SystemZoneHasNoGroup', 1;
         }

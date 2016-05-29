@@ -20,7 +20,7 @@
     <Description>
       create transformer as
       begin
-        insert {
+        inject {
           set @1 = 0;
         }
       before last "--[multiple]";
@@ -65,7 +65,7 @@
     <Description>
       create transformer as
       begin
-        insert { -- a comment... 
+        inject { -- a comment... 
         } after all "--[multiple]";
       end
     </Description>
@@ -110,7 +110,7 @@
     <Description>
       create transformer as
       begin
-        insert { "Col" = 7, } after all "--[multiple]";
+        inject { "Col" = 7, } after all "--[multiple]";
       end
     </Description>
     <ResultText>
@@ -151,7 +151,7 @@
     <Description>
       create transformer as
       begin
-        insert {
+        inject {
           set @1 = 0;
         }
         after first+1 "--[multiple]";
@@ -196,7 +196,7 @@
     <Description>
       create transformer as
       begin
-      insert
+      inject
       {
         set @1 = 0;
       }
@@ -242,7 +242,7 @@
     <Description>
       create transformer as
       begin
-        insert {
+        inject {
           set @1 = 0;
         }
         before first "--[multiple]";
@@ -287,8 +287,7 @@
     <Description>
       create transformer as
       begin
-        insert { set @1 = 0; }
-        after all "--[multiple]";
+        inject { set @1 = 0; } after all "--[multiple]";
       end
     </Description>
     <ResultText>
@@ -323,7 +322,7 @@
     <Description>
       create transformer as
       begin
-      insert { set @1 = 0;
+      inject { set @1 = 0;
       }
       after all "--[multiple]";
       end
@@ -352,7 +351,7 @@
     <Description>
       create transformer as
       begin
-      insert{
+      inject {
         set @1 = 0;
       }
       before last "--[multiple]";
@@ -379,7 +378,7 @@
     <Description>
       create transformer as
       begin
-      insert
+      inject
       {
         set @1 = 0;
       }
@@ -409,7 +408,7 @@
     <Description>
       create transformer as
       begin
-      insert
+      inject
       {
         set @1 = 0;
       }
@@ -429,11 +428,11 @@
     <Description>
       create transformer as
       begin
-      insert
-      {
-        set @1 = 0;
-      }
-      after last "--[not here]";
+        inject
+        {
+          set @1 = 0;
+        }
+        after last "--[not here]";
       end
     </Description>
     <ResultText>ERROR: Not found</ResultText>
@@ -452,13 +451,13 @@
     <Description>
       create transformer on CK.sTest as
       begin
-        insert
+        inject
         {
           -- Done!
           end
         }
         after single "/* add stuff */";
-        insert
+        inject
         {
           -- And done again!
           if 1 = 0
@@ -483,6 +482,33 @@
     </ResultText>
   </Test>
 
+  <Test>
+    <Text>
+      create procedure CK.sTest as
+      begin
+        insert into S.tTable default values;
+        insert into S.tOther default values;
+      end
+    </Text>
+    <Description>
+      create transformer on CK.sTest as
+      begin
+       inject { set @X = 0; } before all {insert into S.?};
+       inject { set @Table = 1; } before single {insert into S.tTable};
+       inject { set @k = 9; } after single {insert into S.tOther};
+       inject { -- the end... } after single {insert into S.tTable};
+      end
+    </Description>
+    <ResultText>
+      create procedure CK.sTest as
+      begin
+        set @Table = 1; set @X = 0; insert into S.tTable default values;
+        -- the end..
+        set @X = 0; insert into S.tOther default values; set @k = 9;
+      end
+    </ResultText>
+  </Test>
+  
    <Test>
     <Text>
       create procedure CK.sTest as
@@ -494,8 +520,8 @@
     <Description>
       create transformer on CK.sTest as
       begin
-        insert { set @X = 0; } before all {insert into S.?};
-        insert { set @Table = 1; } before single {insert into S.tTable};
+        inject { set @X = 0; } before all {insert into S.?};
+        inject { set @Table = 1; } before single {insert into S.tTable};
       end
     </Description>
     <ResultText>

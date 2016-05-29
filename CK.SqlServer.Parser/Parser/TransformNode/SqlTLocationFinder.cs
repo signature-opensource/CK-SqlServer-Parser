@@ -18,11 +18,11 @@ namespace CK.SqlServer.Parser
             SqlTokenLiteralInteger,
             ISqlNode>;
 
-    public sealed class SqlTLocationSelector : SqlNonToken
+    public sealed class SqlTLocationFinder : SqlNonToken
     {
         readonly CNode _content;
 
-        public SqlTLocationSelector( 
+        public SqlTLocationFinder( 
             SqlTokenIdentifier firtOrLastOrSingleOrAll, 
             SqlTokenTerminal plusOrMinusT, 
             SqlTokenLiteralInteger offset, 
@@ -62,12 +62,10 @@ namespace CK.SqlServer.Parser
             }
             Helper.CheckNullableToken( OutT, nameof( OutT ), SqlTokenType.Out );
             Helper.CheckNullableToken( OfT, nameof( OfT ), SqlTokenType.Of );
-            if( FirstOrLastOrSingleOrAllT.TokenType == SqlTokenType.Last )
+            if( FirstOrLastOrSingleOrAllT.TokenType == SqlTokenType.All )
             {
-                if( ExpectedMatchCount != null )
-                {
-                    Helper.CheckBothNullOrNot( OutT, nameof( OutT ), OfT, nameof( OfT ) );
-                }
+                if( ExpectedMatchCount == null ) Helper.CheckNull( OutT, nameof( OutT ) );
+                Helper.CheckBothNullOrNot( OutT, nameof( OutT ), OfT, nameof( OfT ) );
             }
             else
             {
@@ -76,7 +74,7 @@ namespace CK.SqlServer.Parser
             Helper.CheckNotNull<ISqlHasStringValue,SqlTNodeSimplePattern>( Pattern, nameof( Pattern ) );
         }
 
-        SqlTLocationSelector( SqlTLocationSelector o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
+        SqlTLocationFinder( SqlTLocationFinder o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
             : base( leading, trailing )
         {
             if( items == null ) _content = o._content;
@@ -89,7 +87,7 @@ namespace CK.SqlServer.Parser
 
         protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IList<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
         {
-            return new SqlTLocationSelector( this, leading, content, trailing );
+            return new SqlTLocationFinder( this, leading, content, trailing );
         }
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;

@@ -72,29 +72,40 @@ namespace CK.SqlServer.Parser
                     return new SqlTAddParameter( initT, whatT, parameters, afterOrBeforeT, paramName, GetOptionalTerminator() );
                 }
             }
-            else if( R.IsToken( out initT, SqlTokenType.Insert, false ) )
+            else if( R.IsToken( out initT, SqlTokenType.Inject, false ) )
             {
-                SqlTokenTerminal opener;
-                if( !R.IsToken( out opener, SqlTokenType.OpenCurly, true ) ) return null;
+                SqlTCurlyContent content = IsTCurlyContent( true );
+                if( content == null ) return null;
 
-                SqlTokenTerminal closer;
-                ISqlNode content = IsSqlNodeList( out closer, t => t.TokenType == SqlTokenType.CloseCurly );
-                if( content == null ) content = new SqlEmptyStatement( null );
-                SqlTrivia.ToMiddle( ref opener, ref content, ref closer );
+                SqlTokenIdentifier andT;
+                SqlTCurlyContent content2 = null;
+                if( R.IsToken( out andT, SqlTokenType.And, false ) )
+                {
+                    content2 = IsTCurlyContent( true );
+                    if( content2 == null ) return null;
+                }
 
-                SqlTokenIdentifier beforeOrAfterT;
-                if( !R.IsToken( out beforeOrAfterT, SqlTokenType.Before, false ) && !R.IsToken( out beforeOrAfterT, SqlTokenType.After, true ) ) return null;
+                SqlTokenIdentifier beforeAfterOrAroundT;
+                if( content2 != null )
+                {
+                    if( !R.IsToken( out beforeAfterOrAroundT, SqlTokenType.Around, true ) ) return null;
+                }
+                else
+                {
+                    if( !R.IsToken( out beforeAfterOrAroundT, SqlTokenType.Before, false )
+                        && !R.IsToken( out beforeAfterOrAroundT, SqlTokenType.After, true ) ) return null;
+                }
 
-                SqlTLocationSelector loc = IsSqlTLocation( true );
+                SqlTLocationFinder loc = IsSqlTLocation( true );
                 if( loc == null ) return null;
 
-                return new SqlTInsert( initT, opener, content, closer, beforeOrAfterT, loc, GetOptionalTerminator());
+                return new SqlTInject( initT, content, andT, content2, beforeAfterOrAroundT, loc, GetOptionalTerminator());
             }
             if( expected ) R.SetCurrentError( "Expected transform statement." );
             return null;
         }
 
-        SqlTLocationSelector IsSqlTLocation( bool expected )
+        SqlTLocationFinder IsSqlTLocation( bool expected )
         {
             SqlTokenIdentifier firstOrLastOrSingleOrAll;
             SqlTokenTerminal plusOrMinusT = null;
@@ -155,7 +166,7 @@ namespace CK.SqlServer.Parser
                 R.SetCurrentError( @"Expected: string litteral [...] or ""..."" or '...' or {node range}." );
                 return null;
             }
-            return new SqlTLocationSelector( firstOrLastOrSingleOrAll, plusOrMinusT, offset, outT, ofT, expectedMatchCount, textOrSimplePattern );
+            return new SqlTLocationFinder( firstOrLastOrSingleOrAll, plusOrMinusT, offset, outT, ofT, expectedMatchCount, textOrSimplePattern );
         }
 
         SqlTNodeSimplePattern IsTNodeSimplePattern( bool expected )
@@ -170,19 +181,50 @@ namespace CK.SqlServer.Parser
                     if( !R.IsToken( out likeT, SqlTokenType.Like, true ) ) return null;
                 }
             }
-            SqlTRawNodeList nodeList = IsTRawNodeList( expected );
-            if( nodeList == null ) return null;
-            return new SqlTNodeSimplePattern( largestOrDeepestT, nodesT, likeT, nodeList );
+            SqlTCurlyPattern pattern = IsTCurlyPattern( expected );
+            if( pattern == null ) return null;
+            return new SqlTNodeSimplePattern( largestOrDeepestT, nodesT, likeT, pattern );
         }
 
-        SqlTRawNodeList IsTRawNodeList( bool expected )
+        SqlTCurlyContent IsTCurlyContent( bool expected )
         {
             SqlTokenTerminal opener;
             if( !R.IsToken( out opener, SqlTokenType.OpenCurly, expected ) ) return null;
             SqlTokenTerminal closer;
             List<ISqlNode> items = new List<ISqlNode>();
             if( !R.CollectUntil( items, out closer, null, t => t.TokenType == SqlTokenType.CloseCurly ) ) return null;
-            return new SqlTRawNodeList( opener, items, closer );
+            if( items.Count == 0 ) items.Add( new SqlEmptyStatement( null ) );
+            var head = items[0];
+            SqlTrivia.ToRight( ref opener, ref head );
+            items[0] = head;
+            var tail = items[items.Count - 1];
+            SqlTrivia.ToLeft( ref tail, ref closer );
+            items[items.Count - 1] = tail;
+            return new SqlTCurlyContent( opener, items, closer );
+        }
+
+        SqlTCurlyPattern IsTCurlyPattern( bool expected )
+        {
+            SqlTokenTerminal opener;
+            if( !R.IsToken( out opener, SqlTokenType.OpenCurly, expected ) ) return null;
+            var tokens = new List<SqlToken>();
+            while( R.Current.TokenType != SqlTokenType.CloseCurly )
+            {
+                if( R.IsErrorOrEndOfInput )
+                {
+                    R.SetCurrentError( "Expected closing '}'." );
+                    return null;
+                }
+                tokens.Add( R.Current );
+                R.MoveNext();
+            }
+            if( tokens.Count == 0 )
+            {
+                R.SetCurrentError( "Expected at least one token in pattern." );
+                return null;
+            }
+            SqlTokenTerminal closer = R.Read<SqlTokenTerminal>();
+            return new SqlTCurlyPattern( opener, tokens, closer );
         }
 
     }

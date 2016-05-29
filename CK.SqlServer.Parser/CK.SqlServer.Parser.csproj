@@ -135,11 +135,12 @@
     <Compile Include="Parser\StatementKnownName.cs" />
     <Compile Include="Parser\TransformNode\ISqlTNodeMatcher.cs" />
     <Compile Include="Parser\TransformNode\ISqlTStatement.cs" />
+    <Compile Include="Parser\TransformNode\SqlTCurlyPattern.cs" />
     <Compile Include="Parser\TransformNode\SqlTNodeSimplePattern.cs" />
-    <Compile Include="Parser\TransformNode\SqlTLocationSelector.cs" />
-    <Compile Include="Parser\TransformNode\SqlTInsert.cs" />
+    <Compile Include="Parser\TransformNode\SqlTLocationFinder.cs" />
+    <Compile Include="Parser\TransformNode\SqlTInject.cs" />
     <Compile Include="Parser\TransformNode\SqlTransformer.cs" />
-    <Compile Include="Parser\TransformNode\SqlTRawNodeList.cs" />
+    <Compile Include="Parser\TransformNode\SqlTCurlyContent.cs" />
     <Compile Include="Parser\TransformNode\SqlTStatementList.cs" />
     <Compile Include="Parser\TransformNode\SqlTAddParameter.cs" />
     <Compile Include="SNode.cs" />

@@ -117,7 +117,7 @@ namespace CK.SqlServer.Transform
                 return new Transformers.AddParameter( addParam.Parameters, pBefore, pAfter );
             }
             #endregion
-            var insert = t as SqlTInsert;
+            var insert = t as SqlTInject;
             if( insert != null )
             {
                 return new Transformers.InsertUnParsedTextAroundTrivia( insert );

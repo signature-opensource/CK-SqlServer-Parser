@@ -5,22 +5,22 @@
     <Text>
       create procedure CK.sTest as
       begin
-      --[here]
+        --[here]
       end
       create procedure CK.sTestOther as
       begin
-      --[here]
+        --[here]
       end
     </Text>
     <Description>
       create transformer on CK.sTest as
       begin
-      add parameter @Id int;
-      insert
-      {
-        declare @i int;
-      }
-      after single "--[here]";
+        add parameter @Id int;
+        inject
+        {
+          declare @i int;
+        }
+        after single "--[here]";
       end
     </Description>
     <ResultText>

@@ -283,15 +283,16 @@ namespace CK.SqlServer.Parser
                 if( Read( '/', '*' ) )
                 {
                     if( _buffer.Length > 0 ) _trailingTrivias.Add( BuildTrivia( SqlTokenType.None, _buffer.ToString() ) );
+                    ic = HandleStarComment();
                     // Unterminated Star comment is ignored.
-                    if( HandleStarComment() != (int)SqlTokenType.StarComment )
+                    if( ic == (int)SqlTokenTypeError.EndOfInput )
                     {
                         // End of input.
                         return;
                     }
                     if( _buffer.Length > 0 )
                     {
-                        _trailingTrivias.Add( BuildTrivia( SqlTokenType.StarComment, _buffer.ToString() ) );
+                        _trailingTrivias.Add( BuildTrivia( (SqlTokenType)ic, _buffer.ToString() ) );
                         _buffer.Length = 0;
                     }
                     // Continue after Star comment: remaining trivias will be added to trailing trivias.
@@ -580,7 +581,8 @@ namespace CK.SqlServer.Parser
                 // When inside a curly braces string, the closing } alone ends the comment.
                 if( _inCurlyString && ic == '}' && PeekLookup() != '}' )
                 {
-                    return (int)SqlTokenType.StarComment;
+                    _buffer.Insert( 0, "/*" );
+                    return (int)SqlTokenType.None;
                 }
                 _buffer.Append( (char)ic );
                 Read();

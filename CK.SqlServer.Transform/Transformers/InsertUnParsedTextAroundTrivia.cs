@@ -19,14 +19,14 @@ namespace CK.SqlServer.Transform.Transformers
         readonly bool _matchLargestNode;
         readonly bool _matchDeepestNode;
 
-        public InsertUnParsedTextAroundTrivia( SqlTInsert insertInTrivia )
+        public InsertUnParsedTextAroundTrivia( SqlTInject injecter )
         {
-            if( insertInTrivia == null ) throw new ArgumentNullException( nameof( insertInTrivia ) );
-            _matcher = new LocationInserterTrivia( insertInTrivia );
-            if( insertInTrivia.IsBefore ) _before = insertInTrivia.TextContent;
-            else _after = insertInTrivia.TextContent;
+            if( injecter == null ) throw new ArgumentNullException( nameof( injecter ) );
+            _matcher = new LocationInserterTrivia( injecter );
+            _before = injecter.TextBefore;
+            _after = injecter.TextAfter;
 
-            _nodePattern = insertInTrivia.Location.Pattern as SqlTNodeSimplePattern;
+            _nodePattern = injecter.Location.Pattern as SqlTNodeSimplePattern;
             if( _nodePattern != null )
             {
                 if( _nodePattern.IsLargest )
@@ -54,24 +54,7 @@ namespace CK.SqlServer.Transform.Transformers
 
         protected override ISqlNode AfterVisitItem( ISqlNode e )
         {
-            if( _matcher.CanStop ) return e;
-            if( _matchDeepestNode )
-            {
-                if( VisitContext.Position < _lastDeepestMatchLastPos
-                    || !_nodePattern.Match( e ) )
-                {
-                    return e;
-                }
-                _lastDeepestMatchLastPos = VisitContext.Position + e.Width;
-            }
-            else if( _matchLargestNode && VisitContext.Tag == null ) return e;
-            var m = _matcher.AddCandidate( Monitor, VisitContext.Position, e );
-            if( m != null )
-            {
-                e = m.Apply( _before, _after );
-                if( _matcher.CanStop ) StopVisit( true );
-                else SetHasUnParsedText();
-            }
+            e = HandleNode( e );
             if( VisitContext.Depth == 0 )
             {
                 if( _matcher.MatchCount == 0 )
@@ -84,7 +67,7 @@ namespace CK.SqlServer.Transform.Transformers
                 }
                 else if( _matcher.RequiresConclude )
                 {
-                    m = _matcher.Conclude();
+                    var m = _matcher.Conclude();
                     if( m != null )
                     {
                         var toChange = VisitContext.LocationManager.GetQualifiedLocation( m.Position, m.Node );
@@ -103,5 +86,27 @@ namespace CK.SqlServer.Transform.Transformers
             return e;
         }
 
+        private ISqlNode HandleNode( ISqlNode e )
+        {
+            if( _matcher.CanStop ) return e;
+            if( _matchDeepestNode )
+            {
+                if( VisitContext.Position < _lastDeepestMatchLastPos
+                    || !_nodePattern.Match( e ) )
+                {
+                    return e;
+                }
+                _lastDeepestMatchLastPos = VisitContext.Position + e.Width;
+            }
+            else if( _matchLargestNode && VisitContext.Tag == null ) return e;
+            var m = _matcher.AddCandidate( Monitor, VisitContext.Position, e );
+            if( m != null )
+            {
+                e = m.Apply( _before, _after );
+                if( _matcher.CanStop ) StopVisit( true );
+                else SetHasUnParsedText();
+            }
+            return e;
+        }
     }
 }

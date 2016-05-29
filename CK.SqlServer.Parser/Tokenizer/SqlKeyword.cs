@@ -323,6 +323,8 @@ namespace CK.SqlServer.Parser
         public static readonly SqlTokenIdentifier Parameter;
         public static readonly SqlTokenIdentifier After;
         public static readonly SqlTokenIdentifier Before;
+        public static readonly SqlTokenIdentifier Around;
+        public static readonly SqlTokenIdentifier Inject;
         public static readonly SqlTokenIdentifier Single;
         public static readonly SqlTokenIdentifier Largest;
         public static readonly SqlTokenIdentifier Deepest;
@@ -705,6 +707,8 @@ namespace CK.SqlServer.Parser
             Parameter = RegKeyword( "parameter", SqlTokenType.Parameter );
             After = RegKeyword( "after", SqlTokenType.After );
             Before = RegKeyword( "before", SqlTokenType.Before );
+            Around = RegKeyword( "around", SqlTokenType.Around );
+            Inject = RegKeyword( "inject", SqlTokenType.Inject );
             Single = RegKeyword( "single", SqlTokenType.Single );
             Largest = RegKeyword( "largest", SqlTokenType.Largest );
             Deepest = RegKeyword( "deepest", SqlTokenType.Deepest );

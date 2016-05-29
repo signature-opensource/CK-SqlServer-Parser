@@ -98,7 +98,8 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="XmlTests\Insert location.xml" />
+    <Content Include="XmlTests\Inject around.xml" />
+    <Content Include="XmlTests\Inject location.xml" />
     <Content Include="XmlTests\Transformer scope.xml" />
     <Content Include="XmlTests\_Current.xml">
       <SubType>Designer</SubType>

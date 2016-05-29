@@ -80,7 +80,7 @@ namespace CK.SqlServer.Transform.Transformers
             }
         }
 
-        public LocationInserterTrivia( SqlTInsert ins )
+        public LocationInserterTrivia( SqlTInject ins )
         {
             InsertClause = ins;
 
@@ -121,7 +121,7 @@ namespace CK.SqlServer.Transform.Transformers
             else _lastBuffer = new FIFOBuffer<MatchedNode>( index + 1 );
         }
 
-        public readonly SqlTInsert InsertClause;
+        public readonly SqlTInject InsertClause;
 
         public int MatchCount => _matchCount;
 
@@ -189,6 +189,10 @@ namespace CK.SqlServer.Transform.Transformers
         {
             Debug.Assert( !_fromFirst );
             if( _matchCount < _lastBuffer.Capacity ) return null;
+            if( _matcher == null )
+            {
+                return _lastBuffer.PeekLast();
+            }
             int targetIdxFromLast = _lastBuffer.Capacity - 1;
             int iNode = _lastBuffer.Count - 1;
             MatchedNode m;

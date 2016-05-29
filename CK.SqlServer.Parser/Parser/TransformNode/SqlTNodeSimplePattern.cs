@@ -13,19 +13,19 @@ namespace CK.SqlServer.Parser
             SqlTokenIdentifier,
             SqlTokenIdentifier,
             SqlTokenIdentifier,
-            SqlTRawNodeList>;
+            SqlTCurlyPattern>;
 
     /// <summary>
-    /// insert (raw|statement) I
+    /// Pattern is: [(largest|deepest) [nodes like] ] {...}
     /// </summary>
     public sealed class SqlTNodeSimplePattern : SqlNonToken, ISqlTNodeMatcher
     {
         readonly CNode _content;
 
-        public SqlTNodeSimplePattern( SqlTokenIdentifier largestOrDeepestT, SqlTokenIdentifier nodesT, SqlTokenIdentifier likeT, SqlTRawNodeList nodeList )
+        public SqlTNodeSimplePattern( SqlTokenIdentifier largestOrDeepestT, SqlTokenIdentifier nodesT, SqlTokenIdentifier likeT, SqlTCurlyPattern pattern )
             : base( null, null )
         {
-            _content = new CNode( largestOrDeepestT, nodesT, likeT, nodeList );
+            _content = new CNode( largestOrDeepestT, nodesT, likeT, pattern );
             CheckContent();
         }
 
@@ -38,7 +38,7 @@ namespace CK.SqlServer.Parser
             Helper.CheckNullableToken( LikeT, nameof( LikeT ), SqlTokenType.Like );
             Helper.CheckBothNullOrNot( NodesT, nameof( NodesT ), LikeT, nameof( LikeT ) );
 
-            Helper.CheckNotNull( RawList, nameof( RawList ) );
+            Helper.CheckNotNull( Pattern, nameof( Pattern ) );
         }
 
         SqlTNodeSimplePattern( SqlTNodeSimplePattern o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
@@ -78,12 +78,12 @@ namespace CK.SqlServer.Parser
 
         public SqlTokenIdentifier LikeT => _content.V3;
 
-        public SqlTRawNodeList RawList => _content.V4;
+        public SqlTCurlyPattern Pattern => _content.V4;
 
         public bool Match( ISqlNode n )
         {
             var tokens = n.AllTokens.GetEnumerator();
-            var patterns = RawList.AllTokens.Skip(1).Take( RawList.Width-2 ).GetEnumerator();
+            var patterns = Pattern.GetEnumerator();
             try
             {
                 if( !tokens.MoveNext() || !patterns.MoveNext() ) return false;
