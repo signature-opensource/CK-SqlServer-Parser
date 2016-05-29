@@ -9,10 +9,7 @@ using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
-
-    public sealed class SqlCursorDefinition92 : SqlNonToken, ISqlCursorDefinition
-    {
-        readonly SNode<SqlTokenIdentifier,
+    using CNode = SNode<SqlTokenIdentifier,
             SqlTokenIdentifier,
             SqlTokenIdentifier,
             SqlTokenIdentifier,
@@ -22,7 +19,11 @@ namespace CK.SqlServer.Parser
             SqlTokenIdentifier,
             SqlTokenIdentifier,
             SqlTokenIdentifier,
-            SqlIdentifierCommaList> _content;
+            SqlIdentifierCommaList>;
+
+    public sealed class SqlCursorDefinition92 : SqlNonToken, ISqlCursorDefinition
+    {
+        readonly CNode _content;
 
         public SqlCursorDefinition92(
             SqlTokenIdentifier insensitiveOrScrollToken,
@@ -38,7 +39,7 @@ namespace CK.SqlServer.Parser
             SqlIdentifierCommaList updateColumns )
             : base( null, null )
         {
-            _content = new SNode<SqlTokenIdentifier, SqlTokenIdentifier, SqlTokenIdentifier, SqlTokenIdentifier, ISqlNode, SqlTokenIdentifier, SqlTokenIdentifier, SqlTokenIdentifier, SqlTokenIdentifier, SqlTokenIdentifier, SqlIdentifierCommaList>(
+            _content = new CNode(
                 insensitiveOrScrollToken, 
                 scrollOrInsensitiveToken, 
                 cursorToken, 
@@ -88,7 +89,7 @@ namespace CK.SqlServer.Parser
             if( items == null ) _content = o._content;
             else
             {
-                _content = new SNode<SqlTokenIdentifier, SqlTokenIdentifier, SqlTokenIdentifier, SqlTokenIdentifier, ISqlNode, SqlTokenIdentifier, SqlTokenIdentifier, SqlTokenIdentifier, SqlTokenIdentifier, SqlTokenIdentifier, SqlIdentifierCommaList>( items );
+                _content = new CNode( items );
                 CheckContent();
             }
         }
@@ -129,10 +130,7 @@ namespace CK.SqlServer.Parser
         public SqlIdentifierCommaList UpdateColumns => _content.V11;
 
         [DebuggerStepThrough]
-        internal protected override ISqlNode Accept( SqlNodeVisitor visitor )
-        {
-            return visitor.Visit( this );
-        }
+        internal protected override ISqlNode Accept( SqlNodeVisitor visitor ) => visitor.Visit( this );
 
     }
 

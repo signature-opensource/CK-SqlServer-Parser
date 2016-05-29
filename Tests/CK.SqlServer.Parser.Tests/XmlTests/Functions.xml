@@ -78,39 +78,35 @@
     <Xml>
       <Statements>
           <FunctionTable StatementName="CreateFunction" HasTerminator="true">
-            <StatementList>
-              <If>
-                <BeginEndBlock>
-                  <StatementList>
-                    <If>
+            <If>
+              <BeginEndBlock>
+                  <If>
+                    <SelectSpec />
+                    <InsertStatement HasTerminator="true">
                       <SelectSpec />
-                      <InsertStatement HasTerminator="true">
-                        <SelectSpec />
-                      </InsertStatement>
-                    </If>
-                    <If>
+                    </InsertStatement>
+                  </If>
+                  <If>
+                    <SelectSpec />
+                    <InsertStatement HasTerminator="true">
                       <SelectSpec />
-                      <InsertStatement HasTerminator="true">
-                        <SelectSpec />
-                      </InsertStatement>
-                    </If>
-                    <If>
+                    </InsertStatement>
+                  </If>
+                  <If>
+                    <SelectSpec />
+                    <InsertStatement HasTerminator="true">
                       <SelectSpec />
-                      <InsertStatement HasTerminator="true">
-                        <SelectSpec />
-                      </InsertStatement>
-                    </If>
-                    <If>
+                    </InsertStatement>
+                  </If>
+                  <If>
+                    <SelectSpec />
+                    <InsertStatement HasTerminator="true">
                       <SelectSpec />
-                      <InsertStatement HasTerminator="true">
-                        <SelectSpec />
-                      </InsertStatement>
-                    </If>
-                  </StatementList>
-                </BeginEndBlock>
-              </If>
-              <ReturnStatement HasTerminator="true" />
-            </StatementList>
+                    </InsertStatement>
+                  </If>
+              </BeginEndBlock>
+            </If>
+            <ReturnStatement HasTerminator="true" />
           </FunctionTable>
       </Statements>
     </Xml>

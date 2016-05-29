@@ -76,7 +76,6 @@ END
     <Xml>
       <Statements>
         <StoredProcedure StatementName="AlterProcedure">
-          <StatementList>
             <DeclareVariable />
             <If>
               <SelectStatement>
@@ -95,7 +94,6 @@ END
               <SelectSpec />
             </SelectStatement>
             <ReturnStatement />
-          </StatementList>
         </StoredProcedure>
       </Statements>
     </Xml>
@@ -142,7 +140,6 @@ END
     <Xml>
       <Statements>
         <StoredProcedure StatementName="AlterProcedure">
-          <StatementList>
             <DeclareVariable />
             <DeclareVariable />
             <SetVariable />
@@ -151,20 +148,15 @@ END
             </SelectStatement>
             <If>
               <BeginEndBlock>
-                <StatementList>
                   <SetVariable />
                   <InsertStatement />
-                </StatementList>
               </BeginEndBlock>
               <BeginEndBlock>
-                <StatementList>
                   <SetVariable />
                   <UpdateStatement />
-                </StatementList>
               </BeginEndBlock>
             </If>
             <ReturnStatement />
-          </StatementList>
         </StoredProcedure>
       </Statements>
     </Xml>
@@ -207,20 +199,16 @@ END
     <Xml>
       <Statements>
          <StoredProcedure StatementName="AlterProcedure">
-           <StatementList>
              <If>
                <SelectSpec />
                <BeginEndBlock>
-                 <StatementList>
                    <DeclareVariable />
                    <SetVariable />
                    <Raiserror />
                    <ReturnStatement />
-                 </StatementList>
                </BeginEndBlock>
              </If>
              <InsertStatement />
-           </StatementList>
          </StoredProcedure>
       </Statements>
     </Xml>

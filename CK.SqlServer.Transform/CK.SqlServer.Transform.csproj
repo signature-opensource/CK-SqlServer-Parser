@@ -86,7 +86,7 @@
     <Compile Include="Scope\SqlNodeScopeBreadthPredicate.cs" />
     <Compile Include="Scope\SqlNodeScopeIntersect.cs" />
     <Compile Include="Scope\SqlNodeScopeBuilder.cs" />
-    <Compile Include="Transformers\InsertUnParsedTextAroundTrivia.cs" />
+    <Compile Include="Transformers\UnParsedTextInjecter.cs" />
     <Compile Include="Transformers\InsertStatement.cs" />
     <Compile Include="Transformers\SetSelectColumnAsOrAssign.cs" />
     <Compile Include="Transformers\AddParameter.cs" />
@@ -98,7 +98,7 @@
     <Compile Include="Location\SqlNodeLocationVisitor.cs" />
     <Compile Include="SqlNodeTransformer.cs" />
     <Compile Include="SqlTransformExtension.cs" />
-    <Compile Include="Transformers\LocationInserterTrivia.cs" />
+    <Compile Include="Transformers\LocationInserter.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CK.SqlServer.Parser\CK.SqlServer.Parser.csproj">

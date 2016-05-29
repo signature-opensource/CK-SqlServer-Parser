@@ -26,15 +26,13 @@ namespace CK.SqlServer.Parser
         /// </summary>
         public abstract string LiteralValue { get; }
 
-        public override bool Equals( SqlToken t ) => LiteralValue == t.ToString();
-
-        protected override int DoGetHashCode() => LiteralValue.GetHashCode();
+        public override bool TokenEquals( SqlToken t ) => t is SqlTokenBaseLiteral && LiteralValue == t.ToString();
 
         /// <summary>
         /// By default, the string is the <see cref="LiteralValue"/>.
         /// </summary>
         /// <returns></returns>
-        public override string ToString() => LiteralValue;
+        public sealed override string ToString() => LiteralValue;
 
         /// <summary>
         /// Simply appends the <see cref="LiteralValue"/>.

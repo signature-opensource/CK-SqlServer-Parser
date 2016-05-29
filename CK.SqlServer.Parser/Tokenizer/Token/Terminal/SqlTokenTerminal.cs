@@ -71,9 +71,7 @@ namespace CK.SqlServer.Parser
             w.Write( TokenType, SqlKeyword.ToString( TokenType ), whiteSpaceBefore, whiteSpaceAfter );
         }
 
-        public override bool Equals( SqlToken t ) => TokenType == t.TokenType;
-
-        protected override int DoGetHashCode() => (int)TokenType;
+        public override bool TokenEquals( SqlToken t ) => TokenType == t.TokenType;
 
         public override string ToString() => SqlKeyword.ToString( TokenType );
 

@@ -10,47 +10,23 @@ using System.Threading.Tasks;
 
 namespace CK.SqlServer.Transform.Transformers
 {
-    public class InsertUnParsedTextAroundTrivia : SqlNodeLocationVisitor
+    public class UnParsedTextInjecter : SqlNodeLocationVisitor
     {
-        readonly LocationInserterTrivia _matcher;
+        readonly LocationInserter _matcher;
         readonly string _before;
         readonly string _after;
         readonly SqlTNodeSimplePattern _nodePattern;
-        readonly bool _matchLargestNode;
-        readonly bool _matchDeepestNode;
 
-        public InsertUnParsedTextAroundTrivia( SqlTInject injecter )
+        public UnParsedTextInjecter( SqlTInject injecter )
         {
             if( injecter == null ) throw new ArgumentNullException( nameof( injecter ) );
-            _matcher = new LocationInserterTrivia( injecter );
+            _matcher = new LocationInserter( injecter );
             _before = injecter.TextBefore;
             _after = injecter.TextAfter;
 
             _nodePattern = injecter.Location.Pattern as SqlTNodeSimplePattern;
-            if( _nodePattern != null )
-            {
-                if( _nodePattern.IsLargest )
-                {
-                    _matchLargestNode = true;
-                }
-                else
-                {
-                    _matchDeepestNode = true;
-                }
-            }
         }
 
-        protected override bool BeforeVisitItem()
-        {
-            if( _matchLargestNode && _nodePattern.Match( VisitContext.VisitedNode ) )
-            {
-                VisitContext.Tag = this;
-                return false;
-            }
-            return true;
-        }
-
-        int _lastDeepestMatchLastPos;
 
         protected override ISqlNode AfterVisitItem( ISqlNode e )
         {
@@ -86,19 +62,20 @@ namespace CK.SqlServer.Transform.Transformers
             return e;
         }
 
+        int _previousMatchPos;
+
         private ISqlNode HandleNode( ISqlNode e )
         {
             if( _matcher.CanStop ) return e;
-            if( _matchDeepestNode )
+            if( _nodePattern != null )
             {
-                if( VisitContext.Position < _lastDeepestMatchLastPos
+                if( VisitContext.Position < _previousMatchPos
                     || !_nodePattern.Match( e ) )
                 {
                     return e;
                 }
-                _lastDeepestMatchLastPos = VisitContext.Position + e.Width;
+                _previousMatchPos = VisitContext.Position + e.Width;
             }
-            else if( _matchLargestNode && VisitContext.Tag == null ) return e;
             var m = _matcher.AddCandidate( Monitor, VisitContext.Position, e );
             if( m != null )
             {

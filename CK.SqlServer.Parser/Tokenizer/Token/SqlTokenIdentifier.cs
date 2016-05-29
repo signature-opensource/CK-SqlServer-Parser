@@ -50,16 +50,16 @@ namespace CK.SqlServer.Parser
             return new CKEnumeratorMono<SqlTokenIdentifier>( this );
         }
 
-        public override bool Equals( SqlToken t )
+        /// <summary>
+        /// Two identifiers are equal if they have the same <see cref="SqlToken.TokenType"/> and <see cref="Name"/>.
+        /// </summary>
+        /// <param name="t">The other token to test.</param>
+        /// <returns>True if the this identifier is equal to the other one.</returns>
+        public override bool TokenEquals( SqlToken t )
         {
             SqlTokenIdentifier id = t as SqlTokenIdentifier;
-            if( id == null ) return false;
-            if( TokenType == id.TokenType ) return _name == id._name;
-            // TODO: handle [] and ""...
-            return false;
+            return id != null && TokenType == id.TokenType && _name == id._name;
         }
-
-        protected override int DoGetHashCode() => _name.GetHashCode();
 
         public SqlTokenIdentifier RemoveQuoteIfPossible( bool keepIfReservedKeyword )
         {

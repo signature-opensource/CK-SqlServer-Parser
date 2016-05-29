@@ -549,9 +549,12 @@ namespace CK.SqlServer.Parser
         Around,
         Inject,
         Single,
-        Largest,
-        Deepest,
-        Nodes,
+        //Largest,
+        //Deepest,
+        //Nodes,
+        Range,
+        Part,
+        Statement,
 
         #endregion
 

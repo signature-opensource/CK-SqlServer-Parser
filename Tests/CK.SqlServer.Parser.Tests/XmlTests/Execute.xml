@@ -67,11 +67,9 @@
     <Xml>
       <Statements>
         <StoredProcedure StatementName="CreateProcedure">
-          <StatementList>
-            <SetVariable HasTerminator="true" />
-            <SetVariable HasTerminator="true" />
-            <ReturnStatement HasTerminator="true" />
-          </StatementList>
+          <SetVariable HasTerminator="true" />
+          <SetVariable HasTerminator="true" />
+          <ReturnStatement HasTerminator="true" />
         </StoredProcedure>
         <Statement StatementName="GO" />
         <DeclareVariable HasTerminator="true" />

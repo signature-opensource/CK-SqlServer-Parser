@@ -34,9 +34,7 @@
         </If>
         <Statement StatementName="GO" />
         <StoredProcedure StatementName="CreateProcedure">
-          <StatementList>
-            <MergeStatement HasTerminator="true" />
-          </StatementList>
+          <MergeStatement HasTerminator="true" />
         </StoredProcedure>
         <Statement StatementName="GO" />
         <ExecuteStatement />

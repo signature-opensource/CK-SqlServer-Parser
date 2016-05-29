@@ -297,27 +297,22 @@
         <Statement StatementName="DROP" />
         <Statement StatementName="GO" />
         <StoredProcedure StatementName="CreateProcedure">
-          <StatementList>
             <DeclareVariable />
             <DeclareVariable />
             <SetVariable />
             <While>
               <BeginEndBlock>
-                <StatementList>
                   <SetVariable />
                   <SetVariable />
                   <ExecuteStringStatement />
                   <SetVariable />
-                </StatementList>
               </BeginEndBlock>
             </While>
-          </StatementList>
         </StoredProcedure>
         <Statement StatementName="Go" />
         <Statement StatementName="DROP" />
         <Statement StatementName="GO" />
         <StoredProcedure StatementName="CreateProcedure">
-          <StatementList>
             <DeclareVariable />
             <DeclareVariable />
             <SelectStatement>
@@ -330,21 +325,16 @@
             <Statement StatementName="FETCH" />
             <While>
               <BeginEndBlock>
-                <StatementList>
                   <If>
                     <BeginEndBlock>
-                      <StatementList>
                         <ExecuteStatement />
-                      </StatementList>
                     </BeginEndBlock>
                   </If>
                   <Statement StatementName="FETCH" />
-                </StatementList>
               </BeginEndBlock>
             </While>
             <Statement StatementName="CLOSE" />
             <Statement StatementName="DEALLOCATE" />
-          </StatementList>
         </StoredProcedure>
         <Statement StatementName="Go" />
         <DeclareVariable />

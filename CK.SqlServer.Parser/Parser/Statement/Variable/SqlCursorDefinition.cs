@@ -9,9 +9,7 @@ using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
-    public sealed class SqlCursorDefinition : SqlNonToken, ISqlCursorDefinition
-    {
-        readonly SNode<
+    using CNode = SNode<
                     SqlTokenIdentifier,
                     SqlNodeList,
                     SqlTokenIdentifier,
@@ -19,7 +17,11 @@ namespace CK.SqlServer.Parser
                     SqlTokenIdentifier,
                     SqlTokenIdentifier,
                     SqlTokenIdentifier,
-                    SqlIdentifierCommaList> _content;
+                    SqlIdentifierCommaList>;
+
+    public sealed class SqlCursorDefinition : SqlNonToken, ISqlCursorDefinition
+    {
+        readonly CNode _content;
 
         public SqlCursorDefinition( 
             SqlTokenIdentifier cursorT,
@@ -32,7 +34,7 @@ namespace CK.SqlServer.Parser
             SqlIdentifierCommaList updateColumns )
             : base( null, null )
         {
-            _content = new SNode<SqlTokenIdentifier, SqlNodeList, SqlTokenIdentifier, ISqlNode, SqlTokenIdentifier, SqlTokenIdentifier, SqlTokenIdentifier, SqlIdentifierCommaList>(
+            _content = new CNode(
                 cursorT, 
                 options, 
                 forT, 
@@ -62,7 +64,7 @@ namespace CK.SqlServer.Parser
             if( items == null ) _content = o._content;
             else
             {
-                _content = new SNode<SqlTokenIdentifier, SqlNodeList, SqlTokenIdentifier, ISqlNode, SqlTokenIdentifier, SqlTokenIdentifier, SqlTokenIdentifier, SqlIdentifierCommaList>( items );
+                _content = new CNode( items );
                 CheckContent();
             }
         }

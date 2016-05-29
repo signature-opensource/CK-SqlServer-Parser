@@ -272,6 +272,16 @@ namespace CK.SqlServer.Parser
             return new SqlBasicValue( null, value );
         }
 
+        ISqlHasStringValue IsSqlHasStringValue( bool expected )
+        {
+            ISqlHasStringValue s = R.Current as ISqlHasStringValue;
+            if( s == null )
+            {
+                if( expected ) R.SetCurrentError( @"Expected string litteral [...] or ""..."" or '...'." );
+            }
+            else R.MoveNext();
+            return s;
+        }
         SqlTokenTerminal GetOptionalTerminator()
         {
             SqlTokenTerminal term;

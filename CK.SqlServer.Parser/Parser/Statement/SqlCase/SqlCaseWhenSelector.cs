@@ -9,17 +9,19 @@ using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
+    using CNode = SNode<SqlTokenIdentifier, ISqlNode, SqlTokenIdentifier, ISqlNode>;
+
     /// <summary>
     /// Defines "when Expression then Value" items of <see cref="SqlCase"/> expression.
     /// </summary>
     public sealed class SqlCaseWhenSelector : SqlNonToken
     {
-        readonly SNode<SqlTokenIdentifier, ISqlNode, SqlTokenIdentifier, ISqlNode> _content;
+        readonly CNode _content;
 
         public SqlCaseWhenSelector( SqlTokenIdentifier whenT, ISqlNode expression, SqlTokenIdentifier thenT, ISqlNode value )
             : base( null, null )
         {
-            _content = new SNode<SqlTokenIdentifier, ISqlNode, SqlTokenIdentifier, ISqlNode>( whenT, expression, thenT, value );
+            _content = new CNode( whenT, expression, thenT, value );
             CheckContent();
         }
 
@@ -37,7 +39,7 @@ namespace CK.SqlServer.Parser
             if( items == null ) _content = o._content;
             else
             {
-                _content = new SNode<SqlTokenIdentifier, ISqlNode, SqlTokenIdentifier, ISqlNode>( items );
+                _content = new CNode( items );
                 CheckContent();
             }
         }

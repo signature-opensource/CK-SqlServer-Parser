@@ -15,13 +15,11 @@
     <Xml>
       <Statements>
         <Trigger StatementName="CreateTrigger">
-          <StatementList>
             <Statement StatementName="PRINT" />
             <SelectStatement>
               <SelectSpec />
             </SelectStatement>
             <UnnamedStatement />
-          </StatementList>
         </Trigger>
         <Statement StatementName="GO" />
       </Statements>
@@ -42,9 +40,7 @@
     <Xml>
       <Statements>
          <Trigger StatementName="CreateTrigger">
-           <StatementList>
              <UpdateStatement HasTerminator="true" />
-           </StatementList>
          </Trigger>
       </Statements>
     </Xml>
@@ -99,20 +95,16 @@
     <Xml>
       <Statements>
         <Trigger StatementName="CreateTrigger">
-          <StatementList>
             <If HasTerminator="true">
               <BeginEndBlock>
-                <StatementList>
                   <InsertStatement HasTerminator="true">
                     <SelectSpec />
                   </InsertStatement>
                   <InsertStatement HasTerminator="true">
                     <SelectSpec />
                   </InsertStatement>
-                </StatementList>
               </BeginEndBlock>
             </If>
-          </StatementList>
         </Trigger>
         <Statement StatementName="GO" />
       </Statements>
@@ -135,10 +127,8 @@
     <Xml>
       <Statements>
          <Trigger StatementName="CreateTrigger">
-           <StatementList>
              <Raiserror />
              <Statement StatementName="ROLLBACK" />
-           </StatementList>
          </Trigger>
          <Statement StatementName="GO" />
          <Statement StatementName="DROP" HasTerminator="true" />
@@ -168,18 +158,14 @@
     <Xml>
       <Statements>
         <Trigger StatementName="CreateTrigger">
-          <StatementList>
             <If HasTerminator="true">
               <SelectSpec />
               <BeginEndBlock>
-                <StatementList>
                   <Raiserror HasTerminator="true" />
                   <Statement StatementName="ROLLBACK" HasTerminator="true" />
                   <ReturnStatement />
-                </StatementList>
               </BeginEndBlock>
             </If>
-          </StatementList>
         </Trigger>
       </Statements>
     </Xml>
@@ -203,9 +189,7 @@
     <Xml>
       <Statements>
         <Trigger StatementName="CreateTrigger">
-          <StatementList>
             <ExecuteStatement HasTerminator="true" />
-          </StatementList>
         </Trigger>
         <Statement StatementName="GO" />
       </Statements>
@@ -223,9 +207,7 @@
     <Xml>
       <Statements>
         <Trigger StatementName="CreateTrigger">
-          <StatementList>
             <Raiserror HasTerminator="true" />
-          </StatementList>
         </Trigger>
       </Statements>
     </Xml>
@@ -274,9 +256,7 @@
     <Xml>
       <Statements>
         <Trigger StatementName="CreateTrigger">
-          <StatementList>
             <BeginEndBlock>
-              <StatementList>
                 <DeclareVariable HasTerminator="true" />
                 <SetVariable HasTerminator="true" />
                 <If>
@@ -285,16 +265,12 @@
                 <SetOption HasTerminator="true" />
                 <If HasTerminator="true">
                   <BeginEndBlock>
-                    <StatementList>
                       <UpdateStatement HasTerminator="true" />
                       <UpdateStatement HasTerminator="true" />
-                    </StatementList>
                   </BeginEndBlock>
                 </If>
-              </StatementList>
             </BeginEndBlock>
             <EmptyStatement HasTerminator="true" />
-          </StatementList>
         </Trigger>
       </Statements>
     </Xml>

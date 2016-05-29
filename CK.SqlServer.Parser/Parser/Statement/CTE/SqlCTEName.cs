@@ -9,18 +9,20 @@ using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
-    /// <summary>
-    /// Defines "next value for {sequence}>" expression.
-    /// </summary>
-    public sealed class SqlCTEName : SqlNonToken
-    {
-        readonly SNode<
+    using CNode = SNode<
             SqlTokenIdentifier,
             SqlEnclosedIdentifierCommaList, 
             SqlTokenIdentifier,
             SqlTokenOpenPar,
             ISqlNode,
-            SqlTokenClosePar> _content;
+            SqlTokenClosePar>;
+
+    /// <summary>
+    /// Defines named selects in a <see cref="SqlCTEStatement"/>.
+    /// </summary>
+    public sealed class SqlCTEName : SqlNonToken
+    {
+        readonly CNode _content;
 
         public SqlCTEName( 
                 SqlTokenIdentifier name,
@@ -31,8 +33,7 @@ namespace CK.SqlServer.Parser
                 SqlTokenClosePar closer )
             : base( null, null )
         {
-            _content = new SNode<SqlTokenIdentifier, SqlEnclosedIdentifierCommaList, SqlTokenIdentifier, SqlTokenOpenPar, ISqlNode, SqlTokenClosePar>( 
-                name, optionalColumnNames, asT, opener, selectNode, closer );
+            _content = new CNode( name, optionalColumnNames, asT, opener, selectNode, closer );
             CheckContent();
         }
 
@@ -51,7 +52,7 @@ namespace CK.SqlServer.Parser
             if( items == null ) _content = o._content;
             else
             {
-                _content = new SNode<SqlTokenIdentifier, SqlEnclosedIdentifierCommaList, SqlTokenIdentifier, SqlTokenOpenPar, ISqlNode, SqlTokenClosePar>( items );
+                _content = new CNode( items );
                 CheckContent();
             }
         }

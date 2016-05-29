@@ -26,14 +26,12 @@
       <Statements>
          <If>
            <BeginEndBlock>
-             <StatementList>
-               <InsertStatement>
-                 <SelectSpec>
-                   <SelectSpec />
-                   <SelectSpec />
-                 </SelectSpec>
-               </InsertStatement>
-             </StatementList>
+              <InsertStatement>
+                <SelectSpec>
+                  <SelectSpec />
+                  <SelectSpec />
+                </SelectSpec>
+              </InsertStatement>
            </BeginEndBlock>
          </If>
       </Statements>

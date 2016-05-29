@@ -174,6 +174,10 @@ namespace CK.SqlServer.Parser
 
         internal protected virtual ISqlNode Visit( SqlTryCatch e ) => VisitStandard( e );
 
+        internal protected virtual ISqlNode Visit( SqlTryBlock e ) => VisitStandard( e );
+
+        internal protected virtual ISqlNode Visit( SqlCatchBlock e ) => VisitStandard( e );
+
         internal protected virtual ISqlNode Visit( SqlStatement e ) => VisitStandard( e );
 
         internal protected virtual ISqlNode Visit( SqlEmptyStatement e ) => VisitStandard( e );

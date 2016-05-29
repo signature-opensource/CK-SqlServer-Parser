@@ -9,10 +9,11 @@ using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
+    using CNode = SNode<SqlTokenIdentifier, ISqlNode, SqlCaseWhenList, SqlTokenIdentifier, ISqlNode, SqlTokenIdentifier>;
 
     public sealed class SqlCase : SqlNonToken
     {
-        readonly SNode<SqlTokenIdentifier, ISqlNode, SqlCaseWhenList, SqlTokenIdentifier, ISqlNode, SqlTokenIdentifier> _content;
+        readonly CNode _content;
 
         public SqlCase( 
             SqlTokenIdentifier caseToken, 
@@ -23,7 +24,7 @@ namespace CK.SqlServer.Parser
             SqlTokenIdentifier endToken )
             : base( null, null )
         {
-            _content = new SNode<SqlTokenIdentifier, ISqlNode, SqlCaseWhenList, SqlTokenIdentifier, ISqlNode, SqlTokenIdentifier>(
+            _content = new CNode(
                 caseToken,
                 expr,
                 whenSelector,
@@ -48,7 +49,7 @@ namespace CK.SqlServer.Parser
             if( items == null ) _content = o._content;
             else
             {
-                _content = new SNode<SqlTokenIdentifier, ISqlNode, SqlCaseWhenList, SqlTokenIdentifier, ISqlNode, SqlTokenIdentifier>( items );
+                _content = new CNode( items );
                 CheckContent();
             }
         }
@@ -91,6 +92,7 @@ namespace CK.SqlServer.Parser
         /// Gets whether the else clause exists.
         /// </summary>
         public bool HasElse => _content.V4 != null;
+
         /// <summary>
         /// Gets the else token if it exists.
         /// </summary>

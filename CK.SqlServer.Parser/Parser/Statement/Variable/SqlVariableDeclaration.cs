@@ -9,14 +9,16 @@ using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
+    using CNode = SNode<SqlTypedIdentifier, SqlTokenTerminal, ISqlNode>;
+
     public sealed class SqlVariableDeclaration : SqlNonToken
     {
-        readonly SNode<SqlTypedIdentifier, SqlTokenTerminal, ISqlNode> _content;
+        readonly CNode _content;
 
         public SqlVariableDeclaration( SqlTypedIdentifier declVar, SqlTokenTerminal assignToken = null, ISqlNode initialValue = null )
             : base( null, null )
         {
-            _content = new SNode<SqlTypedIdentifier, SqlTokenTerminal, ISqlNode>( declVar, assignToken, initialValue );
+            _content = new CNode( declVar, assignToken, initialValue );
             CheckContent();
         }
 
@@ -33,7 +35,7 @@ namespace CK.SqlServer.Parser
             if( items == null ) _content = o._content;
             else
             {
-                _content = new SNode<SqlTypedIdentifier, SqlTokenTerminal, ISqlNode>( items );
+                _content = new CNode( items );
                 CheckContent();
             }
         }

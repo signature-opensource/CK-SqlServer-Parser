@@ -17,9 +17,9 @@
       begin
         add parameter @Id int;
         inject
-        {
+        "
           declare @i int;
-        }
+        "
         after single "--[here]";
       end
     </Description>

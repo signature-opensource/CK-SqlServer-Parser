@@ -195,7 +195,7 @@ namespace CK.SqlServer.Parser
                 t = Read<T>();
                 return true;
             }
-            if( expected ) SetCurrentError( "Expected '{0}' token. ", typeof( T ).Name.Replace( "SqlToken", String.Empty ) );
+            if( expected ) SetCurrentError( "Expected '{0}' token. ", typeof( T ).Name.Replace( "SqlToken", string.Empty ) );
             t = null;
             return false;
         }

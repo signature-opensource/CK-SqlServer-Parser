@@ -138,9 +138,7 @@
         <DeclareVariable HasTerminator="true" />
         <While HasTerminator="true">
           <BeginEndBlock>
-            <StatementList>
               <SetVariable HasTerminator="true" />
-            </StatementList>
           </BeginEndBlock>
         </While>
       </Statements>
@@ -218,17 +216,13 @@
     <Xml>
       <Statements>
         <StoredProcedure StatementName="CreateProcedure" HasTerminator="true">
-          <StatementList>
             <SetOption HasTerminator="true" />
             <UpdateStatement />
             <If>
               <BeginEndBlock>
-                <StatementList>
                   <InsertStatement />
-                </StatementList>
               </BeginEndBlock>
             </If>
-          </StatementList>
         </StoredProcedure>
         <Statement StatementName="GO" />
         <ExecuteStatement HasTerminator="true" />
@@ -239,10 +233,8 @@
         <Statement StatementName="CREATE" HasTerminator="true" />
         <Statement StatementName="GO" />
         <StoredProcedure StatementName="AlterProcedure" HasTerminator="true">
-          <StatementList>
             <SetOption HasTerminator="true" />
             <MergeStatement HasTerminator="true" />
-          </StatementList>
         </StoredProcedure>
         <Statement StatementName="GO" />
         <ExecuteStatement HasTerminator="true" />
@@ -299,12 +291,10 @@
         <Statement StatementName="CREATE" HasTerminator="true" />
         <Statement StatementName="GO" />
         <StoredProcedure StatementName="CreateProcedure">
-          <StatementList>
             <SetOption />
             <InsertStatement HasTerminator="true">
               <SelectSpec />
             </InsertStatement>
-          </StatementList>
         </StoredProcedure>
         <Statement StatementName="GO" />
         <DeclareVariable HasTerminator="true" />

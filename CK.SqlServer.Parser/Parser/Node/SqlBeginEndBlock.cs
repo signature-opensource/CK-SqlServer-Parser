@@ -9,32 +9,34 @@ using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
+    using CNode = SNode<SqlTokenIdentifier, SqlStatementList, SqlTokenIdentifier, SqlTokenTerminal>;
+
     /// <summary>
     /// A block is defined by begin...end enclosing keywords.
     /// </summary>
     public sealed class SqlBeginEndBlock : SqlNonToken, ISqlNamedStatement
     {
-        readonly SNode<SqlTokenIdentifier, SqlStatementList, SqlTokenIdentifier, SqlTokenTerminal> _content;
+        readonly CNode _content;
 
         public SqlBeginEndBlock( SqlTokenIdentifier begin, SqlStatementList body, SqlTokenIdentifier end, SqlTokenTerminal statementTerminator = null )
             : base( null, null )
         {
-            _content = new SNode<SqlTokenIdentifier, SqlStatementList, SqlTokenIdentifier, SqlTokenTerminal>( begin, body, end, statementTerminator );
+            _content = new CNode( begin, body, end, statementTerminator );
             CheckContent();
         }
 
         SqlBeginEndBlock( ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
             : base( leading, trailing )
         {
-            _content = new SNode<SqlTokenIdentifier, SqlStatementList, SqlTokenIdentifier, SqlTokenTerminal>( items );
+            _content = new CNode( items );
             CheckContent();
         }
 
         void CheckContent()
         {
-            if( BeginT == null || BeginT.TokenType != SqlTokenType.Begin ) throw new ArgumentException( nameof( BeginT ) );
-            if( Body == null ) throw new ArgumentException( nameof( Body ) );
-            if( EndT == null || EndT.TokenType != SqlTokenType.End ) throw new ArgumentException( nameof( EndT ) );
+            Helper.CheckToken( BeginT, nameof( BeginT ), SqlTokenType.Begin );
+            Helper.CheckNotNull( Body, nameof( Body ) );
+            Helper.CheckToken( EndT, nameof( EndT ), SqlTokenType.End );
         }
 
         protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IList<ISqlNode> content, ImmutableList<SqlTrivia> trailing )

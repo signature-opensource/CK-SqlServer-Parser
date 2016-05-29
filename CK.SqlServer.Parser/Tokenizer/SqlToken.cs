@@ -14,7 +14,7 @@ namespace CK.SqlServer.Parser
     /// <summary>
     /// Base class for (non comment) tokens. 
     /// </summary>
-    public abstract class SqlToken : SqlNode, IEquatable<SqlToken>, IEnumerable<SqlToken>
+    public abstract class SqlToken : SqlNode, IEnumerable<SqlToken>
     {
         /// <summary>
         /// Private empty ctor for the EmptyToken.
@@ -55,17 +55,12 @@ namespace CK.SqlServer.Parser
 
         public override sealed int Width => 1;
 
-        public sealed override bool Equals( object obj )
-        {
-            SqlToken t = obj as SqlToken;
-            return t != null ? Equals( t ) : false;
-        }
-
-        public sealed override int GetHashCode() => DoGetHashCode();
-
-        public abstract bool Equals( SqlToken t );
-
-        protected abstract int DoGetHashCode();
+        /// <summary>
+        /// Tests token value equality: the reference equality still applies to tokens.
+        /// </summary>
+        /// <param name="t">Token to compare to.</param>
+        /// <returns>True if the this token is equal to the other one in terms of value.</returns>
+        public abstract bool TokenEquals( SqlToken t );
 
         /// <summary>
         /// Gets an empty node list.

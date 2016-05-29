@@ -9,11 +9,7 @@ using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
-    using CNode = SNode<
-            SqlTokenIdentifier,
-            SqlTokenIdentifier,
-            SqlTokenIdentifier,
-            SqlTCurlyPattern>;
+    using CNode = SNode<SqlTokenIdentifier, SqlTCurlyPattern>;
 
     /// <summary>
     /// Pattern is: [(largest|deepest) [nodes like] ] {...}
@@ -22,22 +18,16 @@ namespace CK.SqlServer.Parser
     {
         readonly CNode _content;
 
-        public SqlTNodeSimplePattern( SqlTokenIdentifier largestOrDeepestT, SqlTokenIdentifier nodesT, SqlTokenIdentifier likeT, SqlTCurlyPattern pattern )
+        public SqlTNodeSimplePattern( SqlTokenIdentifier matchKindT, SqlTCurlyPattern pattern )
             : base( null, null )
         {
-            _content = new CNode( largestOrDeepestT, nodesT, likeT, pattern );
+            _content = new CNode( matchKindT, pattern );
             CheckContent();
         }
 
         void CheckContent()
         {
-            Helper.CheckNullableToken( LargestOrDeepestT, nameof( LargestOrDeepestT ), SqlTokenType.Largest, SqlTokenType.Deepest );
-            Helper.CheckNullableToken( NodesT, nameof( NodesT ), SqlTokenType.Nodes );
-
-            Helper.CheckNullableToken( NodesT, nameof( NodesT ), SqlTokenType.Nodes );
-            Helper.CheckNullableToken( LikeT, nameof( LikeT ), SqlTokenType.Like );
-            Helper.CheckBothNullOrNot( NodesT, nameof( NodesT ), LikeT, nameof( LikeT ) );
-
+            Helper.CheckNullableToken( MatchKindT, nameof( MatchKindT ), SqlTokenType.Part, SqlTokenType.Statement, SqlTokenType.Range );
             Helper.CheckNotNull( Pattern, nameof( Pattern ) );
         }
 
@@ -62,26 +52,34 @@ namespace CK.SqlServer.Parser
         public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
 
         /// <summary>
-        /// Gets the optional 'largest' or 'deepest' token.
-        /// When null, <see cref="IsLargest"/> is false: the deafult is to match the deepest
-        /// patterns. 
+        /// Gets the optional 'statement', 'part' or 'range' token.
+        /// When null, <see cref="IsMatchPart"/> is true: the default is to match the
+        /// well known parts. 
         /// </summary>
-        public SqlTokenIdentifier LargestOrDeepestT => _content.V1;
+        public SqlTokenIdentifier MatchKindT => _content.V1;
 
         /// <summary>
-        /// Gets whether the largest or the deepest patterns must match.
-        /// Default to false.
+        /// Gets whether this pattern must match well known parts.
         /// </summary>
-        public bool IsLargest => _content.V1 != null && _content.V1.TokenType == SqlTokenType.Largest;
+        public bool IsMatchPart => _content.V1 == null || _content.V1.TokenType == SqlTokenType.Part;
 
-        public SqlTokenIdentifier NodesT => _content.V2;
+        /// <summary>
+        /// Gets whether this pattern must match statements.
+        /// </summary>
+        public bool IsMatchStatement => _content.V1 != null && _content.V1.TokenType == SqlTokenType.Statement;
 
-        public SqlTokenIdentifier LikeT => _content.V3;
+        /// <summary>
+        /// Gets whether this pattern must match ranges.
+        /// </summary>
+        public bool IsMatchRange => _content.V1 != null && _content.V1.TokenType == SqlTokenType.Range;
 
-        public SqlTCurlyPattern Pattern => _content.V4;
+        public SqlTCurlyPattern Pattern => _content.V2;
 
         public bool Match( ISqlNode n )
         {
+            if( IsMatchPart && !(n is ISqlStatementPart) ) return false;
+            if( IsMatchStatement && !(n is ISqlStatement) ) return false;
+
             var tokens = n.AllTokens.GetEnumerator();
             var patterns = Pattern.GetEnumerator();
             try
@@ -91,7 +89,7 @@ namespace CK.SqlServer.Parser
                 for(;;)
                 {
                     if( patterns.Current.TokenType == SqlTokenType.QuestionMark
-                        || tokens.Current.Equals( patterns.Current ) )
+                        || tokens.Current.TokenEquals( patterns.Current ) )
                     {
                         if( !patterns.MoveNext() ) return true;
                         if( !tokens.MoveNext() ) return false;

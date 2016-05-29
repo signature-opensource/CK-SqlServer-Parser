@@ -10,10 +10,10 @@ using System.Threading.Tasks;
 
 namespace CK.SqlServer.Transform.Transformers
 {
-    class LocationInserterTrivia
+    class LocationInserter
     {
         readonly FIFOBuffer<MatchedNode> _lastBuffer;
-        readonly Func<SqlTrivia, bool> _matcher;
+        readonly Func<SqlTrivia, bool> _triviaMatcher;
         readonly int _targetMatchCount;
         readonly int _expectedMatchCount;
         readonly bool _fromFirst;
@@ -80,7 +80,7 @@ namespace CK.SqlServer.Transform.Transformers
             }
         }
 
-        public LocationInserterTrivia( SqlTInject ins )
+        public LocationInserter( SqlTInject ins )
         {
             InsertClause = ins;
 
@@ -90,13 +90,13 @@ namespace CK.SqlServer.Transform.Transformers
                 if( t.Value.StartsWith( "--" ) )
                 {
                     string lineComment = t.Value.Substring( 2 ).Trim();
-                    _matcher = trivia => trivia.TokenType == SqlTokenType.LineComment && trivia.Text.TrimStart().StartsWith( lineComment );
+                    _triviaMatcher = trivia => trivia.TokenType == SqlTokenType.LineComment && trivia.Text.TrimStart().StartsWith( lineComment );
                 }
                 else
                 {
                     Debug.Assert( t.Value.StartsWith( "/*" ) && t.Value.EndsWith( "*/" ) );
                     string starComment = t.Value.Substring( 2, t.Value.Length-4 ).Trim();
-                    _matcher = trivia => trivia.TokenType == SqlTokenType.StarComment && trivia.Text.Contains( starComment );
+                    _triviaMatcher = trivia => trivia.TokenType == SqlTokenType.StarComment && trivia.Text.Contains( starComment );
                 }
             }
             if( ins.Location.FirstOrLastOrSingleOrAllT.TokenType == SqlTokenType.Single )
@@ -132,12 +132,12 @@ namespace CK.SqlServer.Transform.Transformers
 
         public bool CanStop => _hasError || (_fromFirst && _expectedMatchCount == 0 && !_all && _matchCount == _targetMatchCount);
 
-        public bool RequiresConclude => !_fromFirst;
+        public bool RequiresConclude => !_fromFirst && !_hasError;
 
         public MatchedNode AddCandidate( IActivityMonitor monitor, int position, ISqlNode n )
         {
             List<int> matchPos = null;
-            if( _matcher == null )
+            if( _triviaMatcher == null )
             {
                 if( !HandleMatchCount( monitor, ref matchPos, int.MaxValue ) ) return null;
             }
@@ -146,13 +146,13 @@ namespace CK.SqlServer.Transform.Transformers
                 int idx = 0;
                 foreach( var t in n.LeadingTrivias ) 
                 {
-                    if( _matcher( t ) && !HandleMatchCount( monitor, ref matchPos, idx ) && _hasError ) return null;
+                    if( _triviaMatcher( t ) && !HandleMatchCount( monitor, ref matchPos, idx ) && _hasError ) return null;
                     ++idx;
                 }
                 idx = 0;
                 foreach( var t in n.TrailingTrivias )
                 {
-                    if( _matcher( t ) && !HandleMatchCount( monitor, ref matchPos, ~idx ) && _hasError ) return null;
+                    if( _triviaMatcher( t ) && !HandleMatchCount( monitor, ref matchPos, ~idx ) && _hasError ) return null;
                     ++idx;
                 }
                 if( matchPos == null ) return null;
@@ -189,7 +189,7 @@ namespace CK.SqlServer.Transform.Transformers
         {
             Debug.Assert( !_fromFirst );
             if( _matchCount < _lastBuffer.Capacity ) return null;
-            if( _matcher == null )
+            if( _triviaMatcher == null )
             {
                 return _lastBuffer.PeekLast();
             }

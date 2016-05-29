@@ -14,12 +14,10 @@
     <Xml>
       <Statements>
          <StoredProcedure StatementName="CreateProcedure">
-           <StatementList>
              <SelectStatement HasTerminator="true">
                <SelectSpec />
              </SelectStatement>
              <ReturnStatement HasTerminator="true" />
-           </StatementList>
          </StoredProcedure>
       </Statements>
     </Xml>
@@ -44,14 +42,12 @@
     <Xml>
       <Statements>
         <StoredProcedure StatementName="AlterProcedure">
-          <StatementList>
             <SetOption HasTerminator="true" />
             <SetVariable HasTerminator="true" />
             <SelectStatement HasTerminator="true">
               <SelectSpec />
             </SelectStatement>
             <ReturnStatement HasTerminator="true" />
-          </StatementList>
         </StoredProcedure>
       </Statements>
     </Xml>
@@ -75,7 +71,6 @@
     <Xml>
       <Statements>
         <StoredProcedure StatementName="AlterProcedure">
-          <StatementList>
             <BeginTransaction />
             <Statement StatementName="print" />
             <SelectStatement>
@@ -86,7 +81,6 @@
             </SelectStatement>
             <InsertStatement />
             <Statement StatementName="rollback" />
-          </StatementList>
         </StoredProcedure>
       </Statements>
     </Xml>
@@ -180,7 +174,7 @@
           </Parameters>
           <Body>
             <StatementList>
-              <Item>
+            <Item>
                 <SetOption>SET NOCOUNT ON</SetOption>
               </Item>
               <Item>

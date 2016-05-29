@@ -74,14 +74,13 @@ namespace CK.SqlServer.Parser
             }
             else if( R.IsToken( out initT, SqlTokenType.Inject, false ) )
             {
-                SqlTCurlyContent content = IsTCurlyContent( true );
+                ISqlHasStringValue content = IsSqlHasStringValue( true );
                 if( content == null ) return null;
-
                 SqlTokenIdentifier andT;
-                SqlTCurlyContent content2 = null;
+                ISqlHasStringValue content2 = null;
                 if( R.IsToken( out andT, SqlTokenType.And, false ) )
                 {
-                    content2 = IsTCurlyContent( true );
+                    content2 = IsSqlHasStringValue( true );
                     if( content2 == null ) return null;
                 }
 
@@ -99,11 +98,12 @@ namespace CK.SqlServer.Parser
                 SqlTLocationFinder loc = IsSqlTLocation( true );
                 if( loc == null ) return null;
 
-                return new SqlTInject( initT, content, andT, content2, beforeAfterOrAroundT, loc, GetOptionalTerminator());
+                return new SqlTInject( initT, content, andT, content2, beforeAfterOrAroundT, loc, GetOptionalTerminator() );
             }
             if( expected ) R.SetCurrentError( "Expected transform statement." );
             return null;
         }
+
 
         SqlTLocationFinder IsSqlTLocation( bool expected )
         {
@@ -163,7 +163,7 @@ namespace CK.SqlServer.Parser
             else textOrSimplePattern = IsTNodeSimplePattern( false );
             if( textOrSimplePattern == null )
             {
-                R.SetCurrentError( @"Expected: string litteral [...] or ""..."" or '...' or {node range}." );
+                R.SetCurrentError( @"Expected: string litteral [...] or ""..."" or '...' or {pattern}." );
                 return null;
             }
             return new SqlTLocationFinder( firstOrLastOrSingleOrAll, plusOrMinusT, offset, outT, ofT, expectedMatchCount, textOrSimplePattern );
@@ -171,36 +171,16 @@ namespace CK.SqlServer.Parser
 
         SqlTNodeSimplePattern IsTNodeSimplePattern( bool expected )
         {
-            SqlTokenIdentifier largestOrDeepestT, nodesT = null, likeT = null;
-            if( R.IsToken( out largestOrDeepestT, SqlTokenType.Largest, false )
-                || R.IsToken( out largestOrDeepestT, SqlTokenType.Deepest, false ) )
+            SqlTokenIdentifier matchKindT;
+            if( R.IsToken( out matchKindT, SqlTokenType.Part, false )
+                || R.IsToken( out matchKindT, SqlTokenType.Statement, false )
+                || R.IsToken( out matchKindT, SqlTokenType.Range, false ) )
             {
                 expected = true;
-                if( R.IsToken( out nodesT, SqlTokenType.Nodes, false ) )
-                {
-                    if( !R.IsToken( out likeT, SqlTokenType.Like, true ) ) return null;
-                }
             }
             SqlTCurlyPattern pattern = IsTCurlyPattern( expected );
             if( pattern == null ) return null;
-            return new SqlTNodeSimplePattern( largestOrDeepestT, nodesT, likeT, pattern );
-        }
-
-        SqlTCurlyContent IsTCurlyContent( bool expected )
-        {
-            SqlTokenTerminal opener;
-            if( !R.IsToken( out opener, SqlTokenType.OpenCurly, expected ) ) return null;
-            SqlTokenTerminal closer;
-            List<ISqlNode> items = new List<ISqlNode>();
-            if( !R.CollectUntil( items, out closer, null, t => t.TokenType == SqlTokenType.CloseCurly ) ) return null;
-            if( items.Count == 0 ) items.Add( new SqlEmptyStatement( null ) );
-            var head = items[0];
-            SqlTrivia.ToRight( ref opener, ref head );
-            items[0] = head;
-            var tail = items[items.Count - 1];
-            SqlTrivia.ToLeft( ref tail, ref closer );
-            items[items.Count - 1] = tail;
-            return new SqlTCurlyContent( opener, items, closer );
+            return new SqlTNodeSimplePattern( matchKindT, pattern );
         }
 
         SqlTCurlyPattern IsTCurlyPattern( bool expected )

@@ -326,9 +326,12 @@ namespace CK.SqlServer.Parser
         public static readonly SqlTokenIdentifier Around;
         public static readonly SqlTokenIdentifier Inject;
         public static readonly SqlTokenIdentifier Single;
-        public static readonly SqlTokenIdentifier Largest;
-        public static readonly SqlTokenIdentifier Deepest;
-        public static readonly SqlTokenIdentifier Nodes;
+        //public static readonly SqlTokenIdentifier Largest;
+        //public static readonly SqlTokenIdentifier Deepest;
+        //public static readonly SqlTokenIdentifier Nodes;
+        public static readonly SqlTokenIdentifier Part;
+        public static readonly SqlTokenIdentifier Statement;
+        public static readonly SqlTokenIdentifier Range;
         public static readonly SqlTokenIdentifier Out;
 
         static Dictionary<string, SqlTokenType> _keywords;
@@ -710,9 +713,12 @@ namespace CK.SqlServer.Parser
             Around = RegKeyword( "around", SqlTokenType.Around );
             Inject = RegKeyword( "inject", SqlTokenType.Inject );
             Single = RegKeyword( "single", SqlTokenType.Single );
-            Largest = RegKeyword( "largest", SqlTokenType.Largest );
-            Deepest = RegKeyword( "deepest", SqlTokenType.Deepest );
-            Nodes = RegKeyword( "nodes", SqlTokenType.Nodes );
+            //Largest = RegKeyword( "largest", SqlTokenType.Largest );
+            //Deepest = RegKeyword( "deepest", SqlTokenType.Deepest );
+            //Nodes = RegKeyword( "nodes", SqlTokenType.Nodes );
+            Part = RegKeyword( "part", SqlTokenType.Part );
+            Statement = RegKeyword( "statement", SqlTokenType.Statement );
+            Range = RegKeyword( "range", SqlTokenType.Range );
 
             Debug.Assert( (int)SqlTokenType.AssignOperatorCount == 9 );
             Assign				    = RegTerminal( SqlTokenType.Assign, "=" );

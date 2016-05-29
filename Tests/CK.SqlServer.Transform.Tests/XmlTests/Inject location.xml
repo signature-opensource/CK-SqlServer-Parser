@@ -1,5 +1,129 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <Tests>
+
+  <Test>
+    <Text>
+      create procedure CK.sTest as
+      begin
+      insert into S.tTable default values;
+      insert into S.tOther default values;
+      end
+    </Text>
+    <Description>
+      create transformer on CK.sTest as
+      begin
+      inject ' set @X = 0; ' before all {insert into S.?};
+      inject ' set @Table = 1; ' before single {insert into S.tTable};
+      inject ' set @M = 9; ' after single {insert into S.tOther};
+      inject ' -- the end...
+      ' after single {insert into S.tTable};
+      end
+    </Description>
+    <ResultText>
+      create procedure CK.sTest as
+      begin
+      set @Table = 1; set @X = 0; insert into S.tTable default values;
+      -- the end..
+      set @X = 0; insert into S.tOther default values; set @M = 9;
+      end
+    </ResultText>
+  </Test>
+
+
+  <Test>
+    <Text>
+      create procedure CK.sTest as
+      begin
+        /* a comment
+           around which
+           one can add stuff.
+        */
+      end
+    </Text>
+    <Description>
+      create transformer on CK.sTest as
+      begin
+        inject
+        "
+          -- Done!
+          end
+        "
+        after single "/* add stuff */";
+        inject
+        "
+          -- And done again!
+          if 1 = 0
+          begin
+        "
+        before single "/* around */";
+      end
+    </Description>
+    <ResultText>
+      create procedure CK.sTest as
+      begin
+        -- And done again!
+        if 1 = 0
+        begin
+        /* a comment
+           around which
+           one can add stuff.
+        */
+        -- Done!
+        end
+      end
+    </ResultText>
+  </Test>
+    
+  <Test>
+    <Text>
+      create procedure CK.sTest as
+      begin
+        --[multiple]
+      end
+    </Text>
+    <Description>
+      create transformer as
+      begin
+        inject
+        [
+          set @1 = 0;
+        ]
+        after last "--[not here]";
+      end
+    </Description>
+    <ResultText>ERROR: Not found</ResultText>
+  </Test>  
+
+  <Test>
+    <Text>
+      create procedure CK.sTest as
+      begin
+        declare @1 int;
+        --[multiple]
+        declare @2 int;
+        --[unique1]
+        declare @3 int;
+        --[multiple]
+        declare @4 int;
+        --[unique1]
+        declare @5 int;
+        --[multiple]
+        declare @6 int;
+      end
+    </Text>
+    <Description>
+      create transformer as
+      begin
+      inject
+      '
+        set @1 = 0;
+      '
+      after last-1 out of 4 "--[multiple]";
+      end
+    </Description>
+    <ResultText>ERROR: Missing matches</ResultText>
+  </Test>
+  
   <Test>
     <Text>
       create procedure CK.sTest as
@@ -20,10 +144,10 @@
     <Description>
       create transformer as
       begin
-        inject {
+        inject [
           set @1 = 0;
-        }
-      before last "--[multiple]";
+        ]
+        before last "--[multiple]";
       end
     </Description>
     <ResultText>
@@ -65,8 +189,8 @@
     <Description>
       create transformer as
       begin
-        inject { -- a comment... 
-        } after all "--[multiple]";
+        inject [ -- a comment... 
+        ] after all "--[multiple]";
       end
     </Description>
     <ResultText>
@@ -110,7 +234,7 @@
     <Description>
       create transformer as
       begin
-        inject { "Col" = 7, } after all "--[multiple]";
+        inject [ "Col" = 7, ] after all "--[multiple]";
       end
     </Description>
     <ResultText>
@@ -151,9 +275,9 @@
     <Description>
       create transformer as
       begin
-        inject {
+        inject [
           set @1 = 0;
-        }
+        ]
         after first+1 "--[multiple]";
       end
     </Description>
@@ -197,9 +321,9 @@
       create transformer as
       begin
       inject
-      {
+      '
         set @1 = 0;
-      }
+      '
       after last-1 "--[multiple]";
       end
     </Description>
@@ -242,9 +366,9 @@
     <Description>
       create transformer as
       begin
-        inject {
-          set @1 = 0;
-        }
+        inject '
+          set @1 = N''0'';
+        '
         before first "--[multiple]";
       end
     </Description>
@@ -252,7 +376,7 @@
       create procedure CK.sTest as
       begin
         declare @1 int;
-        set @1 = 0;
+        set @1 = N'0';
         --[multiple]
         declare @2 int;
         --[unique1]
@@ -287,7 +411,7 @@
     <Description>
       create transformer as
       begin
-        inject { set @1 = 0; } after all "--[multiple]";
+        inject 'set @1 = 0;' after all "--[multiple]";
       end
     </Description>
     <ResultText>
@@ -322,8 +446,8 @@
     <Description>
       create transformer as
       begin
-      inject { set @1 = 0;
-      }
+      inject [ set @1 = 0;
+      ]
       after all "--[multiple]";
       end
     </Description>
@@ -351,15 +475,13 @@
     <Description>
       create transformer as
       begin
-      inject {
-        set @1 = 0;
-      }
-      before last "--[multiple]";
+      inject [
+        set @1 = 0;] before last "--[multiple]";
       end
     </Description>
     <ResultText>
-        --[multiple]
         set @1 = 0;
+        --[multiple]
         x
     </ResultText>
   </Test>
@@ -379,134 +501,13 @@
       create transformer as
       begin
       inject
-      {
+      "
         set @1 = 0;
-      }
+      "
       after last-1 out of 4 "--[multiple]";
       end
     </Description>
     <ResultText>ERROR: Too many matches</ResultText>
-  </Test>
-  
-  <Test>
-    <Text>
-      create procedure CK.sTest as
-      begin
-        declare @1 int;
-        --[multiple]
-        declare @2 int;
-        --[unique1]
-        declare @3 int;
-        --[multiple]
-        declare @4 int;
-        --[unique1]
-        declare @5 int;
-        --[multiple]
-        declare @6 int;
-      end
-    </Text>
-    <Description>
-      create transformer as
-      begin
-      inject
-      {
-        set @1 = 0;
-      }
-      after last-1 out of 4 "--[multiple]";
-      end
-    </Description>
-    <ResultText>ERROR: Missing matches</ResultText>
-  </Test>
-  
-  <Test>
-    <Text>
-      create procedure CK.sTest as
-      begin
-        --[multiple]
-      end
-    </Text>
-    <Description>
-      create transformer as
-      begin
-        inject
-        {
-          set @1 = 0;
-        }
-        after last "--[not here]";
-      end
-    </Description>
-    <ResultText>ERROR: Not found</ResultText>
-  </Test>  
-  
-  <Test>
-    <Text>
-      create procedure CK.sTest as
-      begin
-        /* a comment
-           around which
-           one can add stuff.
-        */
-      end
-    </Text>
-    <Description>
-      create transformer on CK.sTest as
-      begin
-        inject
-        {
-          -- Done!
-          end
-        }
-        after single "/* add stuff */";
-        inject
-        {
-          -- And done again!
-          if 1 = 0
-          begin
-        }
-        before single "/* around */";
-      end
-    </Description>
-    <ResultText>
-      create procedure CK.sTest as
-      begin
-        -- And done again!
-        if 1 = 0
-        begin
-        /* a comment
-           around which
-           one can add stuff.
-        */
-        -- Done!
-        end
-      end
-    </ResultText>
-  </Test>
-
-  <Test>
-    <Text>
-      create procedure CK.sTest as
-      begin
-        insert into S.tTable default values;
-        insert into S.tOther default values;
-      end
-    </Text>
-    <Description>
-      create transformer on CK.sTest as
-      begin
-       inject { set @X = 0; } before all {insert into S.?};
-       inject { set @Table = 1; } before single {insert into S.tTable};
-       inject { set @k = 9; } after single {insert into S.tOther};
-       inject { -- the end... } after single {insert into S.tTable};
-      end
-    </Description>
-    <ResultText>
-      create procedure CK.sTest as
-      begin
-        set @Table = 1; set @X = 0; insert into S.tTable default values;
-        -- the end..
-        set @X = 0; insert into S.tOther default values; set @k = 9;
-      end
-    </ResultText>
   </Test>
   
    <Test>
@@ -520,8 +521,8 @@
     <Description>
       create transformer on CK.sTest as
       begin
-        inject { set @X = 0; } before all {insert into S.?};
-        inject { set @Table = 1; } before single {insert into S.tTable};
+        inject " set @X = 0; " before all {insert into S.?};
+        inject [ set @Table = 1; ] before single {insert into S.tTable};
       end
     </Description>
     <ResultText>

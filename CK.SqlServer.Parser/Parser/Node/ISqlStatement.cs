@@ -6,7 +6,11 @@ using System.Threading.Tasks;
 
 namespace CK.SqlServer.Parser
 {
-    public interface ISqlStatement : ISqlNode
+    /// <summary>
+    /// Defines actual statements. 
+    /// The <see cref="StatementTerminator"/> is optional.
+    /// </summary>
+    public interface ISqlStatement : ISqlStatementPart
     {
         SqlTokenTerminal StatementTerminator { get; }
     }

@@ -11,9 +11,9 @@ namespace CK.SqlServer.Parser
 {
     using CNode = SNode<
             SqlTokenIdentifier,
-            SqlTCurlyContent,
+            ISqlHasStringValue,
             SqlTokenIdentifier,
-            SqlTCurlyContent,
+            ISqlHasStringValue,
             SqlTokenIdentifier,
             SqlTLocationFinder,
             SqlTokenTerminal>;
@@ -25,7 +25,7 @@ namespace CK.SqlServer.Parser
     {
         readonly CNode _content;
 
-        public SqlTInject( SqlTokenIdentifier insertT, SqlTCurlyContent content, SqlTokenIdentifier andT, SqlTCurlyContent content2, SqlTokenIdentifier afterBeforeOrAroundT, SqlTLocationFinder location, SqlTokenTerminal terminator )
+        public SqlTInject( SqlTokenIdentifier insertT, ISqlHasStringValue content, SqlTokenIdentifier andT, ISqlHasStringValue content2, SqlTokenIdentifier afterBeforeOrAroundT, SqlTLocationFinder location, SqlTokenTerminal terminator )
             : base( null, null )
         {
             _content = new CNode( insertT, content, andT, content2, afterBeforeOrAroundT, location, terminator );
@@ -64,19 +64,19 @@ namespace CK.SqlServer.Parser
 
         public SqlTokenIdentifier InjectT => _content.V1;
 
-        public SqlTCurlyContent Content => _content.V2;
+        public ISqlHasStringValue Content => _content.V2;
 
         public SqlTokenIdentifier AndT => _content.V3;
 
-        public SqlTCurlyContent Content2 => _content.V4;
+        public ISqlHasStringValue Content2 => _content.V4;
 
         public string TextBefore => _content.V5.TokenType != SqlTokenType.After
-                                        ? Content.ContentString
+                                        ? Content.Value
                                         : null;
 
         public string TextAfter => _content.V5.TokenType == SqlTokenType.After
-                                        ? Content.ContentString
-                                        : Content2?.ContentString;
+                                        ? Content.Value
+                                        : Content2?.Value;
 
         public SqlTokenIdentifier AfterBeforeOrAroundT => _content.V5;
 

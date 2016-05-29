@@ -97,12 +97,10 @@ namespace CK.SqlServer.Parser
                 if( bodyCatch == null ) return null;
                 SqlTokenIdentifier endCatch, endCatchToken;
                 if( !R.IsToken( out endCatch, SqlTokenType.End, true ) || !R.IsToken( out endCatchToken, SqlTokenType.Catch, true ) ) return null;
-                return new SqlTryCatch( id, tranOrTry,
-                                        body,
-                                        end, endTry, begCatch, begCatchToken,
-                                        bodyCatch,
-                                        endCatch, endCatchToken,
-                                        GetOptionalTerminator() );
+                return new SqlTryCatch( 
+                            new SqlTryBlock( id, tranOrTry, body, end, endTry ), 
+                            new SqlCatchBlock( begCatch, begCatchToken, bodyCatch, endCatch, endCatchToken ), 
+                            GetOptionalTerminator() );
             }
             if( id.TokenType == SqlTokenType.Create || id.TokenType == SqlTokenType.Alter )
             {

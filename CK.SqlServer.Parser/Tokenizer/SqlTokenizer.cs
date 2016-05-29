@@ -283,16 +283,15 @@ namespace CK.SqlServer.Parser
                 if( Read( '/', '*' ) )
                 {
                     if( _buffer.Length > 0 ) _trailingTrivias.Add( BuildTrivia( SqlTokenType.None, _buffer.ToString() ) );
-                    ic = HandleStarComment();
                     // Unterminated Star comment is ignored.
-                    if( ic == (int)SqlTokenTypeError.EndOfInput )
+                    if( HandleStarComment() != (int)SqlTokenType.StarComment )
                     {
                         // End of input.
                         return;
                     }
                     if( _buffer.Length > 0 )
                     {
-                        _trailingTrivias.Add( BuildTrivia( (SqlTokenType)ic, _buffer.ToString() ) );
+                        _trailingTrivias.Add( BuildTrivia( SqlTokenType.StarComment, _buffer.ToString() ) );
                         _buffer.Length = 0;
                     }
                     // Continue after Star comment: remaining trivias will be added to trailing trivias.
@@ -571,21 +570,10 @@ namespace CK.SqlServer.Parser
         {
             ClearBuffer();
             int ic;
-            while( (ic = Peek()) != -1 )
+            while( (ic = Read()) != -1 )
             {
-                if( ic == '*' && PeekLookup() == '/' )
-                {
-                    Read(); Read();
-                    return (int)SqlTokenType.StarComment;
-                }
-                // When inside a curly braces string, the closing } alone ends the comment.
-                if( _inCurlyString && ic == '}' && PeekLookup() != '}' )
-                {
-                    _buffer.Insert( 0, "/*" );
-                    return (int)SqlTokenType.None;
-                }
+                if( ic == '*' && Read( '/' ) ) return (int)SqlTokenType.StarComment;
                 _buffer.Append( (char)ic );
-                Read();
             }
             return (int)SqlTokenTypeError.EndOfInput;
         }
@@ -594,23 +582,16 @@ namespace CK.SqlServer.Parser
         {
             ClearBuffer();
             int ic;
-            while( (ic = Peek()) != -1 )
+            while( (ic = Read()) != -1 )
             {
                 // Eats the end of line.
                 // This is by design: LineComment eats the end-of-line (Line Separator \u2028 and Paragraph Separator \u2029).
                 if( ic == '\r' || ic == '\n' || ic == '\u2028' || ic == '\u2029' )
                 {
-                    Read();
                     if( ic == '\r' ) Read( '\n' );
                     break;
                 }
-                // When inside a curly braces string, the closing } alone ends the line comment.
-                if( _inCurlyString && ic == '}' && PeekLookup() != '}' )
-                {
-                    break;
-                }
                 _buffer.Append( (char)ic );
-                Read();
             }
             return (int)SqlTokenType.LineComment;
         }

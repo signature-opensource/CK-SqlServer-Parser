@@ -22,7 +22,7 @@ namespace CK.SqlServer.UtilTests
 
         protected override ISqlNode VisitStandard( ISqlNode e )
         {
-            ISqlStatement st = e as ISqlStatement;
+            ISqlStatementPart st = e as ISqlStatementPart;
             if( st == null ) return base.VisitStandardReadOnly( e );
 
             using( StartNode( e ) )
@@ -36,7 +36,8 @@ namespace CK.SqlServer.UtilTests
                         _current.Add( new XAttribute( "StatementName", sn ) );
                     }
                 }
-                if( st.StatementTerminator != null )
+                ISqlStatement s = e as ISqlStatement;
+                if( s != null && s.StatementTerminator != null )
                 {
                     _current.Add( new XAttribute( "HasTerminator", "true" ) );
                 }

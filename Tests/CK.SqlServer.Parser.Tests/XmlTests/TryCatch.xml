@@ -34,10 +34,10 @@
     <Xml>
       <Statements>
         <TryCatch HasTerminator="true">
-          <StatementList>
+          <TryBlock>
             <Raiserror HasTerminator="true" />
-          </StatementList>
-          <StatementList>
+          </TryBlock>
+          <CatchBlock>
             <DeclareVariable HasTerminator="true" />
             <DeclareVariable HasTerminator="true" />
             <DeclareVariable HasTerminator="true" />
@@ -45,7 +45,7 @@
               <SelectSpec />
             </SelectStatement>
             <Raiserror HasTerminator="true" />
-          </StatementList>
+          </CatchBlock>
         </TryCatch>
       </Statements>
     </Xml>
@@ -121,16 +121,15 @@
     <Xml>
       <Statements>
         <StoredProcedure StatementName="CreateProcedure">
-          <StatementList>
             <SetOption HasTerminator="true" />
             <TryCatch HasTerminator="true">
-              <StatementList>
+              <TryBlock>
                 <BeginTransaction />
                 <DeleteStatement HasTerminator="true" />
                 <DeleteStatement HasTerminator="true" />
                 <Statement StatementName="COMMIT" />
-              </StatementList>
-              <StatementList>
+              </TryBlock>
+              <CatchBlock>
                 <If>
                   <Statement StatementName="ROLLBACK" />
                 </If>
@@ -139,22 +138,20 @@
                   <SelectSpec />
                 </SelectStatement>
                 <Raiserror HasTerminator="true" />
-              </StatementList>
+              </CatchBlock>
             </TryCatch>
-          </StatementList>
         </StoredProcedure>
         <Statement StatementName="GO" />
         <ExecuteStatement HasTerminator="true" />
         <StoredProcedure StatementName="AlterProcedure">
-          <StatementList>
             <TryCatch HasTerminator="true">
-              <StatementList>
+              <TryBlock>
                 <BeginTransaction />
                 <DeleteStatement HasTerminator="true" />
                 <DeleteStatement HasTerminator="true" />
                 <Statement StatementName="COMMIT" />
-              </StatementList>
-              <StatementList>
+              </TryBlock>
+              <CatchBlock>
                 <If>
                   <Statement StatementName="ROLLBACK" />
                 </If>
@@ -163,9 +160,8 @@
                   <SelectSpec />
                 </SelectStatement>
                 <Raiserror HasTerminator="true" />
-              </StatementList>
+              </CatchBlock>
             </TryCatch>
-          </StatementList>
         </StoredProcedure>
         <Statement StatementName="GO" />
         <ExecuteStatement HasTerminator="true" />

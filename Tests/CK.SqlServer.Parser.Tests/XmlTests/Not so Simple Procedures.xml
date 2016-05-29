@@ -36,15 +36,12 @@
       <Xml>
         <Statements>
           <StoredProcedure StatementName="CreateProcedure">
-            <StatementList>
               <DeclareVariable HasTerminator="true" />
               <If>
                 <BeginEndBlock>
-                  <StatementList>
                     <DeclareVariable HasTerminator="true" />
                     <If>
                       <BeginEndBlock>
-                        <StatementList>
                           <SetVariable HasTerminator="true" />
                           <If>
                             <SetVariable HasTerminator="true" />
@@ -52,23 +49,18 @@
                           </If>
                           <SetVariable HasTerminator="true" />
                           <Raiserror HasTerminator="true" />
-                        </StatementList>
                       </BeginEndBlock>
                       <BeginEndBlock>
-                        <StatementList>
                           <SetVariable HasTerminator="true" />
                           <If>
                             <SetVariable HasTerminator="true" />
                           </If>
                           <DeclareVariable HasTerminator="true" />
                           <Raiserror HasTerminator="true" />
-                        </StatementList>
                       </BeginEndBlock>
                     </If>
-                  </StatementList>
                 </BeginEndBlock>
               </If>
-            </StatementList>
           </StoredProcedure>
         </Statements>
       </Xml>
@@ -95,11 +87,9 @@
       <Xml>
         <Statements>
            <StoredProcedure StatementName="CreateProcedure">
-             <StatementList>
                <SetOption HasTerminator="true" />
                <MergeStatement HasTerminator="true" />
                <ReturnStatement HasTerminator="true" />
-             </StatementList>
            </StoredProcedure>
         </Statements>
       </Xml>
@@ -139,7 +129,6 @@
       <Xml>
         <Statements>
           <StoredProcedure StatementName="CreateProcedure">
-            <StatementList>
               <If>
                 <Raiserror HasTerminator="true" />
               </If>
@@ -155,14 +144,11 @@
               <Statement StatementName="fetch" HasTerminator="true" />
               <While>
                 <BeginEndBlock>
-                  <StatementList>
                     <ExecuteStatement HasTerminator="true" />
                     <Statement StatementName="fetch" HasTerminator="true" />
-                  </StatementList>
                 </BeginEndBlock>
               </While>
               <Statement StatementName="deallocate" HasTerminator="true" />
-            </StatementList>
           </StoredProcedure>
         </Statements>
       </Xml>
@@ -235,7 +221,6 @@ end</Text>
     <Xml>
       <Statements>
         <StoredProcedure StatementName="CreateProcedure">
-          <StatementList>
             <SetOption />
             <DeclareVariable />
             <Statement StatementName="PRINT" />
@@ -248,7 +233,6 @@ end</Text>
             <Statement StatementName="FETCH" />
             <While>
               <BeginEndBlock>
-                <StatementList>
                   <Statement StatementName="PRINT" />
                   <SelectStatement>
                     <SelectSpec />
@@ -264,24 +248,20 @@ end</Text>
                   </If>
                   <While>
                     <BeginEndBlock>
-                      <StatementList>
                         <SelectStatement>
                           <SelectSpec />
                         </SelectStatement>
                         <Statement StatementName="PRINT" />
                         <Statement StatementName="FETCH" />
-                      </StatementList>
                     </BeginEndBlock>
                   </While>
                   <Statement StatementName="CLOSE" />
                   <Statement StatementName="DEALLOCATE" />
                   <Statement StatementName="FETCH" />
-                </StatementList>
               </BeginEndBlock>
             </While>
             <Statement StatementName="CLOSE" HasTerminator="true" />
             <Statement StatementName="DEALLOCATE" HasTerminator="true" />
-          </StatementList>
         </StoredProcedure>
       </Statements>
     </Xml>

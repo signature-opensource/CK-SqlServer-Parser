@@ -109,11 +109,9 @@
         <Statement StatementName="FETCH" />
         <While>
           <BeginEndBlock>
-            <StatementList>
-              <SetVariable />
-              <Statement StatementName="BACKUP" />
-              <Statement StatementName="FETCH" />
-            </StatementList>
+            <SetVariable />
+            <Statement StatementName="BACKUP" />
+            <Statement StatementName="FETCH" />
           </BeginEndBlock>
         </While>
         <Statement StatementName="CLOSE" />

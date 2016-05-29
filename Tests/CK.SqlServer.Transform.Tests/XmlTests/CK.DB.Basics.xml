@@ -80,10 +80,9 @@
       begin
         add parameter @ZoneId int = 0 before @GroupIdResult;
         inject
-        {   -- from Zone...
-            if @ZoneId = 1 throw 50000, 'Zone.SystemZoneHasNoGroup', 1;
-        }
-        before first "--[beginsp]";
+        "   -- from Zone...
+            if @ZoneId = 1 throw 50000, 'Zone.SystemZoneHasNoGroup', 1; " 
+          before first "--[beginsp]";
         --add column( ZoneId ) values( @ZoneId ) in largest single {insert into CK.tGroup};
       end
     </Description>

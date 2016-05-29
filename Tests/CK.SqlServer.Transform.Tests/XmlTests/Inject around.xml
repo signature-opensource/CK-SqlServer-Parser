@@ -11,7 +11,7 @@
     <Description>
       create transformer on CK.sTest as
       begin
-        inject { /* no more! } and { */ } around last {insert};
+        inject [/* no more! ] and [*/] around last {insert};
       end
     </Description>
     <ResultText>
@@ -35,14 +35,16 @@
     <Description>
       create transformer on CK.sTest as
       begin
-        inject { set @X = 0; } and { -- the end. } around all 2 {insert into S.?};
+        inject 'set @X = 0;' and 'set @X = 1;' around all 2 {insert into S.?};
       end
     </Description>
     <ResultText>
       create procedure CK.sTest as
       begin
-        set @X = 0; insert into S.tTable default values; -- the end.
-        set @X = 0; insert into S.tOther default values; -- the end.
+      set @X = 0; insert into S.tTable default values;
+      set @X = 1;
+      set @X = 0; insert into S.tOther default values;
+      set @X = 1;
       end
     </ResultText>
   </Test>

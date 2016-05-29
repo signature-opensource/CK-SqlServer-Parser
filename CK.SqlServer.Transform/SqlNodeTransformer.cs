@@ -120,7 +120,7 @@ namespace CK.SqlServer.Transform
             var insert = t as SqlTInject;
             if( insert != null )
             {
-                return new Transformers.InsertUnParsedTextAroundTrivia( insert );
+                return new Transformers.UnParsedTextInjecter( insert );
             }
             throw new NotSupportedException( $"Transform statement '{t.ToStringHyperCompact()}' not supported." );
         }
