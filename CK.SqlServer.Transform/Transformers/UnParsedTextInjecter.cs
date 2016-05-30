@@ -16,6 +16,12 @@ namespace CK.SqlServer.Transform.Transformers
         readonly string _before;
         readonly string _after;
         readonly SqlTNodeSimplePattern _nodePattern;
+        // The little magic to promote SelectSpec match to
+        // its SelectDecorator.
+        // When descending, we capture the to level decorator at its position so that
+        // we know that matching at this exact position is useless: only a SelectSpec (or
+        // another decorator) may match and if it is the case, we do not want it to match!
+        readonly Stack<KeyValuePair<SelectDecorator, int>> _selectDecorator;
 
         public UnParsedTextInjecter( SqlTInject injecter )
         {
@@ -25,8 +31,25 @@ namespace CK.SqlServer.Transform.Transformers
             _after = injecter.TextAfter;
 
             _nodePattern = injecter.Location.Pattern as SqlTNodeSimplePattern;
+            if( _nodePattern != null && _nodePattern.IsMatchPart )
+            {
+                _selectDecorator = new Stack<KeyValuePair<SelectDecorator, int>>();
+            }
         }
 
+        protected override bool BeforeVisitItem()
+        {
+            if( _selectDecorator != null )
+            {
+                var d = VisitContext.VisitedNode as SelectDecorator;
+                if( d != null 
+                    && (_selectDecorator.Count == 0 || _selectDecorator.Peek().Value != VisitContext.Position ) )
+                {
+                    _selectDecorator.Push( new KeyValuePair<SelectDecorator, int>( d, VisitContext.Position ) );
+                }
+            }
+            return true;
+        }
 
         protected override ISqlNode AfterVisitItem( ISqlNode e )
         {
@@ -64,12 +87,29 @@ namespace CK.SqlServer.Transform.Transformers
 
         int _previousMatchPos;
 
+        bool HandleDecoratorCovering()
+        {
+            if( _selectDecorator == null || _selectDecorator.Count == 0 ) return true;
+            var h = _selectDecorator.Peek();
+            if( h.Value == VisitContext.Position )
+            {
+                if( h.Key == VisitContext.VisitedNode )
+                {
+                    _selectDecorator.Pop();
+                    return true;
+                }
+                return false;
+            }
+            return true;
+        }
+
         private ISqlNode HandleNode( ISqlNode e )
         {
             if( _matcher.CanStop ) return e;
             if( _nodePattern != null )
             {
-                if( VisitContext.Position < _previousMatchPos
+                if( !HandleDecoratorCovering()
+                    || VisitContext.Position < _previousMatchPos
                     || !_nodePattern.Match( e ) )
                 {
                     return e;

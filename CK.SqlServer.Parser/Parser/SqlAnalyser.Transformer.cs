@@ -147,20 +147,23 @@ namespace CK.SqlServer.Parser
                 R.IsToken( out expectedMatchCount, false );
             }
 
-            ISqlHasStringValue text = R.Current as ISqlHasStringValue;
-            ISqlNode textOrSimplePattern = null;
-            if( text != null )
+            ISqlNode textOrSimplePattern = IsTNodeSimplePattern( false ); ;
+            if( R.IsError ) return null;
+            if( textOrSimplePattern == null )
             {
-                if( !text.Value.StartsWith( "--" )
-                    && (!text.Value.StartsWith( "/*" ) || !text.Value.EndsWith( "*/" )) )
+                ISqlHasStringValue text = R.Current as ISqlHasStringValue;
+                if( text != null )
                 {
-                    R.SetCurrentError( @"Litteral string must start with -- or starts and ends with /* and */." );
-                    return null;
+                    if( !text.Value.StartsWith( "--" )
+                        && (!text.Value.StartsWith( "/*" ) || !text.Value.EndsWith( "*/" )) )
+                    {
+                        R.SetCurrentError( @"Litteral string must start with -- or starts and ends with /* and */." );
+                        return null;
+                    }
+                    R.MoveNext();
+                    textOrSimplePattern = text;
                 }
-                R.MoveNext();
-                textOrSimplePattern = text;
             }
-            else textOrSimplePattern = IsTNodeSimplePattern( false );
             if( textOrSimplePattern == null )
             {
                 R.SetCurrentError( @"Expected: string litteral [...] or ""..."" or '...' or {pattern}." );

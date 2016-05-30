@@ -58,14 +58,6 @@ namespace CK.SqlServer.UtilTests
             return Util.CreateDisposableAction( () => { _current = prev; } );
         }
 
-        protected override ISqlNode Visit( SelectSpec e )
-        {
-            using( StartNode( e ) )
-            {
-                return base.Visit( e );
-            }
-        }
-
         protected override ISqlNode Visit( SelectCombine e )
         {
             using( StartNode( e ) )
@@ -75,12 +67,5 @@ namespace CK.SqlServer.UtilTests
             }
         }
 
-        protected override ISqlNode Visit( SelectDecorator e )
-        {
-            using( StartNode( e ) )
-            {
-                return base.Visit( e );
-            }
-        }
     }
 }

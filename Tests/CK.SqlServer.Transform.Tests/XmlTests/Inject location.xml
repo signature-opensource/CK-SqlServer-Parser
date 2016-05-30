@@ -510,7 +510,7 @@
     <ResultText>ERROR: Too many matches</ResultText>
   </Test>
   
-   <Test>
+  <Test>
     <Text>
       create procedure CK.sTest as
       begin
@@ -533,5 +533,34 @@
       end
     </ResultText>
   </Test>
-  
+
+  <Test>
+    <Text>
+      create procedure CK.sTest as
+      begin
+      select A = (select top 1 Name from S.tUser where Id = a.UserId)
+      from (select top 20 UserId from S.tGroup order by 1) a
+      order by 3;
+      end
+    </Text>
+    <Description>
+      create transformer on CK.sTest as
+      begin
+      inject ' order by Name' after single part {select top 1 Name};
+      inject ', 2 /* after order! */'  after single part {select top 20};
+      inject 'X; /* after statement! */'  after single statement {select A};
+      end
+    </Description>
+    <ResultText>
+      create procedure CK.sTest as
+      begin
+      select A = (select top 1 Name from S.tUser where Id = a.UserId order by Name)
+      from (select top 20 UserId from S.tGroup order by 1, 2 /* after order! */) a
+      order by 3;
+      X; /* after statement! */
+      end
+    </ResultText>
+  </Test>
+
+
 </Tests>
