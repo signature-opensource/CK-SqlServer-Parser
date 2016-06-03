@@ -52,10 +52,11 @@ namespace CK.SqlServer.Transform
         /// Obtains the location of the currently visited node.
         /// When no nodes are beeing visited, <see cref="Root"/> must be returned.
         /// </summary>
+        /// <param name="overridePos">This parameter is used only by <see cref="LightLocationBuilder"/>.</param>
         /// <param name="current">Must be the current node: the concrete builder does not have to manage a stack.</param>
         /// <param name="qualifiedLocation">True to force the obtention of a qualified location.</param>
-        /// <returns>A (potentially qualified) location.</returns>
-        SqlNodeLocation GetCurrent( ISqlNode current, bool qualifiedLocation = false );
+        /// <returns>A raw or qualified location.</returns>
+        SqlNodeLocation GetCurrent( int overridePos, ISqlNode current, bool qualifiedLocation = false );
     }
 
 }

@@ -30,7 +30,7 @@ namespace CK.SqlServer.Parser
         /// </summary>
         public bool IsVariable => TokenType.IsVariable();
 
-        bool ISqlIdentifier.IsOpenDataSouce => false;
+        bool ISqlIdentifier.IsOpenDataSource => false;
 
         IReadOnlyList<ISqlIdentifier> ISqlIdentifier.Identifiers => this;
 

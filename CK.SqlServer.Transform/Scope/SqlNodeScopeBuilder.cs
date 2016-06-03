@@ -36,17 +36,17 @@ namespace CK.SqlServer.Transform
             _last = null;
         }
 
-        internal ISqlNodeLocationRange Enter( SqlNodeLocationVisitor.IVisitContext context )
+        internal ISqlNodeLocationRange Enter( IVisitContext context )
         {
             return Handle( (ISqlNodeLocationRangeInternal)DoEnter( context ) );
         }
 
-        internal ISqlNodeLocationRange Leave( SqlNodeLocationVisitor.IVisitContext context )
+        internal ISqlNodeLocationRange Leave( IVisitContext context )
         {
             return Handle( (ISqlNodeLocationRangeInternal)DoLeave( context ) );
         }
 
-        internal ISqlNodeLocationRange Conclude( SqlNodeLocationVisitor.IVisitContextBase context )
+        internal ISqlNodeLocationRange Conclude( IVisitContextBase context )
         {
             var r1 = (ISqlNodeLocationRangeInternal)Handle( (ISqlNodeLocationRangeInternal)DoConclude( context ) );
             var r2 = _last;
@@ -68,21 +68,21 @@ namespace CK.SqlServer.Transform
         /// </summary>
         /// <param name="context">The visited node and location manager to use.</param>
         /// <returns>Null or a range to consider.</returns>
-        protected abstract ISqlNodeLocationRange DoEnter( SqlNodeLocationVisitor.IVisitContext context );
+        protected abstract ISqlNodeLocationRange DoEnter( IVisitContext context );
 
         /// <summary>
         /// Called for each node, before visiting its children. May return a range.
         /// </summary>
         /// <param name="context">The visited node and location manager to use.</param>
         /// <returns>Null or a range to consider.</returns>
-        protected abstract ISqlNodeLocationRange DoLeave( SqlNodeLocationVisitor.IVisitContext context );
+        protected abstract ISqlNodeLocationRange DoLeave( IVisitContext context );
 
         /// <summary>
         /// Called at the end of the visit.
         /// </summary>
         /// <param name="context">Base context (offers location manager and error management).</param>
         /// <returns>Null or the final range to consider.</returns>
-        protected abstract ISqlNodeLocationRange DoConclude( SqlNodeLocationVisitor.IVisitContextBase context );
+        protected abstract ISqlNodeLocationRange DoConclude( IVisitContextBase context );
 
         ISqlNodeLocationRange Handle( ISqlNodeLocationRangeInternal r )
         {

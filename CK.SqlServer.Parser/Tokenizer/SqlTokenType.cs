@@ -548,6 +548,7 @@ namespace CK.SqlServer.Parser
         Before,
         Around,
         Inject,
+        Replace,
         Single,
         //Largest,
         //Deepest,

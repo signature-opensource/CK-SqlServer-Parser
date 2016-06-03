@@ -55,13 +55,15 @@ namespace CK.SqlServer.Transform
             _currentQ = null;
         }
 
-        public SqlNodeLocation GetCurrent( ISqlNode current, bool qualifiedLocation )
+        public SqlNodeLocation GetCurrent( int overridePos, ISqlNode current, bool qualifiedLocation )
         {
             if( qualifiedLocation )
             {
-                return _currentQ ?? (_currentQ = _current = _depth == 0 ? _root : _root.GetQualifiedLocation( _curPos, current ));
+                return _currentQ != null && _currentQ.Node == current 
+                        ? _currentQ
+                        : (_currentQ = _current = _depth == 0 ? _root : _root.GetQualifiedLocation( overridePos, current ));
             }
-            return _current ?? _currentQ ?? (_current = _depth == 0 || _curPos == 0 ? _root : new SqlNodeLocation( _root, null, _curPos ));
+            return _current ?? _currentQ ?? (_current = _depth == 0 || overridePos == 0 ? _root : new SqlNodeLocation( _root, null, overridePos ));
         }
 
     }

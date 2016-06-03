@@ -1,5 +1,57 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <Tests>
 
+  <Test>
+    <Text>
+      create procedure CK.sTest
+      as 
+      begin
+        update CK.tTable set X = 8, Y = 7 where Z = 9 and T = 4;
+      end
+    </Text>
+    <Description>
+      create transformer on CK.sTest
+      as
+      begin
+      replace first range {and T = 4} with "or T = 8";
+      end
+    </Description>
+    <ResultText>
+      create procedure CK.sTest
+      as
+      begin
+        update CK.tTable set X = 8, Y = 7 where Z = 9 or T = 8;
+      end
+    </ResultText>
+  </Test>
+
+  <Test>
+    <Text>
+      create procedure CK.sTest
+      as begin
+
+      end
+    </Text>
+    <Description>
+      create transformer on CK.sTest
+      as
+      begin
+      /*
+      in single {insert} &lt; {select}
+      add column( ZoneId ) values( @ZoneId );
+
+      in first {insert} &gt; last {select} &lt; range {from ?.tUser}
+      add column( ZoneId ) values( @ZoneId );
+      */
+      end
+    </Description>
+    <ResultText>
+      create procedure CK.sTest
+      as begin
+
+      end
+    </ResultText>
+  </Test>
+
 
 </Tests>

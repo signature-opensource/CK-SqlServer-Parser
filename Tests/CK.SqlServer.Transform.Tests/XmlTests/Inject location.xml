@@ -5,26 +5,26 @@
     <Text>
       create procedure CK.sTest as
       begin
-      insert into S.tTable default values;
-      insert into S.tOther default values;
+        insert into S.tTable default values;
+        insert into S.tOther default values;
       end
     </Text>
     <Description>
       create transformer on CK.sTest as
       begin
-      inject ' set @X = 0; ' before all {insert into S.?};
-      inject ' set @Table = 1; ' before single {insert into S.tTable};
-      inject ' set @M = 9; ' after single {insert into S.tOther};
-      inject ' -- the end...
-      ' after single {insert into S.tTable};
+        inject ' set @X = 0; ' before all {insert into S.?};
+        inject ' set @Table = 1; ' before single {insert into S.tTable};
+        inject ' set @M = 9; ' after single {insert into S.tOther};
+        inject ' -- the end...
+        ' after single {insert into S.tTable};
       end
     </Description>
     <ResultText>
       create procedure CK.sTest as
       begin
-      set @Table = 1; set @X = 0; insert into S.tTable default values;
-      -- the end..
-      set @X = 0; insert into S.tOther default values; set @M = 9;
+        set @Table = 1; set @X = 0; insert into S.tTable default values;
+        -- the end..
+        set @X = 0; insert into S.tOther default values; set @M = 9;
       end
     </ResultText>
   </Test>
@@ -91,7 +91,7 @@
         after last "--[not here]";
       end
     </Description>
-    <ResultText>ERROR: Not found</ResultText>
+    <ResultText>ERROR: not found</ResultText>
   </Test>  
 
   <Test>
@@ -538,17 +538,17 @@
     <Text>
       create procedure CK.sTest as
       begin
-      select A = (select top 1 Name from S.tUser where Id = a.UserId)
-      from (select top 20 UserId from S.tGroup order by 1) a
-      order by 3;
+        select A = (select top 1 Name from S.tUser where Id = a.UserId)
+        from (select top 20 UserId from S.tGroup order by 1) a
+        order by 3;
       end
     </Text>
     <Description>
       create transformer on CK.sTest as
       begin
-      inject ' order by Name' after single part {select top 1 Name};
-      inject ', 2 /* after order! */'  after single part {select top 20};
-      inject 'X; /* after statement! */'  after single statement {select A};
+        inject ' order by Name' after single part {select top 1 Name};
+        inject ', 2 /* after order! */'  after single part {select top 20};
+        inject 'X; /* after statement! */'  after single statement {select A};
       end
     </Description>
     <ResultText>

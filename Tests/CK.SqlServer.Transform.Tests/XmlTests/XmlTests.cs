@@ -99,7 +99,9 @@ namespace CK.SqlServer.Transform.Tests.XmlTests
         [TestCase( "_Current.xml" )]
         [TestCase( "CK.DB.Basics.xml" )]
         [TestCase( "Inject around.xml" )]
+        [TestCase( "Inject location range.xml" )]
         [TestCase( "Inject location.xml" )]
+        [TestCase( "Replace with.xml" )]
         [TestCase( "Transformer scope.xml" )]
         public void file_test( string fileName )
         {

@@ -361,16 +361,35 @@ namespace CK.SqlServer.Parser
             return content;
         }
 
-        internal ISqlNode DoAddLeadingTrivia( SqlTrivia t )
+        internal ISqlNode DoAddLeadingTrivia( SqlTrivia t, Func<SqlTrivia,bool> skipper )
         {
             if( t.IsEmpty ) return this;
-            return DoClone( LeadingTrivias.Insert( 0, t ), null, TrailingTrivias );
+            int i = 0;
+            if( skipper != null )
+            {
+                foreach( var p in LeadingTrivias )
+                {
+                    if( !skipper( p ) ) break;
+                    ++i;
+                }
+            }
+            return DoClone( LeadingTrivias.Insert( i, t ), null, TrailingTrivias );
         }
 
-        internal ISqlNode DoAddTrailingTrivia( SqlTrivia t )
+        internal ISqlNode DoAddTrailingTrivia( SqlTrivia t, Func<SqlTrivia,bool> skipper )
         {
             if( t.IsEmpty ) return this;
-            return DoClone( LeadingTrivias, null, TrailingTrivias.Add( t ) );
+            int count = TrailingTrivias.Count;
+            int idx = count;
+            if( skipper != null )
+            {
+                for( int i = 0; i < count; ++i )
+                {
+                    if( !skipper( TrailingTrivias[idx-1] ) ) break;
+                    --idx;
+                }
+            }
+            return DoClone( LeadingTrivias, null, idx == count ? TrailingTrivias.Add( t ) : TrailingTrivias.Insert( idx, t ) );
         }
 
         public virtual ISqlNode UnPar => this;

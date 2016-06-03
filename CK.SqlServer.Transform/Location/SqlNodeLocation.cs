@@ -228,6 +228,26 @@ namespace CK.SqlServer.Transform
         /// </summary>
         public SqlNodeLocation Root => GetRoot();
 
+        /// <summary>
+        /// Changes the <see cref="Node"/> of this location that must be <see cref="IsQualifiedLocation"/>.
+        /// </summary>
+        /// <param name="newNode">The new node.</param>
+        /// <returns>The new root node.</returns>
+        public ISqlNode ChangeNode( ISqlNode newNode )
+        {
+            if( !IsQualifiedLocation ) throw new InvalidOperationException( "Node must be a qualified location." );
+            var toChange = this;
+            var oldLeaf = Node;
+            var newLeaf = newNode;
+            while( (toChange = toChange.Parent) != null )
+            {
+                newLeaf = toChange.Node.ReplaceContentNode( ( n, i ) => n == oldLeaf ? newLeaf : n );
+                oldLeaf = toChange.Node;
+            }
+            return newLeaf;
+        }
+
+
         LocationRoot GetRoot()
         {
             SqlNodeLocation l = this;
@@ -265,7 +285,7 @@ namespace CK.SqlServer.Transform
             foreach( var l in Path )
             {
                 if( curP >= 0 ) b.Append( '/' );
-                b.Append( l.Node == null ? "(unknown)" : l.Node.GetType().Name );
+                b.Append( l.Node == null ? "(null node)" : l.Node.GetType().Name );
                 if( curP != l.Position ) b.Append( $"[{l.Position}]" );
                 curP = l.Position;
             }

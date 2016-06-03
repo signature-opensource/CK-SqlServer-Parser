@@ -18,6 +18,12 @@ namespace CK.SqlServer.Parser
             SqlTokenLiteralInteger,
             ISqlNode>;
 
+    /// <summary>
+    /// (first [+ n] [out of n] 
+    /// | last [- n] [out of n] 
+    /// | single 
+    /// | all[[out of] n]) (<see cref="ISqlHasStringValue"/> | <see cref="SqlTNodeSimplePattern"/>) 
+    /// </summary>
     public sealed class SqlTLocationFinder : SqlNonToken
     {
         readonly CNode _content;

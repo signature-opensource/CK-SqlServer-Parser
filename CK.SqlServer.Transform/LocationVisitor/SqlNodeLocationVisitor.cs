@@ -17,65 +17,6 @@ namespace CK.SqlServer.Transform
     /// </summary>
     public class SqlNodeLocationVisitor : SqlNodeVisitor
     {
-        /// <summary>
-        /// Base context exposes the <see cref="LocationManager"/> and <see cref="AddError"/> method
-        /// and is avalable to .
-        /// </summary>
-        public interface IVisitContextBase
-        {
-            /// <summary>
-            /// Gets the location manager to use.
-            /// </summary>
-            ISqlNodeLocationManager LocationManager { get; }
-
-            /// <summary>
-            /// Gets the monitor to use to raise error or to say something to the external world.
-            /// </summary>
-            IActivityMonitor Monitor { get; }
-
-            /// <summary>
-            /// Gets the current range filter. Can be null.
-            /// </summary>
-            ISqlNodeLocationRange RangeFilter { get; }
-        }
-
-        /// <summary>
-        /// This context is available on <see cref="VisitContext"/> property.
-        /// </summary>
-        public interface IVisitContext : IVisitContextBase
-        {
-            /// <summary>
-            /// Gets the visited node.
-            /// </summary>
-            ISqlNode VisitedNode { get; }
-
-            /// <summary>
-            /// Gets or sets an optional object to the visited node.
-            /// This can be used to transfer information between <see cref="BeforeVisitItem"/>
-            /// and <see cref="AfterVisitItem"/> for a node.
-            /// </summary>
-            object Tag { get; set; }
-
-            /// <summary>
-            /// Gets the current depth.
-            /// </summary>
-            int Depth { get; }
-
-            /// <summary>
-            /// Gets the current position.
-            /// </summary>
-            int Position { get; }
-
-            /// <summary>
-            /// Obtains the location of the currently visited node.
-            /// When no nodes are beeing visited, the root is returned.
-            /// </summary>
-            /// <param name="qualifiedLocation">True to force the obtention of a qualified location.</param>
-            /// <returns>A (potentially qualified) location.</returns>
-            SqlNodeLocation GetCurrentLocation( bool ensureQualifiedLocation = false );
-
-        }
-
         class VContext : IVisitContext
         {
             ISqlNodeLocationBuilder _builder;
@@ -83,7 +24,7 @@ namespace CK.SqlServer.Transform
             IEnumerator<SqlNodeLocationRange> _filteredRange;
             IActivityMonitor _monitor;
             int _overridePos;
-            bool _inScope;
+            VisitedNodeRangeFilterStatus _rangeFilterStatus;
 
             public ISqlNodeLocationRange RangeFilter => _rangeFilter;
 
@@ -116,7 +57,7 @@ namespace CK.SqlServer.Transform
                     var e = rangeFilter.GetEnumerator();
                     if( e.MoveNext() ) _filteredRange = e;
                 }
-                _inScope = true;
+                _rangeFilterStatus = VisitedNodeRangeFilterStatus.None;
             }
 
             public void EnsureRootForNode( ISqlNode root )
@@ -124,35 +65,61 @@ namespace CK.SqlServer.Transform
                 if( root != _builder.Root?.Node ) _builder.Reset( new LocationRoot( root ) );
             }
 
-            public bool Enter( ISqlNode prev, ISqlNode n )
+            public VisitedNodeRangeFilterStatus RangeFilterStatus
             {
+                get { return _rangeFilterStatus; }
+                set { _rangeFilterStatus = value; }
+            }
+
+            public VisitedNodeRangeFilterStatus Enter( ISqlNode prev, ISqlNode n )
+            {
+                _rangeFilterStatus = VisitedNodeRangeFilterStatus.None;
                 Tag = null;
                 VisitedNode = n;
                 _builder.Enter( n );
-                if( !_inScope )
+                int p = _builder.Position;
+
+                if( _rangeFilter == null )
                 {
-                    Leave( prev, true );
-                    return false;
+                    _rangeFilterStatus = p == 0 ? VisitedNodeRangeFilterStatus.FIntersecting : VisitedNodeRangeFilterStatus.FIntersecting|VisitedNodeRangeFilterStatus.FBegAfter;
+                    if( p < _builder.Root.Node.Width - 1 ) _rangeFilterStatus |= VisitedNodeRangeFilterStatus.FEndBefore;
                 }
-                return true;
+                else
+                {
+                    int endPos;
+                    if( _filteredRange == null || (endPos = p + n.Width) <= _filteredRange.Current.Beg.Position )
+                    {
+                        Leave( prev, true );
+                    }
+                    else
+                    {
+                        _rangeFilterStatus |= VisitedNodeRangeFilterStatus.FIntersecting;
+                        int deltaBeg = _builder.Position - _filteredRange.Current.Beg.Position;
+                        if( deltaBeg < 0 ) _rangeFilterStatus |= VisitedNodeRangeFilterStatus.FBegBefore;
+                        else if( deltaBeg > 0 ) _rangeFilterStatus |= VisitedNodeRangeFilterStatus.FBegAfter;
+                        int deltaEnd = endPos - _filteredRange.Current.End.Position;
+                        if( deltaEnd < 0 ) _rangeFilterStatus |= VisitedNodeRangeFilterStatus.FEndBefore;
+                        else if( deltaEnd > 0 ) _rangeFilterStatus |= VisitedNodeRangeFilterStatus.FEndAfter;
+                    }
+                }
+                return _rangeFilterStatus;
             }
 
             public void Leave( ISqlNode prev, bool skipped )
             {
                 _builder.Leave( VisitedNode, skipped );
                 VisitedNode = prev;
-                if( _filteredRange != null )
+                if( prev != null && _filteredRange != null )
                 {
                     int p = _builder.Position;
-                    while( p < _filteredRange.Current.Beg.Position )
+                    while( p >= _filteredRange.Current.End.Position )
                     {
                         if( !_filteredRange.MoveNext() )
                         {
-                            _inScope = false;
-                            return;
+                            _filteredRange = null;
+                            break;
                         }
                     }
-                    _inScope = p < _filteredRange.Current.End.Position;
                 }
             }
 
@@ -175,7 +142,7 @@ namespace CK.SqlServer.Transform
 
             public SqlNodeLocation GetCurrentLocation( bool ensureQualifiedLocation )
             {
-                return VisitedNode != null ? _builder.GetCurrent( VisitedNode, ensureQualifiedLocation ) : _builder.Root;
+                return VisitedNode != null ? _builder.GetCurrent( Position, VisitedNode, ensureQualifiedLocation ) : _builder.Root;
             }
 
         }
@@ -213,8 +180,8 @@ namespace CK.SqlServer.Transform
         }
 
         /// <summary>
-        /// Overridden to adapt this public method to the internals of this implementation.
-        /// It is not intented to be used directly.
+        /// Overridden to adapt this public inherited method to the internals of this implementation.
+        /// This enables a location aware visitor to be used independently of <see cref="SqlNodeTransformer.Visit(SqlNodeLocationVisitor, ISqlNodeLocationRange)"/>.
         /// </summary>
         /// <param name="root">The root node to vissit.</param>
         /// <returns>The visited result.</returns>
@@ -229,6 +196,7 @@ namespace CK.SqlServer.Transform
         {
             Debug.Assert( root != null && root.Node != null );
             if( rangeFilter == SqlNodeLocationRange.EmptySet ) return root.Node;
+            _hasUnParsedText = false;
             _context.Reset( root, rangeFilter );
             return base.VisitRoot( root.Node );
         }
@@ -251,9 +219,10 @@ namespace CK.SqlServer.Transform
         {
             ISqlNode v = e;
             var prev = _context.VisitedNode;
-            if( _context.Enter( prev, e ) )
+            VisitedNodeRangeFilterStatus status = _context.Enter( prev, e );
+            if( status != 0 )
             {
-                // We use the stack here to restore the position and the Tag of the visited
+                // We use the stack here to restore the position, the status and the Tag of the visited
                 // item before calling AfterVisitItem: this enables the location builder
                 // to not use a stack (the LigthLocationBuilder does not use a stack).
                 int savePos = _context.Position;
@@ -263,6 +232,7 @@ namespace CK.SqlServer.Transform
                 // Restores the item position by overriding it.
                 _context.OverridePosition( savePos );
                 _context.Tag = tag;
+                _context.RangeFilterStatus = status;
                 v = AfterVisitItem( v );
                 // Clears the override.
                 _context.OverridePosition();
@@ -272,7 +242,7 @@ namespace CK.SqlServer.Transform
         }
 
         /// <summary>
-        /// Gets whether unparsed text has been injected during the transformation.
+        /// Gets whether unparsed text has been injected during any previous transformation.
         /// </summary>
         public bool HasUnParsedText => _hasUnParsedText;
 

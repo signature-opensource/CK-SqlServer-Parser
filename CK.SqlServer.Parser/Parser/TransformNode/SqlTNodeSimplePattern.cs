@@ -12,9 +12,10 @@ namespace CK.SqlServer.Parser
     using CNode = SNode<SqlTokenIdentifier, SqlTCurlyPattern>;
 
     /// <summary>
-    /// Pattern is: [(largest|deepest) [nodes like] ] {...}
+    /// [part|statement|range] SqlTCurlyPattern
+    /// Defaults to part.
     /// </summary>
-    public sealed class SqlTNodeSimplePattern : SqlNonToken, ISqlTNodeMatcher
+    public sealed class SqlTNodeSimplePattern : SqlNonToken
     {
         readonly CNode _content;
 
@@ -74,35 +75,6 @@ namespace CK.SqlServer.Parser
         public bool IsMatchRange => _content.V1 != null && _content.V1.TokenType == SqlTokenType.Range;
 
         public SqlTCurlyPattern Pattern => _content.V2;
-
-        public bool Match( ISqlNode n )
-        {
-            if( IsMatchPart && !(n is ISqlStatementPart) ) return false;
-            if( IsMatchStatement && !(n is ISqlStatement) ) return false;
-
-            var tokens = n.AllTokens.GetEnumerator();
-            var patterns = Pattern.GetEnumerator();
-            try
-            {
-                if( !tokens.MoveNext() || !patterns.MoveNext() ) return false;
-
-                for(;;)
-                {
-                    if( patterns.Current.TokenType == SqlTokenType.QuestionMark
-                        || tokens.Current.TokenEquals( patterns.Current ) )
-                    {
-                        if( !patterns.MoveNext() ) return true;
-                        if( !tokens.MoveNext() ) return false;
-                    }
-                    else return false;
-                }
-            }
-            finally
-            {
-                tokens.Dispose();
-                patterns.Dispose();
-            }
-        }
 
         [DebuggerStepThrough]
         internal protected override ISqlNode Accept( SqlNodeVisitor visitor ) => visitor.Visit( this );

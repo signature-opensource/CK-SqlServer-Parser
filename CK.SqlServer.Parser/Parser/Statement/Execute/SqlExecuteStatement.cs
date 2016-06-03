@@ -9,10 +9,18 @@ using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
+    using CNode = SNode<
+        SqlTokenIdentifier, 
+        ISqlIdentifier, 
+        SqlTokenTerminal, 
+        ISqlIdentifier, 
+        SqlCallParameterList, 
+        SqlWithOptions, 
+        SqlTokenTerminal>;
 
     public sealed class SqlExecuteStatement : SqlNonToken, ISqlExecuteStatement
     {
-        readonly SNode<SqlTokenIdentifier, ISqlIdentifier, SqlTokenTerminal, ISqlIdentifier, SqlCallParameterList, SqlWithOptions, SqlTokenTerminal> _content;
+        readonly CNode _content;
 
         public SqlExecuteStatement( 
             SqlTokenIdentifier execT, 
@@ -24,7 +32,7 @@ namespace CK.SqlServer.Parser
             SqlTokenTerminal term )
             : base( null, null )
         {
-            _content = new SNode<SqlTokenIdentifier, ISqlIdentifier, SqlTokenTerminal, ISqlIdentifier, SqlCallParameterList, SqlWithOptions, SqlTokenTerminal>(
+            _content = new CNode(
                 execT,
                 returnVar,
                 returnVarAssign,
@@ -50,7 +58,7 @@ namespace CK.SqlServer.Parser
             if( items == null ) _content = o._content;
             else
             {
-                _content = new SNode<SqlTokenIdentifier, ISqlIdentifier, SqlTokenTerminal, ISqlIdentifier, SqlCallParameterList, SqlWithOptions, SqlTokenTerminal>( items );
+                _content = new CNode( items );
                 CheckContent();
             }
         }

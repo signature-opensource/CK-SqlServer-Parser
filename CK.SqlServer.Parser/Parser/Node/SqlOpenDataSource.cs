@@ -58,7 +58,7 @@ namespace CK.SqlServer.Parser
 
         bool ISqlIdentifier.IsVariable => false;
 
-        public bool IsOpenDataSouce => true;
+        public bool IsOpenDataSource => true;
 
         [DebuggerStepThrough]
         internal protected override ISqlNode Accept( SqlNodeVisitor visitor ) => visitor.Visit( this );

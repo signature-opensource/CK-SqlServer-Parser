@@ -101,7 +101,7 @@
     <Compile Include="Parser\Node\SqlRaiserror.cs" />
     <Compile Include="Parser\Node\SqlOpenXml.cs" />
     <Compile Include="Parser\Node\SqlOpenJSON.cs" />
-    <Compile Include="Parser\Node\SqlExecuteStringStatement.cs" />
+    <Compile Include="Parser\Statement\Execute\SqlExecuteStringStatement.cs" />
     <Compile Include="Parser\Node\SqlCommaList.cs" />
     <Compile Include="Parser\Node\SqlOpenDataSource.cs" />
     <Compile Include="Parser\Node\SqlTrigger.cs" />
@@ -112,7 +112,7 @@
     <Compile Include="Parser\Node\ISqlStructurallyEnclosed.cs" />
     <Compile Include="Parser\Node\ISqlNamedStatement.cs" />
     <Compile Include="Parser\Node\ISqlParameterListHolder.cs" />
-    <Compile Include="Parser\Node\SqlExecuteStatement.cs" />
+    <Compile Include="Parser\Statement\Execute\SqlExecuteStatement.cs" />
     <Compile Include="Parser\Node\SqlMultiCommaList.cs" />
     <Compile Include="Parser\Node\SqlTableValues.cs" />
     <Compile Include="Parser\CUD\SqlInsertStatement.cs" />
@@ -128,17 +128,16 @@
     <Compile Include="Parser\Node\SqlEnclosableCommaList.cs" />
     <Compile Include="ASqlNodeEnclosableSeparatedList.cs" />
     <Compile Include="ASqlNodeSeparatedList.cs" />
-    <Compile Include="Parser\IsFunc.cs" />
-    <Compile Include="Parser\Node\SqlCallParameterList.cs" />
-    <Compile Include="Parser\Node\SqlCallParameter.cs" />
+    <Compile Include="Parser\Statement\Execute\SqlCallParameterList.cs" />
+    <Compile Include="Parser\Statement\Execute\SqlCallParameter.cs" />
     <Compile Include="Parser\Select\SelectFor.cs" />
     <Compile Include="Parser\Select\SelectOperatorKind.cs" />
     <Compile Include="Parser\SqlAnalyser.Transformer.cs" />
     <Compile Include="Parser\SqlAnalyser.Statement.cs" />
     <Compile Include="Parser\StatementKnownName.cs" />
-    <Compile Include="Parser\TransformNode\ISqlTNodeMatcher.cs" />
     <Compile Include="Parser\TransformNode\ISqlTStatement.cs" />
     <Compile Include="Parser\TransformNode\SqlTCurlyPattern.cs" />
+    <Compile Include="Parser\TransformNode\SqlTReplace.cs" />
     <Compile Include="Parser\TransformNode\SqlTNodeSimplePattern.cs" />
     <Compile Include="Parser\TransformNode\SqlTLocationFinder.cs" />
     <Compile Include="Parser\TransformNode\SqlTInject.cs" />
@@ -212,7 +211,7 @@
     <Compile Include="Parser\Node\SqlTypeDeclSimple.cs" />
     <Compile Include="Parser\Node\SqlTypeDeclUserDefined.cs" />
     <Compile Include="Parser\Node\SqlTypeDeclWithSize.cs" />
-    <Compile Include="Parser\Node\SqlTypedIdentifier.cs" />
+    <Compile Include="Parser\Statement\Variable\SqlTypedIdentifier.cs" />
     <Compile Include="Parser\Node\SqlUnaryOperator.cs" />
     <Compile Include="Parser\SqlAnalyser.cs" />
     <Compile Include="Parser\SqlAnalyser.Expression.cs" />

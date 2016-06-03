@@ -101,7 +101,13 @@
     <Content Include="XmlTests\Inject around.xml" />
     <Content Include="XmlTests\Inject location.xml" />
     <Content Include="XmlTests\Transformer scope.xml" />
+    <Content Include="XmlTests\Replace with.xml">
+      <SubType>Designer</SubType>
+    </Content>
     <Content Include="XmlTests\_Current.xml">
+      <SubType>Designer</SubType>
+    </Content>
+    <Content Include="XmlTests\Inject location range.xml">
       <SubType>Designer</SubType>
     </Content>
     <Content Include="XmlTests\CK.DB.Basics.xml" />

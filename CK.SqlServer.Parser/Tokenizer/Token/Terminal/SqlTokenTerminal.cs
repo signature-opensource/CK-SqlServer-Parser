@@ -71,7 +71,17 @@ namespace CK.SqlServer.Parser
             w.Write( TokenType, SqlKeyword.ToString( TokenType ), whiteSpaceBefore, whiteSpaceAfter );
         }
 
-        public override bool TokenEquals( SqlToken t ) => TokenType == t.TokenType;
+        public override bool TokenEquals( SqlToken t ) => TokenType == t.TokenType
+                                                            || (TokenType == SqlTokenType.Equal && t.TokenType == SqlTokenType.Assign)
+                                                            || (TokenType == SqlTokenType.Assign && t.TokenType == SqlTokenType.Equal)
+                                                            || (TokenType == SqlTokenType.Mult && t.TokenType == SqlTokenType.IdentifierStar)
+                                                            || (TokenType == SqlTokenType.IdentifierStar && t.TokenType == SqlTokenType.Mult)
+                                                            || (TokenType == SqlTokenType.Different && t.TokenType == SqlTokenType.NotEqualTo)
+                                                            || (TokenType == SqlTokenType.NotEqualTo && t.TokenType == SqlTokenType.Different)
+                                                            || (TokenType == SqlTokenType.NotGreaterThan && t.TokenType == SqlTokenType.LessOrEqual)
+                                                            || (TokenType == SqlTokenType.LessOrEqual && t.TokenType == SqlTokenType.NotGreaterThan)
+                                                            || (TokenType == SqlTokenType.NotLessThan && t.TokenType == SqlTokenType.GreaterOrEqual)
+                                                            || (TokenType == SqlTokenType.GreaterOrEqual && t.TokenType == SqlTokenType.NotLessThan);
 
         public override string ToString() => SqlKeyword.ToString( TokenType );
 

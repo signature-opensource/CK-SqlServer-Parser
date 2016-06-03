@@ -32,15 +32,39 @@ namespace CK.SqlServer.Transform
         /// Gets the current node. 
         /// This property tracks the transformed node.
         /// </summary>
-        public ISqlNode Node => _root.Node;
+        public ISqlNode Node
+        {
+            get { return _root.Node; }
+            set
+            {
+                if( value == null ) throw new ArgumentNullException();
+                if( value != _root.Node )
+                {
+                    _root = new LocationRoot( value, false );
+                }
+            }
+        }
 
+        /// <summary>
+        /// Gets the name space of the current <see cref="Root"/>.
+        /// </summary>
+        public ISqlNodeLocationManager CurrentNamespace => _root;
+        
         /// <summary>
         /// Gets the monitor used by this transformer.
         /// </summary>
         public IActivityMonitor Monitor => _monitor;
 
         /// <summary>
+        /// Gets or sets whether the root <see cref="Node"/> should be reparsed.
+        /// This is automatically set to true by some visitors that plays with unparsed texts.
+        /// </summary>
+        public bool NeedReparse { get; set; }
+
+        /// <summary>
         /// Applies a <see cref="SqlTransformer"/> to <see cref="Node"/>.
+        /// <see cref="Reparse"/> is automatcally called if needed at the 
+        /// end of the transformation.
         /// </summary>
         /// <param name="transformer">The transformer. Can not be null.</param>
         /// <param name="scope">An optional scope for the transformation.</param>
@@ -57,14 +81,10 @@ namespace CK.SqlServer.Transform
                     scope = new SqlNodeScopeIntersect( scope, target );
                 }
             }
-            bool needReparse = false;
             foreach( ISqlTStatement t in transformer.Body )
             {
-                SqlNodeLocationVisitor v = CreateVisitorFrom( t );
-                v.BuildQualifiedNodeLocations = BuildQualifiedNodeLocations;
-                if( Apply( v, scope ) )
+                if( RunStatement( t, scope ) )
                 {
-                    needReparse |= v.HasUnParsedText;
                     Monitor.Trace().Send( $"Successfully applied '{t.ToString()}'" );
                 }
                 else
@@ -76,25 +96,10 @@ namespace CK.SqlServer.Transform
                     return false;
                 }
             }
-            if( needReparse )
-            {
-                using( _monitor.OpenTrace().Send( "Parsing transfomrmation result." ) )
-                {
-                    string text = _root.Node.ToString( true, true );
-                    ISqlNode newOne;
-                    var result = SqlAnalyser.Parse( out newOne, ParseMode.OneOrMoreStatements, text );
-                    if( result.IsError )
-                    {
-                        _monitor.Error().Send( result.ErrorMessage );
-                        return false;
-                    }
-                    _root = new LocationRoot( newOne, false );
-                }
-            }
-            return true;
+            return NeedReparse ? Reparse() : true;
         }
 
-        private static SqlNodeLocationVisitor CreateVisitorFrom( ISqlTStatement t )
+        bool RunStatement( ISqlTStatement t, SqlNodeScopeBuilder scope )
         {
             var addParam = t as SqlTAddParameter;
             #region SqlTAddParameter
@@ -114,15 +119,47 @@ namespace CK.SqlServer.Transform
                         pAfter = addParam.ParameterName.Name;
                     }
                 }
-                return new Transformers.AddParameter( addParam.Parameters, pBefore, pAfter );
+                return Apply( new Transformers.AddParameter( addParam.Parameters, pBefore, pAfter ), scope );
             }
             #endregion
             var insert = t as SqlTInject;
             if( insert != null )
             {
-                return new Transformers.UnParsedTextInjecter( insert );
+                UnparsedInjectInfo info = new UnparsedInjectInfo( insert );
+                return new Transformers.UnparsedTextTransformer( info, scope ).Apply( this );
             }
-            throw new NotSupportedException( $"Transform statement '{t.ToStringHyperCompact()}' not supported." );
+            var replace = t as SqlTReplace;
+            if( replace != null )
+            {
+                UnparsedInjectInfo info = new UnparsedInjectInfo( replace );
+                return new Transformers.UnparsedTextTransformer( info, scope ).Apply( this );
+            }
+            throw new NotSupportedException( $"Transform statement '{t.ToString()}' not supported." );
+        }
+
+        /// <summary>
+        /// Unconditionally reparses the root <see cref="Node"/>.
+        /// </summary>
+        /// <returns>True on success, false on error.</returns>
+        public bool Reparse()
+        {
+            using( _monitor.OpenTrace().Send( "Parsing transfomrmation result." ) )
+            {
+                string text = _root.Node.ToString( true, true );
+                ISqlNode newOne;
+                var result = SqlAnalyser.Parse( out newOne, ParseMode.OneOrMoreStatements, text );
+                if( result.IsError )
+                {
+                    using( _monitor.OpenError().Send( result.ErrorMessage ) )
+                    {
+                        _monitor.Trace().Send( text );
+                    }
+                    return false;
+                }
+                Node = newOne;
+                NeedReparse = false;
+                return true;
+            }
         }
 
         /// <summary>
@@ -140,15 +177,7 @@ namespace CK.SqlServer.Transform
                 filter = BuildRange( scope );
                 if( filter == null ) return false;
             }
-            bool success = true;
-            using( _monitor.OnError( () => success = false ) )
-            {
-                if( transformer.Monitor == null ) transformer.Monitor = _monitor;
-                transformer.BuildQualifiedNodeLocations = BuildQualifiedNodeLocations;
-                ISqlNode r = transformer.VisitRoot( _root, filter );
-                if( r != _root.Node && success ) _root = new LocationRoot( r, false );
-            }
-            return success;
+            return Visit( transformer, filter );
         }
 
        /// <summary>
@@ -168,11 +197,28 @@ namespace CK.SqlServer.Transform
         /// </summary>
         /// <param name="visitor">A visitor.</param>
         /// <param name="rangeFilter">An optional filter that restricts the visit.</param>
-        public void Visit( SqlNodeLocationVisitor visitor, ISqlNodeLocationRange rangeFilter = null )
+        /// <returns>True on success, false on error.</returns>
+        public bool Visit( SqlNodeLocationVisitor visitor, ISqlNodeLocationRange rangeFilter = null )
         {
             if( visitor == null ) throw new ArgumentNullException( nameof( visitor ) );
-            ISqlNode r = visitor.VisitRoot( _root, rangeFilter );
-            if( r != _root.Node ) _root = new LocationRoot( r, false );
+            bool success = true;
+            using( _monitor.OnError( () => success = false ) )
+            {
+                if( visitor.Monitor == null ) visitor.Monitor = _monitor;
+                using( visitor.Monitor != _monitor
+                        ? visitor.Monitor.Output.CreateBridgeTo( _monitor.Output.BridgeTarget )
+                        : null )
+                {
+                    visitor.BuildQualifiedNodeLocations = BuildQualifiedNodeLocations;
+                    ISqlNode r = visitor.VisitRoot( _root, rangeFilter );
+                    if( r != _root.Node && success )
+                    {
+                        _root = new LocationRoot( r, false );
+                        NeedReparse |= visitor.HasUnParsedText;
+                    }
+                }
+            }
+            return success;
         }
 
         class ScopeResolver : SqlNodeLocationVisitor

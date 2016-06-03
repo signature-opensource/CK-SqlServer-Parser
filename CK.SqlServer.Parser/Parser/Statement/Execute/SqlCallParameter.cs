@@ -8,18 +8,19 @@ using System.Text;
 
 namespace CK.SqlServer.Parser
 {
+    using CNode = SNode<SqlTokenIdentifier, SqlTokenTerminal, ISqlNode, SqlTokenIdentifier>;
+
     /// <summary>
-    /// Captures a select column definition: it is either 'definition as name', 'name = definition' or the definition alone.
-    /// The horrible syntax 'definition name' is also supported.
+    /// Captures a call parameter.
     /// </summary>
     public sealed class SqlCallParameter : SqlNonToken
     {
-        readonly SNode<SqlTokenIdentifier, SqlTokenTerminal, ISqlNode, SqlTokenIdentifier> _content;
+        readonly CNode _content;
 
         public SqlCallParameter( SqlTokenIdentifier name, SqlTokenTerminal assignT, ISqlNode value, SqlTokenIdentifier outputT )
             : base( null, null )
         {
-            _content = new SNode<SqlTokenIdentifier, SqlTokenTerminal, ISqlNode, SqlTokenIdentifier>( name, assignT, value, outputT );
+            _content = new CNode( name, assignT, value, outputT );
             CheckContent();
         }
 
@@ -38,7 +39,7 @@ namespace CK.SqlServer.Parser
             if( items == null ) _content = o._content;
             else
             {
-                _content = new SNode<SqlTokenIdentifier, SqlTokenTerminal, ISqlNode, SqlTokenIdentifier>( items );
+                _content = new CNode( items );
                 CheckContent();
             }
         }

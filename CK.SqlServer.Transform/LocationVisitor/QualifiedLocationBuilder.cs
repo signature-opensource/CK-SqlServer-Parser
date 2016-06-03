@@ -70,7 +70,7 @@ namespace CK.SqlServer.Transform
             }
         }
 
-        public SqlNodeLocation GetCurrent( ISqlNode current, bool qualifiedLocation )
+        public SqlNodeLocation GetCurrent( int overridePos, ISqlNode current, bool qualifiedLocation )
         {
             SqlNodeLocation prev = _root;
             for( int i = 1; i < _path.Count; i++ )

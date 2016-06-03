@@ -357,7 +357,7 @@ namespace CK.SqlServer.UtilTests
             {
                 x.Add( e.ToString() );
                 if( e.IsVariable ) x.Add( new XAttribute( "IsVariable", "true" ) );
-                if( e.IsOpenDataSouce ) x.Add( new XAttribute( "IsOpenDataSouce", "true" ) );
+                if( e.IsOpenDataSource ) x.Add( new XAttribute( "IsOpenDataSouce", "true" ) );
             } );
             return e;
         }

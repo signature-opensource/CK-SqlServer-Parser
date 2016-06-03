@@ -54,10 +54,11 @@ namespace CK.SqlServer.Parser
         /// </summary>
         /// <param name="this">This node.</param>
         /// <param name="t">The trivia to add in front.</param>
+        /// <param name="skipper">Optional skipper predicate.</param>
         /// <returns>A new immutable object.</returns>
-        static public T AddLeadingTrivia<T>( this T @this, SqlTrivia t ) where T : ISqlNode
+        static public T AddLeadingTrivia<T>( this T @this, SqlTrivia t, Func<SqlTrivia, bool> skipper = null ) where T : ISqlNode
         {
-            return (T)((SqlNode)(object)@this).DoAddLeadingTrivia( t );
+            return (T)((SqlNode)(object)@this).DoAddLeadingTrivia( t, skipper );
         }
 
         /// <summary>
@@ -65,10 +66,11 @@ namespace CK.SqlServer.Parser
         /// </summary>
         /// <param name="this">This node.</param>
         /// <param name="t">The trivia to append.</param>
+        /// <param name="skipper">Optional function to skip trivias.</param>
         /// <returns>A new immutable object.</returns>
-        static public T AddTrailingTrivia<T>( this T @this, SqlTrivia t ) where T : ISqlNode
+        static public T AddTrailingTrivia<T>( this T @this, SqlTrivia t, Func<SqlTrivia, bool> skipper = null ) where T : ISqlNode
         {
-            return (T)((SqlNode)(object)@this).DoAddTrailingTrivia( t );
+            return (T)((SqlNode)(object)@this).DoAddTrailingTrivia( t, skipper );
         }
 
         /// <summary>

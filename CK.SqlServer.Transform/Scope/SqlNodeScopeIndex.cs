@@ -35,22 +35,22 @@ namespace CK.SqlServer.Transform
             _currentIdx = 0;
         }
 
-        protected override ISqlNodeLocationRange DoEnter( SqlNodeLocationVisitor.IVisitContext context )
+        protected override ISqlNodeLocationRange DoEnter( IVisitContext context )
         {
             return Handle( _inner.Enter( context ), context );
         }
 
-        protected override ISqlNodeLocationRange DoLeave( SqlNodeLocationVisitor.IVisitContext context )
+        protected override ISqlNodeLocationRange DoLeave( IVisitContext context )
         {
             return Handle( _inner.Leave( context ), context );
         }
 
-        protected override ISqlNodeLocationRange DoConclude( SqlNodeLocationVisitor.IVisitContextBase context )
+        protected override ISqlNodeLocationRange DoConclude( IVisitContextBase context )
         {
             return Handle( _inner.Conclude( context ), context );
         }
 
-        ISqlNodeLocationRange Handle( ISqlNodeLocationRange inner, SqlNodeLocationVisitor.IVisitContextBase context )
+        ISqlNodeLocationRange Handle( ISqlNodeLocationRange inner, IVisitContextBase context )
         {
             if( inner == null ) return null;
             int nbInner = inner.Count;

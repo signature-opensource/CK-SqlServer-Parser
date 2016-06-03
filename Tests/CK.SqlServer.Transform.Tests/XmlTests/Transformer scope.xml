@@ -30,7 +30,7 @@
         declare @i int;
       end
       create procedure CK.sTestOther as
-        begin
+      begin
         --[here]
       end
     </ResultText>

@@ -51,6 +51,11 @@ namespace CK.SqlServer.Parser
 
         #endregion
 
+        /// <summary>
+        /// Special prefix to star or line comment that purely skips the comment from being parsed.
+        /// </summary>
+        public static readonly string CommentPrefixToSkip = "\u7643ck-skip-\u3712>";
+
         [DebuggerStepThrough]
         public SqlTokenizer()
         {
@@ -291,7 +296,7 @@ namespace CK.SqlServer.Parser
                     }
                     if( _buffer.Length > 0 )
                     {
-                        _trailingTrivias.Add( BuildTrivia( SqlTokenType.StarComment, _buffer.ToString() ) );
+                        AddCommentTriviaFromBuffer( _trailingTrivias, SqlTokenType.StarComment );
                         _buffer.Length = 0;
                     }
                     // Continue after Star comment: remaining trivias will be added to trailing trivias.
@@ -301,7 +306,7 @@ namespace CK.SqlServer.Parser
                 {
                     if( _buffer.Length > 0 ) _trailingTrivias.Add( BuildTrivia( SqlTokenType.None, _buffer.ToString() ) );
                     HandleLineComment();
-                    _trailingTrivias.Add( BuildTrivia( SqlTokenType.LineComment, _buffer.ToString() ) );
+                    AddCommentTriviaFromBuffer( _trailingTrivias, SqlTokenType.LineComment );
                     // Line comment ends the trailing trivias.
                     return;
                 }
@@ -356,7 +361,7 @@ namespace CK.SqlServer.Parser
                 {
                     _tokenType = NextTokenLowLevel();
                     if( _tokenType < 0 || (_tokenType & (int)SqlTokenType.IsComment) == 0 ) break;
-                    _leadingTrivias.Add( BuildTrivia( (SqlTokenType)_tokenType, _buffer.ToString() ) );
+                    AddCommentTriviaFromBuffer( _leadingTrivias, (SqlTokenType)_tokenType );
                 }
                 if( _tokenType < 0 )
                 {
@@ -795,6 +800,15 @@ namespace CK.SqlServer.Parser
             _bufferString = null;
             _buffer.Clear();
             return _buffer;
+        }
+
+        void AddCommentTriviaFromBuffer( ImmutableList<SqlTrivia>.Builder trivias, SqlTokenType type )
+        {
+            string comment = _buffer.ToString();
+            if( !comment.StartsWith( CommentPrefixToSkip ) )
+            {
+                trivias.Add( BuildTrivia( type, comment ) );
+            }
         }
 
         SqlTrivia BuildTrivia( SqlTokenType t, string text )

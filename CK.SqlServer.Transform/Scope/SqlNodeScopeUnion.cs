@@ -141,17 +141,17 @@ namespace CK.SqlServer.Transform
             _unioner.Reset();
         }
 
-        protected override ISqlNodeLocationRange DoEnter( SqlNodeLocationVisitor.IVisitContext context )
+        protected override ISqlNodeLocationRange DoEnter( IVisitContext context )
         {
             return Handle( _left.Enter( context ), _right.Enter( context ) );
         }
 
-        protected override ISqlNodeLocationRange DoLeave( SqlNodeLocationVisitor.IVisitContext context )
+        protected override ISqlNodeLocationRange DoLeave( IVisitContext context )
         {
             return Handle( _left.Leave( context ), _right.Leave( context ) );
         }
 
-        protected override ISqlNodeLocationRange DoConclude( SqlNodeLocationVisitor.IVisitContextBase context )
+        protected override ISqlNodeLocationRange DoConclude( IVisitContextBase context )
         {
             return Handle( _left.Conclude( context ), _right.Conclude( context ), true );
         }

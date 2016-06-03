@@ -10,30 +10,28 @@ using System.Threading.Tasks;
 
 namespace CK.SqlServer.Transform.Transformers
 {
-    public class UnParsedTextInjecter : SqlNodeLocationVisitor
+    public class UnParsedTextInjecVisitor : SqlNodeLocationVisitor
     {
+        readonly UnparsedInjectInfo _info;
         readonly LocationInserter _matcher;
-        readonly string _before;
-        readonly string _after;
-        readonly SqlTNodeSimplePattern _nodePattern;
         // The little magic to promote SelectSpec match to
         // its SelectDecorator.
-        // When descending, we capture the to level decorator at its position so that
+        // When descending, we capture the top level decorator at its position so that
         // we know that matching at this exact position is useless: only a SelectSpec (or
         // another decorator) may match and if it is the case, we do not want it to match!
         readonly Stack<KeyValuePair<SelectDecorator, int>> _selectDecorator;
 
-        public UnParsedTextInjecter( SqlTInject injecter )
+        internal UnParsedTextInjecVisitor( UnparsedInjectInfo injecter )
         {
-            if( injecter == null ) throw new ArgumentNullException( nameof( injecter ) );
-            _matcher = new LocationInserter( injecter );
-            _before = injecter.TextBefore;
-            _after = injecter.TextAfter;
-
-            _nodePattern = injecter.Location.Pattern as SqlTNodeSimplePattern;
-            if( _nodePattern != null && _nodePattern.IsMatchPart )
+            _info = injecter;
+            _matcher = new LocationInserter( _info.Location );
+            if( _info.Location.NodeMatcher != null )
             {
-                _selectDecorator = new Stack<KeyValuePair<SelectDecorator, int>>();
+                if( _info.Location.IsNodeMatchRange ) throw new ArgumentException();
+                if( _info.Location.IsNodeMatchPart )
+                {
+                    _selectDecorator = new Stack<KeyValuePair<SelectDecorator, int>>();
+                }
             }
         }
 
@@ -58,11 +56,11 @@ namespace CK.SqlServer.Transform.Transformers
             {
                 if( _matcher.MatchCount == 0 )
                 {
-                    Monitor.Error().Send( $"Not found: '{_matcher.InsertClause}'." );
+                    Monitor.Error().Send( $"Pattern not found." );
                 }
                 else if( _matcher.ExpectedMatchCount != 0 && _matcher.MatchCount < _matcher.ExpectedMatchCount )
                 {
-                    Monitor.Error().Send( $"Missing matches in '{_matcher.InsertClause}', expecting {_matcher.ExpectedMatchCount}, found {_matcher.MatchCount}." );
+                    Monitor.Error().Send( $"Missing matches: expecting {_matcher.ExpectedMatchCount}, found {_matcher.MatchCount}." );
                 }
                 else if( _matcher.RequiresConclude )
                 {
@@ -70,15 +68,8 @@ namespace CK.SqlServer.Transform.Transformers
                     if( m != null )
                     {
                         var toChange = VisitContext.LocationManager.GetQualifiedLocation( m.Position, m.Node );
-                        var oldLeaf = toChange.Node;
-                        var newLeaf = m.Apply( _before, _after );
-                        while( (toChange = toChange.Parent) != null )
-                        {
-                            newLeaf = toChange.Node.ReplaceContentNode( ( n, i ) => n == oldLeaf ? newLeaf : n );
-                            oldLeaf = toChange.Node;
-                        }
                         SetHasUnParsedText();
-                        return newLeaf;
+                        return toChange.ChangeNode( m.Apply( Monitor, _info.TextBefore, _info.TextAfter, _info.ClearStarComments ) );
                     }
                 }
             }
@@ -106,11 +97,11 @@ namespace CK.SqlServer.Transform.Transformers
         private ISqlNode HandleNode( ISqlNode e )
         {
             if( _matcher.CanStop ) return e;
-            if( _nodePattern != null )
+            if( _info.Location.NodeMatcher != null )
             {
                 if( !HandleDecoratorCovering()
                     || VisitContext.Position < _previousMatchPos
-                    || !_nodePattern.Match( e ) )
+                    || !_info.Location.NodeMatcher( e ) )
                 {
                     return e;
                 }
@@ -119,7 +110,7 @@ namespace CK.SqlServer.Transform.Transformers
             var m = _matcher.AddCandidate( Monitor, VisitContext.Position, e );
             if( m != null )
             {
-                e = m.Apply( _before, _after );
+                e = m.Apply( Monitor, _info.TextBefore, _info.TextAfter, _info.ClearStarComments );
                 if( _matcher.CanStop ) StopVisit( true );
                 else SetHasUnParsedText();
             }

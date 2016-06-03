@@ -100,6 +100,19 @@ namespace CK.SqlServer.Parser
 
                 return new SqlTInject( initT, content, andT, content2, beforeAfterOrAroundT, loc, GetOptionalTerminator() );
             }
+            else if( R.IsToken( out initT, SqlTokenType.Replace, false ) )
+            {
+                SqlTLocationFinder loc = IsSqlTLocation( true );
+                if( loc == null ) return null;
+
+                SqlTokenIdentifier withT;
+                if( !R.IsToken( out withT, SqlTokenType.With, true ) ) return null;
+
+                ISqlHasStringValue content = IsSqlHasStringValue( true );
+                if( content == null ) return null;
+
+                return new SqlTReplace( initT, loc, withT, content, GetOptionalTerminator() );
+            }
             if( expected ) R.SetCurrentError( "Expected transform statement." );
             return null;
         }

@@ -158,7 +158,38 @@ namespace CK.SqlServer.Transform.Tests
 
             var pB = new SqlNodeScopeBreadthPredicate( n => n.AllTokens.FirstOrDefault()?.TokenType == SqlTokenType.Select );
             var rB = t.BuildRange( pB );
-            Assert.That( rB.ToString(), Is.EqualTo( "[0,18[" ) );        }
+            Assert.That( rB.ToString(), Is.EqualTo( "[0,18[" ) );
+        }
+
+        class TriviaInjecter : SqlNodeLocationVisitor
+        {
+            protected override ISqlNode AfterVisitItem( ISqlNode e )
+            {
+                if( VisitContext.RangeFilterStatus.IsIncludedInFilteredRange() )
+                    return e.SetTrivias( e.LeadingTrivias.Add( new SqlTrivia( SqlTokenType.None, $"[<{e.GetType().Name}>" ) ), e.TrailingTrivias.Insert( 0, new SqlTrivia( SqlTokenType.None, "]" ) ) );
+                return e;
+            }
+        }
+
+        [TestCase( true, "A", "[0,1[", "[<SqlTokenIdentifier>A] B C" )]
+        [TestCase( false, "A", "[0,1[", "[<SqlTokenIdentifier>A] B C" )]
+        [TestCase( true, "B", "[1,2[", "A [<SqlTokenIdentifier>B] C" )]
+        [TestCase( false, "B", "[1,2[", "A [<SqlTokenIdentifier>B] C" )]
+        [TestCase( true, "C", "[2,3[", "A B [<SqlTokenIdentifier>C]" )]
+        [TestCase( false, "C", "[2,3[", "A B [<SqlTokenIdentifier>C]" )]
+        public void range_trivia_injecter( bool useQualifiedLocationNodeBuilder, string item, string range, string result )
+        {
+            string text = @"A B C";
+            ISqlNode node = new SqlAnalyser( text ).Parse();
+            var t = new SqlNodeTransformer( node, TestHelper.ConsoleMonitor ) { BuildQualifiedNodeLocations = useQualifiedLocationNodeBuilder };
+
+            var pA = new SqlNodeScopeDepthPredicate( n => n.ToString() == item );
+            var rA = t.BuildRange( pA );
+            Assert.That( rA.ToString(), Is.EqualTo( range ) );
+
+            Assert.That( t.Visit( new TriviaInjecter(), rA ) );
+            Assert.That( t.Node.ToString( true, true ), Is.EqualTo( result ) );
+        }
 
     }
 }

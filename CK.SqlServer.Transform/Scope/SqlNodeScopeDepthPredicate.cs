@@ -13,49 +13,44 @@ namespace CK.SqlServer.Transform
     /// </summary>
     public sealed class SqlNodeScopeDepthPredicate : SqlNodeScopeBuilder
     {
-        readonly Func<ISqlNode,bool> _predicate;
-        readonly int _maxOccur;
+        readonly Func<ISqlNode,int> _matcher;
         SqlNodeLocationRange _last;
-        int _currentRemainder;
 
-        public SqlNodeScopeDepthPredicate( Func<ISqlNode,bool> predicate, int maxOccur = -1 )
+        public SqlNodeScopeDepthPredicate( Func<ISqlNode, int> matcher )
             : base( false )
         {
-            if( predicate == null ) throw new ArgumentNullException( nameof( predicate ) );
-            if( maxOccur == 0 ) throw new ArgumentException( "Must not be zero.", nameof( maxOccur ) );
-            _predicate = predicate;
-            _maxOccur = maxOccur > 0 ? maxOccur : int.MaxValue;
-            _currentRemainder = _maxOccur;
+            if( matcher == null ) throw new ArgumentNullException( nameof( matcher ) );
+            _matcher = matcher;
+        }
+
+        public SqlNodeScopeDepthPredicate( Func<ISqlNode, bool> predicate )
+            : this( n => predicate(n) ? n.Width : 0 )
+        {
         }
 
         protected override void DoReset()
         {
             _last = null;
-            _currentRemainder = _maxOccur;
         }
 
-        protected override ISqlNodeLocationRange DoEnter( SqlNodeLocationVisitor.IVisitContext context )
+        protected override ISqlNodeLocationRange DoEnter( IVisitContext context )
         {
             return null;
         }
 
-        protected override ISqlNodeLocationRange DoLeave( SqlNodeLocationVisitor.IVisitContext context )
+        protected override ISqlNodeLocationRange DoLeave( IVisitContext context )
         {
-            if( CheckCanMatch( context.Position ) && _predicate( context.VisitedNode ) )
+            int width;
+            if( (_last == null || _last.End.Position <= context.Position) 
+                && (width = _matcher( context.VisitedNode )) > 0 )
             {
-                --_currentRemainder;
                 var beg = context.GetCurrentLocation( true );
-                return _last = new SqlNodeLocationRange( beg, context.LocationManager.GetRawLocation( beg.Position + context.VisitedNode.Width ) );
+                return _last = new SqlNodeLocationRange( beg, context.LocationManager.GetRawLocation( beg.Position + width ) );
             }
             return null;
         }
 
-        bool CheckCanMatch( int position )
-        {
-            return _currentRemainder > 0 && (_last == null || _last.End.Position <= position);
-        }
-
-        protected override ISqlNodeLocationRange DoConclude( SqlNodeLocationVisitor.IVisitContextBase context )
+        protected override ISqlNodeLocationRange DoConclude( IVisitContextBase context )
         {
             return null;
         }

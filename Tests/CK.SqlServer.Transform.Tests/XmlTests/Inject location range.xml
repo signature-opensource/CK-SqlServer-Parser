@@ -1,0 +1,47 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Tests>
+
+  <Test>
+    <Text>
+      create procedure CK.sTest as
+      begin
+        select UserId from CK.tUser;
+      end
+    </Text>
+    <Description>
+      create transformer on CK.sTest as
+      begin
+        inject ', UserName' after single range {select UserId};
+      end
+    </Description>
+    <ResultText>
+      create procedure CK.sTest as
+      begin
+        select UserId, UserName from CK.tUser;
+      end
+    </ResultText>
+  </Test>
+
+  <Test>
+    <Text>
+      create procedure CK.sTest as
+      begin
+        select UserId from CK.tUser;
+      end
+    </Text>
+    <Description>
+      create transformer on CK.sTest as
+      begin
+        inject 'LastName, ' and ', UserName' around single range {UserId};
+      end
+    </Description>
+    <ResultText>
+      create procedure CK.sTest as
+      begin
+        select LastName, UserId, UserName from CK.tUser;
+      end
+    </ResultText>
+  </Test>
+
+
+</Tests>

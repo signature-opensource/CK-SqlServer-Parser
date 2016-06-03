@@ -16,6 +16,7 @@ namespace CK.SqlServer.Transform.Tests
         class AllLocations : SqlNodeLocationVisitor
         {
             public readonly List<SqlNodeLocation> Collector = new List<SqlNodeLocation>();
+            public readonly List<SqlNodeLocation> AfterCollector = new List<SqlNodeLocation>();
 
             protected override ISqlNode VisitStandard( ISqlNode e ) => VisitStandardReadOnly( e );
 
@@ -23,6 +24,12 @@ namespace CK.SqlServer.Transform.Tests
             {
                 Collector.Add( VisitContext.GetCurrentLocation( true ) );
                 return true;
+            }
+
+            protected override ISqlNode AfterVisitItem( ISqlNode visitResult )
+            {
+                AfterCollector.Add( VisitContext.GetCurrentLocation( true ) );
+                return visitResult;
             }
 
             static public List<SqlNodeLocation> GetAllLocations( 
@@ -40,11 +47,16 @@ namespace CK.SqlServer.Transform.Tests
                     };
                     c.VisitRoot( n );
                     locs = c.Collector;
+                    var afterLocs = c.AfterCollector;
                     if( TestHelper.LogsToConsole )
                     {
                         int i = 0;
-                        foreach( var l in locs ) TestHelper.ConsoleMonitor.Trace().Send( "[" + i++ + "] " + l.ToString() );
+                        foreach( var l in locs )
+                        {
+                            TestHelper.ConsoleMonitor.Trace().Send( "[" + i++ + "] " + l.ToString() );
+                        }
                     }
+                    CollectionAssert.AreEquivalent( locs.Select( l => l.ToString() ), afterLocs.Select( l => l.ToString() ) );
                 }
                 return locs;
             }

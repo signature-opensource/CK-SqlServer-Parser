@@ -8,12 +8,13 @@ using System.Collections.Immutable;
 namespace CK.SqlServer.Parser
 {
     /// <summary>
-    /// Unifies <see cref="SqlTokenIdentifier"/> and <see cref="SqlMultiIdentifier"/>.
+    /// Unifies <see cref="SqlTokenIdentifier"/>, <see cref="SqlMultiIdentifier"/>
+    /// and <see cref="SqlOpenDataSource"/>.
     /// </summary>
     public interface ISqlIdentifier : ISqlNode
     {
         /// <summary>
-        /// Gets the <see cref="SqlTokenIdentifier"/> that composes this identifier.
+        /// Gets the <see cref="ISqlIdentifier"/> that compose this identifier.
         /// </summary>
         IReadOnlyList<ISqlIdentifier> Identifiers { get; }
 
@@ -25,7 +26,7 @@ namespace CK.SqlServer.Parser
         /// <summary>
         /// Gets whether this identifier is an OpenDataSource function.
         /// </summary>
-        bool IsOpenDataSouce { get; }
+        bool IsOpenDataSource { get; }
 
         /// <summary>
         /// Sets a named part in an identifier. Setting null removes the part (it must exist otherwise an exception is thrown).

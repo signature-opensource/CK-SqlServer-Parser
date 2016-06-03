@@ -9,18 +9,20 @@ using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
+    using CNode = SNode<SqlTokenIdentifier, SqlTokenIdentifier, ISqlUnifiedTypeDecl>;
+
     /// <summary>
     /// An identifier (a <see cref="SqlTokenIdentifier"/>, typically a variable name) followed by an
     /// optional 'as' and a type declaration (<see cref="ISqlUnifiedTypeDecl"/>).
     /// </summary>
     public sealed class SqlTypedIdentifier : SqlNonToken
     {
-        readonly SNode<SqlTokenIdentifier, SqlTokenIdentifier, ISqlUnifiedTypeDecl> _content;
+        readonly CNode _content;
 
         public SqlTypedIdentifier( SqlTokenIdentifier identifier, SqlTokenIdentifier optAsToken, ISqlUnifiedTypeDecl type )
             : base( null, null )
         {
-            _content = new SNode<SqlTokenIdentifier, SqlTokenIdentifier, ISqlUnifiedTypeDecl>( identifier, optAsToken, type );
+            _content = new CNode( identifier, optAsToken, type );
             CheckContent();
         }
 
@@ -37,7 +39,7 @@ namespace CK.SqlServer.Parser
             if( items == null ) _content = o._content;
             else
             {
-                _content = new SNode<SqlTokenIdentifier, SqlTokenIdentifier, ISqlUnifiedTypeDecl>( items );
+                _content = new CNode( items );
                 CheckContent();
             }
         }

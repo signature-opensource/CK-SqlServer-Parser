@@ -70,23 +70,33 @@
     <Compile Include="..\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="LocationVisitor\IVisitContextBase.cs" />
+    <Compile Include="LocationVisitor\IVisitContext.cs" />
+    <Compile Include="LocationVisitor\VisitedNodeRangeFilterStatus.cs" />
+    <Compile Include="LocationVisitor\VisitedNodeRangeFilterStatusExtension.cs" />
     <Compile Include="Location\ISqlNodeLocationRangeInternal.cs" />
     <Compile Include="Location\LocationRangeCombined.cs" />
+    <Compile Include="Node Extension\LocationCardinalityInfo.cs" />
+    <Compile Include="Node Extension\UnparsedInjectInfo.cs" />
+    <Compile Include="Node Extension\LocationInfo.cs" />
+    <Compile Include="Node Extension\SqlTNodeExtension.cs" />
     <Compile Include="Scope\SqlNodeScopeIndex.cs" />
-    <Compile Include="Scope\SqlNodeScopeCounter.cs" />
+    <Compile Include="Scope\SqlNodeScopeCardinalityFilter.cs" />
     <Compile Include="Scope\SqlNodeScopeExcept.cs" />
     <Compile Include="Scope\SqlNodeScopeDepthPredicate.cs" />
     <Compile Include="Scope\SqlNodeScopeUnion.cs" />
     <Compile Include="Transformers\AddColumnInInsert.cs" />
     <Compile Include="Location\ISqlNodeLocationRange.cs" />
     <Compile Include="Location\ISqlNodeLocationManager.cs" />
-    <Compile Include="Location\ISqlNodeLocationBuilder.cs" />
-    <Compile Include="Location\LightLocationBuilder.cs" />
-    <Compile Include="Location\QualifiedLocationBuilder.cs" />
+    <Compile Include="LocationVisitor\ISqlNodeLocationBuilder.cs" />
+    <Compile Include="LocationVisitor\LightLocationBuilder.cs" />
+    <Compile Include="LocationVisitor\QualifiedLocationBuilder.cs" />
     <Compile Include="Scope\SqlNodeScopeBreadthPredicate.cs" />
     <Compile Include="Scope\SqlNodeScopeIntersect.cs" />
     <Compile Include="Scope\SqlNodeScopeBuilder.cs" />
-    <Compile Include="Transformers\UnParsedTextInjecter.cs" />
+    <Compile Include="Transformers\TriviaCleaner.cs" />
+    <Compile Include="Transformers\UnParsed\UnparsedTextTransformer.cs" />
+    <Compile Include="Transformers\UnParsed\UnParsedTextInjecVisitor.cs" />
     <Compile Include="Transformers\InsertStatement.cs" />
     <Compile Include="Transformers\SetSelectColumnAsOrAssign.cs" />
     <Compile Include="Transformers\AddParameter.cs" />
@@ -95,10 +105,10 @@
     <Compile Include="Location\SqlNodeLocation.cs" />
     <Compile Include="Location\SqlNodeLocationRange.cs" />
     <Compile Include="Location\LocationRangeList.cs" />
-    <Compile Include="Location\SqlNodeLocationVisitor.cs" />
+    <Compile Include="LocationVisitor\SqlNodeLocationVisitor.cs" />
     <Compile Include="SqlNodeTransformer.cs" />
     <Compile Include="SqlTransformExtension.cs" />
-    <Compile Include="Transformers\LocationInserter.cs" />
+    <Compile Include="Transformers\UnParsed\LocationInserter.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CK.SqlServer.Parser\CK.SqlServer.Parser.csproj">

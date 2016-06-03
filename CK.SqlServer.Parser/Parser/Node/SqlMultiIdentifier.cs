@@ -32,14 +32,14 @@ namespace CK.SqlServer.Parser
         }
         public bool IsVariable => this[0].IsVariable;
 
-        public bool IsOpenDataSouce => this[0].IsOpenDataSouce;
+        public bool IsOpenDataSource => this[0].IsOpenDataSource;
 
         IReadOnlyList<ISqlIdentifier> ISqlIdentifier.Identifiers => this;
 
         public ISqlIdentifier SetPartName( int idxPart, string name )
         {
             if( idxPart <= 0 || idxPart > 4 ) throw new ArgumentException( "Must be between 1 and 4.", nameof( idxPart ) );
-            if( IsOpenDataSouce ) throw new InvalidOperationException();
+            if( IsOpenDataSource ) throw new InvalidOperationException();
             int idx = Count - idxPart;
             if( name == null )
             {
