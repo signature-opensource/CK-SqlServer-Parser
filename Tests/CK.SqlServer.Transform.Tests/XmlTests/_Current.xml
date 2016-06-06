@@ -13,14 +13,14 @@
       create transformer on CK.sTest
       as
       begin
-      replace first range {and T = 4} with "or T = 8";
+        replace first range {T = 4} with "T = 8";
       end
     </Description>
     <ResultText>
       create procedure CK.sTest
       as
       begin
-        update CK.tTable set X = 8, Y = 7 where Z = 9 or T = 8;
+        update CK.tTable set X = 8, Y = 7 where Z = 9 and T = 8;
       end
     </ResultText>
   </Test>
@@ -37,11 +37,11 @@
       as
       begin
       /*
-      in single {insert} &lt; {select}
-      add column( ZoneId ) values( @ZoneId );
+        in single {insert} &lt; {select}
+        add column( ZoneId ) values( @ZoneId );
 
-      in first {insert} &gt; last {select} &lt; range {from ?.tUser}
-      add column( ZoneId ) values( @ZoneId );
+        in first {insert} &gt; last {select} &lt; range {from ?.tUser}
+        add column( ZoneId ) values( @ZoneId );
       */
       end
     </Description>

@@ -22,6 +22,7 @@ namespace CK.SqlServer.Parser
         public static readonly SqlTokenTerminal QuestionMark;
         public static readonly SqlTokenTerminal DoubleQuestionMark;
         public static readonly SqlTokenTerminal TripleQuestionMark;
+        public static readonly SqlTokenTerminal QuadrupleQuestionMark;
         public static readonly SqlTokenOpenPar OpenPar;
         public static readonly SqlTokenClosePar ClosePar;
         public static readonly SqlTokenTerminal Colon;
@@ -755,18 +756,20 @@ namespace CK.SqlServer.Parser
             NotGreaterThan			= RegTerminal( SqlTokenType.NotGreaterThan, "!>" );
             NotLessThan				= RegTerminal( SqlTokenType.NotLessThan, "!<" );
 
-            Debug.Assert( (int)SqlTokenType.PunctuationCount == 8 );
+            Debug.Assert( (int)SqlTokenType.PunctuationCount == 11 );
             Dot = (SqlTokenDot)RegTerminal( SqlTokenType.Dot, "." );
             Comma = (SqlTokenComma)RegTerminal( SqlTokenType.Comma, "," );
-            CommaOneSpace = new SqlTokenComma( null, SqlTrivia.OneSpace );
             SemiColon = RegTerminal( SqlTokenType.SemiColon, ";" );
             Colon = RegTerminal( SqlTokenType.Colon, ":" );
             DoubleColon = (SqlTokenDoubleColon)RegTerminal( SqlTokenType.DoubleColons, "::" );
             QuestionMark = RegTerminal( SqlTokenType.QuestionMark, "?" );
             DoubleQuestionMark = RegTerminal( SqlTokenType.DoubleQuestionMark, "??" );
             TripleQuestionMark = RegTerminal( SqlTokenType.TripleQuestionMark, "???" );
+            QuadrupleQuestionMark = RegTerminal( SqlTokenType.QuadrupleQuestionMark, "????" );
             DoubleDots = (SqlTokenMultiDots)RegTerminal( SqlTokenType.DoubleDots, ".." );
             TripleDots = (SqlTokenMultiDots)RegTerminal( SqlTokenType.TripleDots, "..." );
+
+            CommaOneSpace = new SqlTokenComma( null, SqlTrivia.OneSpace );
 
             OpenPar = (SqlTokenOpenPar)RegTerminal( SqlTokenType.OpenPar, "(" );
             ClosePar = (SqlTokenClosePar)RegTerminal( SqlTokenType.ClosePar, ")" );

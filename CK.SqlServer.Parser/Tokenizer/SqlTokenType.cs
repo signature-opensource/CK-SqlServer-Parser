@@ -333,7 +333,7 @@ namespace CK.SqlServer.Parser
         NotLessThan = IsCompareOperator | OpLevel11 | 9,
         #endregion
         
-        PunctuationCount = 8,
+        PunctuationCount = 11,
         #region Punctuations
         /// <summary>
         /// One dot.
@@ -366,16 +366,23 @@ namespace CK.SqlServer.Parser
         DoubleQuestionMark = IsPunctuation | 7,
         /// <summary>
         /// Triple Question mark (???) does not belong to the T-Sql terminals.
+        /// This is the non-greedy wildcard. This could have been'?*?' but then the greedy would be '?*' that 
+        /// is shorter...
         /// </summary>
         TripleQuestionMark = IsPunctuation | 8,
         /// <summary>
+        /// Quadruple Question mark (????) does not belong to the T-Sql terminals.
+        /// This is greedy wildcard. Could have been '?*'... but as of now, keeping only ? seems clearer...
+        /// </summary>
+        QuadrupleQuestionMark = IsPunctuation | 9,
+        /// <summary>
         /// The .. is used in dbname..object and this select the default schema of the current user.
         /// </summary>
-        DoubleDots = IsPunctuation | OpLevel15 | 9,
+        DoubleDots = IsPunctuation | OpLevel15 | 10,
         /// <summary>
         /// The .. is used in servername...object and this select the default database and schema of the user.
         /// </summary>
-        TripleDots = IsPunctuation | OpLevel15 | 10,
+        TripleDots = IsPunctuation | OpLevel15 | 11,
 
         #endregion
 

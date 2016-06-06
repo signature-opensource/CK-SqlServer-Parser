@@ -54,7 +54,7 @@ namespace CK.SqlServer.Parser
         /// <summary>
         /// Special prefix to star or line comment that purely skips the comment from being parsed.
         /// </summary>
-        public static readonly string CommentPrefixToSkip = "\u7643ck-skip-\u3712>";
+        public static readonly string CommentPrefixToSkip = "\u7643ck-skip\u3712";
 
         [DebuggerStepThrough]
         public SqlTokenizer()
@@ -503,7 +503,11 @@ namespace CK.SqlServer.Parser
                 case '?':
                     if( Read( '?' ) )
                     {
-                        return Read( '?' ) ? (int)SqlTokenType.TripleQuestionMark : (int)SqlTokenType.DoubleQuestionMark;
+                        return Read( '?' ) 
+                                ? (Read( '?' ) 
+                                    ? (int)SqlTokenType.QuadrupleQuestionMark 
+                                    : (int)SqlTokenType.TripleQuestionMark) 
+                                : (int)SqlTokenType.DoubleQuestionMark;
                     }
                     return (int)SqlTokenType.QuestionMark;
                 default:

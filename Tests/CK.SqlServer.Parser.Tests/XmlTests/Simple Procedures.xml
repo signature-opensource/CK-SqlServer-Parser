@@ -3,6 +3,74 @@
   
   <Test>
     <Text>
+create procedure CK.sTest2
+	@i int = 0,
+	@j int null
+as 
+begin
+	return 0;
+end
+    </Text>
+    <Description>Null value without assign.</Description>
+    <Xml>
+      <Sql>
+        <StoredProcedure StatementName="CreateProcedure">
+          <Name>CK.sTest2</Name>
+          <Parameters>
+            <ParameterList>
+              <Item>
+                <Parameter Name="@i" Direction="Input">
+                  <Type>
+                    <TypeDeclSimple DBType="Int" Text="int" />
+                  </Type>
+                  <DefaultValue>
+                    <BasicValue>
+                      <Value>
+                        <LiteralInteger>0</LiteralInteger>
+                      </Value>
+                    </BasicValue>
+                  </DefaultValue>
+                </Parameter>
+              </Item>
+              <Item>
+                <Parameter Name="@j" Direction="Input">
+                  <Type>
+                    <TypeDeclSimple DBType="Int" Text="int" />
+                  </Type>
+                  <DefaultValue>
+                    <BasicValue>
+                      <Value>
+                        <Identifier IsReservedKeyword="true">null</Identifier>
+                      </Value>
+                    </BasicValue>
+                  </DefaultValue>
+                </Parameter>
+              </Item>
+            </ParameterList>
+          </Parameters>
+          <Body>
+            <StatementList>
+              <Item>
+                <ReturnStatement HasTerminator="true">
+                  <ReturnT>
+                    <Identifier IsReservedKeyword="true">return</Identifier>
+                  </ReturnT>
+                  <Value>
+                    <LiteralInteger>0</LiteralInteger>
+                  </Value>
+                </ReturnStatement>
+              </Item>
+            </StatementList>
+          </Body>
+        </StoredProcedure>
+      </Sql>
+    </Xml>
+  </Test>
+
+  
+  
+  <Test>
+    <Text>
       create procedure sWithOptions
 	      with recompile, execute as owner
       as

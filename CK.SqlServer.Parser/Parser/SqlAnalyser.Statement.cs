@@ -1051,6 +1051,14 @@ namespace CK.SqlServer.Parser
                 {
                     defValue = IsBasicValue( true );
                 }
+                else
+                {
+                    SqlTokenIdentifier nullValue;
+                    if( R.IsToken( out nullValue, SqlTokenType.Null, false ) )
+                    {
+                        defValue = new SqlBasicValue( null, nullValue );
+                    }
+                }
             }
             SqlTokenIdentifier outputClause;
             if( !R.IsToken( out outputClause, SqlTokenType.Output, false ))

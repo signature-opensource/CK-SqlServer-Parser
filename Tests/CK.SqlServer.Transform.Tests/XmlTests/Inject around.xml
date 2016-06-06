@@ -5,14 +5,14 @@
     <Text>
       create procedure CK.sTest as
       begin
-      insert into S.tTable default values;
-      insert into S.tOther default values;
+        insert into S.tTable default values;
+        insert into S.tOther default values;
       end
     </Text>
     <Description>
       create transformer on CK.sTest as
       begin
-      inject [/* no more! ] and [*/] around last {insert};
+        inject [/* no more! ] and [*/] around last {insert};
       end
     </Description>
     <ResultText>

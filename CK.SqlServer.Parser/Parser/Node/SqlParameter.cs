@@ -70,7 +70,7 @@ namespace CK.SqlServer.Parser
         public SqlTokenTerminal AssignT => _content.V2;
 
         /// <summary>
-        /// Gets the default value or null if no default are defined.
+        /// Gets the default value or null if no default is defined.
         /// </summary>
         public SqlBasicValue DefaultValue => _content.V3;
 
