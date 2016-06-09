@@ -76,6 +76,7 @@
     <Compile Include="LocationVisitor\VisitedNodeRangeFilterStatusExtension.cs" />
     <Compile Include="Location\ISqlNodeLocationRangeInternal.cs" />
     <Compile Include="Location\LocationRangeCombined.cs" />
+    <Compile Include="Matcher\WindowToken.cs" />
     <Compile Include="Node Extension\LocationCardinalityInfo.cs" />
     <Compile Include="Node Extension\UnparsedInjectInfo.cs" />
     <Compile Include="Node Extension\LocationInfo.cs" />

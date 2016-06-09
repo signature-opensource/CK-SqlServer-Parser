@@ -40,6 +40,7 @@ namespace CK.SqlServer.Parser.Tests.XmlTests
         [TestCase( "Simple expressions.xml" )]
         [TestCase( "Simple Procedures.xml" )]
         [TestCase( "Simple Selects.xml" )]
+        [TestCase( "String Split.xml" )]
         [TestCase( "Trigger.xml" )]
         [TestCase( "TryCatch.xml" )]
         [TestCase( "Unmodeled stuff.xml" )]

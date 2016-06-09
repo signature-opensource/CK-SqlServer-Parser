@@ -121,7 +121,6 @@ end
     </Xml>
   </Test>
 
-  
   <Test>
     <Text>
       alter procedure sStrange -- funny one
