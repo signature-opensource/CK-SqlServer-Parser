@@ -18,7 +18,6 @@ namespace CK.SqlServer.Transform
         SqlNodeLocationRange _current;
 
         public SqlNodeScopeBreadthPredicate( Func<ISqlNode,bool> predicate )
-            : base( false )
         {
             if( predicate == null ) throw new ArgumentNullException( nameof( predicate ) );
             _predicate = predicate;
@@ -31,7 +30,9 @@ namespace CK.SqlServer.Transform
 
         protected override ISqlNodeLocationRange DoEnter( IVisitContext context )
         {
-            if( _current == null && _predicate( context.VisitedNode ) )
+            if( _current == null 
+                && context.RangeFilterStatus.IsIncludedInFilteredRange() 
+                && _predicate( context.VisitedNode ) )
             {
                 var beg = context.GetCurrentLocation( true );
                 Debug.Assert( beg.Node == context.VisitedNode );

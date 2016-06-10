@@ -26,8 +26,6 @@ namespace CK.SqlServer.Transform
             int _overridePos;
             VisitedNodeRangeFilterStatus _rangeFilterStatus;
 
-            public ISqlNodeLocationRange RangeFilter => _rangeFilter;
-
             public bool BuildQualifiedNodeLocations
             {
                 get { return _builder is QualifiedLocationBuilder; }
@@ -54,7 +52,7 @@ namespace CK.SqlServer.Transform
                 _filteredRange = null;
                 if( (_rangeFilter = rangeFilter) != null )
                 {
-                    var e = rangeFilter.GetEnumerator();
+                    var e = rangeFilter.MergeContiguous().GetEnumerator();
                     if( e.MoveNext() ) _filteredRange = e;
                 }
                 _rangeFilterStatus = VisitedNodeRangeFilterStatus.None;
@@ -64,6 +62,8 @@ namespace CK.SqlServer.Transform
             {
                 if( root != _builder.Root?.Node ) _builder.Reset( new LocationRoot( root ) );
             }
+
+            public ISqlNodeLocationRange RangeFilter => _rangeFilter;
 
             public VisitedNodeRangeFilterStatus RangeFilterStatus
             {
@@ -81,7 +81,9 @@ namespace CK.SqlServer.Transform
 
                 if( _rangeFilter == null )
                 {
-                    _rangeFilterStatus = p == 0 ? VisitedNodeRangeFilterStatus.FIntersecting : VisitedNodeRangeFilterStatus.FIntersecting|VisitedNodeRangeFilterStatus.FBegAfter;
+                    _rangeFilterStatus = p == 0 
+                                            ? VisitedNodeRangeFilterStatus.FIntersecting 
+                                            : VisitedNodeRangeFilterStatus.FIntersecting|VisitedNodeRangeFilterStatus.FBegAfter;
                     if( p < _builder.Root.Node.Width - 1 ) _rangeFilterStatus |= VisitedNodeRangeFilterStatus.FEndBefore;
                 }
                 else

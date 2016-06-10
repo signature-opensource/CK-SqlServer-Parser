@@ -17,7 +17,6 @@ namespace CK.SqlServer.Transform
         SqlNodeLocationRange _last;
 
         public SqlNodeScopeDepthPredicate( Func<ISqlNode, int> matcher )
-            : base( false )
         {
             if( matcher == null ) throw new ArgumentNullException( nameof( matcher ) );
             _matcher = matcher;
@@ -42,6 +41,7 @@ namespace CK.SqlServer.Transform
         {
             int width;
             if( (_last == null || _last.End.Position <= context.Position) 
+                && context.RangeFilterStatus.IsIncludedInFilteredRange()
                 && (width = _matcher( context.VisitedNode )) > 0 )
             {
                 var beg = context.GetCurrentLocation( true );

@@ -119,6 +119,7 @@
     <Content Include="XmlTests\Functions.xml" />
     <Content Include="XmlTests\GrantDenyRevoke.xml" />
     <Content Include="XmlTests\Delete.xml" />
+    <Content Include="XmlTests\Apply.xml" />
     <Content Include="XmlTests\String Split.xml" />
     <Content Include="XmlTests\Other Procedures.xml" />
     <Content Include="XmlTests\For Xml.xml" />

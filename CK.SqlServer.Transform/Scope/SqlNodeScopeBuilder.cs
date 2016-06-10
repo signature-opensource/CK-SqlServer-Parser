@@ -15,17 +15,17 @@ namespace CK.SqlServer.Transform
     /// </summary>
     public abstract class SqlNodeScopeBuilder
     {
-        readonly bool _autoMergeSubsequent;
+        readonly bool _autoMergeContiguous;
         ISqlNodeLocationRangeInternal _last;
 
         /// <summary>
         /// Initializes a new <see cref="SqlNodeScopeBuilder"/> that, by default, merges emitted 
         /// directly subsequent ranges (ie. [1,8[ and [8,12[ are merged as [1,12[). 
         /// </summary>
-        /// <param name="autoMergeSubsequent">False to emit unmerged subsequent ranges.</param>
-        public SqlNodeScopeBuilder( bool autoMergeSubsequent = true )
+        /// <param name="autoMergeContiguous">True to emit merged contiguous ranges.</param>
+        public SqlNodeScopeBuilder( bool autoMergeContiguous = false )
         {
-            _autoMergeSubsequent = autoMergeSubsequent;
+            _autoMergeContiguous = autoMergeContiguous;
         }
 
         /// <summary>
@@ -94,7 +94,7 @@ namespace CK.SqlServer.Transform
                 var l = result.Last;
                 if( l.End.Position > r.First.Beg.Position ) throw new InvalidOperationException( "Newly built range intersects previous one." );
 
-                if( _autoMergeSubsequent && l.End.Position == r.First.Beg.Position )
+                if( _autoMergeContiguous && l.End.Position == r.First.Beg.Position )
                 {
                     _last = _last.InternalSetEnd( r.Last.End );
                     return null;

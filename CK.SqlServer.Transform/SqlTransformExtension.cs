@@ -51,5 +51,21 @@ namespace CK.SqlServer.Transform
             return SqlNodeScopeExcept.DoExcept( @this, other );
         }
 
+        public static IEnumerable<SqlNodeLocationRange> MergeContiguous( this IEnumerable<SqlNodeLocationRange> @this )
+        {
+            using( var e = @this.GetEnumerator() )
+            {
+                while( e.MoveNext() )
+                {
+                    SqlNodeLocationRange current = e.Current;
+                    while( e.MoveNext() && current.End.Position == e.Current.Beg.Position )
+                    {
+                        current = current.InternalSetEnd( e.Current.End );
+                    }
+                    yield return current;
+                }
+            }
+        }
+
     }
 }

@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 
 namespace CK.SqlServer.Transform
 {
-
     /// <summary>
     /// Builds intersected ranges.
     /// </summary>

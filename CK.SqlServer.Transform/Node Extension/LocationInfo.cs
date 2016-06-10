@@ -13,7 +13,7 @@ namespace CK.SqlServer.Transform
         public readonly LocationCardinalityInfo Card;
         public readonly Func<SqlTrivia, bool> TriviaMatcher;
         public readonly Func<ISqlNode, bool> NodeMatcher;
-        public readonly Func<ISqlNode, int> PatternRangeMatcher;
+        public readonly IReadOnlyList<SqlToken> PatternRange;
         public readonly bool IsNodeMatchPart;
         public readonly bool IsNodeMatchStatement;
         public readonly bool IsNodeMatchRange;
@@ -26,7 +26,7 @@ namespace CK.SqlServer.Transform
                 TriviaMatcher = null;
                 var nodePattern = (SqlTNodeSimplePattern)loc.Pattern;
                 NodeMatcher = nodePattern.MatchPartOrStatement;
-                PatternRangeMatcher = nodePattern.Pattern.Match;
+                PatternRange = nodePattern.Pattern;
                 IsNodeMatchPart = nodePattern.IsMatchPart;
                 IsNodeMatchStatement = nodePattern.IsMatchStatement;
                 IsNodeMatchRange = nodePattern.IsMatchRange;
@@ -34,7 +34,7 @@ namespace CK.SqlServer.Transform
             else
             {
                 NodeMatcher = null;
-                PatternRangeMatcher = null;
+                PatternRange = null;
                 IsNodeMatchPart = IsNodeMatchStatement =  IsNodeMatchRange = false;
                 if( t.Value.StartsWith( "--" ) )
                 {

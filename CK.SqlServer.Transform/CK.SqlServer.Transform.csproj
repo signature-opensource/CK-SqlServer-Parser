@@ -81,6 +81,7 @@
     <Compile Include="Node Extension\UnparsedInjectInfo.cs" />
     <Compile Include="Node Extension\LocationInfo.cs" />
     <Compile Include="Node Extension\SqlTNodeExtension.cs" />
+    <Compile Include="Scope\SqlNodeScopePatternRange.cs" />
     <Compile Include="Scope\SqlNodeScopeIndex.cs" />
     <Compile Include="Scope\SqlNodeScopeCardinalityFilter.cs" />
     <Compile Include="Scope\SqlNodeScopeExcept.cs" />

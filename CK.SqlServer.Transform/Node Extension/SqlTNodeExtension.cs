@@ -23,30 +23,16 @@ namespace CK.SqlServer.Transform
         public static int Match( this SqlTCurlyPattern @this, ISqlNode n )
         {
             var tokens = n.AllTokens.GetEnumerator();
-            var patterns = @this.GetEnumerator();
             try
             {
-                if( !tokens.MoveNext() || !patterns.MoveNext() ) return 0;
-
-                int width = 0;
-                for( ;;)
-                {
-                    if( patterns.Current.TokenType == SqlTokenType.QuestionMark
-                        || tokens.Current.TokenEquals( patterns.Current ) )
-                    {
-                        ++width;
-                        if( !patterns.MoveNext() ) return width;
-                        if( !tokens.MoveNext() ) return -width;
-                    }
-                    else return -width;
-                }
+                return tokens.MoveNext() ? Matcher.WindowToken.RawHeadMatch( tokens, int.MaxValue, @this ) : 0;
             }
             finally
             {
                 tokens.Dispose();
-                patterns.Dispose();
             }
         }
+
 
         public static IEnumerable<SqlNodeLocationRange> ToRanges( this IEnumerable<SqlToken> @this, SqlTCurlyPattern pattern, int offset = 0 )
         {
