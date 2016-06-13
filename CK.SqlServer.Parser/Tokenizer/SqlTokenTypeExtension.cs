@@ -53,9 +53,9 @@ namespace CK.SqlServer.Parser
 
         /// <summary>
         /// True if this <see cref="SqlTokenType"/> is valid as an alias for column name:
-        /// it is a string, a unicode string or an identifier that is not reserved 
-        /// nor special but can be a variable name to support @var = definition 
-        /// syntax in select.
+        /// it is a String, a unicode String or an identifier (that is not reserved 
+        /// nor special). It can be an identifier variable name (<see cref="SqlTokenType.IdentifierVariable"/>) 
+        /// to support @var = definition syntax in select.
         /// </summary>
         /// <param name="type">Token type to test.</param>
         /// <returns>True if this is a valid column name alias.</returns>

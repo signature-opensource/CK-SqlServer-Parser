@@ -6,8 +6,10 @@ using System.Threading.Tasks;
 
 namespace CK.SqlServer.Parser
 {
-    public interface ISqlTStatement : ISqlNode
+    /// <summary>
+    /// A Transformation statement is considered as a statement.
+    /// </summary>
+    public interface ISqlTStatement : ISqlStatement
     {
-        SqlTokenTerminal StatementTerminator { get; }
     }
 }

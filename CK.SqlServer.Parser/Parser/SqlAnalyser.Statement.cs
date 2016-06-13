@@ -942,12 +942,12 @@ namespace CK.SqlServer.Parser
             SqlTokenIdentifier asToken;
             if( !R.IsToken( out asToken, SqlTokenType.As, true ) ) return null;
 
-            SqlTokenIdentifier begin = IsBeginOfBlock( false );
+            SqlTokenIdentifier beginT = IsBeginOfBlock( false );
             SqlStatementList bodyStatements = IsStatementList( true );
             if( bodyStatements == null ) return null;
             SqlTokenIdentifier end = null;
-            if( begin != null && !R.IsToken( out end, SqlTokenType.End, true ) ) return null;
-            return new SqlStoredProcedure( alterOrCreate, type, name, parameters, options, asToken, begin, bodyStatements, end, GetOptionalTerminator() );
+            if( beginT != null && !R.IsToken( out end, SqlTokenType.End, true ) ) return null;
+            return new SqlStoredProcedure( alterOrCreate, type, name, parameters, options, asToken, beginT, bodyStatements, end, GetOptionalTerminator() );
         }
 
         SqlTrigger MatchTrigger( SqlTokenIdentifier alterOrCreate )

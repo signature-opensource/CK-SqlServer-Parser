@@ -30,7 +30,7 @@ namespace CK.SqlServer.UtilTests
             Mode = t.AttributeEnum( "Mode", ParseMode.OneOrMoreStatements );
             // TrimEnd the text because the last trivia is skipped.
             Text = t.Element( "Text" ).Value.TrimEnd().NormalizeEOL();
-            Description = t.Elements( "Description" ).Select( e => e.Value ).FirstOrDefault();
+            Description = t.Elements( "Description" ).Select( e => e.Value.NormalizeEOL() ).FirstOrDefault();
 
             XElement xmlTestElement = t.Element( "Xml" );
             if( xmlTestElement != null )

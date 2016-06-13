@@ -71,11 +71,28 @@ namespace CK.SqlServer.Parser
                     }
                     return new SqlTAddParameter( initT, whatT, parameters, afterOrBeforeT, paramName, GetOptionalTerminator() );
                 }
+                if( R.IsToken( out whatT, SqlTokenType.Column, false ) )
+                {
+                    SelectColumnList columns = IsCommaList( 1, IsSelectColumn, i => new SelectColumnList( i ) );
+                    if( columns == null ) return null;
+
+                    return new SqlTAddColumn( initT, whatT, columns, GetOptionalTerminator() );
+                }
             }
             else if( R.IsToken( out initT, SqlTokenType.Inject, false ) )
             {
                 ISqlHasStringValue content = IsSqlHasStringValue( true );
                 if( content == null ) return null;
+
+                SqlTokenIdentifier intoT;
+                ISqlHasStringValue target = null;
+                if( R.IsToken( out intoT, SqlTokenType.Into, false ) )
+                {
+                    target = IsSqlHasStringValue( true );
+                    if( target == null ) return null;
+                    return new SqlTInjectInto( initT, content, intoT, target, GetOptionalTerminator() );
+                }
+
                 SqlTokenIdentifier andT;
                 ISqlHasStringValue content2 = null;
                 if( R.IsToken( out andT, SqlTokenType.And, false ) )
@@ -112,6 +129,22 @@ namespace CK.SqlServer.Parser
                 if( content == null ) return null;
 
                 return new SqlTReplace( initT, loc, withT, content, GetOptionalTerminator() );
+            }
+            else if( R.IsToken( out initT, SqlTokenType.Scope, false ) )
+            {
+                SqlTLocationFinder loc = IsSqlTLocation( true );
+                if( loc == null ) return null;
+
+                SqlTokenIdentifier begintT;
+                if( !R.IsToken( out begintT, SqlTokenType.Begin, true ) ) return null;
+
+                SqlTStatementList s = IsList( false, IsTransformStatement, statements => new SqlTStatementList( statements ) );
+                if( s == null ) return null;
+
+                SqlTokenIdentifier endT;
+                if( !R.IsToken( out endT, SqlTokenType.End, true ) ) return null;
+
+                return new SqlTScope( initT, loc, begintT, s, endT, GetOptionalTerminator() );
             }
             if( expected ) R.SetCurrentError( "Expected transform statement." );
             return null;

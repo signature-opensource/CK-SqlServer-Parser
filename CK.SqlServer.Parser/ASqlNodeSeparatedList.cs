@@ -115,7 +115,7 @@ namespace CK.SqlServer.Parser
 
         /// <summary>
         /// Inserts a new item at a specified position in the list.
-        /// By default, <see cref="CreateDefaultSeparator"/> is used.
+        /// By default, <see cref="CreateDefaultSeparator"/> and <see cref="CreateDefaultSeparator"/> are used.
         /// </summary>
         /// <param name="idx">Insertion position.</param>
         /// <param name="item">Item to insert.</param>

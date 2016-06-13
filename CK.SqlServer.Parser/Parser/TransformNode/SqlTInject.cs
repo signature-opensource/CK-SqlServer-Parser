@@ -25,10 +25,10 @@ namespace CK.SqlServer.Parser
     {
         readonly CNode _content;
 
-        public SqlTInject( SqlTokenIdentifier insertT, ISqlHasStringValue content, SqlTokenIdentifier andT, ISqlHasStringValue content2, SqlTokenIdentifier afterBeforeOrAroundT, SqlTLocationFinder location, SqlTokenTerminal terminator )
+        public SqlTInject( SqlTokenIdentifier injecT, ISqlHasStringValue content, SqlTokenIdentifier andT, ISqlHasStringValue content2, SqlTokenIdentifier afterBeforeOrAroundT, SqlTLocationFinder location, SqlTokenTerminal terminator )
             : base( null, null )
         {
-            _content = new CNode( insertT, content, andT, content2, afterBeforeOrAroundT, location, terminator );
+            _content = new CNode( injecT, content, andT, content2, afterBeforeOrAroundT, location, terminator );
             CheckContent();
         }
 

@@ -328,6 +328,7 @@ namespace CK.SqlServer.Parser
         public static readonly SqlTokenIdentifier Inject;
         public static readonly SqlTokenIdentifier Single;
         public static readonly SqlTokenIdentifier Replace;
+        public static readonly SqlTokenIdentifier Scope;
         //public static readonly SqlTokenIdentifier Largest;
         //public static readonly SqlTokenIdentifier Deepest;
         //public static readonly SqlTokenIdentifier Nodes;
@@ -716,6 +717,7 @@ namespace CK.SqlServer.Parser
             Inject = RegKeyword( "inject", SqlTokenType.Inject );
             Single = RegKeyword( "single", SqlTokenType.Single );
             Replace = RegKeyword( "replace", SqlTokenType.Replace );
+            Scope = RegKeyword( "scope", SqlTokenType.Scope );
             //Largest = RegKeyword( "largest", SqlTokenType.Largest );
             //Deepest = RegKeyword( "deepest", SqlTokenType.Deepest );
             //Nodes = RegKeyword( "nodes", SqlTokenType.Nodes );

@@ -2,6 +2,7 @@
 using CK.SqlServer.Parser;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -101,6 +102,36 @@ namespace CK.SqlServer.Transform
 
         bool RunStatement( ISqlTStatement t, SqlNodeScopeBuilder scope )
         {
+            var insert = t as SqlTInject;
+            if( insert != null )
+            {
+                UnparsedInjectInfo info = new UnparsedInjectInfo( insert );
+                return new Transformers.UnparsedTextTransformer( info, scope ).Apply( this );
+            }
+            var replace = t as SqlTReplace;
+            if( replace != null )
+            {
+                UnparsedInjectInfo info = new UnparsedInjectInfo( replace );
+                return new Transformers.UnparsedTextTransformer( info, scope ).Apply( this );
+            }
+            var setScope = t as SqlTScope;
+            #region SqlTScope
+            if( setScope != null )
+            {
+                var loc = setScope.Location.GetFinderInfo();
+                Debug.Assert( (loc.IsNodeMatchRange && loc.PatternRange != null) != ((loc.IsNodeMatchPart || loc.IsNodeMatchStatement) && loc.NodeMatcher != null) );
+                SqlNodeScopeBuilder rangeMatch = loc.IsNodeMatchRange 
+                                                    ? (SqlNodeScopeBuilder)new SqlNodeScopePatternRange( loc.PatternRange )
+                                                    : new SqlNodeScopeDepthPredicate( loc.NodeMatcher );
+                var withCard = new SqlNodeScopeCardinalityFilter( rangeMatch, loc.Card );
+                SqlNodeScopeBuilder newScope = new SqlNodeScopeIntersect( scope, withCard );
+                foreach( var s in setScope.Statements )
+                {
+                    if( !RunStatement( s, newScope ) ) return false;
+                }
+                return true;
+            }
+            #endregion
             var addParam = t as SqlTAddParameter;
             #region SqlTAddParameter
             if( addParam != null )
@@ -122,18 +153,13 @@ namespace CK.SqlServer.Transform
                 return Apply( new Transformers.AddParameter( addParam.Parameters, pBefore, pAfter ), scope );
             }
             #endregion
-            var insert = t as SqlTInject;
-            if( insert != null )
+            var addColumn = t as SqlTAddColumn;
+            #region SqlTAddColumn
+            if( addColumn != null )
             {
-                UnparsedInjectInfo info = new UnparsedInjectInfo( insert );
-                return new Transformers.UnparsedTextTransformer( info, scope ).Apply( this );
+                return Apply( new Transformers.AddColumn( addColumn.Columns ), scope );
             }
-            var replace = t as SqlTReplace;
-            if( replace != null )
-            {
-                UnparsedInjectInfo info = new UnparsedInjectInfo( replace );
-                return new Transformers.UnparsedTextTransformer( info, scope ).Apply( this );
-            }
+            #endregion
             throw new NotSupportedException( $"Transform statement '{t.ToString()}' not supported." );
         }
 

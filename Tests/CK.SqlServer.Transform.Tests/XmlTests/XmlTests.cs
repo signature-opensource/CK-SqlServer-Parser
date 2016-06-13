@@ -122,7 +122,8 @@ namespace CK.SqlServer.Transform.Tests.XmlTests
             var newGuard = (ISqlStatement)a.Parse( ParseMode.Statement );
             t.Visit( new InsertStatement( headLoc, newGuard ) );
 
-            t.Visit( new AddColumnInInsert( SqlTokenIdentifier.Create( "ZoneId" ), pZoneId.Variable.Identifier ) );
+            var newC = new SelectColumn( SqlTokenIdentifier.Create( "ZoneId" ), SqlKeyword.Assign, pZoneId.Variable.Identifier );
+            t.Visit( new AddColumn( new[] { newC } ) );
 
             return t.Node;
         }

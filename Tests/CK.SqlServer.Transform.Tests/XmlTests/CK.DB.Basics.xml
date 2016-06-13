@@ -83,7 +83,11 @@
         "   -- from Zone...
             if @ZoneId = 1 throw 50000, 'Zone.SystemZoneHasNoGroup', 1; 
         " before first "--[beginsp]";
-        --add column( ZoneId ) values( @ZoneId );
+        scope single {insert into CK.tGroup}
+        begin
+          add column ZoneId = @ZoneId;
+        end
+        inject "insert into UX.tBasicLog( Msg ) values( N'Group created.' );" into Group.PostCreate;
       end
     </Description>
     <ResultText>
@@ -104,7 +108,7 @@
       --<Extension Name="Group.PreCreate" />
 
       exec CK.sActorCreate @ActorId, @GroupIdResult output;
-      insert into CK.tGroup( GroupId ) values( @GroupIdResult );
+      insert into CK.tGroup( GroupId, ZoneId ) values( @GroupIdResult, @ZoneId );
 
       --<Extension Name="Group.PostCreate" />
 

@@ -25,21 +25,46 @@ namespace CK.SqlServer.Parser
         static readonly SqlTokenIdentifier _autoAsTNoSpace = new SqlTokenIdentifier( SqlTokenType.As, "as", null, null );
         static readonly SqlTokenTerminal _autoAssignTNoSpace = SqlTokenTerminal.Create( SqlTokenType.Assign, null, null );
 
+
+        /// <summary>
+        /// Initializes a new column with '=': <see cref="ColumnName"/> = <see cref="Definition"/>.
+        /// This constructor allows <paramref name="colName"/> to be a variable name.
+        /// </summary>
+        /// <param name="definition">The definition.</param>
+        /// <param name="assignT">The assign token.</param>
+        /// <param name="colName">The column name variable name or string, quoted identifier or standard identifier.</param>
         public SelectColumn( SqlToken colName, SqlTokenTerminal assignT, ISqlNode definition )
             : this( null, null, new[] { colName, assignT, definition }, null )
         {
         }
 
+        /// <summary>
+        /// Initializes a new column with 'as': <see cref="Definition"/> as <see cref="ColumnName"/>.
+        /// This constructor implies that <paramref name="colName"/> can not be a variable name.
+        /// </summary>
+        /// <param name="definition">The definition.</param>
+        /// <param name="asT">The as token.</param>
+        /// <param name="colName">The column name (string, quoted identifier or standard identifier), but not a variable name.</param>
         public SelectColumn( ISqlNode definition, SqlTokenIdentifier asT, SqlToken colName )
             : this( null, null, new[] { definition, asT, colName }, null )
         {
         }
 
+        /// <summary>
+        /// Initializes a new column with no 'as' nor '=': <see cref="Definition"/> <see cref="ColumnName"/>.
+        /// This constructor implies that <paramref name="colName"/> can not be a variable name.
+        /// </summary>
+        /// <param name="definition">The definition.</param>
+        /// <param name="colName">The column name (string, quoted identifier or standard identifier), but not a variable name.</param>
         public SelectColumn( ISqlNode definition, SqlToken colName )
             : this( null, null, new[] { definition, colName }, null )
         {
         }
 
+        /// <summary>
+        /// Initializes a new column with no <see cref="ColumnName"/>).
+        /// </summary>
+        /// <param name="definition">The definition.</param>
         public SelectColumn( ISqlNode definition )
             : this( null, null, new[] { definition }, null )
         {
@@ -155,6 +180,24 @@ namespace CK.SqlServer.Parser
         /// Gets the column name (can be null).
         /// </summary>
         public SqlToken ColumnName => _colName;
+
+        /// <summary>
+        /// Gets a <see cref="SqlTokenIdentifier"/> for the <see cref="ColumnName"/>, whatever it is.
+        /// It is the ColumnName if it is an identifier, a [quoted dentifier] if ColumnName is a 'string' or 
+        /// a N'string' and a standard identifier with the fallback name if ColumnName is null.
+        /// </summary>
+        /// <param name="fallbackIdentifierName">Identifier name to use if <see cref="ColumnName"/> is null.</param>
+        /// <returns>An identifier.</returns>
+        public SqlTokenIdentifier GetAutoColumnNameIdentifier( string fallbackIdentifierName )
+        {
+            SqlTokenIdentifier idName = ColumnName as SqlTokenIdentifier;
+            if( idName == null )
+            {
+                if( ColumnName == null ) idName = new SqlTokenIdentifier( SqlTokenType.IdentifierStandard, fallbackIdentifierName );
+                else idName = new SqlTokenIdentifier( SqlTokenType.IdentifierQuotedBracket, ((ISqlHasStringValue)ColumnName).Value );
+            }
+            return idName;
+        }
 
         public bool IsEqualSyntax => _asOrEqual is SqlTokenTerminal;
 

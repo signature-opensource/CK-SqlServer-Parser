@@ -71,6 +71,16 @@ namespace CK.SqlServer.Parser
 
         public SelectSpec InsertColumn( int idx, SelectColumn column ) => this.ReplaceContentNode( 1, Columns.InsertAt( idx, column ) );
 
+        public SelectSpec InsertColumns( int idx, IEnumerable<SelectColumn> columns )
+        {
+            SelectColumnList newCols = Columns;
+            foreach( var c in columns )
+            {
+                newCols = newCols.InsertAt( idx++, c );
+            }
+            return this.ReplaceContentNode( 1, newCols );
+        }
+
         public SelectSpec InsertColumn( int idx, ISqlNode definition, SqlTokenIdentifier alias = null )
         {
             if( definition == null ) throw new ArgumentNullException( nameof( definition ) );

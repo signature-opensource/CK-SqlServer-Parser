@@ -110,6 +110,17 @@ namespace CK.SqlServer.Parser
             internal protected override ISqlNode Visit( SelectSpec e ) => e.InsertColumn( e.Columns.Count, _expression, null );
         }
 
+        public SqlInsertStatement AddColumns( IEnumerable<SelectColumn> columns )
+        {
+            SqlInsertStatement e = this;
+            foreach( var c in columns )
+            {
+                SqlTokenIdentifier idName = c.GetAutoColumnNameIdentifier( $"Col{e.Columns.Count + 1}" );
+                e = e.AddSimpleColumn( idName, c.Definition );
+            }
+            return e;
+        }
+
         public SqlInsertStatement AddSimpleColumn( SqlTokenIdentifier colName, ISqlNode expression = null )
         {
             if( colName == null ) throw new ArgumentNullException( nameof( colName ) );
