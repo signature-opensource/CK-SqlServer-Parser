@@ -13,7 +13,7 @@ namespace CK.SqlServer.Parser
             SqlTokenIdentifier,
             ISqlHasStringValue,
             SqlTokenIdentifier,
-            ISqlHasStringValue
+            ISqlHasStringValue,
             SqlTokenTerminal>;
 
     /// <summary>

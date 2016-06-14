@@ -37,6 +37,15 @@ namespace CK.SqlServer.Transform
             }
             Offset = loc.Offset?.Value ?? 0;
         }
+
+        public LocationCardinalityInfo( bool single )
+        {
+            All = false;
+            ExpectedMatchCount = 1;
+            FromFirst = true;
+            Offset = 0;
+        }
+
     }
 
- }
+}

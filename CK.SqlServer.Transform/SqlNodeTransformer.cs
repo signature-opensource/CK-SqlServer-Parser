@@ -102,11 +102,16 @@ namespace CK.SqlServer.Transform
 
         bool RunStatement( ISqlTStatement t, SqlNodeScopeBuilder scope )
         {
-            var insert = t as SqlTInject;
-            if( insert != null )
+            var inject = t as SqlTInject;
+            if( inject != null )
             {
-                UnparsedInjectInfo info = new UnparsedInjectInfo( insert );
+                UnparsedInjectInfo info = new UnparsedInjectInfo( inject );
                 return new Transformers.UnparsedTextTransformer( info, scope ).Apply( this );
+            }
+            var injectInto = t as SqlTInjectInto;
+            if( injectInto != null )
+            {
+                return Apply( new Transformers.TriviaExtensionInjectVisitor( Monitor, injectInto ), scope );
             }
             var replace = t as SqlTReplace;
             if( replace != null )

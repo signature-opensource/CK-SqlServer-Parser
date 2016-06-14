@@ -30,7 +30,7 @@ namespace CK.SqlServer.Transform.Transformers
                 IdxTrivias = t;
             }
 
-            public ISqlNode Apply( IActivityMonitor monitor, string before, string after, bool clearStarComments )
+            public ISqlNode Apply( IActivityMonitor monitor, string before, string after, bool clearStarComments, SqlTrivia[] triviaReplacement )
             {
                 var e = Node;
                 if( clearStarComments )
@@ -42,6 +42,7 @@ namespace CK.SqlServer.Transform.Transformers
                 bool inTrailing = false;
                 if( IdxTrivias == null )
                 {
+                    Debug.Assert( triviaReplacement == null && (after != null || before != null), "When matching nodes, only before/after are handled." );
                     ImmutableList<SqlTrivia> leading, trailing;
                     if( clearStarComments )
                     {
@@ -83,15 +84,28 @@ namespace CK.SqlServer.Transform.Transformers
                         trivias = e.TrailingTrivias;
                         actualIdx = ~idx + deltaInsert;
                     }
-                    if( before != null )
+                    if( triviaReplacement != null )
                     {
-                        trivias = trivias.Insert( actualIdx++, new SqlTrivia( SqlTokenType.None, before ) );
-                        ++deltaInsert;
+                        Debug.Assert( before == null && after == null );
+                        trivias = trivias.RemoveAt( actualIdx );
+                        trivias = trivias.InsertRange( actualIdx, triviaReplacement );
+                        // Replacing trivias is only for first autoclosed extension tag injection.
+                        // Updating the deltaInsert is actually useless but this is clearer
+                        // to keep this.
+                        deltaInsert += 2;
                     }
-                    if( after != null )
+                    else
                     {
-                        trivias = trivias.Insert( actualIdx + 1, new SqlTrivia( SqlTokenType.None, after ) );
-                        ++deltaInsert;
+                        if( before != null )
+                        {
+                            trivias = trivias.Insert( actualIdx++, new SqlTrivia( SqlTokenType.None, before ) );
+                            ++deltaInsert;
+                        }
+                        if( after != null )
+                        {
+                            trivias = trivias.Insert( actualIdx + 1, new SqlTrivia( SqlTokenType.None, after ) );
+                            ++deltaInsert;
+                        }
                     }
                     e = idx >= 0 ? e.SetTrivias( trivias, e.TrailingTrivias ) : e.SetTrivias( e.LeadingTrivias, trivias );
                 }
@@ -108,7 +122,8 @@ namespace CK.SqlServer.Transform.Transformers
         public int MatchCount => _matchCount;
 
         /// <summary>
-        /// Gets the expected match count. Zero when not applicable.
+        /// Gets the expected total match count. 
+        /// Zero when not applicable (when there is no 'out of n' specified).
         /// </summary>
         public int ExpectedMatchCount => _finderInfo.Card.ExpectedMatchCount;
 

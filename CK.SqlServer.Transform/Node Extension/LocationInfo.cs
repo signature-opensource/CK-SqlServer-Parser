@@ -1,4 +1,5 @@
 ﻿using CK.SqlServer.Parser;
+using CK.SqlServer.Transform.Transformers;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -8,6 +9,12 @@ using System.Threading.Tasks;
 
 namespace CK.SqlServer.Transform
 {
+    /// <summary>
+    /// Captures operational information from a <see cref="SqlTLocationFinder"/>.
+    /// Cardinality check is handled thanks to <see cref="LocationCardinalityInfo"/>.
+    /// This handles the 5 kind of matches: part and statement, range match, trivia match 
+    /// and fragment match.
+    /// </summary>
     internal struct LocationInfo
     {
         public readonly LocationCardinalityInfo Card;
@@ -49,6 +56,15 @@ namespace CK.SqlServer.Transform
                 }
             }
             Card = new LocationCardinalityInfo( loc );
+        }
+
+        public LocationInfo( TriviaExtensionMatcher m )
+        {
+            Card = new LocationCardinalityInfo( true );
+            TriviaMatcher = m.Match;
+            NodeMatcher = null;
+            PatternRange = null;
+            IsNodeMatchPart = IsNodeMatchRange = IsNodeMatchStatement = false;
         }
     }
 }

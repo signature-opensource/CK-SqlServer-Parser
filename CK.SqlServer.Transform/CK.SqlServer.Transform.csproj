@@ -97,6 +97,8 @@
     <Compile Include="Scope\SqlNodeScopeIntersect.cs" />
     <Compile Include="Scope\SqlNodeScopeBuilder.cs" />
     <Compile Include="Transformers\TriviaCleaner.cs" />
+    <Compile Include="Transformers\UnParsed\TriviaExtensionMatcher.cs" />
+    <Compile Include="Transformers\UnParsed\TriviaExtensionInjectVisitor.cs" />
     <Compile Include="Transformers\UnParsed\UnparsedTextTransformer.cs" />
     <Compile Include="Transformers\UnParsed\UnParsedTextInjecVisitor.cs" />
     <Compile Include="Transformers\InsertStatement.cs" />
