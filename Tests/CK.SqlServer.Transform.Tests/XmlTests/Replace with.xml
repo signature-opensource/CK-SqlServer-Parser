@@ -63,7 +63,7 @@
     </ResultText>
   </Test>
 
-    <Test>
+  <Test>
     <Text>
       create procedure CK.sTest
       as
@@ -87,4 +87,73 @@
     </ResultText>
   </Test>
 
+  <Test>
+    <Text>
+      select X from T;
+      update T set X = 8;
+    </Text>
+    <Description>
+      create transformer
+      as
+      begin
+        replace all range {X} with "Z";
+      end
+    </Description>
+    <ResultText>
+      select Z from T;
+      update T set Z = 8;
+    </ResultText>
+  </Test>
+
+  <Test>
+    <Text>
+      select X from T where X = 3 order by X;
+    </Text>
+    <Description>
+      create transformer
+      as
+      begin
+        replace all range {X} with "Z";
+      end
+    </Description>
+    <ResultText>
+      select Z from T where Z = 3 order by Z;
+    </ResultText>
+  </Test>
+  
+  <Test>
+    <Text>
+      select X; X; select X from X; update T set X = 9;
+    </Text>
+    <Description>
+      create transformer
+      as
+      begin
+        in all {select}
+        begin
+          replace all range {X} with "Z";
+        end
+      end
+    </Description>
+    <ResultText>
+      select Z; X; select Z from Z; update T set X = 9;
+    </ResultText>
+  </Test>  
+  
+  <Test>
+    <Text>
+      select X from T where X = 3 order by X;
+    </Text>
+    <Description>
+      create transformer
+      as
+      begin
+        replace single {select X} with "";
+      end
+    </Description>
+    <ResultText>
+
+    </ResultText>
+  </Test>  
+  
 </Tests>

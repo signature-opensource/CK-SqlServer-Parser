@@ -1,6 +1,7 @@
 ﻿using CK.SqlServer.Parser;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -37,8 +38,9 @@ namespace CK.SqlServer.Transform
                 _buffer.Reset();
             }
 
-            public ISqlNodeLocationRange DoIntesect( ISqlNodeLocationRange left, ISqlNodeLocationRange right )
+            public ISqlNodeLocationRange DoIntersect( ISqlNodeLocationRange left, ISqlNodeLocationRange right )
             {
+                Debug.Assert( left != null || right != null );
                 _leftE = _leftE.Add( left );
                 _rightE = _rightE.Add( right );
                 while( _leftE.HasMore && _rightE.HasMore )
@@ -73,24 +75,34 @@ namespace CK.SqlServer.Transform
 
         protected override ISqlNodeLocationRange DoEnter( IVisitContext context )
         {
-            return _state.DoIntesect( _left.Enter( context ), _right.Enter( context ) );
+            return StateIntersect( _left.Enter( context ), _right.Enter( context ) );
         }
 
         protected override ISqlNodeLocationRange DoLeave( IVisitContext context )
         {
-            return _state.DoIntesect( _left.Leave( context ), _right.Leave( context ) );
+            return StateIntersect( _left.Leave( context ), _right.Leave( context ) );
         }
 
         protected override ISqlNodeLocationRange DoConclude( IVisitContextBase context )
         {
-            return _state.DoIntesect( _left.Conclude( context ), _right.Conclude( context ) );
+            return StateIntersect( _left.Conclude( context ), _right.Conclude( context ) );
+        }
+
+        ISqlNodeLocationRange StateIntersect( ISqlNodeLocationRange left, ISqlNodeLocationRange right )
+        {
+            return left != null || right != null
+                    ? _state.DoIntersect( left, right )
+                    : null;
         }
 
         internal static ISqlNodeLocationRange DoIntersect( ISqlNodeLocationRange left, ISqlNodeLocationRange right )
         {
-            return new RangeIntersector( true ).DoIntesect( left, right ) ?? SqlNodeLocationRange.EmptySet;
+            return left == null || left == SqlNodeLocationRange.EmptySet || right == null || right == SqlNodeLocationRange.EmptySet
+                    ? SqlNodeLocationRange.EmptySet
+                    : new RangeIntersector( true ).DoIntersect( left, right ) ?? SqlNodeLocationRange.EmptySet;
         }
 
+        public override string ToString() => $"({_left} intersect {_right})";
     }
 
 }

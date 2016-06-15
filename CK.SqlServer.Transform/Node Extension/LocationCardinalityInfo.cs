@@ -46,6 +46,25 @@ namespace CK.SqlServer.Transform
             Offset = 0;
         }
 
+        public override string ToString()
+        {
+            if( All )
+            {
+                return ExpectedMatchCount == 0 ? "all" : "all " + ExpectedMatchCount;
+            }
+            string s;
+            if( FromFirst )
+            {
+                if( Offset == 0 && ExpectedMatchCount == 1 ) return "single";
+                s = Offset == 0 ? "first" : "first+" + Offset;
+                if( ExpectedMatchCount > 0 ) s += " out of " + ExpectedMatchCount;
+                return s;
+            }
+            s = Offset == 0 ? "last" : "last-" + Offset;
+            if( ExpectedMatchCount > 0 ) s += " out of " + ExpectedMatchCount;
+            return s;
+        }
+
     }
 
 }

@@ -29,9 +29,14 @@ namespace CK.SqlServer.Transform.Matcher
         public int Shift( int n )
         {
             Debug.Assert( n > 0 );
-            while( --n >= 0 && _source.MoveNext() )
+            while( --n >= 0 )
             {
-                _tokens.Push( _source.Current );
+                if( _source.MoveNext() ) _tokens.Push( _source.Current );
+                else
+                {
+                    if( _tokens.Count == 0 ) break;
+                    _tokens.Pop();
+                }
             }
             return _tokens.Count;
         }

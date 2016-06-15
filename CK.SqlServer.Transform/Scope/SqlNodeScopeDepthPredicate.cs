@@ -13,39 +13,30 @@ namespace CK.SqlServer.Transform
     /// </summary>
     public sealed class SqlNodeScopeDepthPredicate : SqlNodeScopeBuilder
     {
-        readonly Func<ISqlNode,int> _matcher;
-        SqlNodeLocationRange _last;
+        readonly DepthFirstNodeMatcherHelper _nodeMatcher;
 
-        public SqlNodeScopeDepthPredicate( Func<ISqlNode, int> matcher )
+        public SqlNodeScopeDepthPredicate( Func<ISqlNode, bool> predicate, bool isPartMatch = false )
         {
-            if( matcher == null ) throw new ArgumentNullException( nameof( matcher ) );
-            _matcher = matcher;
-        }
-
-        public SqlNodeScopeDepthPredicate( Func<ISqlNode, bool> predicate )
-            : this( n => predicate(n) ? n.Width : 0 )
-        {
+            _nodeMatcher = new DepthFirstNodeMatcherHelper( isPartMatch, predicate );
         }
 
         protected override void DoReset()
         {
-            _last = null;
+            _nodeMatcher.Reset();
         }
 
         protected override ISqlNodeLocationRange DoEnter( IVisitContext context )
         {
+            _nodeMatcher.OnBeforeVisitItem( context );
             return null;
         }
 
         protected override ISqlNodeLocationRange DoLeave( IVisitContext context )
         {
-            int width;
-            if( (_last == null || _last.End.Position <= context.Position) 
-                && context.RangeFilterStatus.IsIncludedInFilteredRange()
-                && (width = _matcher( context.VisitedNode )) > 0 )
+            if( _nodeMatcher.Match( context, context.VisitedNode ) )
             {
                 var beg = context.GetCurrentLocation( true );
-                return _last = new SqlNodeLocationRange( beg, context.LocationManager.GetRawLocation( beg.Position + width ) );
+                return new SqlNodeLocationRange( beg, context.LocationManager.GetRawLocation( beg.Position + context.VisitedNode.Width ) );
             }
             return null;
         }
@@ -54,6 +45,9 @@ namespace CK.SqlServer.Transform
         {
             return null;
         }
+
+        public override string ToString() => _nodeMatcher.IsPartMatch ? "(depth-first part match)" : "(depth-first node match)";
+
     }
 
 

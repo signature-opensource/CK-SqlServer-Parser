@@ -18,7 +18,6 @@ namespace CK.SqlServer.Transform.Transformers
         static readonly Regex _rExt = new Regex( @"^</?(?<1>(\w|\.|-)+)(?<2>\s+reverse(\s*=\s*(""|')?(true|1)(""|')?)?)?\s*/?>", RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant );
 
         readonly IActivityMonitor _monitor;
-        readonly string _extensionName;
         readonly string _injectedCode;
         bool _foundInsertPoint;
         bool _foundOpening;
@@ -28,9 +27,11 @@ namespace CK.SqlServer.Transform.Transformers
         public TriviaExtensionMatcher( IActivityMonitor monitor, string extensionName, string injectedCode )
         {
             _monitor = monitor;
-            _extensionName = extensionName;
+            ExtensionName = extensionName;
             _injectedCode = injectedCode.TrimEnd() + Environment.NewLine;
         }
+
+        public string ExtensionName { get; }
 
         /// <summary>
         /// Gets the text to insert before the match. Can be null.
@@ -53,7 +54,7 @@ namespace CK.SqlServer.Transform.Transformers
             Match m = _rExt.Match( t.Text );
             if( !m.Success ) return false;
             string name = m.Groups[1].Value;
-            if( name != _extensionName ) return false;
+            if( name != ExtensionName ) return false;
             bool isClosing = t.Text[1] == '/';
             bool isAutoClosing = m.Value[m.Value.Length - 2] == '/';
             bool isReverse = m.Groups[2].Value.Length > 0;
@@ -96,7 +97,7 @@ namespace CK.SqlServer.Transform.Transformers
                             {
                             new SqlTrivia(SqlTokenType.LineComment, m.Value.Remove(m.Value.Length - 2, 1 )),
                             new SqlTrivia(SqlTokenType.None, _injectedCode ),
-                            new SqlTrivia( SqlTokenType.LineComment, "</" + _extensionName + ">" )
+                            new SqlTrivia( SqlTokenType.LineComment, "</" + ExtensionName + ">" )
                         };
                             return _foundInsertPoint = true;
                         }

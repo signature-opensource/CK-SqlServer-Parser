@@ -20,7 +20,7 @@ namespace CK.SqlServer.Parser
             : base( t, leadingTrivia, trailingTrivia )
         {
             if( (t&SqlTokenType.IsIdentifier) == 0 ) throw new ArgumentException( "Invalid token type.", "t" );
-            if( string.IsNullOrWhiteSpace( name ) ) throw new ArgumentNullException( "name" );
+            if( name == null ) throw new ArgumentNullException( "name" );
             if( IsVariable && name[0] != '@' ) throw new ArgumentException( "Invalid variable name.", "name" );
             _name = name;
         }
@@ -112,9 +112,9 @@ namespace CK.SqlServer.Parser
         /// <returns>A new identifier.</returns>
         public static SqlTokenIdentifier Create( string name, bool quoteReservedKeyword = true, ImmutableList<SqlTrivia> leading = null, ImmutableList<SqlTrivia> trailing = null )
         {
-            if( string.IsNullOrWhiteSpace( name ) ) throw new ArgumentNullException( nameof( name ) );
-            SqlTokenType knownType;
-            bool isReservedKeyWord = SqlKeyword.IsReservedKeyword( name, out knownType );
+            if( name == null ) throw new ArgumentNullException( nameof( name ) );
+            SqlTokenType knownType = SqlTokenType.None;
+            bool isReservedKeyWord = name.Length > 0 && SqlKeyword.IsReservedKeyword( name, out knownType );
 
             if( (quoteReservedKeyword && isReservedKeyWord) || IsQuoteRequired( name ) )
             {

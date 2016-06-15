@@ -220,7 +220,7 @@ namespace CK.SqlServer.Transform
 
             public ISqlNodeLocationRange ExtractResult()
             {
-                ISqlNodeLocationRange r = null;
+                ISqlNodeLocationRange r = SqlNodeLocationRange.EmptySet;
                 if( _buffer.Count > 0 )
                 {
                     r = SqlNodeLocationRange.Create( _buffer, _buffer.Count );

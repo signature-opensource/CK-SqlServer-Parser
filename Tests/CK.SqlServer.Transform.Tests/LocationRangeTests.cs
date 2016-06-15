@@ -152,7 +152,7 @@ namespace CK.SqlServer.Transform.Tests
             ISqlNode node = new SqlAnalyser( text ).Parse();
             var t = new SqlNodeTransformer( node, TestHelper.ConsoleMonitor ) { BuildQualifiedNodeLocations = useQualifiedLocationNodeBuilder };
 
-            var pD = new SqlNodeScopeDepthPredicate( n => n.AllTokens.FirstOrDefault()?.TokenType == SqlTokenType.Select );
+            var pD = new SqlNodeScopeDepthPredicate( n => n.AllTokens.FirstOrDefault()?.TokenType == SqlTokenType.Select, false );
             var rD = t.BuildRange( pD );
             Assert.That( rD.ToString(), Is.EqualTo( "[0,1[-[4,5[-[8,9[" ) );
 

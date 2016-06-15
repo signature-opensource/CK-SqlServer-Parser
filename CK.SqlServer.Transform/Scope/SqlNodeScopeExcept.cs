@@ -169,6 +169,8 @@ namespace CK.SqlServer.Transform
             return new RangeExceptor().DoExcept( left, right, true ) ?? SqlNodeLocationRange.EmptySet;
         }
 
+        public override string ToString() => $"({_left} except {_right})";
+
     }
 
 

@@ -139,7 +139,7 @@
     <Compile Include="Parser\TransformNode\SqlTAddColumn.cs" />
     <Compile Include="Parser\TransformNode\SqlTCurlyPattern.cs" />
     <Compile Include="Parser\TransformNode\SqlTInjectInto.cs" />
-    <Compile Include="Parser\TransformNode\SqlTScope.cs" />
+    <Compile Include="Parser\TransformNode\SqlTInScope.cs" />
     <Compile Include="Parser\TransformNode\SqlTReplace.cs" />
     <Compile Include="Parser\TransformNode\SqlTNodeSimplePattern.cs" />
     <Compile Include="Parser\TransformNode\SqlTLocationFinder.cs" />

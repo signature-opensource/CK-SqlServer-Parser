@@ -169,7 +169,8 @@ namespace CK.SqlServer.Transform
             return new RangeUnioner().DoUnion( left, right, true ) ?? SqlNodeLocationRange.EmptySet;
         }
 
+        public override string ToString() => $"({_left} union {_right})";
+    
     }
-
 
 }

@@ -54,6 +54,9 @@ namespace CK.SqlServer.Transform
         {
             return null;
         }
+
+        public override string ToString() => "(breadth-first node match)";
+
     }
 
 

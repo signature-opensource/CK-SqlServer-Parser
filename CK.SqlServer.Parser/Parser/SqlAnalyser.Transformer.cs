@@ -112,14 +112,14 @@ namespace CK.SqlServer.Parser
                         && !R.IsToken( out beforeAfterOrAroundT, SqlTokenType.After, true ) ) return null;
                 }
 
-                SqlTLocationFinder loc = IsSqlTLocation( true );
+                SqlTLocationFinder loc = IsSqlTLocationFinder( true );
                 if( loc == null ) return null;
 
                 return new SqlTInject( initT, content, andT, content2, beforeAfterOrAroundT, loc, GetOptionalTerminator() );
             }
             else if( R.IsToken( out initT, SqlTokenType.Replace, false ) )
             {
-                SqlTLocationFinder loc = IsSqlTLocation( true );
+                SqlTLocationFinder loc = IsSqlTLocationFinder( true );
                 if( loc == null ) return null;
 
                 SqlTokenIdentifier withT;
@@ -130,9 +130,9 @@ namespace CK.SqlServer.Parser
 
                 return new SqlTReplace( initT, loc, withT, content, GetOptionalTerminator() );
             }
-            else if( R.IsToken( out initT, SqlTokenType.Scope, false ) )
+            else if( R.IsToken( out initT, SqlTokenType.In, false ) )
             {
-                SqlTLocationFinder loc = IsSqlTLocation( true );
+                SqlTLocationFinder loc = IsSqlTLocationFinder( true );
                 if( loc == null ) return null;
 
                 SqlTokenIdentifier begintT;
@@ -144,14 +144,14 @@ namespace CK.SqlServer.Parser
                 SqlTokenIdentifier endT;
                 if( !R.IsToken( out endT, SqlTokenType.End, true ) ) return null;
 
-                return new SqlTScope( initT, loc, begintT, s, endT, GetOptionalTerminator() );
+                return new SqlTInScope( initT, loc, begintT, s, endT, GetOptionalTerminator() );
             }
             if( expected ) R.SetCurrentError( "Expected transform statement." );
             return null;
         }
 
 
-        SqlTLocationFinder IsSqlTLocation( bool expected )
+        SqlTLocationFinder IsSqlTLocationFinder( bool expected )
         {
             SqlTokenIdentifier firstOrLastOrSingleOrAll;
             SqlTokenTerminal plusOrMinusT = null;

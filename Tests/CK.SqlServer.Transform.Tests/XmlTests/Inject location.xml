@@ -91,7 +91,7 @@
         after last "--[not here]";
       end
     </Description>
-    <ResultText>ERROR: not found</ResultText>
+    <ResultText>ERROR: Unable to find: last line comment starting with '[not here]'</ResultText>
   </Test>  
 
   <Test>

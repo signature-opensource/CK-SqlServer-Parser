@@ -261,6 +261,47 @@
     </Xml>
   </Test>
     
-   
+  <Test>
+    <Text>
+      WITH EmployeeTemp (EmpID, LastName, FirstName, Phone, 
+                   Address, City, StateProvince, 
+                   PostalCode, CurrentFlag)
+          AS (SELECT 
+                  e.BusinessEntityID, c.LastName, c.FirstName, pp.PhoneNumber,
+                  a.AddressLine1, a.City, sp.StateProvinceCode, 
+                  a.PostalCode, e.CurrentFlag
+              FROM HumanResources.Employee e
+                  INNER JOIN Person.BusinessEntityAddress AS bea
+                  ON e.BusinessEntityID = bea.BusinessEntityID
+                  INNER JOIN Person.Address AS a
+                  ON bea.AddressID = a.AddressID
+                  INNER JOIN Person.PersonPhone AS pp
+                  ON e.BusinessEntityID = pp.BusinessEntityID
+                  INNER JOIN Person.StateProvince AS sp
+                  ON a.StateProvinceID = sp.StateProvinceID
+                  INNER JOIN Person.Person as c
+                  ON e.BusinessEntityID = c.BusinessEntityID
+              )
+      INSERT INTO HumanResources.NewEmployee 
+          SELECT EmpID, LastName, FirstName, Phone, 
+                  Address, City, StateProvince, PostalCode, CurrentFlag
+          FROM EmployeeTemp;
+      GO;
+    </Text>
+    <Description>MSDN Sample: CTE with insert.</Description>
+    <Xml>
+      <Statements>
+        <CTEStatement HasTerminator="true">
+          <SelectSpec />
+          <InsertStatement HasTerminator="true">
+            <SelectSpec />
+          </InsertStatement>
+        </CTEStatement>
+        <Statement StatementName="GO" HasTerminator="true" />
+      </Statements>
+    </Xml>
+  </Test>
+
+
 </Tests>
 

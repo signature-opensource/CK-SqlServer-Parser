@@ -14,12 +14,8 @@ namespace CK.SqlServer.Transform.Transformers
     {
         readonly UnparsedInjectInfo _info;
         readonly LocationInserter _inserter;
-        // The little magic to promote SelectSpec match to
-        // its SelectDecorator.
-        // When descending, we capture the top level decorator at its position so that
-        // we know that matching at this exact position is useless: only a SelectSpec (or
-        // another decorator) may match and if it is the case, we do not want it to match!
-        readonly Stack<KeyValuePair<SelectDecorator, int>> _selectDecorator;
+        readonly DepthFirstNodeMatcherHelper _nodeMatcher;
+
 
         internal UnParsedTextInjecVisitor( UnparsedInjectInfo injecter )
         {
@@ -28,39 +24,29 @@ namespace CK.SqlServer.Transform.Transformers
             if( _info.Location.NodeMatcher != null )
             {
                 if( _info.Location.IsNodeMatchRange ) throw new ArgumentException();
-                if( _info.Location.IsNodeMatchPart )
-                {
-                    _selectDecorator = new Stack<KeyValuePair<SelectDecorator, int>>();
-                }
+                _nodeMatcher = new DepthFirstNodeMatcherHelper( _info.Location.IsNodeMatchPart, _info.Location.NodeMatcher );
             }
         }
 
         protected override bool BeforeVisitItem()
         {
-            if( _selectDecorator != null )
-            {
-                var d = VisitContext.VisitedNode as SelectDecorator;
-                if( d != null 
-                    && (_selectDecorator.Count == 0 || _selectDecorator.Peek().Value != VisitContext.Position ) )
-                {
-                    _selectDecorator.Push( new KeyValuePair<SelectDecorator, int>( d, VisitContext.Position ) );
-                }
-            }
+            if( _nodeMatcher != null ) _nodeMatcher.OnBeforeVisitItem( VisitContext );
             return true;
         }
 
         protected override ISqlNode AfterVisitItem( ISqlNode e )
         {
+            Debug.Assert( e.Width == VisitContext.VisitedNode.Width );
             e = HandleNode( e );
             if( VisitContext.Depth == 0 )
             {
                 if( _inserter.MatchCount == 0 )
                 {
-                    Monitor.Error().Send( $"Pattern not found." );
+                    Monitor.Error().Send( $"Unable to find: " + _info.Location.ToString() );
                 }
                 else if( _inserter.ExpectedMatchCount != 0 && _inserter.MatchCount < _inserter.ExpectedMatchCount )
                 {
-                    Monitor.Error().Send( $"Missing matches: expecting {_inserter.ExpectedMatchCount}, found {_inserter.MatchCount}." );
+                    Monitor.Error().Send( $"Missing matches: expecting {_inserter.ExpectedMatchCount} {_info.Location.WhatDescription}, found {_inserter.MatchCount}." );
                 }
                 else if( _inserter.RequiresConclude )
                 {
@@ -76,37 +62,10 @@ namespace CK.SqlServer.Transform.Transformers
             return e;
         }
 
-        int _previousMatchPos;
-
-        bool HandleDecoratorCovering()
-        {
-            if( _selectDecorator == null || _selectDecorator.Count == 0 ) return true;
-            var h = _selectDecorator.Peek();
-            if( h.Value == VisitContext.Position )
-            {
-                if( h.Key == VisitContext.VisitedNode )
-                {
-                    _selectDecorator.Pop();
-                    return true;
-                }
-                return false;
-            }
-            return true;
-        }
-
-        private ISqlNode HandleNode( ISqlNode e )
+        ISqlNode HandleNode( ISqlNode e )
         {
             if( _inserter.CanStop ) return e;
-            if( _info.Location.NodeMatcher != null )
-            {
-                if( !HandleDecoratorCovering()
-                    || VisitContext.Position < _previousMatchPos
-                    || !_info.Location.NodeMatcher( e ) )
-                {
-                    return e;
-                }
-                _previousMatchPos = VisitContext.Position + e.Width;
-            }
+            if( _nodeMatcher != null && !_nodeMatcher.Match( VisitContext, e ) ) return e;
             var m = _inserter.AddCandidate( Monitor, VisitContext.Position, e );
             if( m != null )
             {

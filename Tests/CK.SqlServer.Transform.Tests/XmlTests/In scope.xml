@@ -3,17 +3,20 @@
 
   <Test>
     <Text>
-      select X from T where X = 3 order by X;
+      select X from T order by Y, X
     </Text>
     <Description>
       create transformer
       as
       begin
-        replace single {select X} with "";
+        in single {select X}
+        begin
+          replace all range {X} with 'Z';
+        end
       end
     </Description>
     <ResultText>
-
+      select Z from T order by Y, Z
     </ResultText>
   </Test>
 

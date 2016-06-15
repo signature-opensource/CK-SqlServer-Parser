@@ -101,6 +101,8 @@ namespace CK.SqlServer.Transform
             return false;
         }
 
+        public override string ToString() => $"(cardinality '{_info.ToString()}' on {_inner})";
+
 
     }
 

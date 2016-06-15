@@ -82,22 +82,25 @@ namespace CK.SqlServer.Transform
                     scope = new SqlNodeScopeIntersect( scope, target );
                 }
             }
-            foreach( ISqlTStatement t in transformer.Body )
+            if( !RunStatements( transformer.Body, scope ) ) return false;
+            return NeedReparse ? Reparse() : true;
+        }
+
+        bool RunStatements( SqlTStatementList list, SqlNodeScopeBuilder scope )
+        {
+            foreach( ISqlTStatement t in list )
             {
                 if( RunStatement( t, scope ) )
                 {
-                    Monitor.Trace().Send( $"Successfully applied '{t.ToString()}'" );
+                    if( !(t is SqlTInScope) ) Monitor.Trace().Send( $"Successfully applied '{t.ToString()}'." );
                 }
                 else
                 {
-                    using( Monitor.OpenError().Send( $"Failed to apply '{t.ToString()}' to:" ) )
-                    {
-                        Monitor.Trace().Send( Node.ToString( true ) );
-                    }
+                    Monitor.Error().Send( $"Failed to apply '{t.ToString()}'." );
                     return false;
                 }
             }
-            return NeedReparse ? Reparse() : true;
+            return true;
         }
 
         bool RunStatement( ISqlTStatement t, SqlNodeScopeBuilder scope )
@@ -119,7 +122,7 @@ namespace CK.SqlServer.Transform
                 UnparsedInjectInfo info = new UnparsedInjectInfo( replace );
                 return new Transformers.UnparsedTextTransformer( info, scope ).Apply( this );
             }
-            var setScope = t as SqlTScope;
+            var setScope = t as SqlTInScope;
             #region SqlTScope
             if( setScope != null )
             {
@@ -127,14 +130,11 @@ namespace CK.SqlServer.Transform
                 Debug.Assert( (loc.IsNodeMatchRange && loc.PatternRange != null) != ((loc.IsNodeMatchPart || loc.IsNodeMatchStatement) && loc.NodeMatcher != null) );
                 SqlNodeScopeBuilder rangeMatch = loc.IsNodeMatchRange 
                                                     ? (SqlNodeScopeBuilder)new SqlNodeScopePatternRange( loc.PatternRange )
-                                                    : new SqlNodeScopeDepthPredicate( loc.NodeMatcher );
-                var withCard = new SqlNodeScopeCardinalityFilter( rangeMatch, loc.Card );
-                SqlNodeScopeBuilder newScope = new SqlNodeScopeIntersect( scope, withCard );
-                foreach( var s in setScope.Statements )
-                {
-                    if( !RunStatement( s, newScope ) ) return false;
-                }
-                return true;
+                                                    : new SqlNodeScopeDepthPredicate( loc.NodeMatcher, loc.IsNodeMatchPart );
+                SqlNodeScopeBuilder withCard = new SqlNodeScopeCardinalityFilter( rangeMatch, loc.Card );
+                SqlNodeScopeBuilder newScope = scope != null ? new SqlNodeScopeIntersect( scope, withCard ) : withCard;
+
+                return RunStatements( setScope.Statements, newScope );
             }
             #endregion
             var addParam = t as SqlTAddParameter;

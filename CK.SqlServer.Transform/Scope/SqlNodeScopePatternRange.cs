@@ -10,7 +10,7 @@ namespace CK.SqlServer.Transform
 {
 
     /// <summary>
-    /// Builds scopes based on a node predicate.
+    /// Builds ranges that match a list of tokens.
     /// </summary>
     public sealed class SqlNodeScopePatternRange : SqlNodeScopeBuilder
     {
@@ -59,27 +59,24 @@ namespace CK.SqlServer.Transform
 
         void Matches( ISqlNodeLocationManager ns, IEnumerator<SqlToken> e, ref int pos, int tokenCount, ref List<SqlNodeLocationRange> collector )
         {
-            int remainder = tokenCount - _pattern.Count;
-            if( remainder < 0 ) return;
+            if( tokenCount < _pattern.Count ) return;
+            int width;
             var w = new Matcher.WindowToken( _pattern.Count, e );
             do
             {
-                int idx = w.HeadMatch( _pattern );
-                Debug.Assert( idx <= 0 || idx == _pattern.Count );
-                if( idx > 0 )
+                width = w.HeadMatch( _pattern );
+                Debug.Assert( width <= 0 || width == _pattern.Count );
+                if( width > 0 )
                 {
                     var beg = ns.GetRawLocation( pos );
-                    pos += idx;
-                    var end = ns.GetRawLocation( pos );
+                    var end = ns.GetRawLocation( pos + width );
                     if( collector == null ) collector = new List<SqlNodeLocationRange>();
                     collector.Add( new SqlNodeLocationRange( beg, end ) );
                 }
-                ++pos;
-                --remainder;
-                w.Shift( 1 );
+                else width = 1;
+                pos += width;
             }
-            while( remainder > 0 );
-
+            while( w.Shift( width ) == _pattern.Count );
         }
 
         protected override ISqlNodeLocationRange DoLeave( IVisitContext context )
@@ -91,6 +88,9 @@ namespace CK.SqlServer.Transform
         {
             return null;
         }
+
+        public override string ToString() => $"like {{{_pattern.ToStringCompact()}}}";
+
     }
 
 
