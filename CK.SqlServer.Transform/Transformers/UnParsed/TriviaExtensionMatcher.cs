@@ -15,7 +15,7 @@ namespace CK.SqlServer.Transform.Transformers
     /// </summary>
     class TriviaExtensionMatcher
     {
-        static readonly Regex _rExt = new Regex( @"^</?(?<1>(\w|\.|-)+)\s+(?<2>reverse(\s*=\s*(""|')?(true|1)(""|')?)?)?\s*/?>", RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant );
+        static readonly Regex _rExt = new Regex( @"^</?(?<1>(\w|\.|-)+)(?<2>\s+reverse(\s*=\s*(""|')?(true|1)(""|')?)?)?\s*/?>", RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant );
 
         readonly IActivityMonitor _monitor;
         readonly string _extensionName;
@@ -29,7 +29,7 @@ namespace CK.SqlServer.Transform.Transformers
         {
             _monitor = monitor;
             _extensionName = extensionName;
-            _injectedCode = injectedCode;
+            _injectedCode = injectedCode.TrimEnd() + Environment.NewLine;
         }
 
         /// <summary>
@@ -82,29 +82,31 @@ namespace CK.SqlServer.Transform.Transformers
                         return _foundInsertPoint = true;
                     }
                 }
-                // Opening tag.
-                if( _foundOpening ) _monitor.Error().Send( $"Duplicate opening of extension tag: '{t.Text}'." );
-                else
+                else // Opening tag.
                 {
-                    _foundOpening = true;
-                    _foundOpeningIsAutoClosing = isAutoClosing;
-                    _foundOpeningIsReverse = isReverse;
-                    if( isAutoClosing )
+                    if( _foundOpening ) _monitor.Error().Send( $"Duplicate opening of extension tag: '{name}'." );
+                    else
                     {
-                        TextReplace = new[] 
+                        _foundOpening = true;
+                        _foundOpeningIsAutoClosing = isAutoClosing;
+                        _foundOpeningIsReverse = isReverse;
+                        if( isAutoClosing )
                         {
+                            TextReplace = new[]
+                            {
                             new SqlTrivia(SqlTokenType.LineComment, m.Value.Remove(m.Value.Length - 2, 1 )),
                             new SqlTrivia(SqlTokenType.None, _injectedCode ),
                             new SqlTrivia( SqlTokenType.LineComment, "</" + _extensionName + ">" )
                         };
-                        return _foundInsertPoint = true;
-                    }
-                    else
-                    {
-                        if( isReverse )
-                        {
-                            TextAfter = _injectedCode;
                             return _foundInsertPoint = true;
+                        }
+                        else
+                        {
+                            if( isReverse )
+                            {
+                                TextAfter = _injectedCode;
+                                return _foundInsertPoint = true;
+                            }
                         }
                     }
                 }

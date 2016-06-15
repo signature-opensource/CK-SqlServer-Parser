@@ -106,6 +106,7 @@ namespace CK.SqlServer.Parser
         {
             if( item == null ) throw new ArgumentNullException( nameof( item ) );
             if( idx < 0 || idx > Count ) throw new IndexOutOfRangeException();
+            item = item.LiftBothTrivias().SetTrivias( null, null );
             ISqlNode result;
             int count = Count;
             if( count == 0 )

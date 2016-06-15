@@ -53,27 +53,25 @@
   <Test>
     <Text>
       <![CDATA[
-      create procedure CK.sGroupCreate
-      (
-        @ActorId int,
-        @GroupIdResult int output
-      )
-      as begin
-      if @ActorId &lt;= 0 throw 50000, 'Security.AnonymousNotAllowed', 1;
+create procedure CK.sGroupCreate
+(
+  @ActorId int,
+  @GroupIdResult int output
+)
+as begin
+  if @ActorId &lt;= 0 throw 50000, 'Security.AnonymousNotAllowed', 1;
 
-      --[beginsp]
+  --[beginsp]
 
-      --<PreCreate />
+  --<PreCreate />
 
-      exec CK.sActorCreate @ActorId, @GroupIdResult output;
-      insert into CK.tGroup( GroupId ) values( @GroupIdResult );
+  exec CK.sActorCreate @ActorId, @GroupIdResult output;
+  insert into CK.tGroup( GroupId ) values( @GroupIdResult );
 
-      --<PostCreate reverse="true" />
+  --<PostCreate reverse="true" />
       
-      --[beginsp]
-
-      --[endsp]
-      end
+  --[endsp]
+end
     ]]>
     </Text>
     <Description>
@@ -84,7 +82,7 @@
         inject
         "   -- from Zone...
             if @ZoneId = 1 throw 50000, 'Zone.SystemZoneHasNoGroup', 1; 
-        " before first "--[beginsp]";
+        " before single "--[beginsp]";
         scope single {insert into CK.tGroup}
         begin
           add column ZoneId = @ZoneId;
@@ -98,35 +96,35 @@
     </Description>
     <ResultText>
       <![CDATA[
-      create procedure CK.sGroupCreate
-      (
-        @ActorId int,
-        @ZoneId int = 0,
-        @GroupIdResult int output
-      )
-      as
-      begin
-      if @ActorId &lt;= 0 throw 50000, 'Security.AnonymousNotAllowed', 1;
-      -- from Zone...
-      if @ZoneId = 1 throw 50000, 'Zone.SystemZoneHasNoGroup', 1;
+create procedure CK.sGroupCreate
+(
+  @ActorId int,
+  @ZoneId int = 0,
+  @GroupIdResult int output
+)
+as
+begin
+  if @ActorId &lt;= 0 throw 50000, 'Security.AnonymousNotAllowed', 1;
+  -- from Zone...
+  if @ZoneId = 1 throw 50000, 'Zone.SystemZoneHasNoGroup', 1;
       
-      --[beginsp]
+  --[beginsp]
 
-      --<PreCreate>
-      if @ActorId = 9 throw 50000, 'Security.User9IsMad', 1;
-      if @ActorId = 666 throw 50000, 'Security.User666IsEvil', 1;
-      --</PreCreate>
+  --<PreCreate>
+  if @ActorId = 9 throw 50000, 'Security.User9IsMad', 1;
+  if @ActorId = 666 throw 50000, 'Security.User666IsEvil', 1;
+  --</PreCreate>
 
-      exec CK.sActorCreate @ActorId, @GroupIdResult output;
-      insert into CK.tGroup( GroupId, ZoneId ) values( @GroupIdResult, @ZoneId );
+  exec CK.sActorCreate @ActorId, @GroupIdResult output;
+  insert into CK.tGroup( GroupId, ZoneId ) values( @GroupIdResult, @ZoneId );
 
-      --<PostCreate reverse="true">
-        insert into UX.tOtherLog( Msg ) values( N'Done.' );
-        insert into UX.tBasicLog( Msg ) values( N'Group created.' );
-      --</PostCreate>
+  --<PostCreate reverse="true">
+  insert into UX.tOtherLog( Msg ) values( N'Done.' );
+  insert into UX.tBasicLog( Msg ) values( N'Group created.' );
+  --</PostCreate>
 
-      --[endsp]
-      end
+  --[endsp]
+end
     ]]>
     </ResultText>
   </Test>
