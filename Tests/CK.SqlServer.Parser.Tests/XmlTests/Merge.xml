@@ -44,6 +44,23 @@
 
   <Test>
     <Text>
+      merge CFLYGed.tOfferRef as t
+       using( select RefId, ItemId = @ItemId from @RefIds ) as s
+       on t.RefId = s.RefId and t.ItemId = s.ItemId
+       when not matched by target and exists ( select * from CFLY.tRef where RefId = s.RefId ) 
+        then insert ( ItemId, RefId, CreationDate ) values (@ItemId, s.RefId, getutcdate() )
+       when not matched by source  and ( t.ItemId = @ItemId ) then delete;
+    </Text>
+    <Description></Description>
+    <Xml>
+      <Statements>
+        <MergeStatement HasTerminator="true" />
+      </Statements>
+    </Xml>
+  </Test>
+
+  <Test>
+    <Text>
       -- Create a temporary table variable to hold the output actions.
       DECLARE @SummaryOfChanges TABLE(Change VARCHAR(20));
 

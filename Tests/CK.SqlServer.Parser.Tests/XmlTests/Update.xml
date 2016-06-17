@@ -3,6 +3,36 @@
 
   <Test>
     <Text>
+      update s
+        Set s.PeopleCount = x.PeopleCount
+        from CFLYIntranet.tVersionedRefSearchableContent s
+        inner join 
+        (
+         select distinct r.VersionedRefId, PeopleCount = CAST( Coalesce( n.PeopleCount, Replace( PeopleNumber ,' ', ''), 0 ) as float )
+         from CFLY.vPublishedVersionedRef r
+         inner join CFLY.tCulturedRef cr on cr.VersionedRefId = r.VersionedRefId
+         left outer join CFLY.tVersionedNetwork n on n.NetworkId = r.NetworkId 
+        ) x on x.VersionedRefId = s.VersionedRefId
+        where x.VersionedRefId = @VersionedRefId;
+    </Text>
+    <Description>Using the TOP clause</Description>
+    <Xml ToStringCompact="From,WhereExpression,Assigns">
+      <Sql>
+       <UpdateStatement HasTerminator="true">
+         <Target>
+           <Identifier>s</Identifier>
+         </Target>
+         <Assigns>s.PeopleCount=x.PeopleCount</Assigns>
+         <From>from CFLYIntranet.tVersionedRefSearchableContent s inner join(select distinct r.VersionedRefId, PeopleCount=CAST(Coalesce(n.PeopleCount, Replace(PeopleNumber, ' ', ''), 0) as float) from CFLY.vPublishedVersionedRef r inner join CFLY.tCulturedRef cr on cr.VersionedRefId=r.VersionedRefId left outer join CFLY.tVersionedNetwork n on n.NetworkId=r.NetworkId) x on x.VersionedRefId=s.VersionedRefId</From>
+         <WhereExpression>x.VersionedRefId=@VersionedRefId</WhereExpression>
+       </UpdateStatement>
+      </Sql>
+    </Xml>
+  </Test>
+
+
+  <Test>
+    <Text>
       UPDATE HumanResources.Employee
       SET VacationHours = VacationHours + 8
       FROM (SELECT TOP 10 BusinessEntityID FROM HumanResources.Employee
@@ -23,7 +53,7 @@
       </Sql>
     </Xml>
   </Test>
-
+  
   <Test>
     <Text>
       UPDATE Sales.SalesPerson
