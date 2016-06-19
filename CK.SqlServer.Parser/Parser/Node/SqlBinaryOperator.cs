@@ -51,7 +51,13 @@ namespace CK.SqlServer.Parser
                 {
                     if( op != SqlTokenType.BitwiseNot && op != SqlTokenType.Is) return true;
                 }
-                else if( op == SqlTokenType.And || op == SqlTokenType.Or ) return true;
+                else if( op == SqlTokenType.And 
+                         || op == SqlTokenType.Or 
+                         || op == SqlTokenType.Dot
+                         // This should be useless since :: seems to appear only after identifiers
+                         // and this is handled directly as a multi identifier but in doubt,
+                         // consider it as a valid binary operator...
+                         || op == SqlTokenType.DoubleColons ) return true;
             }
             return false;
         }

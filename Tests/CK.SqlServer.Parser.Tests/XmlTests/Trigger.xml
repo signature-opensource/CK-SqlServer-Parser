@@ -15,11 +15,10 @@
     <Xml>
       <Statements>
         <Trigger StatementName="CreateTrigger">
-            <Statement StatementName="PRINT" />
-            <SelectStatement>
-              <SelectSpec />
-            </SelectStatement>
-            <UnnamedStatement />
+          <Statement StatementName="PRINT" />
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
         </Trigger>
         <Statement StatementName="GO" />
       </Statements>

@@ -168,7 +168,7 @@
     <Compile Include="Parser\Node\SqlSetVariable.cs" />
     <Compile Include="Parser\Node\SqlReturnStatement.cs" />
     <Compile Include="Parser\Node\SqlIdentifierCommaList.cs" />
-    <Compile Include="Parser\Node\SqlOverClause.cs" />
+    <Compile Include="Parser\Node\KoCall\SqlOverClause.cs" />
     <Compile Include="Parser\Select\SelectOrderBy.cs" />
     <Compile Include="Parser\Node\SqlOrderByList.cs" />
     <Compile Include="Parser\Node\SqlOrderByItem.cs" />
@@ -193,7 +193,7 @@
     <Compile Include="Parser\Node\SqlEnclosedIdentifierCommaList.cs" />
     <Compile Include="Parser\Node\SqlInValues.cs" />
     <Compile Include="Parser\Node\SqlIsNull.cs" />
-    <Compile Include="Parser\Node\SqlKoCall.cs" />
+    <Compile Include="Parser\Node\KoCall\SqlKoCall.cs" />
     <Compile Include="Parser\Node\SqlLike.cs" />
     <Compile Include="Parser\Node\SqlMultiIdentifier.cs" />
     <Compile Include="Parser\Node\SqlParameter.cs" />

@@ -126,9 +126,8 @@
       DECLARE @h int ;
       EXEC sp_xml_preparedocument @h OUTPUT, '<T Col1="1" Col2="EjRWeJA="/>' ;
       SELECT Col1, 
-      CAST('<binary>' + Col2 + '</binary>' AS XML).value('.', 'varbinary(max)') AS BinaryCol 
-      FROM openxml(@h, '/T') 
-      WITH (Col1 integer, Col2 varchar(max)) ;
+            CAST('<binary>' + Col2 + '</binary>' AS XML).value('.', 'varbinary(max)') AS BinaryCol 
+        FROM openxml(@h, '/T') WITH (Col1 integer, Col2 varchar(max)) ;
       EXEC sp_xml_removedocument @h ;
       GO
 ]]>
@@ -148,10 +147,9 @@
         <Statement StatementName="go" />
         <DeclareVariable HasTerminator="true" />
         <ExecuteStatement HasTerminator="true" />
-        <SelectStatement>
+        <SelectStatement HasTerminator="true">
           <SelectSpec />
         </SelectStatement>
-        <UnnamedStatement HasTerminator="true" />
         <ExecuteStatement HasTerminator="true" />
         <Statement StatementName="GO" />
       </Statements>

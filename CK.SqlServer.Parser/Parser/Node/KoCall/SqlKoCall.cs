@@ -8,14 +8,16 @@ using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
+    using CNode = SNode<ISqlNode, SqlEnclosedCommaList, SqlOverClause>;
+
     public sealed class SqlKoCall : SqlNonToken
     {
-        readonly SNode<ISqlNode, SqlEnclosedCommaList, SqlOverClause> _content;
+        readonly CNode _content;
 
         public SqlKoCall( ISqlNode funName, SqlEnclosedCommaList parameters, SqlOverClause over = null )
             : base( null, null )
         {
-            _content = new SNode<ISqlNode, SqlEnclosedCommaList, SqlOverClause>( funName, parameters, over );
+            _content = new CNode( funName, parameters, over );
             CheckContent();
         }
 
@@ -31,7 +33,7 @@ namespace CK.SqlServer.Parser
             if( items == null ) _content = o._content;
             else
             {
-                _content = new SNode<ISqlNode, SqlEnclosedCommaList, SqlOverClause>( items );
+                _content = new CNode( items );
                 CheckContent();
             }
         }

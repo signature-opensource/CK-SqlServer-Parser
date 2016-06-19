@@ -1,5 +1,60 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <Tests>
+  
+  <Test Mode="OneExpression">
+    <Text>
+      case
+        when @g.MakeValid().EnvelopeAngle() &gt; 90 then @g.MakeValid().ReorientObject()
+        else @g.MakeValid()
+      end
+    </Text>
+    <Description>Geometry calls: chaining calls at work.</Description>
+    <Xml ToStringCompact="KoCall, Operator">
+      <Sql>
+       <Case>
+         <WhenList>
+           <CaseWhenList>
+             <Item>
+               <CaseWhenSelector>
+                 <Expression>
+                   <BinaryOperator>
+                     <Left>
+                       <BinaryOperator>
+                         <Left>
+                           <KoCall>@g.MakeValid()</KoCall>
+                         </Left>
+                         <Operator>.</Operator>
+                         <Right>
+                           <KoCall>EnvelopeAngle()</KoCall>
+                         </Right>
+                       </BinaryOperator>
+                     </Left>
+                     <Operator>&gt;</Operator>
+                     <Right>
+                       <LiteralInteger>90</LiteralInteger>
+                     </Right>
+                   </BinaryOperator>
+                 </Expression>
+                 <Value>
+                   <BinaryOperator>
+                     <Left>
+                       <KoCall>@g.MakeValid()</KoCall>
+                     </Left>
+                     <Operator>.</Operator>
+                     <Right>
+                       <KoCall>ReorientObject()</KoCall>
+                     </Right>
+                   </BinaryOperator>
+                 </Value>
+               </CaseWhenSelector>
+             </Item>
+           </CaseWhenList>
+         </WhenList>
+       </Case>
+      </Sql>
+    </Xml>
+  </Test>
+
 
 
   <Test Mode="OneExpression">

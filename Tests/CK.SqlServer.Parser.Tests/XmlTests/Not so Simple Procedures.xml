@@ -1,7 +1,97 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <Tests>
   
-    <Test>
+   <Test>
+      <Text>
+        <![CDATA[
+-- Version = *
+
+create proc CFLYTarget.sBuildingCreate
+(
+	@ActorId int ,
+	@Gid varchar(32) ,
+	@NetworkId int,
+
+	@JsonCoordinates nvarchar(max),
+	@Coordinates nvarchar(max),
+
+	@AgeClass tinyint,
+	@Conso float,
+	@Area float,
+	@MainPurpose char,
+	@MainPurposeDistribution tinyint,
+	@SecondaryPurpose char,
+	@SecondaryPurposeDistribution tinyint,
+	@Energy tinyint,
+	@EnergyPercentage tinyint,
+	@Energy2 tinyint,
+	@Energy2Percentage tinyint,
+	@OverwriteIfExists bit = 0
+)
+as
+begin
+	--[beginsp]
+
+		declare @g geography;
+		set @g = geography::STGeomFromText(@Coordinates, 4326); 
+		set @g = case 
+			when @g.STIsValid() = 0 then
+				case 
+					when @g.MakeValid().EnvelopeAngle() > 90 then @g.MakeValid().ReorientObject() 
+					else @g.MakeValid()  
+				end
+			else
+				case 
+					when @g.EnvelopeAngle() > 90 then @g.ReorientObject() 
+					else @g 
+				end
+		end
+
+
+		merge CFLYTarget.tBuilding as target
+		using ( select Gid = @Gid, NetworkId = @NetworkId ) as source 
+		on ( source.Gid = target.Gid and source.NetworkId = target.NetworkId )
+		when not matched 
+			by target then 
+				insert ( Gid, JsonCoordinates, Coordinates, NetworkId, ValidationDate, AgeClass, Conso, Area, MainPurpose, MainPurposeDistribution, SecondaryPurpose, SecondaryPurposeDistribution, Energy, EnergyPercentage, Energy2, Energy2Percentage ) 
+				values ( @Gid, @JsonCoordinates, @g, @NetworkId, '', @AgeClass, @Conso, @Area, @MainPurpose, @MainPurposeDistribution, @SecondaryPurpose, @SecondaryPurposeDistribution, @Energy, @EnergyPercentage, @Energy2, @Energy2Percentage )
+		when matched and @OverwriteIfExists = 1 then 
+				update 
+					set 
+						Coordinates = @g,
+						JsonCoordinates = @JsonCoordinates,
+						Conso = @Conso,
+						AgeClass = @AgeClass,
+						Area = @Area,
+						MainPurpose = @MainPurpose,
+						MainPurposeDistribution = @MainPurposeDistribution,
+						SecondaryPurpose = @SecondaryPurpose,
+						SecondaryPurposeDistribution = @SecondaryPurposeDistribution,
+						Energy = @Energy,
+						EnergyPercentage = @EnergyPercentage,
+						Energy2 = @Energy2,
+						Energy2Percentage = @Energy2Percentage,
+						SharedData = '{"conso":'+cast(IsNull(Conso,0) as varchar(30))+',"area":'+cast(IsNull(Area,0) as varchar(30))+',"mainPurpose":"'+cast(IsNull(MainPurpose,'') as varchar(30))+'","mainPurposeDistribution":'+cast(IsNull(MainPurposeDistribution, '') as varchar(30))+',"secondaryPurpose":"'+cast(IsNull(SecondaryPurpose, '') as varchar(30))+'","secondaryPurposeDistribution":'+cast(IsNull(SecondaryPurposeDistribution,'') as varchar(30))+',"energy":'+cast(IsNull(Energy,'') as varchar(30))+',"energy2":'+cast(IsNull(Energy2,'') as varchar(30))+',"energyPercentage":'+cast(IsNull(EnergyPercentage,'') as varchar(30))+',"energy2Percentage":'+cast(IsNull(Energy2Percentage,'') as varchar(30))+',"ageClass":'+case when AgeClass is null then '-1' else cast( AgeClass as varchar(30) ) end +'}'
+		;
+
+	--[endsp]
+end
+        ]]>
+  </Text>
+    <Description>Geometry</Description>
+    <Xml>
+      <Statements>
+        <StoredProcedure StatementName="CreateProcedure">
+          <DeclareVariable HasTerminator="true" />
+          <SetVariable HasTerminator="true" />
+          <SetVariable />
+          <MergeStatement HasTerminator="true" />
+        </StoredProcedure>
+      </Statements>
+    </Xml>
+   </Test>
+ 
+   <Test>
       <Text>
         <![CDATA[
 -- Version = 2.0.0
@@ -1112,9 +1202,9 @@ END
         </FunctionScalar>
       </Statements>
     </Xml>
-   </Test>
- 
-    <Test>
+   </Test>  
+  
+  <Test>
       <Text>
         create procedure CKCore.sErrorRethrow
         (

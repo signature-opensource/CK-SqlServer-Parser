@@ -8,17 +8,19 @@ using System.Text;
 
 namespace CK.SqlServer.Parser
 {
+    using CNode = SNode<SqlTokenIdentifier, SqlTokenOpenPar, SqlNodeList, SqlTokenClosePar>;
+
     /// <summary>
     /// Captures a select column definition. 
     /// </summary>
     public sealed class SqlOverClause : SqlNonToken
     {
-        readonly SNode<SqlTokenIdentifier, SqlTokenOpenPar, SqlNodeList, SqlTokenClosePar> _content;
+        readonly CNode _content;
 
         public SqlOverClause( SqlTokenIdentifier overT, SqlTokenOpenPar opener, SqlNodeList overExpression, SqlTokenClosePar closer )
             : base( null, null )
         {
-            _content = new SNode<SqlTokenIdentifier, SqlTokenOpenPar, SqlNodeList, SqlTokenClosePar>( overT, opener, overExpression, closer );
+            _content = new CNode( overT, opener, overExpression, closer );
             CheckContent();
         }
 
@@ -36,7 +38,7 @@ namespace CK.SqlServer.Parser
             if( items == null ) _content = o._content;
             else
             {
-                _content = new SNode<SqlTokenIdentifier, SqlTokenOpenPar, SqlNodeList, SqlTokenClosePar>( items );
+                _content = new CNode( items );
                 CheckContent();
             }
         }
