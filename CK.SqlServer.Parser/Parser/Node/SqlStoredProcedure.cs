@@ -8,23 +8,24 @@ using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
+    using CNode = SNode<SqlTokenIdentifier,
+                        SqlTokenIdentifier,
+                        ISqlIdentifier,
+                        SqlParameterList,
+                        SqlWithOptions,
+                        SqlTokenIdentifier,
+                        SqlTokenIdentifier,
+                        SqlStatementList,
+                        SqlTokenIdentifier,
+                        SqlTokenTerminal>;
+
     public sealed class SqlStoredProcedure : SqlNonToken, 
                                                 ISqlNamedStatement, 
                                                 ISqlFullNameHolder, 
                                                 ISqlParameterListHolder,
                                                 ISqlServerStoredProcedure
     {
-        readonly SNode<
-            SqlTokenIdentifier,
-            SqlTokenIdentifier,
-            ISqlIdentifier,
-            SqlParameterList,
-            SqlWithOptions,
-            SqlTokenIdentifier,
-            SqlTokenIdentifier,
-            SqlStatementList,
-            SqlTokenIdentifier,
-            SqlTokenTerminal> _content;
+        readonly CNode _content;
 
         public SqlStoredProcedure( 
             SqlTokenIdentifier alterOrCreate, 
@@ -39,7 +40,7 @@ namespace CK.SqlServer.Parser
             SqlTokenTerminal term )
             : base( null, null )
         {
-            _content = new SNode<SqlTokenIdentifier, SqlTokenIdentifier, ISqlIdentifier, SqlParameterList, SqlWithOptions, SqlTokenIdentifier, SqlTokenIdentifier, SqlStatementList, SqlTokenIdentifier, SqlTokenTerminal>(
+            _content = new CNode(
                 alterOrCreate,
                 type,
                 name,
@@ -59,7 +60,7 @@ namespace CK.SqlServer.Parser
             if( items == null ) _content = o._content;
             else
             {
-                _content = new SNode<SqlTokenIdentifier, SqlTokenIdentifier, ISqlIdentifier, SqlParameterList, SqlWithOptions, SqlTokenIdentifier, SqlTokenIdentifier, SqlStatementList, SqlTokenIdentifier, SqlTokenTerminal>( items );
+                _content = new CNode( items );
                 CheckContent();
             }
         }
