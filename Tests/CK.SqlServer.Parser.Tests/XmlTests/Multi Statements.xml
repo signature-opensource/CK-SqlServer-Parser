@@ -10,7 +10,7 @@
     <Description></Description>
     <Xml>
       <Sql>
-        <NodeList>
+        <StatementList>
           <Item>
             <Statement StatementName="break" HasTerminator="true">
               <Content>
@@ -37,7 +37,7 @@
               </Select>
             </SelectStatement>
           </Item>
-        </NodeList>
+        </StatementList>
       </Sql>
     </Xml>
   </Test>
@@ -518,7 +518,7 @@
     <Description>Two statements and .</Description>
     <Xml>
       <Sql>
-        <NodeList>
+        <StatementList>
           <Item>
             <Statement StatementName="break" HasTerminator="true">
               <Content>
@@ -557,7 +557,7 @@
               </Content>
             </UnnamedStatement>
           </Item>
-        </NodeList>
+        </StatementList>
       </Sql>
     </Xml>
   </Test>

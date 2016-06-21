@@ -138,8 +138,8 @@
     <ResultText>
       select Z; X; select Z from Z; update T set X = 9;
     </ResultText>
-  </Test>  
-  
+  </Test>
+
   <Test>
     <Text>
       select X from T where X = 3 order by X;
@@ -148,7 +148,23 @@
       create transformer
       as
       begin
-        replace single {select X} with "";
+      replace single {select X} with "";
+      end
+    </Description>
+    <ResultText>
+      ;
+    </ResultText>
+  </Test>
+
+  <Test>
+    <Text>
+      select X from T where X = 3 order by X;
+    </Text>
+    <Description>
+      create transformer
+      as
+      begin
+        replace single statement {select X} with "";
       end
     </Description>
     <ResultText>

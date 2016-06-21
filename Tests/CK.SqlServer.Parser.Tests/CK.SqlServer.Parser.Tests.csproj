@@ -55,7 +55,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="CK.SqlServer.Parser.Model, Version=3.0.0.0, Culture=neutral, PublicKeyToken=731c291b31fb8d27, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\CK.SqlServer.Parser.Model.3.0.0-g\lib\net45\CK.SqlServer.Parser.Model.dll</HintPath>
+      <HintPath>..\..\packages\CK.SqlServer.Parser.Model.3.0.0-g01\lib\net45\CK.SqlServer.Parser.Model.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="CK.Text, Version=1.0.0.0, Culture=neutral, PublicKeyToken=731c291b31fb8d27, processorArchitecture=MSIL">
@@ -83,6 +83,7 @@
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="ConsoleTests.cs" />
+    <Compile Include="Parsing\SqlParserTests.cs" />
     <Compile Include="Parsing\SqlAnalyserTest.cs" />
     <Compile Include="Parsing\SqlTokenizerTest.cs" />
     <Compile Include="Parsing\SqlTokenReaderTests.cs" />
@@ -110,6 +111,13 @@
     <Content Include="Parsing\Scripts\Opt.2.sql" />
     <Content Include="Parsing\Scripts\Opt.1.sql" />
     <Content Include="Parsing\Scripts\Opt.6.sql" />
+    <Content Include="Parsing\Scripts\typedScript.sql" />
+    <Content Include="Parsing\Scripts\typedTransformer.sql" />
+    <Content Include="Parsing\Scripts\typedTableFunction.sql" />
+    <Content Include="Parsing\Scripts\typedInlineTableFunction.sql" />
+    <Content Include="Parsing\Scripts\typedScalarFunction.sql" />
+    <Content Include="Parsing\Scripts\typedProcedure.sql" />
+    <Content Include="Parsing\Scripts\typedView.sql" />
     <Content Include="Parsing\Scripts\sp_GetDDL.sql" />
     <Content Include="Parsing\Scripts\SQLDOM_core_persist_927.sql" />
     <Content Include="Parsing\Scripts\sStoredProcedureInputOutput.sql" />

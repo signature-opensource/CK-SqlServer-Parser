@@ -27,6 +27,12 @@ namespace CK.SqlServer.Parser
                 Result = result;
             }
 
+            public ParseResult( T result, SqlAnalyser.ErrorResult e )
+            {
+                Result = result;
+                _error = e;
+            }
+
             public string ErrorMessage => _error.ErrorMessage;
 
             public string HeadSource => _error.HeadSource;
@@ -42,6 +48,12 @@ namespace CK.SqlServer.Parser
         {
             _a.Reset( text );
             return new ParseResult<ISqlServerObject>( _a.ParseStatement );
+        }
+
+        public ISqlServerParserResult<ISqlServerView> ParseView( string text )
+        {
+            _a.Reset( text );
+            return new ParseResult<ISqlServerView>( _a.ParseStatement );
         }
 
         public ISqlServerParserResult<ISqlServerTransformer> ParseTransformer( string text )
@@ -77,13 +89,37 @@ namespace CK.SqlServer.Parser
         public ISqlServerParserResult<ISqlServerParsedText> Parse( string text )
         {
             _a.Reset( text );
-            return new ParseResult<ISqlServerParsedText>( _a.ParseStatement );
+            SqlStatementList statements = _a.IsStatementList( true );
+            if( statements != null )
+            {
+                // SingleOrDefault throws on multiple items.
+                //var onlyOne = statements.Where( s => !s.IsGOSeparator() ).SingleOrDefault() as ISqlServerParsedText;
+                ISqlStatement onlyOne = null;
+                foreach( var s in statements )
+                {
+                    if( !s.IsGOSeparator() )
+                    {
+                        if( onlyOne != null )
+                        {
+                            onlyOne = null;
+                            break;
+                        }
+                        else onlyOne = s;
+                    }
+                }
+                ISqlServerParsedText parsed = onlyOne as ISqlServerParsedText;
+                if( parsed != null )
+                {
+                    return new ParseResult<ISqlServerParsedText>( parsed, _a.CreateErrorResult() );
+                }
+            }
+            return new ParseResult<ISqlServerParsedText>( statements, _a.CreateErrorResult() );
         }
 
         public ISqlServerParserResult<ISqlServerScript> ParseScript( string text )
         {
             _a.Reset( text );
-            return new ParseResult<ISqlServerScript>( _a.ParseStatement );
+            return new ParseResult<ISqlServerScript>( _a.IsStatementList( true ), _a.CreateErrorResult() );
         }
 
     }

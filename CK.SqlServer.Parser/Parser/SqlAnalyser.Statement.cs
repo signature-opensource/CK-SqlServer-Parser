@@ -80,7 +80,7 @@ namespace CK.SqlServer.Parser
                     return new SqlBeginTransaction( id, tranOrTry, tranNameOrVariable, withToken, markToken, description, GetOptionalTerminator() );
                 }
                 R.IsToken( out tranOrTry, SqlTokenType.Try, false );
-                SqlStatementList body = IsStatementList( true );
+                SqlStatementList body = IsNestedStatementList( true );
                 if( body == null ) return null;
                 SqlTokenIdentifier end;
                 if( !R.IsToken( out end, SqlTokenType.End, true ) ) return null;
@@ -93,7 +93,7 @@ namespace CK.SqlServer.Parser
                 if( !R.IsToken( out endTry, SqlTokenType.Try, true ) ) return null;
                 SqlTokenIdentifier begCatch, begCatchToken;
                 if( !R.IsToken( out begCatch, SqlTokenType.Begin, true ) || !R.IsToken( out begCatchToken, SqlTokenType.Catch, true ) ) return null;
-                SqlStatementList bodyCatch = IsStatementList( true );
+                SqlStatementList bodyCatch = IsNestedStatementList( true );
                 if( bodyCatch == null ) return null;
                 SqlTokenIdentifier endCatch, endCatchToken;
                 if( !R.IsToken( out endCatch, SqlTokenType.End, true ) || !R.IsToken( out endCatchToken, SqlTokenType.Catch, true ) ) return null;
@@ -324,14 +324,15 @@ namespace CK.SqlServer.Parser
         {
             statement = null;
             ISqlStatement st = IsExtendedStatement( true );
-            if( st == null ) return CreateErrorResult();
-            statement = st as T;
-            if( statement == null )
+            if( st != null )
             {
-                R.SetCurrentError( "Expected '{0}' statement but found a '{1}'.", typeof(T).Name, st.GetType().Name );
-                return CreateErrorResult();
+                statement = st as T;
+                if( statement == null )
+                {
+                    R.SetCurrentError( "Expected '{0}' statement but found a '{1}'.", typeof( T ).Name, st.GetType().Name );
+                }
             }
-            return ErrorResult.NoError;
+            return CreateErrorResult();
         }
 
         private ISqlNamedStatement MatchGrant( SqlTokenIdentifier id )
@@ -376,7 +377,13 @@ namespace CK.SqlServer.Parser
             return null;
         }
 
-        SqlStatementList IsStatementList( bool expected )
+        /// <summary>
+        /// Reads a <see cref="SqlStatementList"/> that can not contain GO separator.
+        /// This method increases the statement level: GO is accepted only when statement level is 0.
+        /// </summary>
+        /// <param name="expected">True to expect at least one statement.</param>
+        /// <returns>Non null statement list on success, otherwise null.</returns>
+        SqlStatementList IsNestedStatementList( bool expected )
         {
             ++_statementLevel;
             SqlStatementList body = IsList( expected, IsExtendedStatement, i => new SqlStatementList( i ) );
@@ -868,7 +875,7 @@ namespace CK.SqlServer.Parser
                 R.IsToken( out asT, SqlTokenType.As, false );
                 SqlTokenIdentifier beginT = IsBeginOfBlock( true );
                 if( beginT == null ) return null;
-                SqlStatementList bodyStatements = IsStatementList( true );
+                SqlStatementList bodyStatements = IsNestedStatementList( true );
                 if( bodyStatements == null ) return null;
                 SqlTokenIdentifier endT;
                 if( !R.IsToken( out endT, SqlTokenType.End, true ) ) return null;
@@ -943,7 +950,7 @@ namespace CK.SqlServer.Parser
             if( !R.IsToken( out asToken, SqlTokenType.As, true ) ) return null;
 
             SqlTokenIdentifier beginT = IsBeginOfBlock( false );
-            SqlStatementList bodyStatements = IsStatementList( true );
+            SqlStatementList bodyStatements = IsNestedStatementList( true );
             if( bodyStatements == null ) return null;
             SqlTokenIdentifier end = null;
             if( beginT != null && !R.IsToken( out end, SqlTokenType.End, true ) ) return null;
@@ -981,7 +988,7 @@ namespace CK.SqlServer.Parser
             SqlTokenIdentifier asT;
             SqlNodeList configuration = IsSqlNodeList( out asT, t => t.TokenType == SqlTokenType.As );
             if( R.IsError ) return null;
-            SqlStatementList bodyStatements = IsStatementList( true );
+            SqlStatementList bodyStatements = IsNestedStatementList( true );
             if( bodyStatements == null ) return null;
             return new SqlTrigger( alterOrCreate, type, name, onT, target, options, configuration, asT, bodyStatements, GetOptionalTerminator() );
         }

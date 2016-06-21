@@ -394,7 +394,7 @@
     </Description>
     <Xml ToStringCompact="OutputClause,WhereExpression">
       <Sql>
-        <NodeList>
+        <StatementList>
           <Item>
             <UpdateStatement>
               <Target>
@@ -512,8 +512,9 @@
               <WhereExpression>Title=N'Crank Arm and Tire Maintenance'</WhereExpression>
             </UpdateStatement>
           </Item>
-        </NodeList>
-      </Sql>
+        </StatementList>
+      
+    </Sql>
     </Xml>
   </Test>
 

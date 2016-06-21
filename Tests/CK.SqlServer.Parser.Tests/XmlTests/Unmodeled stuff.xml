@@ -48,7 +48,7 @@
     <Description>Two statements and an UnnamedStatement.</Description>
     <Xml>
       <Sql>
-        <NodeList>
+        <StatementList>
           <Item>
             <Statement StatementName="break" HasTerminator="true">
               <Content>
@@ -87,17 +87,18 @@
               </Content>
             </UnnamedStatement>
           </Item>
-        </NodeList>
-      </Sql>
+        </StatementList>
+      
+    </Sql>
     </Xml>
   </Test>
 
   <Test>
     <Text></Text>
-    <Description>An empty content is an empty node list.</Description>
+    <Description>An empty content is an empty StatementList.</Description>
     <Xml>
       <Sql>
-          <NodeList/>
+        <StatementList/>
       </Sql>
     </Xml>
   </Test>
@@ -107,7 +108,7 @@
     <Description>Since print is a known statement name, it is detected (with an empty list as its content).</Description>
     <Xml>
       <Sql>
-        <NodeList>
+        <StatementList>
           <Item>
             <UnnamedStatement HasTerminator="true">
               <Content>
@@ -143,7 +144,7 @@
               </Content>
             </Statement>
           </Item>
-        </NodeList>
+        </StatementList>
       </Sql>
     </Xml>
   </Test>
@@ -153,7 +154,7 @@
     <Description>Thanks to OneOrMoreStatements, one cas parse almost everything that looks like a statement.</Description>
     <Xml>
       <Sql>
-        <NodeList>
+        <StatementList>
           <Item>
             <UnnamedStatement HasTerminator="true">
               <Content>
@@ -234,8 +235,9 @@
               </Content>
             </UnnamedStatement>
           </Item>
-        </NodeList>
-      </Sql>
+        </StatementList>
+      
+    </Sql>
     </Xml>
   </Test>
 

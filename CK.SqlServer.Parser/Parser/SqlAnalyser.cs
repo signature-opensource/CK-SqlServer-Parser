@@ -125,7 +125,7 @@ namespace CK.SqlServer.Parser
                 case ParseMode.ExtendedExpression: return IsExtendedExpression( true );
                 case ParseMode.AnyExpression: return IsAnyExpression( true );
                 case ParseMode.Statement: return IsExtendedStatement( true );
-                case ParseMode.Script: return IsList( true, IsExtendedStatement, i => new SqlStatementList( i ) );
+                case ParseMode.Script: return IsStatementList( true );
                 default:
                     {
                         Debug.Assert( mode == ParseMode.OneOrMoreStatements );
@@ -135,21 +135,26 @@ namespace CK.SqlServer.Parser
         }
 
         /// <summary>
-        /// Returns either one <see cref="IsExtendedStatement"/> if only one statement id found or 
-        /// a <see cref="SqlNodeList"/> of ExtendedStatement.
+        /// Returns either one <see cref="ISqlStatement"/> (<see cref="IsExtendedStatement"/>) if only one statement is found or 
+        /// a <see cref="SqlStatementList"/> of ExtendedStatement.
         /// </summary>
         /// <param name="expected">True to set an error if no statements are parsed.</param>
         /// <returns>The parsed node.</returns>
         public ISqlNode IsOneOrMoreStatements( bool expected )
         {
-            List<ISqlNode> items = new List<ISqlNode>();
-            if( !R.CollectUntil<SqlToken>( items, IsExtendedStatement, R.GetDepthBasedStopper() ) ) return null;
-            if( expected && items.Count == 0 )
-            {
-                R.SetCurrentError( "Expected one or more statement." );
-                return null;
-            }
-            return items.Count == 1 ? items[0] : new SqlNodeList( items );
+            var statements = IsStatementList( expected );
+            if( statements == null ) return null;
+            return statements.Count == 1 ? (ISqlNode)statements[0] : statements;
+        }
+
+        /// <summary>
+        /// Returns a <see cref="SqlStatementList"/>.
+        /// </summary>
+        /// <param name="expected">True to expect at least one statement.</param>
+        /// <returns>Non null statement list on success, otherwise null.</returns>
+        public SqlStatementList IsStatementList( bool expected )
+        {
+            return IsList( expected, IsExtendedStatement, i => new SqlStatementList( i ) );
         }
 
         public override string ToString()
@@ -157,9 +162,13 @@ namespace CK.SqlServer.Parser
             return R.ToString();
         }
 
-        ErrorResult CreateErrorResult()
+        /// <summary>
+        /// Creates an error object with the current error if there is one.
+        /// </summary>
+        /// <returns>An error object (may be without any error).</returns>
+        public ErrorResult CreateErrorResult()
         {
-            return new ErrorResult( R.GetErrorMessage(), R.ToString() );
+            return R.IsError ? new ErrorResult( R.GetErrorMessage(), R.ToString() ) : ErrorResult.NoError;
         }
 
     }
