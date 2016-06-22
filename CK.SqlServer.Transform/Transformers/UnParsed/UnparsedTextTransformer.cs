@@ -21,13 +21,13 @@ namespace CK.SqlServer.Transform.Transformers
             _scope = scope;
         }
 
-        public bool Apply( SqlNodeTransformer t )
+        public bool Apply( SqlTransformHost t )
         {
             if( _info.Location.IsNodeMatchRange ) return ApplyNodeMatchRange( t );
             return t.Apply( new UnParsedTextInjecVisitor( _info ), _scope );
         }
 
-        bool ApplyNodeMatchRange( SqlNodeTransformer t )
+        bool ApplyNodeMatchRange( SqlTransformHost t )
         {
             SqlNodeScopeBuilder restriction = new SqlNodeScopePatternRange( _info.Location.PatternRange );
             restriction = new SqlNodeScopeCardinalityFilter( restriction, _info.Location.Card ); 
@@ -71,7 +71,7 @@ namespace CK.SqlServer.Transform.Transformers
             return true;
         }
 
-        void ApplyToRangeBegEnd( SqlNodeTransformer t, SqlNodeLocationRange range )
+        void ApplyToRangeBegEnd( SqlTransformHost t, SqlNodeLocationRange range )
         {
             ISqlNode n = null;
             if( _info.TextBefore != null )

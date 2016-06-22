@@ -9,17 +9,41 @@ using System.Threading.Tasks;
 
 namespace CK.SqlServer.Transform
 {
-    public class SqlNodeTransformer
+    public class SqlTransformHost
     {
         readonly IActivityMonitor _monitor;
         LocationRoot _root;
 
-        public SqlNodeTransformer( ISqlNode node, IActivityMonitor monitor )
+        public SqlTransformHost( ISqlNode node, IActivityMonitor monitor )
         {
             if( node == null ) throw new ArgumentNullException( nameof( node ) );
             if( monitor == null ) throw new ArgumentNullException( nameof( monitor ) );
             _root = new LocationRoot( node, false );
             _monitor = monitor;
+        }
+
+        /// <summary>
+        /// External entry point (late bound).
+        /// </summary>
+        /// <param name="monitor">The monitor that will receive logs and errors. Can not be null.</param>
+        /// <param name="transformer">The transformer to apply.</param>
+        /// <param name="target">The target node to transform. Can not be null.</param>
+        /// <returns>The transformed node on success and null if an error occurred.</returns>
+        static public ISqlNode Transform( IActivityMonitor monitor, SqlTransformer transformer, ISqlNode target )
+        {
+            if( transformer == null ) throw new ArgumentNullException( nameof( transformer ) );
+            var h = new SqlTransformHost( target, monitor );
+            if( !h.Apply( transformer ) ) return null;
+            var r = h.Node;
+            // Attempts to keep the external target type if possible:
+            // The Script case is the only one we can handle: it is a statement list
+            // and is parsed back to unique statement.
+            // Any other type change can not be handled.
+            if( target is SqlStatementList && r is ISqlStatement )
+            {
+                r = new SqlStatementList( new[] { (ISqlStatement)r } );
+            }
+            return r;
         }
 
         /// <summary>
@@ -174,7 +198,7 @@ namespace CK.SqlServer.Transform
         /// <returns>True on success, false on error.</returns>
         public bool Reparse()
         {
-            using( _monitor.OpenTrace().Send( "Parsing transfomrmation result." ) )
+            using( _monitor.OpenTrace().Send( "Parsing transformation result." ) )
             {
                 string text = _root.Node.ToString( true, true );
                 ISqlNode newOne;

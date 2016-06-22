@@ -17,7 +17,7 @@ namespace CK.SqlServer.Transform.Tests
         [Test]
         public void Basic_range_intersect_union_except_operations()
         {
-            SqlNodeTransformer t = new SqlNodeTransformer( new SqlAnalyser( "select A, B from T where 1 = 0;" ).Parse(), TestHelper.ConsoleMonitor );
+            SqlTransformHost t = new SqlTransformHost( new SqlAnalyser( "select A, B from T where 1 = 0;" ).Parse(), TestHelper.ConsoleMonitor );
 
             List<SqlNodeLocationRange> all = new List<SqlNodeLocationRange>();
             Dictionary<string, SqlNodeLocationRange> s = new Dictionary<string, SqlNodeLocationRange>();
@@ -103,7 +103,7 @@ namespace CK.SqlServer.Transform.Tests
         public void simple_ScopePredicate_on_select_specification( string text, string result )
         {
             var p = new SqlNodeScopeBreadthPredicate( n => n is SelectSpec );
-            var t = new SqlNodeTransformer( new SqlAnalyser( text ).Parse(), TestHelper.ConsoleMonitor );
+            var t = new SqlTransformHost( new SqlAnalyser( text ).Parse(), TestHelper.ConsoleMonitor );
             Assert.That( t.BuildRange( p ).ToString(), Is.EqualTo( result ) );
         }
 
@@ -115,7 +115,7 @@ namespace CK.SqlServer.Transform.Tests
             var pS = new SqlNodeScopeBreadthPredicate( n => n is SelectSpec );
             var pY = new SqlNodeScopeBreadthPredicate( n => n.IsToken( SqlTokenType.IdentifierStandard ) && n.ToString() == "yo" );
             ISqlNode node = new SqlAnalyser( text ).Parse();
-            var t = new SqlNodeTransformer( node, TestHelper.ConsoleMonitor );
+            var t = new SqlTransformHost( node, TestHelper.ConsoleMonitor );
 
             var p = new SqlNodeScopeIntersect( pS, pY );
             Assert.That( t.BuildRange( p ).ToString(), Is.EqualTo( result ) );
@@ -135,7 +135,7 @@ namespace CK.SqlServer.Transform.Tests
             var pS = new SqlNodeScopeBreadthPredicate( n => n is SelectSpec );
             var pY = new SqlNodeScopeBreadthPredicate( n => n.IsToken( SqlTokenType.IdentifierStandard ) && n.ToString() == "yo" );
             ISqlNode node = new SqlAnalyser( text ).Parse();
-            var t = new SqlNodeTransformer( node, TestHelper.ConsoleMonitor );
+            var t = new SqlTransformHost( node, TestHelper.ConsoleMonitor );
 
             SqlNodeScopeUnion p = new SqlNodeScopeUnion( pS, pY );
             Assert.That( t.BuildRange( p ).ToString(), Is.EqualTo( result ) );
@@ -150,7 +150,7 @@ namespace CK.SqlServer.Transform.Tests
         {
             string text = @"select * from (select * from (select * from sys.tables) t) t";
             ISqlNode node = new SqlAnalyser( text ).Parse();
-            var t = new SqlNodeTransformer( node, TestHelper.ConsoleMonitor ) { BuildQualifiedNodeLocations = useQualifiedLocationNodeBuilder };
+            var t = new SqlTransformHost( node, TestHelper.ConsoleMonitor ) { BuildQualifiedNodeLocations = useQualifiedLocationNodeBuilder };
 
             var pD = new SqlNodeScopeDepthPredicate( n => n.AllTokens.FirstOrDefault()?.TokenType == SqlTokenType.Select, false );
             var rD = t.BuildRange( pD );
@@ -181,7 +181,7 @@ namespace CK.SqlServer.Transform.Tests
         {
             string text = @"A B C";
             ISqlNode node = new SqlAnalyser( text ).Parse();
-            var t = new SqlNodeTransformer( node, TestHelper.ConsoleMonitor ) { BuildQualifiedNodeLocations = useQualifiedLocationNodeBuilder };
+            var t = new SqlTransformHost( node, TestHelper.ConsoleMonitor ) { BuildQualifiedNodeLocations = useQualifiedLocationNodeBuilder };
 
             var pA = new SqlNodeScopeDepthPredicate( n => n.ToString() == item );
             var rA = t.BuildRange( pA );

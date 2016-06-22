@@ -38,7 +38,7 @@ namespace CK.SqlServer.Transform.Tests.XmlTests
                         SqlTransformer t = ParseTransformer( Description );
                         Transformer = n =>
                         {
-                            SqlNodeTransformer host = new SqlNodeTransformer( n, TestHelper.ConsoleMonitor );
+                            SqlTransformHost host = new SqlTransformHost( n, TestHelper.ConsoleMonitor );
                             return host.Apply( t )  ? host.Node : null;
                         };
                     }
@@ -111,7 +111,7 @@ namespace CK.SqlServer.Transform.Tests.XmlTests
 
         public static ISqlNode GroupCreateToZone( ISqlNode e )
         {
-            SqlNodeTransformer t = new SqlNodeTransformer( e, TestHelper.ConsoleMonitor );
+            SqlTransformHost t = new SqlTransformHost( e, TestHelper.ConsoleMonitor );
             SqlAnalyser a = new SqlAnalyser( "@ZoneId int = 0" );
 
             SqlParameter pZoneId = a.IsParameter( true );

@@ -117,5 +117,13 @@ namespace CK.SqlServer.Parser
 
         void ISqlServerParsedText.Write( StringBuilder b ) => Write( SqlTextWriter.CreateDefault( b ) );
 
+        object ISqlServerTransformer.Transform( IActivityMonitor monitor, object target )
+        {
+            var t = target as ISqlNode;
+            if( t == null ) throw new ArgumentException( "Invalid target object type.", nameof(target) );
+            return SqlServerParser.LateBoundTransform( monitor, this, t );
+        }
+
+
     }
 }

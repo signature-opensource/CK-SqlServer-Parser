@@ -1,4 +1,5 @@
-﻿using NUnit.Framework;
+﻿using CK.SqlServer.UtilTests;
+using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -85,6 +86,20 @@ namespace CK.SqlServer.Parser.Tests.Transform
             }
         }
 
+
+        [TestCase( "select X;", "create transformer as begin replace first range {X} with 'Y'; end", "select Y;" )]
+        [TestCase( "set @V = 3;", "create transformer as begin replace first range {3} with '4'; end", "set @V = 4;" )]
+        public void using_transform_model_method( string original, string transform, string final )
+        {
+            SqlServerParser p = new SqlServerParser();
+            ISqlServerParsedText o = p.Parse( original ).Result;
+            Assert.That( o, Is.Not.Null );
+            ISqlServerTransformer t = p.ParseTransformer( transform ).Result;
+            Assert.That( t, Is.Not.Null );
+            ISqlServerParsedText oT = t.SafeTransform( TestHelper.ConsoleMonitor, o );
+            Assert.That( oT, Is.Not.Null );
+            Assert.That( oT.ToFullString(), Is.EqualTo( final ) );
+        }
     }
 
 }

@@ -2,11 +2,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace CK.SqlServer.Parser
 {
+    using TransformFunc = Func<IActivityMonitor, SqlTransformer, ISqlNode, ISqlNode>;
+
     /// <summary>
     /// Facade model implementation.
     /// </summary>
@@ -122,5 +125,18 @@ namespace CK.SqlServer.Parser
             return new ParseResult<ISqlServerScript>( _a.IsStatementList( true ), _a.CreateErrorResult() );
         }
 
+        static TransformFunc _lateBound;
+
+        internal static ISqlNode LateBoundTransform( IActivityMonitor monitor, SqlTransformer t, ISqlNode target )
+        {
+            // Don't care to double initialization here: no lock is okay.
+            if( _lateBound == null )
+            {
+                Type host = SimpleTypeFinder.WeakResolver( "CK.SqlServer.Transform.SqlTransformHost, CK.SqlServer.Transform", true );
+                MethodInfo m = host.GetMethod( "Transform", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public );
+                _lateBound = (TransformFunc)m.CreateDelegate( typeof( TransformFunc ) );
+            }
+            return _lateBound( monitor, t, target );
+        }
     }
 }

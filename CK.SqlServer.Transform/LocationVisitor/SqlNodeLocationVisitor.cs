@@ -183,7 +183,7 @@ namespace CK.SqlServer.Transform
 
         /// <summary>
         /// Overridden to adapt this public inherited method to the internals of this implementation.
-        /// This enables a location aware visitor to be used independently of <see cref="SqlNodeTransformer.Visit(SqlNodeLocationVisitor, ISqlNodeLocationRange)"/>.
+        /// This enables a location aware visitor to be used independently of <see cref="SqlTransformHost.Visit(SqlNodeLocationVisitor, ISqlNodeLocationRange)"/>.
         /// </summary>
         /// <param name="root">The root node to vissit.</param>
         /// <returns>The visited result.</returns>
