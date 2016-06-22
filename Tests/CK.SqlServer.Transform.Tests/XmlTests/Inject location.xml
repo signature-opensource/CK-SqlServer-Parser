@@ -12,11 +12,11 @@
     <Description>
       create transformer on CK.sTest as
       begin
-        inject ' set @X = 0; ' before all {insert into S.?};
-        inject ' set @Table = 1; ' before single {insert into S.tTable};
-        inject ' set @M = 9; ' after single {insert into S.tOther};
+        inject ' set @X = 0; ' before all part {insert into S.?};
+        inject ' set @Table = 1; ' before single part {insert into S.tTable};
+        inject ' set @M = 9; ' after single part {insert into S.tOther};
         inject ' -- the end...
-        ' after single {insert into S.tTable};
+        ' after single part {insert into S.tTable};
       end
     </Description>
     <ResultText>
@@ -521,8 +521,8 @@
     <Description>
       create transformer on CK.sTest as
       begin
-        inject " set @X = 0; " before all {insert into S.?};
-        inject [ set @Table = 1; ] before single {insert into S.tTable};
+        inject " set @X = 0; " before all part {insert into S.?};
+        inject [ set @Table = 1; ] before single part {insert into S.tTable};
       end
     </Description>
     <ResultText>

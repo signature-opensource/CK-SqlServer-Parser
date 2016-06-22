@@ -48,7 +48,7 @@
       create transformer on CK.sTest
       as
       begin
-        replace first {select} with "select 4, 5, 6";
+        replace first part {select} with "select 4, 5, 6";
       end
     </Description>
     <ResultText>
@@ -129,7 +129,7 @@
       create transformer
       as
       begin
-        in all {select}
+        in all part {select}
         begin
           replace all range {X} with "Z";
         end
@@ -148,7 +148,7 @@
       create transformer
       as
       begin
-      replace single {select X} with "";
+      replace single part {select X} with "";
       end
     </Description>
     <ResultText>

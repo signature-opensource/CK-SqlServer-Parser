@@ -32,7 +32,7 @@
     <Description>
       create transformer on CK.sTest as
       begin
-        inject 'LastName, ' and ', UserName' around single range {UserId};
+        inject 'LastName, ' and ', UserName' around single {UserId};
       end
     </Description>
     <ResultText>

@@ -54,15 +54,14 @@ namespace CK.SqlServer.Parser
 
         /// <summary>
         /// Gets the optional 'statement', 'part' or 'range' token.
-        /// When null, <see cref="IsMatchPart"/> is true: the default is to match the
-        /// well known parts. 
+        /// When null, <see cref="IsMatchRange"/> is true: the default is to match the raw range. 
         /// </summary>
         public SqlTokenIdentifier MatchKindT => _content.V1;
 
         /// <summary>
         /// Gets whether this pattern must match well known parts.
         /// </summary>
-        public bool IsMatchPart => _content.V1 == null || _content.V1.TokenType == SqlTokenType.Part;
+        public bool IsMatchPart => _content.V1 != null && _content.V1.TokenType == SqlTokenType.Part;
 
         /// <summary>
         /// Gets whether this pattern must match statements.
@@ -71,8 +70,9 @@ namespace CK.SqlServer.Parser
 
         /// <summary>
         /// Gets whether this pattern must match ranges.
+        /// Thisi is the default.
         /// </summary>
-        public bool IsMatchRange => _content.V1 != null && _content.V1.TokenType == SqlTokenType.Range;
+        public bool IsMatchRange => _content.V1 == null || _content.V1.TokenType == SqlTokenType.Range;
 
         public SqlTCurlyPattern Pattern => _content.V2;
 

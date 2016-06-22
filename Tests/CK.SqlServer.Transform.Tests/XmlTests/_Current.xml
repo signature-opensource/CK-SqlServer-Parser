@@ -3,17 +3,37 @@
 
   <Test>
     <Text>
-      select X from T where X = 3 order by X;
-    </Text>
+-- Version = *
+create procedure CK.sSimpleTransformTest
+(
+    @TextParam nvarchar(20) output
+)
+as
+begin
+	set @TextParam = N'No!';
+	return 0;
+end
+  </Text>
     <Description>
-      create transformer
-      as
-      begin
-        replace single {select X} with "";
-      end
-    </Description>
+create transformer on CK.sSimpleTransformTest
+as
+begin
+	add parameter @Added int = 0;
+	replace single range {N'No!'} with "N'Yes! ' + cast(@Added as varchar)";
+end
+  </Description>
     <ResultText>
-;
+-- Version = *
+create procedure CK.sSimpleTransformTest
+(
+    @TextParam nvarchar(20) output,
+    @Added int = 0
+)
+as
+begin
+	set @TextParam = N'Yes! ' + cast(@Added as varchar);
+	return 0;
+end
     </ResultText>
   </Test>
 

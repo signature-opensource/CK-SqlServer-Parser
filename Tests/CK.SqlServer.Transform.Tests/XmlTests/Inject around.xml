@@ -12,7 +12,7 @@
     <Description>
       create transformer on CK.sTest as
       begin
-        inject [/* no more! ] and [*/] around last {insert};
+        inject [/* no more! ] and [*/] around last part {insert};
       end
     </Description>
     <ResultText>

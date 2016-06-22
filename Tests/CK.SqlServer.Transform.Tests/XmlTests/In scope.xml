@@ -9,9 +9,9 @@
       create transformer
       as
       begin
-        in single {select X}
+        in single part {select X}
         begin
-          replace all range {X} with 'Z';
+          replace all {X} with 'Z';
         end
       end
     </Description>
