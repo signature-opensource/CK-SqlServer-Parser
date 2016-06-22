@@ -15,14 +15,14 @@ namespace CK.SqlServer.Transform.Transformers
     /// </summary>
     class TriviaExtensionMatcher
     {
-        static readonly Regex _rExt = new Regex( @"^</?(?<1>(\w|\.|-)+)(?<2>\s+reverse(\s*=\s*(""|')?(true|1)(""|')?)?)?\s*/?>", RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant );
+        static readonly Regex _rExt = new Regex( @"^</?(?<1>(\w|\.|-)+)(?<2>\s+revert)?\s*/?>", RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant );
 
         readonly IActivityMonitor _monitor;
         readonly string _injectedCode;
         bool _foundInsertPoint;
         bool _foundOpening;
         bool _foundOpeningIsAutoClosing;
-        bool _foundOpeningIsReverse;
+        bool _foundOpeningIsRevert;
 
         public TriviaExtensionMatcher( IActivityMonitor monitor, string extensionName, string injectedCode )
         {
@@ -57,9 +57,9 @@ namespace CK.SqlServer.Transform.Transformers
             if( name != ExtensionName ) return false;
             bool isClosing = t.Text[1] == '/';
             bool isAutoClosing = m.Value[m.Value.Length - 2] == '/';
-            bool isReverse = m.Groups[2].Value.Length > 0;
+            bool isRevert = m.Groups[2].Value.Length > 0;
             if( isClosing && isAutoClosing ) _monitor.Error().Send( $"Invalid extension tag: '{t.Text}': can not start with '</' and end with '/>'." );
-            else if( isClosing && isReverse ) _monitor.Error().Send( $"Invalid extension tag: '{t.Text}': reverse must be on the opening tag." );
+            else if( isClosing && isRevert ) _monitor.Error().Send( $"Invalid extension tag: '{t.Text}': revert must be on the opening tag." );
             else
             {
                 if( isClosing )
@@ -71,11 +71,11 @@ namespace CK.SqlServer.Transform.Transformers
                         {
                             _monitor.Error().Send( $"Unexpected closing of extension tag: '{t.Text}': opening tag is auto closed (ends with '/>')." );
                         }
-                        else if( !_foundOpeningIsReverse )
+                        else if( !_foundOpeningIsRevert )
                         {
                             _monitor.Error().Send( $"Unexpected closing of extension tag: '{t.Text}': it is already closed." );
                         }
-                        // => This is the closing tag of a reverse extension.
+                        // => This is the closing tag of a reverted extension.
                     }
                     else
                     {
@@ -90,7 +90,7 @@ namespace CK.SqlServer.Transform.Transformers
                     {
                         _foundOpening = true;
                         _foundOpeningIsAutoClosing = isAutoClosing;
-                        _foundOpeningIsReverse = isReverse;
+                        _foundOpeningIsRevert = isRevert;
                         if( isAutoClosing )
                         {
                             TextReplace = new[]
@@ -103,7 +103,7 @@ namespace CK.SqlServer.Transform.Transformers
                         }
                         else
                         {
-                            if( isReverse )
+                            if( isRevert )
                             {
                                 TextAfter = _injectedCode;
                                 return _foundInsertPoint = true;

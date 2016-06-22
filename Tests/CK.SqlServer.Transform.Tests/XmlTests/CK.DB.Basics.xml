@@ -63,13 +63,13 @@ as begin
 
   --[beginsp]
 
-  --<PreCreate />
+  --<PreCreate revert/>
 
   exec CK.sActorCreate @ActorId, @GroupIdResult output;
   insert into CK.tGroup( GroupId )
     values( @GroupIdResult );
 
-  --<PostCreate reverse="true" />
+  --<PostCreate/>
       
   --[endsp]
 end
@@ -113,18 +113,18 @@ begin
       
   --[beginsp]
 
-  --<PreCreate>
-  if @ActorId = 9 throw 50000, 'Security.User9IsMad', 1;
+  --<PreCreate revert>
   if @ActorId = 666 throw 50000, 'Security.User666IsEvil', 1;
+  if @ActorId = 9 throw 50000, 'Security.User9IsMad', 1;
   --</PreCreate>
 
   exec CK.sActorCreate @ActorId, @GroupIdResult output;
   insert into CK.tGroup( GroupId, ZoneId, ExtraZoneId )
     values( @GroupIdResult, @ZoneId, @ZoneId + @ActorId );
 
-  --<PostCreate reverse="true">
-  insert into UX.tOtherLog( Msg ) values( N'Done.' );
+  --<PostCreate>
   insert into UX.tLog( Msg ) values( N'Group created.' );
+  insert into UX.tOtherLog( Msg ) values( N'Done.' );
   --</PostCreate>
 
   --[endsp]
