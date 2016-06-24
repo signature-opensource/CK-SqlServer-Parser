@@ -1,7 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <RepositoryInfo xmlns="http://csemver.org/schemas/2015">
+  <PossibleVersionsMode>AllSuccessors</PossibleVersionsMode>
+  <StartingVersionForCSemVer>v1.0.0</StartingVersionForCSemVer>
   <Branches>
     <Branch Name="develop" VersionName="develop" CIVersionMode="LastReleaseBased" />
   </Branches>
-   <!--<Debug IgnoreDirtyWorkingFolder="true"/>--> 
+  <Debug IgnoreDirtyWorkingFolder="true"/>
 </RepositoryInfo>
