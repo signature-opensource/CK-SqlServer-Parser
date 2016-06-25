@@ -4,6 +4,9 @@ using System.Linq;
 using System.Text;
 using NUnit.Framework;
 using CK.SqlServer;
+using System.Text.RegularExpressions;
+using CK.SqlServer.UtilTests;
+using CK.Text;
 
 namespace CK.SqlServer.Parser.Tests
 {
@@ -11,6 +14,23 @@ namespace CK.SqlServer.Parser.Tests
     [Category( "SqlTokenizer" )]
     public class SqlTokenizerTest
     {
+        [Test]
+        public void column_alias_names()
+        {
+            Assert.That( SqlTokenType.TableDbType.IsValidColumnAliasName(), Is.False );
+            Assert.That( SqlTokenType.IdentifierStar.IsValidColumnAliasName(), Is.False );
+            Assert.That( SqlTokenType.Create.IsValidColumnAliasName(), Is.False );
+            Assert.That( SqlTokenType.Cursor.IsValidColumnAliasName(), Is.False );
+
+            Assert.That( SqlTokenType.Throw.IsValidColumnAliasName(), Is.True );
+            Assert.That( SqlTokenType.IdentifierQuoted.IsValidColumnAliasName(), Is.True );
+            Assert.That( SqlTokenType.String.IsValidColumnAliasName(), Is.True );
+            Assert.That( SqlTokenType.UnicodeString.IsValidColumnAliasName(), Is.True );
+            Assert.That( SqlTokenType.IdentifierQuotedBracket.IsValidColumnAliasName(), Is.True );
+            Assert.That( SqlTokenType.IdentifierStandard.IsValidColumnAliasName(), Is.True );
+
+        }
+
         [Test]
         public void SimpleTokens()
         {
@@ -42,7 +62,7 @@ namespace CK.SqlServer.Parser.Tests
             Assert.That( p.ToString( 1 ), Is.EqualTo( "a[[HEAD]]" ) );
             p.Forward();
             Assert.That( p.ToString( 20 ), Is.EqualTo( "a[[HEAD]]" ) );
-            
+
             p.Reset( "aa bb cc dd" );
             Assert.That( p.ToString( 1 ), Is.EqualTo( "... [[HEAD]]..." ) );
             Assert.That( p.ToString( 2 ), Is.EqualTo( "...a [[HEAD]]..." ) );
@@ -70,7 +90,7 @@ namespace CK.SqlServer.Parser.Tests
             Assert.That( p.ToString( 4 ), Is.EqualTo( "...c dd[[HEAD]]" ) );
             Assert.That( p.ToString( 11 ), Is.EqualTo( "aa bb cc dd[[HEAD]]" ) );
         }
-        
+
         [Test]
         public void EmptyInputAndComments()
         {
@@ -81,13 +101,13 @@ namespace CK.SqlServer.Parser.Tests
 
             p.Reset( "\r\n\t " );
             IsEndOfInput( p );
-            CollectionAssert.AreEquivalent( p.Token.LeadingTrivia.Select( t => t.Text ), new[] { "\r\n\t " } );
-            CollectionAssert.IsEmpty( p.Token.TrailingTrivia );
+            CollectionAssert.AreEquivalent( p.Token.LeadingTrivias.Select( t => t.Text ), new[] { "\r\n\t " } );
+            CollectionAssert.IsEmpty( p.Token.TrailingTrivias );
 
             p.Reset( "\r\n\t  --Comment\r\n \t\r\n /*Other\r\nComment...*/ \r\n" );
             IsEndOfInput( p );
-            CollectionAssert.AreEquivalent( p.Token.LeadingTrivia.Select( t => t.Text ), new[] { "\r\n\t  ", "Comment", " \t\r\n ", "Other\r\nComment...", " \r\n" } );
-            CollectionAssert.IsEmpty( p.Token.TrailingTrivia );
+            CollectionAssert.AreEquivalent( p.Token.LeadingTrivias.Select( t => t.Text ), new[] { "\r\n\t  ", "Comment", " \t\r\n ", "Other\r\nComment...", " \r\n" } );
+            CollectionAssert.IsEmpty( p.Token.TrailingTrivias );
         }
 
         private static void IsEndOfInput( SqlTokenizer p )
@@ -102,97 +122,109 @@ namespace CK.SqlServer.Parser.Tests
         }
 
         [Test]
-        public void TokenExplainBasic()
+        public void SqlTokenType_are_mapped_to_explicit_strings()
         {
-            Assert.That( SqlTokenizer.Explain( SqlTokenType.IdentifierStandard ), Is.EqualTo( "identifier" ) );
-            Assert.That( SqlTokenizer.Explain( SqlTokenType.IdentifierQuoted ), Is.EqualTo( "\"quoted identifier\"" ) );
-            Assert.That( SqlTokenizer.Explain( SqlTokenType.IdentifierQuotedBracket ), Is.EqualTo( "[quoted identifier]" ) );
-            Assert.That( SqlTokenizer.Explain( SqlTokenType.IdentifierVariable ), Is.EqualTo( "@var" ) );
-            Assert.That( SqlTokenizer.Explain( SqlTokenType.IdentifierReserved ), Is.EqualTo( "reserved" ) );
-            Assert.That( SqlTokenizer.Explain( SqlTokenType.IdentifierReservedStatement ), Is.EqualTo( "statement" ) );
-            Assert.That( SqlTokenizer.Explain( SqlTokenType.IdentifierStandardStatement ), Is.EqualTo( "statement" ) );
-            Assert.That( SqlTokenizer.Explain( SqlTokenType.IdentifierSpecial ), Is.EqualTo( "identifier-special" ) );
-        
-            Assert.That( SqlTokenizer.Explain( SqlTokenType.IdentifierStar ), Is.EqualTo( "*" ) );
+            Assert.That( SqlKeyword.ToString( SqlTokenType.IdentifierStandard ), Is.EqualTo( "¤IdentifierStandard" ) );
+            Assert.That( SqlKeyword.ToString( SqlTokenType.IdentifierQuoted ), Is.EqualTo( "¤IdentifierQuoted" ) );
+            Assert.That( SqlKeyword.ToString( SqlTokenType.IdentifierQuotedBracket ), Is.EqualTo( "¤IdentifierQuotedBracket" ) );
+            Assert.That( SqlKeyword.ToString( SqlTokenType.IdentifierVariable ), Is.EqualTo( "¤IdentifierVariable" ) );
+            Assert.That( SqlKeyword.ToString( SqlTokenType.IdentifierSpecial ), Is.EqualTo( "¤IdentifierSpecial" ) );
 
-            Assert.That( SqlTokenizer.Explain( SqlTokenType.IdentifierTypeXml ), Is.EqualTo( "Xml" ) );
-            Assert.That( SqlTokenizer.Explain( SqlTokenType.IdentifierTypeInt ), Is.EqualTo( "Int" ) );
-            Assert.That( SqlTokenizer.Explain( SqlTokenType.IdentifierTypeVarChar ), Is.EqualTo( "VarChar" ) );
-            Assert.That( SqlTokenizer.Explain( SqlTokenType.IdentifierTypeDateTime ), Is.EqualTo( "DateTime" ) );
+            Assert.Throws<KeyNotFoundException>( () => SqlKeyword.ToString( SqlTokenType.IdentifierReserved ) );
+            Assert.Throws<KeyNotFoundException>( () => SqlKeyword.ToString( SqlTokenType.IdentifierReservedStatement ) );
+            Assert.Throws<KeyNotFoundException>( () => SqlKeyword.ToString( SqlTokenType.IdentifierStandardStatement ) );
 
-            Assert.That( SqlTokenizer.Explain( SqlTokenType.String ), Is.EqualTo( "'string'" ) );
-            Assert.That( SqlTokenizer.Explain( SqlTokenType.UnicodeString ), Is.EqualTo( "N'unicode string'" ) );
-            Assert.That( SqlTokenizer.Explain( SqlTokenType.StarComment ), Is.EqualTo( "/* ... */" ) );
-            Assert.That( SqlTokenizer.Explain( SqlTokenType.LineComment ), Is.EqualTo( "-- ..." + Environment.NewLine ) );
+            Assert.That( SqlKeyword.ToString( SqlTokenType.IdentifierStar ), Is.EqualTo( "*" ) );
 
-            Assert.That( SqlTokenizer.Explain( SqlTokenType.Integer ), Is.EqualTo( "42" ) );
-            Assert.That( SqlTokenizer.Explain( SqlTokenType.Float ), Is.EqualTo( "6.02214129e+23" ) );
-            Assert.That( SqlTokenizer.Explain( SqlTokenType.Binary ), Is.EqualTo( "0x00CF12A4" ) );
-            Assert.That( SqlTokenizer.Explain( SqlTokenType.Decimal ), Is.EqualTo( "124.587" ) );
-            Assert.That( SqlTokenizer.Explain( SqlTokenType.Money ), Is.EqualTo( "$548.7" ) );
+            Assert.That( SqlKeyword.ToString( SqlTokenType.XmlDbType ), Is.EqualTo( "xml" ) );
+            Assert.That( SqlKeyword.ToString( SqlTokenType.IntDbType ), Is.EqualTo( "int" ) );
+            Assert.That( SqlKeyword.ToString( SqlTokenType.VarCharDbType ), Is.EqualTo( "varchar" ) );
+            Assert.That( SqlKeyword.ToString( SqlTokenType.NVarCharDbType ), Is.EqualTo( "nvarchar" ) );
+            Assert.That( SqlKeyword.ToString( SqlTokenType.DateTimeDbType ), Is.EqualTo( "datetime" ) );
+            Assert.That( SqlKeyword.ToString( SqlTokenType.DateTime2DbType ), Is.EqualTo( "datetime2" ) );
+
+            Assert.That( SqlKeyword.ToString( SqlTokenType.All ), Is.EqualTo( "all" ) );
+            Assert.That( SqlKeyword.ToString( SqlTokenType.Authorization ), Is.EqualTo( "authorization" ) );
+            Assert.That( SqlKeyword.ToString( SqlTokenType.Rows ), Is.EqualTo( "rows" ) );
+            Assert.That( SqlKeyword.ToString( SqlTokenType.Insert ), Is.EqualTo( "insert" ) );
+            Assert.That( SqlKeyword.ToString( SqlTokenType.IdentityInsert ), Is.EqualTo( "identity_insert" ) );
+
+            Assert.That( SqlKeyword.ToString( SqlTokenType.String ), Is.EqualTo( "¤String" ) );
+            Assert.That( SqlKeyword.ToString( SqlTokenType.UnicodeString ), Is.EqualTo( "¤UnicodeString" ) );
+            Assert.That( SqlKeyword.ToString( SqlTokenType.StarComment ), Is.EqualTo( "¤StarComment" ) );
+            Assert.That( SqlKeyword.ToString( SqlTokenType.LineComment ), Is.EqualTo( "¤LineComment" ) );
+
+            Assert.That( SqlKeyword.ToString( SqlTokenType.Integer ), Is.EqualTo( "¤Integer" ) );
+            Assert.That( SqlKeyword.ToString( SqlTokenType.Float ), Is.EqualTo( "¤Float" ) );
+            Assert.That( SqlKeyword.ToString( SqlTokenType.Binary ), Is.EqualTo( "¤Binary" ) );
+            Assert.That( SqlKeyword.ToString( SqlTokenType.Decimal ), Is.EqualTo( "¤Decimal" ) );
+            Assert.That( SqlKeyword.ToString( SqlTokenType.Money ), Is.EqualTo( "¤Money" ) );
+
+            Assert.That( SqlKeyword.ToString( SqlTokenType.GreaterOrEqual ), Is.EqualTo( ">=" ) );
+            Assert.That( SqlKeyword.ToString( SqlTokenType.Different ), Is.EqualTo( "!=" ) );
+            Assert.That( SqlKeyword.ToString( SqlTokenType.Assign ), Is.EqualTo( "=" ) );
+            Assert.That( SqlKeyword.ToString( SqlTokenType.Equal ), Is.EqualTo( "=" ) );
         }
 
         [Test]
-        public void TokenExplain()
+        public void Parsing_to_token_types()
         {
-            SqlTokenizer p = new SqlTokenizer();
-            string s = @"create table [a.b] . tC ( TheName nvarchar ( 1254 ) ) ;
+            string s = @"
+create table [a.b].tC( 
+    TheName nvarchar(1254),
+    "" w "" numeric(10,7) not null 
+);
+
 /* Comment is trivia
 (skipped)*/
-create procedure [a.b] . [sSP] ( @X int , @Y int ) 
+
+create procedure [a.b].[sSP] ( @X int , @Y int ) 
 as
 begin
-  declare @g nvarchar ( 42 ) = N'Oups' ;
+  declare @g nvarchar ( 42 ) = N'Oups';
+  -- a comment (trivia)...
+  declare @m money = $78.98;
   exec [a.b] . sOther @p = @X ;
-end".NormalizeEOL();
+end".Trim();
 
-            p.Reset( s );
+            string sT = @"
+create table ¤IdentifierQuotedBracket.¤IdentifierStandard 
+    ( 
+        ¤IdentifierStandard nvarchar(¤Integer),
+        ¤IdentifierQuoted decimal(¤Integer,¤Integer) not null
+    ); 
+create procedure ¤IdentifierQuotedBracket.¤IdentifierQuotedBracket( ¤IdentifierVariable int, ¤IdentifierVariable int ) 
+as 
+begin 
+    declare ¤IdentifierVariable nvarchar(¤Integer) = ¤UnicodeString; 
+    declare ¤IdentifierVariable money = ¤Money;
+    execute ¤IdentifierQuotedBracket.¤IdentifierStandard ¤IdentifierVariable = ¤IdentifierVariable; 
+end
+¤EndOfInput".Trim();
 
-            StringBuilder b  = new StringBuilder();
-            while( !p.IsErrorOrEndOfInput )
-            {
-                if( b.Length > 0 ) b.Append( ' ' );
-                b.Append( SqlTokenizer.Explain( p.Token.TokenType ) );
-                p.Forward();
-            }
-            string recompose = b.ToString();
-
-            s = s.Replace( "[a.b]", "[quoted identifier]" )
-                .Replace( "tC", "identifier" )
-                .Replace( "TheName", "identifier" )
-                .Replace( "1254", "42" )
-                .Replace( "@X", "@var" )
-                .Replace( "@Y", "@var" )
-                .Replace( "@g", "@var" )
-                .Replace( "@p", "@var" )
-                .Replace( "[sSP]", "[quoted identifier]" )
-                .Replace( "N'Oups'", "N'unicode string'" )
-                .Replace( "sOther", "identifier" );
-
-            // Whitespace
-            s = s.Replace( "/* Comment is trivia"+Environment.NewLine+"(skipped)*/", "" )
-                .Replace( Environment.NewLine, " " )
-                .Replace( "  ", " " )
-                .Replace( "  ", " " )
-                .Replace( "  ", " " );
-
-            // Keywords & type
-            s = s.Replace( "create", "statement" )
-                .Replace( "table", "reserved" )
-                .Replace( "nvarchar", "NVarChar" )
-                .Replace( "int", "Int" )
-                .Replace( "procedure", "reserved" )
-                .Replace( "as", "reserved" )
-                .Replace( "begin", "statement" )
-                .Replace( "declare", "statement" )
-                .Replace( "exec", "statement" )
-                .Replace( "end", "statement" );
-
-            Assert.That( recompose, Is.EqualTo( s ) );
+            var tokenTypes = string.Join( " ", new SqlTokenizer().Parse( s ).Select( t => SqlKeyword.ToString( t.TokenType ) ) );
+            Assert.That( Regex.Replace( tokenTypes, @"\s+", string.Empty ), Is.EqualTo( Regex.Replace( sT, @"\s+", string.Empty ) ) );
         }
 
+        [TestCase( "A.B.C", 1, "C" )]
+        [TestCase( "A.B.C", 2, "B" )]
+        [TestCase( "A.B.C", 3, "A" )]
+        [TestCase( "A.B.C", 4, null )]
+        [TestCase( "[ 1 ]", 1, " 1 " )]
+        [TestCase( "[ 1 ] /*k*/ . [ - n°2 - ]", 1, " - n°2 - " )]
+        [TestCase( "[ 1 ] /*k*/ . [ - n°2 - ]", 2, " 1 " )]
+        [TestCase( "[ 1 ] /*k*/ . [ - n°2 - ]", 3, null )]
+        [TestCase( "[ $ ]", 1, " $ " )]
+        [TestCase( "[ $ ]", 2, null )]
+        public void getting_identifier_part_name( string id, int idxPart, string part )
+        {
+            ISqlIdentifier t = (ISqlIdentifier)new SqlAnalyser( id ).IsOneExpression( true );
+            Assert.That( t.GetPartName( idxPart ), Is.EqualTo( part ) );
+        }
+
+
         [Test]
-        public void Rewriting()
+        public void Float_and_Decimal_with_leading_dot_are_transformed_with_a_leading_Zero_Dot()
         {
             SqlTokenizer p = new SqlTokenizer();
             string s = @"create table [a.b] . tC ( TheName nvarchar ( 1254 ) ) ;
@@ -206,7 +238,7 @@ begin
   declare @x1 decimal = .34;
   declare @x2 float = .45e12;
 end".NormalizeEOL();
-            StringBuilder b  = new StringBuilder();
+            ISqlTextWriter b = SqlTextWriter.CreateDefault();
             foreach( var t in p.ParseWithoutError( s ) ) t.Write( b );
             string s2 = b.ToString().NormalizeEOL();
 
@@ -215,7 +247,7 @@ end".NormalizeEOL();
         }
 
         [Test]
-        public void IdentifiersAndTerminal()
+        public void removing_quotes_around_identifier_takes_care_of_the_SQL_reserved_keywords()
         {
             SqlTokenizer p = new SqlTokenizer();
             SqlToken t;
@@ -274,7 +306,7 @@ end".NormalizeEOL();
             Assert.That( tU.TokenType, Is.EqualTo( SqlTokenType.In ) );
 
             t = p.ParseWithoutError( "int" ).ElementAt( 0 );
-            Assert.That( t.TokenType == SqlTokenType.IdentifierTypeInt );
+            Assert.That( t.TokenType == SqlTokenType.IntDbType );
             tU = ((SqlTokenIdentifier)t).RemoveQuoteIfPossible( true );
             Assert.That( tU, Is.SameAs( t ) );
 
@@ -284,11 +316,11 @@ end".NormalizeEOL();
             tU = ((SqlTokenIdentifier)t).RemoveQuoteIfPossible( true );
             Assert.That( tU, Is.Not.SameAs( t ) );
             Assert.That( tU.ToString(), Is.EqualTo( "int" ) );
-            Assert.That( tU.TokenType == SqlTokenType.IdentifierTypeInt );
+            Assert.That( tU.TokenType == SqlTokenType.IntDbType );
             tU = ((SqlTokenIdentifier)t).RemoveQuoteIfPossible( false );
             Assert.That( tU, Is.Not.SameAs( t ) );
             Assert.That( tU.ToString(), Is.EqualTo( "int" ) );
-            Assert.That( tU.TokenType == SqlTokenType.IdentifierTypeInt );
+            Assert.That( tU.TokenType == SqlTokenType.IntDbType );
 
             t = p.ParseWithoutError( @"""smalliNt""" ).ElementAt( 0 );
             Assert.That( t.TokenType == SqlTokenType.IdentifierQuoted );
@@ -297,16 +329,16 @@ end".NormalizeEOL();
             tU = ((SqlTokenIdentifier)t).RemoveQuoteIfPossible( true );
             Assert.That( tU, Is.Not.SameAs( t ) );
             Assert.That( tU.ToString(), Is.EqualTo( "smalliNt" ) );
-            Assert.That( tU.TokenType == SqlTokenType.IdentifierTypeSmallInt );
+            Assert.That( tU.TokenType == SqlTokenType.SmallIntDbType );
             tU = ((SqlTokenIdentifier)t).RemoveQuoteIfPossible( false );
             Assert.That( tU, Is.Not.SameAs( t ) );
             Assert.That( tU.ToString(), Is.EqualTo( "smalliNt" ) );
-            Assert.That( tU.TokenType == SqlTokenType.IdentifierTypeSmallInt );
+            Assert.That( tU.TokenType == SqlTokenType.SmallIntDbType );
 
         }
 
         [Test]
-        public void Numbers()
+        public void parsing_numbers_and_money()
         {
             SqlTokenizer p = new SqlTokenizer();
 
@@ -328,30 +360,30 @@ end".NormalizeEOL();
 
         static void AssertRewrite( SqlTokenizer p, string toParse, string rewritten )
         {
-            StringBuilder b  = new StringBuilder();
+            ISqlTextWriter b = SqlTextWriter.CreateDefault();
             foreach( var t in p.ParseWithoutError( toParse ) ) t.Write( b );
             string r = b.ToString();
             Assert.That( r, Is.EqualTo( rewritten ) );
         }
 
         [Test]
-        public void CommentsAreTrivias()
+        public void Comments_are_Trivias()
         {
             string s = @"'' -- CancelDate";
             SqlTokenizer p = new SqlTokenizer();
             var tokens = p.Parse( s ).ToArray();
             Assert.That( tokens.Length == 2 );
             Assert.That( tokens[0].TokenType == SqlTokenType.String );
-            Assert.That( tokens[0].TrailingTrivia.Count == 2 );
-            Assert.That( tokens[0].TrailingTrivia[0].TokenType == SqlTokenType.None );
-            Assert.That( tokens[0].TrailingTrivia[0].Text == " " );
-            Assert.That( tokens[0].TrailingTrivia[1].TokenType == SqlTokenType.LineComment );
-            Assert.That( tokens[0].TrailingTrivia[1].Text == " CancelDate" );
+            Assert.That( tokens[0].TrailingTrivias.Count == 2 );
+            Assert.That( tokens[0].TrailingTrivias[0].TokenType == SqlTokenType.None );
+            Assert.That( tokens[0].TrailingTrivias[0].Text == " " );
+            Assert.That( tokens[0].TrailingTrivias[1].TokenType == SqlTokenType.LineComment );
+            Assert.That( tokens[0].TrailingTrivias[1].Text == " CancelDate" );
             Assert.That( tokens[1].TokenType == SqlTokenType.EndOfInput );
         }
-        
+
         [Test]
-        public void LineCommentsEatsItsPrefixAndLineTermination()
+        public void LineComment_eats_its_prefix_and_LineTermination()
         {
             string s = @"'' -- CancelDate
 TOKEN";
@@ -359,16 +391,73 @@ TOKEN";
             var tokens = p.Parse( s ).ToArray();
             Assert.That( tokens.Length == 3 );
             Assert.That( tokens[0].TokenType == SqlTokenType.String );
-            Assert.That( tokens[0].TrailingTrivia.Count == 2 );
-            Assert.That( tokens[0].TrailingTrivia[0].TokenType == SqlTokenType.None );
-            Assert.That( tokens[0].TrailingTrivia[0].Text == " " );
-            Assert.That( tokens[0].TrailingTrivia[1].TokenType == SqlTokenType.LineComment );
-            Assert.That( tokens[0].TrailingTrivia[1].Text == " CancelDate", "No line endings into it." );
+            Assert.That( tokens[0].TrailingTrivias.Count == 2 );
+            Assert.That( tokens[0].TrailingTrivias[0].TokenType == SqlTokenType.None );
+            Assert.That( tokens[0].TrailingTrivias[0].Text == " " );
+            Assert.That( tokens[0].TrailingTrivias[1].TokenType == SqlTokenType.LineComment );
+            Assert.That( tokens[0].TrailingTrivias[1].Text == " CancelDate", "No line endings in Text." );
             Assert.That( tokens[1].TokenType == SqlTokenType.IdentifierStandard );
-            Assert.That( tokens[1].LeadingTrivia.Count == 0 );
-            Assert.That( tokens[1].TrailingTrivia.Count == 0 );
+            Assert.That( tokens[1].LeadingTrivias.Count == 0 );
+            Assert.That( tokens[1].TrailingTrivias.Count == 0 );
             Assert.That( tokens[2].TokenType == SqlTokenType.EndOfInput );
         }
-    }
 
+        [Test]
+        public void empty_LineComments_are_kept()
+        {
+            string s = @"
+insert -- Comment1
+--
+-- Comment2
+--
+-- Comment3 X   
+identifer2";
+            SqlTokenizer p = new SqlTokenizer();
+            var tokens = p.Parse( s ).ToArray();
+
+            Assert.That( tokens.Length == 3 );
+
+            Assert.That( tokens[0].LeadingTrivias.Count, Is.EqualTo( 1 ) );
+            Assert.That( tokens[0].LeadingTrivias[0].Text, Is.EqualTo( Environment.NewLine ) );
+            Assert.That( tokens[0].IsToken( SqlTokenType.Insert ) );
+            Assert.That( tokens[0].TrailingTrivias.Count, Is.EqualTo( 2 ) );
+            Assert.That( tokens[0].TrailingTrivias[0].Text, Is.EqualTo( " " ) );
+            Assert.That( tokens[0].TrailingTrivias[1].Text, Is.EqualTo( " Comment1" ) );
+
+            Assert.That( tokens[1].LeadingTrivias.Count, Is.EqualTo( 4 ) );
+            Assert.That( tokens[1].LeadingTrivias[0].Text, Is.EqualTo( string.Empty ) );
+            Assert.That( tokens[1].LeadingTrivias[1].Text, Is.EqualTo( " Comment2" ) );
+            Assert.That( tokens[1].LeadingTrivias[2].Text, Is.EqualTo( string.Empty ) );
+            Assert.That( tokens[1].LeadingTrivias[3].Text, Is.EqualTo( " Comment3 X   " ) );
+
+            Assert.That( tokens[1].IsToken( SqlTokenType.IdentifierStandard ) );
+            Assert.That( tokens[1].TrailingTrivias.Count, Is.EqualTo( 0 ) );
+
+            Assert.That( tokens[2].TokenType, Is.EqualTo( SqlTokenType.EndOfInput ) );
+
+        }
+
+        [TestCase( "[A[x]]]", "A[x]" )]
+        [TestCase( @"""A""""x""""""", @"A""x""" )]
+        [TestCase( @"'A''x'''", @"A'x'" )]
+        public void strings_and_quoted_identifiers_are_funny_beasts( string text, string result )
+        {
+            text = text.Replace( "x", Environment.NewLine + "x" + Environment.NewLine );
+            result = result.Replace( "x", Environment.NewLine + "x" + Environment.NewLine );
+            SqlTokenizer p = new SqlTokenizer();
+            var t = p.Parse( text ).Single( x => x.TokenType != SqlTokenType.EndOfInput );
+            Assert.That( t, Is.InstanceOf<SqlTokenIdentifier>().Or.InstanceOf<SqlTokenLiteralString>() );
+            if( t is SqlTokenIdentifier )
+            {
+                var id = (SqlTokenIdentifier)t;
+                Assert.That( id.Name, Is.EqualTo( result ) );
+            }
+            else
+            {
+                var str = (SqlTokenLiteralString)t;
+                Assert.That( str.Value, Is.EqualTo( result ) );
+            }
+        }
+
+    }
 }

@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Tests>
+
+  <Test>
+    <Text>
+      select X from T order by Y, X
+    </Text>
+    <Description>
+      create transformer
+      as
+      begin
+        in single part {select X}
+        begin
+          replace all {X} with 'Z';
+        end
+      end
+    </Description>
+    <ResultText>
+      select Z from T order by Y, Z
+    </ResultText>
+  </Test>
+
+</Tests>

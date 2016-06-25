@@ -1,0 +1,278 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Tests>
+
+  <Test>
+    <Text>
+      CREATE TRIGGER ddl_trig_database
+      ON ALL SERVER
+      FOR CREATE_DATABASE
+      AS
+      PRINT 'Database Created.'
+      SELECT EVENTDATA().value('(/EVENT_INSTANCE/TSQLCommand/CommandText)[1]','nvarchar(max)')
+      GO
+    </Text>
+    <Description></Description>
+    <Xml>
+      <Statements>
+        <Trigger StatementName="CreateTrigger">
+          <Statement StatementName="PRINT" />
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+        </Trigger>
+        <Statement StatementName="GO" />
+      </Statements>
+    </Xml>
+  </Test>
+
+  <Test>
+    <Text>
+      CREATE TRIGGER NewPODetail
+      ON Purchasing.PurchaseOrderDetail
+      AFTER INSERT AS
+         UPDATE PurchaseOrderHeader
+         SET SubTotal = SubTotal + LineTotal
+         FROM inserted
+         WHERE PurchaseOrderHeader.PurchaseOrderID = inserted.PurchaseOrderID ;
+    </Text>
+    <Description></Description>
+    <Xml>
+      <Statements>
+         <Trigger StatementName="CreateTrigger">
+             <UpdateStatement HasTerminator="true" />
+         </Trigger>
+      </Statements>
+    </Xml>
+  </Test>
+
+  <Test>
+    <Text>
+        CREATE TRIGGER dbo.updEmployeeData 
+        ON dbo.employeeData 
+        AFTER UPDATE AS
+        /*Check whether columns 2, 3 or 4 have been updated. If any or all
+         columns 2, 3 or 4 have been changed, create an audit record. The 
+        bitmask is: power(2,(2-1))+power(2,(3-1))+power(2,(4-1)) = 14. To test 
+        whether all columns 2, 3, and 4 are updated, use = 14 instead of >0
+         (below).*/
+
+           IF (COLUMNS_UPDATED() &amp; 14) > 0
+        /*Use IF (COLUMNS_UPDATED() &amp; 14) = 14 to see whether all columns 2, 3, 
+        and 4 are updated.*/
+              BEGIN
+        -- Audit OLD record.
+              INSERT INTO dbo.auditEmployeeData
+                 (audit_log_type,
+                 audit_emp_id,
+                 audit_emp_bankAccountNumber,
+                 audit_emp_salary,
+                 audit_emp_SSN)
+                 SELECT 'OLD', 
+                    del.emp_id,
+                    del.emp_bankAccountNumber,
+                    del.emp_salary,
+                    del.emp_SSN
+                 FROM deleted del;
+
+        -- Audit NEW record.
+              INSERT INTO dbo.auditEmployeeData
+                 (audit_log_type,
+                 audit_emp_id,
+                 audit_emp_bankAccountNumber,
+                 audit_emp_salary,
+                 audit_emp_SSN)
+                 SELECT 'NEW',
+                    ins.emp_id,
+                    ins.emp_bankAccountNumber,
+                    ins.emp_salary,
+                    ins.emp_SSN
+                 FROM inserted ins;
+           END;
+        GO
+    </Text>
+    <Description></Description>
+    <Xml>
+      <Statements>
+        <Trigger StatementName="CreateTrigger">
+            <If HasTerminator="true">
+              <BeginEndBlock>
+                  <InsertStatement HasTerminator="true">
+                    <SelectSpec />
+                  </InsertStatement>
+                  <InsertStatement HasTerminator="true">
+                    <SelectSpec />
+                  </InsertStatement>
+              </BeginEndBlock>
+            </If>
+        </Trigger>
+        <Statement StatementName="GO" />
+      </Statements>
+    </Xml>
+  </Test>
+
+  <Test>
+    <Text>
+      CREATE TRIGGER safety 
+      ON DATABASE 
+      FOR DROP_SYNONYM
+      AS 
+         RAISERROR ('You must disable Trigger "safety" to drop synonyms!',10, 1)
+         ROLLBACK
+      GO
+      DROP TRIGGER safety
+      ON DATABASE;
+    </Text>
+    <Description></Description>
+    <Xml>
+      <Statements>
+         <Trigger StatementName="CreateTrigger">
+             <Raiserror />
+             <Statement StatementName="ROLLBACK" />
+         </Trigger>
+         <Statement StatementName="GO" />
+         <Statement StatementName="DROP" HasTerminator="true" />
+      </Statements>
+    </Xml>
+  </Test>
+
+  <Test>
+    <Text>
+      CREATE TRIGGER Purchasing.LowCredit ON Purchasing.PurchaseOrderHeader
+      AFTER INSERT
+      AS
+      IF EXISTS (SELECT *
+                    FROM Purchasing.PurchaseOrderHeader AS p
+                    JOIN inserted AS i ON p.PurchaseOrderID = i.PurchaseOrderID 
+                    JOIN Purchasing.Vendor AS v ON v.BusinessEntityID = p.VendorID
+                    WHERE v.CreditRating = 5
+                )
+      BEGIN
+        RAISERROR ('A vendor''s credit rating is too low to accept new
+        purchase orders.', 16, 1);
+        ROLLBACK TRANSACTION;
+        RETURN
+      END;
+    </Text>
+    <Description></Description>
+    <Xml>
+      <Statements>
+        <Trigger StatementName="CreateTrigger">
+            <If HasTerminator="true">
+              <SelectSpec />
+              <BeginEndBlock>
+                  <Raiserror HasTerminator="true" />
+                  <Statement StatementName="ROLLBACK" HasTerminator="true" />
+                  <ReturnStatement />
+              </BeginEndBlock>
+            </If>
+        </Trigger>
+      </Statements>
+    </Xml>
+  </Test>
+
+  <Test>
+    <Text>
+      CREATE TRIGGER reminder2
+      ON Sales.Customer
+      AFTER INSERT, UPDATE, DELETE 
+      AS
+         EXEC msdb.dbo.sp_send_dbmail
+              @profile_name = 'AdventureWorks2012 Administrator',
+              @recipients = 'danw@Adventure-Works.com',
+              @body = 'Don''t forget to print a report for the sales force.',
+              @subject = 'Reminder';
+      GO
+
+    </Text>
+    <Description></Description>
+    <Xml>
+      <Statements>
+        <Trigger StatementName="CreateTrigger">
+            <ExecuteStatement HasTerminator="true" />
+        </Trigger>
+        <Statement StatementName="GO" />
+      </Statements>
+    </Xml>
+  </Test>
+
+  <Test>
+    <Text>
+      CREATE TRIGGER reminder1
+      ON Sales.Customer
+      AFTER INSERT, UPDATE 
+      AS RAISERROR ('Notify Customer Relations', 16, 10);
+    </Text>
+    <Description></Description>
+    <Xml>
+      <Statements>
+        <Trigger StatementName="CreateTrigger">
+            <Raiserror HasTerminator="true" />
+        </Trigger>
+      </Statements>
+    </Xml>
+  </Test>
+
+  <Test>
+    <Text>
+      <![CDATA[
+      CREATE TRIGGER [Person].[iuPerson] ON [Person].[Person] 
+      AFTER INSERT, UPDATE NOT FOR REPLICATION AS 
+      BEGIN
+	      DECLARE @Count int;
+
+	      SET @Count = @@ROWCOUNT;
+	      IF @Count = 0 
+		      RETURN;
+
+	      SET NOCOUNT ON;
+
+	      IF UPDATE([BusinessEntityID]) OR UPDATE([Demographics]) 
+	      BEGIN
+		      UPDATE [Person].[Person] 
+		      SET [Person].[Person].[Demographics] = N'<IndividualSurvey xmlns="http://schemas.microsoft.com/sqlserver/2004/07/adventure-works/IndividualSurvey"> 
+			      <TotalPurchaseYTD>0.00</TotalPurchaseYTD> 
+			      </IndividualSurvey>' 
+		      FROM inserted 
+		      WHERE [Person].[Person].[BusinessEntityID] = inserted.[BusinessEntityID] 
+			      AND inserted.[Demographics] IS NULL;
+		
+		      UPDATE [Person].[Person] 
+		      SET [Demographics].modify(N'declare default element namespace "http://schemas.microsoft.com/sqlserver/2004/07/adventure-works/IndividualSurvey"; 
+			      insert <TotalPurchaseYTD>0.00</TotalPurchaseYTD> 
+			      as first 
+			      into (/IndividualSurvey)[1]') 
+		      FROM inserted 
+		      WHERE [Person].[Person].[BusinessEntityID] = inserted.[BusinessEntityID] 
+			      AND inserted.[Demographics] IS NOT NULL 
+			      AND inserted.[Demographics].exist(N'declare default element namespace 
+				      "http://schemas.microsoft.com/sqlserver/2004/07/adventure-works/IndividualSurvey"; 
+				      /IndividualSurvey/TotalPurchaseYTD') <> 1;
+	      END;
+      END;
+      ]]>
+    </Text>
+    <Description></Description>
+    <Xml>
+      <Statements>
+        <Trigger StatementName="CreateTrigger">
+            <BeginEndBlock>
+                <DeclareVariable HasTerminator="true" />
+                <SetVariable HasTerminator="true" />
+                <If>
+                  <ReturnStatement HasTerminator="true" />
+                </If>
+                <SetOption HasTerminator="true" />
+                <If HasTerminator="true">
+                  <BeginEndBlock>
+                      <UpdateStatement HasTerminator="true" />
+                      <UpdateStatement HasTerminator="true" />
+                  </BeginEndBlock>
+                </If>
+            </BeginEndBlock>
+            <EmptyStatement HasTerminator="true" />
+        </Trigger>
+      </Statements>
+    </Xml>
+  </Test>
+
+</Tests>

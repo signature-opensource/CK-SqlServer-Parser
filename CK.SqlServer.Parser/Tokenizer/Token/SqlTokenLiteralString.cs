@@ -1,10 +1,3 @@
-#region Proprietary License
-/*----------------------------------------------------------------------------
-* This file (CK.SqlServer.Parser\Tokenizer\Token\SqlTokenLiteralString.cs) is part of CK-Database. 
-* Copyright © 2007-2014, Invenietis <http://www.invenietis.com>. All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -12,12 +5,13 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using CK.Core;
+using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
-    public sealed class SqlTokenLiteralString : SqlTokenBaseLiteral
+    public sealed class SqlTokenLiteralString : SqlTokenBaseLiteral, ISqlHasStringValue
     {
-        public SqlTokenLiteralString( SqlTokenType t, string value, IReadOnlyList<SqlTrivia> leadingTrivia = null, IReadOnlyList<SqlTrivia> trailingTrivia = null )
+        public SqlTokenLiteralString( SqlTokenType t, string value, ImmutableList<SqlTrivia> leadingTrivia = null, ImmutableList<SqlTrivia> trailingTrivia = null )
             : base( t, leadingTrivia, trailingTrivia )
         {
             if( (t & SqlTokenType.IsString) == 0 ) throw new ArgumentException( "Invalid token type.", "t" );
@@ -25,11 +19,19 @@ namespace CK.SqlServer.Parser
             Value = value;
         }
 
-        public bool IsUnicode { get { return TokenType == SqlTokenType.UnicodeString; } }
+        public bool IsUnicode => TokenType == SqlTokenType.UnicodeString; 
 
-        public string Value { get; private set; }
+        public string Value { get; }
 
-        public override string LiteralValue { get { return String.Format( IsUnicode ? "N'{0}'" : "'{0}'", Value.Replace( "'", "''" ) ); } }
+        public override string LiteralValue => string.Format( IsUnicode ? "N'{0}'" : "'{0}'", Value.Replace( "'", "''" ) );
+
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IList<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
+        {
+            return new SqlTokenLiteralString( TokenType, Value, leading, trailing );
+        }
+
+        [DebuggerStepThrough]
+        internal protected override ISqlNode Accept( SqlNodeVisitor visitor ) => visitor.Visit( this );
 
     }
 

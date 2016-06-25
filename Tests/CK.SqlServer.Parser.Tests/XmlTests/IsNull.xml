@@ -1,0 +1,175 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Tests>
+
+  Check( "~@i is null", "IsNull(~[@i])" );
+  Check( "~@i is not null", "IsNotNull(~[@i])" );
+  Check( "~@i * 8 is null", "IsNull([~[@i]*8])" );
+  Check( "~@i * (a*b) is not null", "IsNotNull([~[@i]*[a*b]])" );
+  Check( "not ~@i is null", "not[IsNull(~[@i])]" );
+  Check( "not ~@i is null and 1=0", "[not[IsNull(~[@i])]and[1=0]]" );
+
+  Check( "not ((((~@i) is null)))", "not[IsNull(~[@i])]" );
+  Check( "not ((((~@i) is not null)))", "not[IsNotNull(~[@i])]" );
+
+
+  <Test Mode="OneExpression">
+    <Text>~@i is null</Text>
+    <Description></Description>
+    <Xml CombineElementType="true">
+      <Sql EType="IsNull">
+        <Left EType="UnaryOperator">
+          <Operator EType="Terminal">~</Operator>
+          <Right EType="Identifier" IsVariable="true">@i</Right>
+        </Left>
+      </Sql>
+    </Xml>
+  </Test>
+
+
+  <Test Mode="OneExpression">
+    <Text>~@i is not null</Text>
+    <Description></Description>
+    <Xml CombineElementType="true">
+      <Sql EType="IsNull" IsNotNull="true">
+        <Left EType="UnaryOperator">
+          <Operator EType="Terminal">~</Operator>
+          <Right EType="Identifier" IsVariable="true">@i</Right>
+        </Left>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test Mode="OneExpression">
+    <Text>~@i * 8 is null</Text>
+    <Description></Description>
+    <Xml>
+      <Sql>
+        <IsNull>
+          <Left>
+            <BinaryOperator>
+              <Left>
+                <UnaryOperator>
+                  <Operator>
+                    <Terminal>~</Terminal>
+                  </Operator>
+                  <Right>
+                    <Identifier IsVariable="true">@i</Identifier>
+                  </Right>
+                </UnaryOperator>
+              </Left>
+              <Operator><Terminal>*</Terminal></Operator>
+              <Right>
+                <LiteralInteger>8</LiteralInteger>
+              </Right>
+            </BinaryOperator>
+          </Left>
+        </IsNull>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test Mode="OneExpression">
+    <Text>not ~@i is null</Text>
+    <Description></Description>
+    <Xml>
+      <Sql>
+        <UnaryOperator>
+          <Operator>
+            <Identifier IsReservedKeyword="true">not</Identifier>
+          </Operator>
+          <Right>
+            <IsNull>
+              <Left>
+                <UnaryOperator>
+                  <Operator>
+                    <Terminal>~</Terminal>
+                  </Operator>
+                  <Right>
+                    <Identifier IsVariable="true">@i</Identifier>
+                  </Right>
+                </UnaryOperator>
+              </Left>
+            </IsNull>
+          </Right>
+        </UnaryOperator>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test Mode="OneExpression">
+    <Text>not ~@i is not null</Text>
+    <Description></Description>
+    <Xml>
+      <Sql>
+        <UnaryOperator>
+          <Operator>
+            <Identifier IsReservedKeyword="true">not</Identifier>
+          </Operator>
+          <Right>
+            <IsNull IsNotNull="true">
+              <Left>
+                <UnaryOperator>
+                  <Operator>
+                    <Terminal>~</Terminal>
+                  </Operator>
+                  <Right>
+                    <Identifier IsVariable="true">@i</Identifier>
+                  </Right>
+                </UnaryOperator>
+              </Left>
+            </IsNull>
+          </Right>
+        </UnaryOperator>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test Mode="OneExpression">
+    <Text>not ~@i is not null and 1=0</Text>
+    <Description>Unary 'not' has a lower precedence than 'and'.</Description>
+    <Xml>
+      <Sql>
+        <BinaryOperator>
+          <Left>
+            <UnaryOperator>
+              <Operator>
+                <Identifier IsReservedKeyword="true">not</Identifier>
+              </Operator>
+              <Right>
+                <IsNull IsNotNull="true">
+                  <Left>
+                    <UnaryOperator>
+                      <Operator>
+                        <Terminal>~</Terminal>
+                      </Operator>
+                      <Right>
+                        <Identifier IsVariable="true">@i</Identifier>
+                      </Right>
+                    </UnaryOperator>
+                  </Left>
+                </IsNull>
+              </Right>
+            </UnaryOperator>
+          </Left>
+          <Operator>
+            <Identifier IsReservedKeyword="true">and</Identifier>
+          </Operator>
+          <Right>
+            <BinaryOperator>
+              <Left>
+                <LiteralInteger>1</LiteralInteger>
+              </Left>
+              <Operator>
+                <Terminal>=</Terminal>
+              </Operator>
+              <Right>
+                <LiteralInteger>0</LiteralInteger>
+              </Right>
+            </BinaryOperator>
+          </Right>
+        </BinaryOperator>
+      </Sql>
+    </Xml>
+  </Test>
+
+</Tests>

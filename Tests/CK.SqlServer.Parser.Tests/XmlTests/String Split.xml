@@ -1,0 +1,296 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Tests>
+
+  
+  <Test>
+    <Text>
+      CREATE FUNCTION dbo.SplitStrings_Native( @List varchar(max), @Delimiter char(1))
+      RETURNS TABLE WITH SCHEMABINDING
+      AS
+          RETURN (SELECT [value] FROM STRING_SPLIT(@List, @Delimiter));
+      GO
+ 
+      CREATE FUNCTION dbo.SplitStrings_XML( @List varchar(max), @Delimiter char(1))
+      RETURNS TABLE WITH SCHEMABINDING
+      AS
+         RETURN (SELECT [value] = y.i.value('(./text())[1]', 'varchar(max)')
+            FROM (SELECT x = CONVERT(XML, '<i>' + REPLACE(@List, @Delimiter, '</i><i>') 
+              + '</i>').query('.')) AS a CROSS APPLY x.nodes('i') AS y(i));
+      GO
+ 
+      CREATE FUNCTION dbo.SplitStrings_Numbers( @List varchar(max), @Delimiter char(1))
+      RETURNS TABLE WITH SCHEMABINDING
+      AS
+        RETURN (SELECT [value] = SUBSTRING(@List, Number, 
+             CHARINDEX(@Delimiter, @List + @Delimiter, Number) - Number)
+           FROM dbo.Numbers WHERE Number &lt;= CONVERT(INT, LEN(@List))
+           AND SUBSTRING(@Delimiter + @List, Number, LEN(@Delimiter)) = @Delimiter
+        );
+      GO
+ 
+      CREATE FUNCTION dbo.SplitStrings_JSON( @List varchar(max), @Delimiter char(1))
+      RETURNS TABLE WITH SCHEMABINDING
+      AS
+          RETURN (SELECT [value] FROM OPENJSON(CHAR(91) + @List + CHAR(93)) WITH (value int '$'));
+      GO    
+    </Text>
+    <Description>
+      From http://sqlperformance.com/2016/04/sql-server-2016/string-split-follow-up-2 
+    </Description>
+    <Xml>
+      <Statements>
+        <FunctionInlineTable StatementName="CreateFunction">
+          <SelectStatement HasTerminator="true">
+            <SelectSpec />
+          </SelectStatement>
+        </FunctionInlineTable>
+        <Statement StatementName="GO" />
+        <FunctionInlineTable StatementName="CreateFunction">
+          <SelectStatement HasTerminator="true">
+            <SelectSpec>
+              <SelectSpec />
+            </SelectSpec>
+          </SelectStatement>
+        </FunctionInlineTable>
+        <Statement StatementName="GO" />
+        <FunctionInlineTable StatementName="CreateFunction">
+          <SelectStatement HasTerminator="true">
+            <SelectSpec />
+          </SelectStatement>
+        </FunctionInlineTable>
+        <Statement StatementName="GO" />
+        <FunctionInlineTable StatementName="CreateFunction">
+          <SelectStatement HasTerminator="true">
+            <SelectSpec />
+          </SelectStatement>
+        </FunctionInlineTable>
+        <Statement StatementName="GO" />      </Statements>
+    </Xml>
+  </Test>
+
+  <Test>
+    <Text>
+      CREATE SYNONYM dbo.Posts FOR dbo.Posts_Regular;
+ 
+      -- to test memory-optimized version:
+      DROP SYNONYM dbo.Posts;
+      CREATE SYNONYM dbo.Posts FOR dbo.Posts_InMemory;
+ 
+      -- to test the disk-based version again:
+      DROP SYNONYM dbo.Posts;
+      CREATE SYNONYM dbo.Posts FOR dbo.Posts_Regular;    </Text>
+    <Description>
+      From http://sqlperformance.com/2016/04/sql-server-2016/string-split-follow-up-2 
+    </Description>
+    <Xml>
+      <Statements>
+         <Statement StatementName="CREATE" HasTerminator="true" />
+         <Statement StatementName="DROP" HasTerminator="true" />
+         <Statement StatementName="CREATE" HasTerminator="true" />
+         <Statement StatementName="DROP" HasTerminator="true" />
+         <Statement StatementName="CREATE" HasTerminator="true" />
+      </Statements>
+    </Xml>
+  </Test>
+
+  <Test>
+    <Text>
+      
+      CREATE TABLE dbo.Posts_Regular
+      (
+        PostID   int PRIMARY KEY,
+        HitCount int NOT NULL DEFAULT 0
+      );
+ 
+      INSERT dbo.Posts_Regular(PostID) 
+        SELECT TOP (3000000) ROW_NUMBER() OVER (ORDER BY s1.[object_id])
+        FROM sys.all_objects AS s1 
+        CROSS JOIN sys.all_objects AS s2;
+      
+      GO
+      CREATE TABLE dbo.Posts_InMemory
+      (
+        PostID   int PRIMARY KEY NONCLUSTERED HASH WITH (BUCKET_COUNT = 4000000),
+        HitCount int NOT NULL DEFAULT 0
+      ) WITH (MEMORY_OPTIMIZED = ON);
+      
+      GO
+      CREATE TYPE dbo.PostIDs_Regular AS TABLE(PostID int PRIMARY KEY);
+      GO
+      CREATE TYPE dbo.PostIDs_InMemory AS TABLE
+      (
+        PostID int NOT NULL PRIMARY KEY NONCLUSTERED HASH 
+        WITH (BUCKET_COUNT = 1000000)
+      ) 
+      WITH (MEMORY_OPTIMIZED = ON);
+      GO
+    </Text>
+    <Description>
+      From http://sqlperformance.com/2016/04/sql-server-2016/string-split-follow-up-2 
+    </Description>
+    <Xml>
+      <Statements>
+        <Statement StatementName="CREATE" HasTerminator="true" />
+        <InsertStatement HasTerminator="true">
+          <SelectSpec />
+        </InsertStatement>
+        <Statement StatementName="GO" />
+        <Statement StatementName="CREATE" HasTerminator="true" />
+        <Statement StatementName="GO" />
+        <Statement StatementName="CREATE" HasTerminator="true" />
+        <Statement StatementName="GO" />
+        <Statement StatementName="CREATE" HasTerminator="true" />
+        <Statement StatementName="GO" />
+      </Statements>
+    </Xml>
+  </Test>
+
+  <Test>
+    <Text>
+      
+      CREATE PROCEDURE dbo.UpdatePosts_Native
+        @PostList varchar(max)
+      AS
+      BEGIN
+        UPDATE p SET HitCount += 1
+        FROM dbo.Posts AS p
+        INNER JOIN dbo.SplitStrings_Native(@PostList, ',') AS s
+        ON p.PostID = s.[value];
+      END
+      GO
+      CREATE PROCEDURE dbo.SelectPosts_Native
+        @PostList varchar(max)
+      AS
+      BEGIN
+        SELECT p.PostID, p.HitCount
+        FROM dbo.Posts AS p
+        INNER JOIN dbo.SplitStrings_Native(@PostList, ',') AS s
+        ON p.PostID = s.[value];
+      END
+      GO
+      -- repeat for the 4 other varchar(max)-based methods
+ 
+      CREATE PROCEDURE dbo.UpdatePosts_TVP
+        @PostList dbo.PostIDs_Regular READONLY
+      AS
+      BEGIN
+        SET NOCOUNT ON;
+ 
+        UPDATE p SET HitCount += 1
+        FROM dbo.Posts AS p
+        INNER JOIN @PostList AS s
+        ON p.PostID = s.PostID;
+      END
+      GO
+      CREATE PROCEDURE dbo.SelectPosts_TVP
+        @PostList dbo.PostIDs READONLY
+      AS
+      BEGIN
+        SET NOCOUNT ON;
+ 
+        SELECT p.PostID, p.HitCount
+        FROM dbo.Posts AS p
+        INNER JOIN @PostList AS s
+        ON p.PostID = s.PostID;
+      END
+      GO
+      
+    </Text>
+    <Description>
+      From http://sqlperformance.com/2016/04/sql-server-2016/string-split-follow-up-2 
+    </Description>
+    <Xml>
+      <Statements>
+         <StoredProcedure StatementName="CreateProcedure">
+           <UpdateStatement HasTerminator="true" />
+         </StoredProcedure>
+         <Statement StatementName="GO" />
+         <StoredProcedure StatementName="CreateProcedure">
+           <SelectStatement HasTerminator="true">
+             <SelectSpec />
+           </SelectStatement>
+         </StoredProcedure>
+         <Statement StatementName="GO" />
+         <StoredProcedure StatementName="CreateProcedure">
+           <SetOption HasTerminator="true" />
+           <UpdateStatement HasTerminator="true" />
+         </StoredProcedure>
+         <Statement StatementName="GO" />
+         <StoredProcedure StatementName="CreateProcedure">
+           <SetOption HasTerminator="true" />
+           <SelectStatement HasTerminator="true">
+             <SelectSpec />
+           </SelectStatement>
+         </StoredProcedure>
+         <Statement StatementName="GO" />
+      </Statements>
+    </Xml>
+  </Test>
+
+  <Test>
+    <Text>
+      
+        CREATE TABLE dbo.SplitLog
+        (
+          LogID           int IDENTITY(1,1) PRIMARY KEY,
+          ClockTime       datetime          NOT NULL DEFAULT GETDATE(),
+          OperatingTable  nvarchar(513)     NOT NULL, -- Posts_InMemory or Posts_Regular
+          Operation       varchar(32)       NOT NULL DEFAULT 'Update', -- or select
+          Method          varchar(32)       NOT NULL DEFAULT 'Native', -- or TVP, JSON, etc.
+          Timing          int NOT NULL DEFAULT 0
+        );
+        GO
+ 
+        CREATE PROCEDURE dbo.LogBatchTime
+          @Operation  varchar(32),
+          @Method     varchar(32),
+          @Timing     int
+        AS
+        BEGIN
+          SET NOCOUNT ON;
+ 
+          INSERT dbo.SplitLog(OperatingTable, Operation, Method, Timing) 
+            SELECT base_object_name, @Operation, @Method, @Timing
+            FROM sys.synonyms WHERE name = N'Posts';
+        END
+        GO
+ 
+        -- and the query to generate the graphs:
+ 
+        ;WITH x AS
+        (
+          SELECT OperatingTable,Operation,Method,Timing,
+            Recency = ROW_NUMBER() OVER 
+              (PARTITION BY OperatingTable,Operation,Method 
+               ORDER BY ClockTime DESC)
+          FROM dbo.SplitLog
+        )
+        SELECT OperatingTable,Operation,Method,AverageDuration = AVG(1.0*Timing)
+        FROM x WHERE Recency &lt;= 3
+        GROUP BY OperatingTable,Operation,Method;      
+    </Text>
+    <Description>
+      From http://sqlperformance.com/2016/04/sql-server-2016/string-split-follow-up-2 
+    </Description>
+    <Xml>
+      <Statements>
+        <Statement StatementName="CREATE" HasTerminator="true" />
+        <Statement StatementName="GO" />
+        <StoredProcedure StatementName="CreateProcedure">
+          <SetOption HasTerminator="true" />
+          <InsertStatement HasTerminator="true">
+            <SelectSpec />
+          </InsertStatement>
+        </StoredProcedure>
+        <Statement StatementName="GO" HasTerminator="true" />
+        <CTEStatement HasTerminator="true">
+          <SelectSpec />
+          <SelectStatement HasTerminator="true">
+            <SelectSpec />
+          </SelectStatement>
+        </CTEStatement>      
+      </Statements>
+    </Xml>
+  </Test>
+    
+</Tests>

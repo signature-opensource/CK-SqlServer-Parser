@@ -1,0 +1,70 @@
+﻿using CK.SqlServer.Parser;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace CK.SqlServer.Transform
+{
+    /// <summary>
+    /// Creates current locations during traversal that do not have <see cref="SqlNodeLocation.Node"/>.
+    /// </summary>
+    class LightLocationBuilder : ISqlNodeLocationBuilder
+    {
+        LocationRoot _root;
+        SqlNodeLocation _current;
+        SqlNodeLocation _currentQ;
+        int _curPos;
+        int _depth;
+
+        public void Reset( LocationRoot root )
+        {
+            Debug.Assert( root != null && root.Node != null );
+            _root = root;
+            _curPos = 0;
+            _depth = -1;
+        }
+
+        public LocationRoot Root => _root;
+
+        public int Depth => _depth;
+
+        public int Position => _curPos;
+
+        public void Enter( ISqlNode n )
+        {
+            ++_depth;
+            _currentQ = null;
+        }
+
+        public void Leave( ISqlNode n, bool skipped )
+        {
+            --_depth;
+            if( skipped )
+            {
+                _curPos += n.Width;
+                _current = null;
+            }
+            else if( n is SqlToken )
+            {
+                ++_curPos;
+                _current = null;
+            }
+            _currentQ = null;
+        }
+
+        public SqlNodeLocation GetCurrent( int overridePos, ISqlNode current, bool qualifiedLocation )
+        {
+            if( qualifiedLocation )
+            {
+                return _currentQ != null && _currentQ.Node == current 
+                        ? _currentQ
+                        : (_currentQ = _current = _depth == 0 ? _root : _root.GetQualifiedLocation( overridePos, current ));
+            }
+            return _current ?? _currentQ ?? (_current = _depth == 0 || overridePos == 0 ? _root : new SqlNodeLocation( _root, null, overridePos ));
+        }
+
+    }
+}

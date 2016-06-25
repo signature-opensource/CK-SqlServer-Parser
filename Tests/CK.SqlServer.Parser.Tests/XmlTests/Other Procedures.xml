@@ -1,0 +1,217 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Tests>
+   
+  <Test>
+    <Text>
+ALTER PROCEDURE [dbo].[ACTION_ENGAGED]
+      @ID_ACTION int,
+      @ID_MODULE int
+AS
+BEGIN
+      -- 1 ENGAGED
+      -- 0 NOT ENGAGED
+      DECLARE @CNT int
+      if (@ID_MODULE is not null)
+            SELECT @CNT = COUNT(*) 
+            FROM
+                  POSTE_COUT_ENGAGE
+                        INNER JOIN ENGAGEMENT              ON POSTE_COUT_ENGAGE.ID_ENGAGEMENT = ENGAGEMENT.ID_ENGAGEMENT
+                                                                       AND ENGAGEMENT.ID_TYPE_ENGAGEMENT &lt;&gt; 2
+                                                                       AND ENGAGEMENT.DAT_BAE IS NOT NULL
+            WHERE  
+                  POSTE_COUT_ENGAGE.ID_MODULE_PEC = @ID_MODULE
+                  AND POSTE_COUT_ENGAGE.MNT_ENGAGE_HT &gt;= 0
+                  AND POSTE_COUT_ENGAGE.DAT_DESENGAGEMENT is null
+      else if (@ID_ACTION is not null)
+            SELECT @CNT = COUNT(*) 
+            FROM
+                  MODULE_PEC
+                        INNER JOIN ENGAGEMENT              ON ENGAGEMENT.ID_ACTION_PEC = @ID_ACTION
+                                                                            AND ENGAGEMENT.ID_TYPE_ENGAGEMENT &lt;&gt; 2
+                                                                            AND ENGAGEMENT.DAT_BAE IS NOT NULL
+                        INNER JOIN POSTE_COUT_ENGAGE ON POSTE_COUT_ENGAGE.ID_MODULE_PEC = MODULE_PEC.ID_MODULE_PEC
+                                                                            AND POSTE_COUT_ENGAGE.ID_ENGAGEMENT = ENGAGEMENT.ID_ENGAGEMENT
+                                                                            AND POSTE_COUT_ENGAGE.MNT_ENGAGE_HT &gt;= 0
+                                                                            AND POSTE_COUT_ENGAGE.DAT_DESENGAGEMENT is null
+            WHERE 
+                  (MODULE_PEC.ID_ACTION_PEC = @ID_ACTION)
+      else
+            SELECT @CNT = COUNT(*) 
+            FROM
+                  MODULE_PEC
+                        INNER JOIN ENGAGEMENT              ON ENGAGEMENT.ID_ACTION_PEC = MODULE_PEC.ID_ACTION_PEC
+                                                                            AND ENGAGEMENT.ID_TYPE_ENGAGEMENT &lt;&gt; 2
+                                                                            AND ENGAGEMENT.DAT_BAE IS NOT NULL
+                        INNER JOIN POSTE_COUT_ENGAGE ON POSTE_COUT_ENGAGE.ID_MODULE_PEC = MODULE_PEC.ID_MODULE_PEC
+                                                                            AND POSTE_COUT_ENGAGE.ID_ENGAGEMENT = ENGAGEMENT.ID_ENGAGEMENT
+                                                                            AND POSTE_COUT_ENGAGE.MNT_ENGAGE_HT &gt;= 0
+                                                                            AND POSTE_COUT_ENGAGE.DAT_DESENGAGEMENT is null
+                  
+      /*
+      SELECT
+            @CNT = COUNT(*) 
+      FROM
+            ACTION_PEC
+                  INNER JOIN ENGAGEMENT              ON ENGAGEMENT.ID_ACTION_PEC = ACTION_PEC.ID_ACTION_PEC
+                                                                       AND ENGAGEMENT.ID_TYPE_ENGAGEMENT &lt;&gt; 2
+                                                                       AND ENGAGEMENT.DAT_BAE IS NOT NULL
+                  INNER JOIN MODULE_PEC              ON MODULE_PEC.ID_ACTION_PEC = ACTION_PEC.ID_ACTION_PEC
+                                                                       AND
+                                                                       (
+                                                                             (ACTION_PEC.ID_ACTION_PEC = @ID_ACTION OR @ID_ACTION IS NULL)
+                                                                            AND      (MODULE_PEC.ID_MODULE_PEC = @ID_MODULE OR @ID_MODULE IS NULL)
+                                                                       )
+                  INNER JOIN POSTE_COUT_ENGAGE ON POSTE_COUT_ENGAGE.ID_MODULE_PEC = MODULE_PEC.ID_MODULE_PEC
+                                                                       AND POSTE_COUT_ENGAGE.ID_ENGAGEMENT = ENGAGEMENT.ID_ENGAGEMENT
+                                                                       AND POSTE_COUT_ENGAGE.MNT_ENGAGE_HT &gt;= 0
+                                                                       AND POSTE_COUT_ENGAGE.DAT_DESENGAGEMENT is null
+      
+      select @CNT AS MODIFIABLE
+      */
+      select @CNT AS ENGAGED
+      return @CNT
+END
+    </Text>
+    <Description>With options.</Description>
+    <Xml>
+      <Statements>
+        <StoredProcedure StatementName="AlterProcedure">
+            <DeclareVariable />
+            <If>
+              <SelectStatement>
+                <SelectSpec />
+              </SelectStatement>
+              <If>
+                <SelectStatement>
+                  <SelectSpec />
+                </SelectStatement>
+                <SelectStatement>
+                  <SelectSpec />
+                </SelectStatement>
+              </If>
+            </If>
+            <SelectStatement>
+              <SelectSpec />
+            </SelectStatement>
+            <ReturnStatement />
+        </StoredProcedure>
+      </Statements>
+    </Xml>
+  </Test>
+ 
+  
+  <Test>
+    <Text>
+-- =============================================
+-- Author:        Dorota Szeliga
+-- Create date: 11/03/2008
+-- Description:   Compteur pour COD_ACTION_PEC. Returns COD_ACTION
+-- =============================================
+ALTER PROCEDURE [dbo].[ACTION_COMPTEUR]
+      @ACTION_ANNEE int
+AS
+BEGIN
+      -- get the existing counter
+      DECLARE     @@COMPTEUR int
+      DECLARE @@COD_CPT varchar(11)
+
+      SET @@COD_CPT = 'ACTION '+convert(varchar(4), @ACTION_ANNEE)
+
+      SELECT @@COMPTEUR = NUM_CPT 
+      FROM COMPTEUR 
+      WHERE COD_CPT = @@COD_CPT
+
+      IF @@COMPTEUR is null --if no counter found for this year let's create it
+            BEGIN
+                  SET @@COMPTEUR = 1
+                  insert into COMPTEUR (COD_CPT, NUM_CPT, BLN_BLOQUE)
+                  values (@@COD_CPT, 1, 0)
+            END
+      else
+            BEGIN
+                  SET @@COMPTEUR = @@COMPTEUR + 1
+                  update COMPTEUR set NUM_CPT = @@COMPTEUR
+                  where COD_CPT = @@COD_CPT
+            END
+RETURN  @@COMPTEUR
+END
+    </Text>
+    <Description>With options.</Description>
+    <Xml>
+      <Statements>
+        <StoredProcedure StatementName="AlterProcedure">
+            <DeclareVariable />
+            <DeclareVariable />
+            <SetVariable />
+            <SelectStatement>
+              <SelectSpec />
+            </SelectStatement>
+            <If>
+              <BeginEndBlock>
+                  <SetVariable />
+                  <InsertStatement />
+              </BeginEndBlock>
+              <BeginEndBlock>
+                  <SetVariable />
+                  <UpdateStatement />
+              </BeginEndBlock>
+            </If>
+            <ReturnStatement />
+        </StoredProcedure>
+      </Statements>
+    </Xml>
+  </Test>
+  
+  
+  <Test>
+    <Text>
+      -- =============================================
+      -- Auteur : SBR
+      -- Date  : 13/05/16
+      -- Desc  : Création d'un groupe statistique
+      -- =============================================
+      ALTER PROCEDURE [eGUI].[SP_INS_GROUPE_STAT]
+      @COD_GROUPE_STATISTIQUE  varchar(8), -- code du groupe statistique
+      @LIBC_GROUPE_STATISTIQUE varchar(20), -- libellé court groupe stat
+      @LIBL_GROUPE_STATISTIQUE varchar(50), -- libellé long groupe stat
+      @ID_USER int       -- id utilisateur table eGUI.CK.tUser
+      AS
+
+      /*
+      Implémenter ici la fonction permettant de retouver l'id utilisateur optiform correspondant à @ID_USER
+      */
+
+      -- on teste si le code groupe stat existe déjà
+      if exists (select 1 from [dbo].[GROUPE_STATISTIQUE] where COD_GROUPE_STATISTIQUE = @COD_GROUPE_STATISTIQUE)
+      begin
+      declare @msg varchar(255)
+      set @msg = 'Le code '+@COD_GROUPE_STATISTIQUE+' existe déjà.'
+      raiserror(@msg, 16, 1)
+      return
+      end
+
+      insert into [dbo].[GROUPE_STATISTIQUE]
+      (COD_GROUPE_STATISTIQUE, LIBC_GROUPE_STATISTIQUE, LIBL_GROUPE_STATISTIQUE, BLN_PRIO, BLN_ACTIF, DAT_MODIF, /*ID_UTILISATEUR, */DAT_CREATION)
+      values
+      (@COD_GROUPE_STATISTIQUE, @LIBC_GROUPE_STATISTIQUE, @LIBL_GROUPE_STATISTIQUE, 1, 1, getdate(), /*@ID_USER_OPT, */getdate())
+    </Text>
+    <Description>With options.</Description>
+    <Xml>
+      <Statements>
+         <StoredProcedure StatementName="AlterProcedure">
+             <If>
+               <SelectSpec />
+               <BeginEndBlock>
+                   <DeclareVariable />
+                   <SetVariable />
+                   <Raiserror />
+                   <ReturnStatement />
+               </BeginEndBlock>
+             </If>
+             <InsertStatement />
+         </StoredProcedure>
+      </Statements>
+    </Xml>
+  </Test>
+  
+</Tests>

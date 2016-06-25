@@ -1,10 +1,3 @@
-#region Proprietary License
-/*----------------------------------------------------------------------------
-* This file (CK.SqlServer.Parser\Tokenizer\Token\SqlTokenError.cs) is part of CK-Database. 
-* Copyright © 2007-2014, Invenietis <http://www.invenietis.com>. All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,6 +6,7 @@ using System.Linq.Expressions;
 using CK.Core;
 using System.Diagnostics;
 using System.Globalization;
+using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
@@ -21,32 +15,47 @@ namespace CK.SqlServer.Parser
     /// </summary>
     public class SqlTokenError : SqlToken
     {
-        public static readonly SqlTokenError EndOfInput = new SqlTokenError( SqlTokenTypeError.EndOfInput, null, null, null );
+        readonly string _errorMessage;
 
-        public SqlTokenError( SqlTokenTypeError t, IReadOnlyList<SqlTrivia> leadingTrivia = null, IReadOnlyList<SqlTrivia> trailingTrivia = null, string message = null )
+        public SqlTokenError( SqlTokenTypeError t, ImmutableList<SqlTrivia> leadingTrivia = null, ImmutableList<SqlTrivia> trailingTrivia = null, string message = null )
             : base( (SqlTokenType)t, leadingTrivia, trailingTrivia )
         {
             if( t >= 0 ) throw new ArgumentException( "Invalid error token type." );
-            ErrorMessage = message ?? t.ToString();
+            _errorMessage = message;
         }
 
         public SqlTokenError( string message )
             : base( SqlTokenType.ErrorMask, null, null )
         {
-            if( String.IsNullOrWhiteSpace( message ) ) throw new ArgumentNullException( "message" );
-            ErrorMessage = message;
+            if( string.IsNullOrWhiteSpace( message ) ) throw new ArgumentNullException( "message" );
+            _errorMessage = message;
         }
 
-        public string ErrorMessage { get; private set; }
+        /// <summary>
+        /// Gets the error message.
+        /// </summary>
+        public string ErrorMessage => SqlKeyword.ToString( base.TokenType ) 
+                                        + (_errorMessage == null ? string.Empty : ": " + _errorMessage ); 
 
-        public new SqlTokenTypeError TokenType { get { return (SqlTokenTypeError)base.TokenType; } }
-        
-        public bool IsEndOfInput { get { return base.TokenType == SqlTokenType.EndOfInput; } }
+        public new SqlTokenTypeError TokenType => (SqlTokenTypeError)base.TokenType; 
 
-        protected override void DoWrite( StringBuilder b )
+        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IList<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
         {
-            b.AppendFormat( "[Error: {0}]", ErrorMessage ); 
+            return new SqlTokenError( TokenType, leading, trailing, ErrorMessage );
         }
+
+        public bool IsEndOfInput => base.TokenType == SqlTokenType.EndOfInput;
+
+        public override void WriteWithoutTrivias( ISqlTextWriter w )
+        {
+            w.Write( base.TokenType, ErrorMessage ); 
+        }
+
+        public override bool TokenEquals( SqlToken t ) => ReferenceEquals( this, t );
+
+        [DebuggerStepThrough]
+        internal protected override ISqlNode Accept( SqlNodeVisitor visitor ) => visitor.Visit( this );
+
     }
 
 }

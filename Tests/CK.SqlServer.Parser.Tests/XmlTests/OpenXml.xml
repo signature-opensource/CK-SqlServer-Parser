@@ -1,0 +1,361 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Tests>
+
+  <Test>
+    <Text>
+      <![CDATA[
+      DECLARE @idoc int, @doc varchar(1000);
+      SET @doc ='
+      <ROOT>
+        <Customer CustomerID="VINET" ContactName="Paul Henriot">
+          <Order CustomerID="VINET" EmployeeID="5" OrderDate="1996-07-04T00:00:00">
+            <OrderDetail OrderID="10248" ProductID="11" Quantity="12"/>
+            <OrderDetail OrderID="10248" ProductID="42" Quantity="10"/>
+          </Order>
+        </Customer>
+        <Customer CustomerID="LILAS" ContactName="Carlos Gonzlez">
+          <Order CustomerID="LILAS" EmployeeID="3" OrderDate="1996-08-16T00:00:00">
+            <OrderDetail OrderID="10283" ProductID="72" Quantity="3"/>
+          </Order>
+        </Customer>
+      </ROOT>';
+      --Create an internal representation of the XML document.
+      EXEC sp_xml_preparedocument @idoc OUTPUT, @doc;
+      -- Execute a SELECT statement that uses the OPENXML rowset provider.
+      SELECT *
+        FROM OPENXML (@idoc, '/ROOT/Customer',1)
+              WITH (CustomerID  varchar(10), ContactName varchar(20));
+      ]]>
+    </Text>
+    <Description>OpenXml has WITH() options.</Description>
+    <Xml>
+      <Statements>
+        <DeclareVariable HasTerminator="true" />
+        <SetVariable HasTerminator="true" />
+        <ExecuteStatement HasTerminator="true" />
+        <SelectStatement HasTerminator="true">
+          <SelectSpec />
+        </SelectStatement>
+      </Statements>
+    </Xml>
+  </Test> 
+  
+  <Test Mode="OneExpression">
+    <Text>
+        OPENXML (@idoc, '/ROOT/Customer/Order/OrderDetail',2) 
+                 WITH (OrderID       int         '../@OrderID', 
+                       CustomerID  varchar(10) '../@CustomerID', 
+                       OrderDate   datetime    '../@OrderDate', 
+                       ProdID      int         '@ProductID', 
+                       Qty         int         '@Quantity')
+    </Text>
+    <Description>Sample n°2.</Description>
+    <Xml>
+    </Xml>
+  </Test> 
+  
+  <Test>
+    <Text>
+      <![CDATA[
+        -- Create a test table. This table schema is used by OPENXML as the
+        -- rowset schema.
+        CREATE TABLE T1(oid char(5), date datetime, amount float)
+        GO
+        DECLARE @docHandle int
+        DECLARE @xmlDocument nvarchar(1000)
+        -- Sample XML document
+        SET @xmlDocument =N'<root>
+          <Customer cid= "C1" name="Janine" city="Issaquah">
+              <Order oid="O1" date="1/20/1996" amount="3.5" />
+              <Order oid="O2" date="4/30/1997" amount="13.4">Customer was very 
+                     satisfied</Order>
+           </Customer>
+           <Customer cid="C2" name="Ursula" city="Oelde" >
+              <Order oid="O3" date="7/14/1999" amount="100" note="Wrap it blue 
+                     white red">
+                  <Urgency>Important</Urgency>
+              </Order>
+              <Order oid="O4" date="1/20/1996" amount="10000"/>
+           </Customer>
+        </root>'
+        --Create an internal representation of the XML document.
+        EXEC sp_xml_preparedocument @docHandle OUTPUT, @xmlDocument
+
+        -- Execute a SELECT statement using OPENXML rowset provider.
+        SELECT *
+        FROM OPENXML (@docHandle, '/root/Customer/Order', 1)
+             WITH T1
+        EXEC sp_xml_removedocument @docHandle
+]]>
+    </Text>
+    <Description>With option can be a... table name, but NOT a local table (@T1)!</Description>
+    <Xml>
+      <Statements>
+        <Statement StatementName="CREATE" />
+        <Statement StatementName="GO" />
+        <DeclareVariable />
+        <DeclareVariable />
+        <SetVariable />
+        <ExecuteStatement />
+        <SelectStatement>
+          <SelectSpec />
+        </SelectStatement>
+        <ExecuteStatement />
+      </Statements>
+    </Xml>
+  </Test> 
+  
+  <Test>
+    <Text>
+      <![CDATA[
+      CREATE TABLE T (Col1 int primary key, Col2 varbinary(100))
+      go
+      -- Insert sample binary data
+      INSERT T VALUES(1, 0x1234567890) 
+      go
+       -- Create test XML document that has base64 encoded binary data (use FOR XML query and specify BINARY BASE64 option)
+      SELECT * FROM T
+      FOR XML AUTO, BINARY BASE64
+      go
+      -- result
+      -- <T Col1="1" Col2="EjRWeJA="/>
+
+      -- Now shredd the sample XML using OPENXML. 
+      -- Call the .value function to convert 
+      -- the base64 encoded data returned by OPENXML to binary.
+      DECLARE @h int ;
+      EXEC sp_xml_preparedocument @h OUTPUT, '<T Col1="1" Col2="EjRWeJA="/>' ;
+      SELECT Col1, 
+            CAST('<binary>' + Col2 + '</binary>' AS XML).value('.', 'varbinary(max)') AS BinaryCol 
+        FROM openxml(@h, '/T') WITH (Col1 integer, Col2 varchar(max)) ;
+      EXEC sp_xml_removedocument @h ;
+      GO
+]]>
+    </Text>
+    <Description>Another sample from MSDN.</Description>
+    <Xml>
+      <Statements>
+        <Statement StatementName="CREATE" />
+        <Statement StatementName="go" />
+        <InsertStatement />
+        <Statement StatementName="go" />
+        <SelectStatement>
+          <SelectDecorator>
+            <SelectSpec />
+          </SelectDecorator>
+        </SelectStatement>
+        <Statement StatementName="go" />
+        <DeclareVariable HasTerminator="true" />
+        <ExecuteStatement HasTerminator="true" />
+        <SelectStatement HasTerminator="true">
+          <SelectSpec />
+        </SelectStatement>
+        <ExecuteStatement HasTerminator="true" />
+        <Statement StatementName="GO" />
+      </Statements>
+    </Xml>
+  </Test> 
+  
+  <Test>
+    <Text>
+      <![CDATA[
+      -- Create these tables:
+      DROP TABLE CourseAttendance
+      DROP TABLE Students
+      DROP TABLE Courses
+      GO
+      CREATE TABLE Students(
+                      id   varchar(5) primary key,
+                      name varchar(30)
+                      )
+      GO
+      CREATE TABLE Courses(
+                     id       varchar(5) primary key,
+                     name     varchar(30),
+                     taughtBy varchar(5)
+      )
+      GO
+      CREATE TABLE CourseAttendance(
+                   id         varchar(5) references Courses(id),
+                   attendedBy varchar(5) references Students(id),
+                   constraint CourseAttendance_PK primary key (id, attendedBy)
+      )
+      go
+      -- Create these stored procedures:
+      DROP PROCEDURE f_idrefs
+      GO
+      CREATE PROCEDURE f_idrefs
+          @t      varchar(500),
+          @idtab  varchar(50),
+          @id     varchar(5)
+      AS
+      DECLARE @sp int
+      DECLARE @att varchar(5)
+      SET @sp = 0
+      WHILE (LEN(@t) > 0)
+      BEGIN 
+          SET @sp = CHARINDEX(' ', @t+ ' ')
+          SET @att = LEFT(@t, @sp-1)
+          EXEC('INSERT INTO '+@idtab+' VALUES ('''+@id+''', '''+@att+''')')
+          SET @t = SUBSTRING(@t+ ' ', @sp+1, LEN(@t)+1-@sp)
+      END
+      Go
+
+      DROP PROCEDURE fill_idrefs
+      GO
+      CREATE PROCEDURE fill_idrefs 
+          @xmldoc     int,
+          @xpath      varchar(100),
+          @from       varchar(50),
+          @to         varchar(50),
+          @idtable    varchar(100)
+      AS
+        DECLARE @t varchar(500)
+        DECLARE @id varchar(5)
+
+        /* Temporary Edge table */
+        SELECT * 
+        INTO #TempEdge 
+        FROM OPENXML(@xmldoc, @xpath)
+
+        DECLARE fillidrefs_cursor CURSOR FOR
+            SELECT CAST(iv.text AS nvarchar(200)) AS id,
+                   CAST(av.text AS nvarchar(4000)) AS refs
+            FROM   #TempEdge c, #TempEdge i,
+                   #TempEdge iv, #TempEdge a, #TempEdge av
+            WHERE  c.id = i.parentid
+            AND    UPPER(i.localname) = UPPER(@from)
+            AND    i.id = iv.parentid
+            AND    c.id = a.parentid
+            AND    UPPER(a.localname) = UPPER(@to)
+            AND    a.id = av.parentid
+
+        OPEN fillidrefs_cursor
+        FETCH NEXT FROM fillidrefs_cursor INTO @id, @t
+        WHILE (@@FETCH_STATUS <> -1)
+        BEGIN
+            IF (@@FETCH_STATUS <> -2)
+            BEGIN
+                execute f_idrefs @t, @idtable, @id
+            END
+            FETCH NEXT FROM fillidrefs_cursor INTO @id, @t
+        END
+        CLOSE fillidrefs_cursor
+        DEALLOCATE fillidrefs_cursor
+      Go
+      -- This is the sample document that is shredded and the data is stored in the preceding tables.
+      DECLARE @h int
+      EXECUTE sp_xml_preparedocument @h OUTPUT, N'<Data>
+        <Student id = "s1" name = "Student1"  attends = "c1 c3 c6"  />
+        <Student id = "s2" name = "Student2"  attends = "c2 c4" />
+        <Student id = "s3" name = "Student3"  attends = "c2 c4 c6" />
+        <Student id = "s4" name = "Student4"  attends = "c1 c3 c5" />
+        <Student id = "s5" name = "Student5"  attends = "c1 c3 c5 c6" />
+        <Student id = "s6" name = "Student6" />
+
+        <Class id = "c1" name = "Intro to Programming" 
+               attendedBy = "s1 s4 s5" />
+        <Class id = "c2" name = "Databases" 
+               attendedBy = "s2 s3" />
+        <Class id = "c3" name = "Operating Systems" 
+               attendedBy = "s1 s4 s5" />
+        <Class id = "c4" name = "Networks" attendedBy = "s2 s3" />
+        <Class id = "c5" name = "Algorithms and Graphs" 
+               attendedBy =  "s4 s5"/>
+        <Class id = "c6" name = "Power and Pragmatism" 
+               attendedBy = "s1 s3 s5" />
+      </Data>'
+
+      INSERT INTO Students SELECT * FROM OPENXML(@h, '//Student') WITH Students
+
+      INSERT INTO Courses SELECT * FROM OPENXML(@h, '//Class') WITH Courses
+      /* Using the edge table */
+      EXECUTE fill_idrefs @h, '//Class', 'id', 'attendedby', 'CourseAttendance'
+
+      SELECT * FROM Students
+      SELECT * FROM Courses
+      SELECT * FROM CourseAttendance
+
+      EXECUTE sp_xml_removedocument @h
+]]>
+    </Text>
+    <Description>Big sample from MSDN.</Description>
+    <Xml>
+      <Statements>
+        <Statement StatementName="DROP" />
+        <Statement StatementName="DROP" />
+        <Statement StatementName="DROP" />
+        <Statement StatementName="GO" />
+        <Statement StatementName="CREATE" />
+        <Statement StatementName="GO" />
+        <Statement StatementName="CREATE" />
+        <Statement StatementName="GO" />
+        <Statement StatementName="CREATE" />
+        <Statement StatementName="go" />
+        <Statement StatementName="DROP" />
+        <Statement StatementName="GO" />
+        <StoredProcedure StatementName="CreateProcedure">
+            <DeclareVariable />
+            <DeclareVariable />
+            <SetVariable />
+            <While>
+              <BeginEndBlock>
+                  <SetVariable />
+                  <SetVariable />
+                  <ExecuteStringStatement />
+                  <SetVariable />
+              </BeginEndBlock>
+            </While>
+        </StoredProcedure>
+        <Statement StatementName="Go" />
+        <Statement StatementName="DROP" />
+        <Statement StatementName="GO" />
+        <StoredProcedure StatementName="CreateProcedure">
+            <DeclareVariable />
+            <DeclareVariable />
+            <SelectStatement>
+              <SelectSpec />
+            </SelectStatement>
+            <DeclareCursor>
+              <SelectSpec />
+            </DeclareCursor>
+            <Statement StatementName="OPEN" />
+            <Statement StatementName="FETCH" />
+            <While>
+              <BeginEndBlock>
+                  <If>
+                    <BeginEndBlock>
+                        <ExecuteStatement />
+                    </BeginEndBlock>
+                  </If>
+                  <Statement StatementName="FETCH" />
+              </BeginEndBlock>
+            </While>
+            <Statement StatementName="CLOSE" />
+            <Statement StatementName="DEALLOCATE" />
+        </StoredProcedure>
+        <Statement StatementName="Go" />
+        <DeclareVariable />
+        <ExecuteStatement />
+        <InsertStatement>
+          <SelectSpec />
+        </InsertStatement>
+        <InsertStatement>
+          <SelectSpec />
+        </InsertStatement>
+        <ExecuteStatement />
+        <SelectStatement>
+          <SelectSpec />
+        </SelectStatement>
+        <SelectStatement>
+          <SelectSpec />
+        </SelectStatement>
+        <SelectStatement>
+          <SelectSpec />
+        </SelectStatement>
+        <ExecuteStatement />
+      </Statements>
+    </Xml>
+  </Test> 
+  
+</Tests>

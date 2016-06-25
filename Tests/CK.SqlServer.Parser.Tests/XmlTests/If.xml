@@ -1,0 +1,48 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Tests>
+
+  <Test>
+    <Text>
+      if @i is null print '1';
+      else print 2, 9, 'toto';</Text>
+    <Description>Simple if statement.</Description>
+    <Xml>
+      <Sql>
+        <If>
+          <Condition>
+            <IsNull>
+              <Left>
+                <Identifier IsVariable="true">@i</Identifier>
+              </Left>
+            </IsNull>
+          </Condition>
+          <Then>
+            <Statement StatementName="print" HasTerminator="true">
+              <Content>
+                <LiteralString>'1'</LiteralString>
+              </Content>
+            </Statement>
+          </Then>
+          <Else>
+            <Statement StatementName="print" HasTerminator="true">
+              <Content>
+                <CommaList>
+                  <Item>
+                    <LiteralInteger>2</LiteralInteger>
+                  </Item>
+                  <Item>
+                    <LiteralInteger>9</LiteralInteger>
+                  </Item>
+                  <Item>
+                    <LiteralString>'toto'</LiteralString>
+                  </Item>
+                </CommaList>
+              </Content>
+            </Statement>
+          </Else>
+        </If>
+      </Sql>
+    </Xml>
+  </Test>
+
+</Tests>

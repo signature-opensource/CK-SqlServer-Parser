@@ -1,0 +1,161 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Tests>
+  <Test Mode="OneExpression">
+    <Text>word</Text>
+    <Xml>
+      <Sql>
+        <Identifier>word</Identifier>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test Mode="OneExpression">
+    <Text>create</Text>
+    <Xml>
+      <Sql>
+        <Identifier IsReservedKeyword="true">create</Identifier>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test Mode="OneExpression">
+    <Text>fetch</Text>
+    <Xml>
+      <Sql>
+        <Identifier IsReservedKeyword="true">fetch</Identifier>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test Mode="OneExpression">
+    <Text>@var</Text>
+    <Xml>
+      <Sql>
+        <Identifier IsVariable="true">@var</Identifier>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test Mode="OneExpression">
+    <Text>@@system_identifier</Text>
+    <Xml>
+      <Sql>
+        <Identifier IsVariable="true">@@system_identifier</Identifier>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test Mode="OneExpression">
+    <Text>##MS_SQLResourceSigningCertificate##</Text>
+    <Xml>
+      <Sql>
+        <Identifier>##MS_SQLResourceSigningCertificate##</Identifier>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test Mode="OneExpression">
+    <Text>int</Text>
+    <Xml>
+      <Sql>
+        <TypeDeclSimple DBType="Int" Text="int" />
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test Mode="OneExpression">
+    <Text>sql_variant</Text>
+    <Xml>
+      <Sql>
+        <TypeDeclSimple DBType="Variant" Text="sql_variant" />
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test Mode="OneExpression">
+    <Text>datetime2</Text>
+    <Xml>
+      <Sql>
+        <TypeDeclDateAndTime DBType="DateTime2" Text="datetime2" />
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test Mode="OneExpression">
+    <Text>datetime</Text>
+    <Xml>
+      <Sql>
+        <TypeDeclDateAndTime DBType="DateTime" Text="datetime" />
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test Mode="OneExpression">
+    <Text>"Quoted identifier"</Text>
+    <Xml>
+      <Sql>
+        <Identifier IsQuoted="true">"Quoted identifier"</Identifier>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test Mode="OneExpression">
+    <Text>
+      [Bracket 
+            [quoted]] 
+      identifier]</Text>
+    <Xml>
+      <Sql>
+        <Identifier IsQuoted="true">[Bracket
+            [quoted]]
+      identifier]</Identifier>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test Mode="OneExpression">
+    <Text>x.y</Text>
+    <Xml>
+      <Sql>
+        <MultiIdentifier>x.y</MultiIdentifier>
+      </Sql>
+    </Xml>
+  </Test>
+  
+  <Test Mode="OneExpression">
+    <Text>x . y /*comment*/ :: /*c*/AL./*c*/B :: [E R T]</Text>
+    <Xml>
+      <Sql>
+        <MultiIdentifier>x.y::AL.B::[E R T]</MultiIdentifier>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test Mode="OneExpression">
+    <Text>@x.y."z a"</Text>
+    <Xml>
+      <Sql>
+        <MultiIdentifier IsVariable="true">@x.y."z a"</MultiIdentifier>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test Mode="OneExpression">
+    <Text>$action</Text>
+    <Xml>
+      <Sql>
+        <Identifier IsSpecial="true">$action</Identifier>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test Mode="OneExpression">
+    <Text>$some_thing87</Text>
+    <Xml>
+      <Sql>
+        <Identifier IsSpecial="true">$some_thing87</Identifier>
+      </Sql>
+    </Xml>
+  </Test>
+
+</Tests>

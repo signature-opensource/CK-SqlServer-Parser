@@ -1,0 +1,67 @@
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Diagnostics;
+using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
+using NUnit.Framework;
+using System.Xml.Linq;
+using CK.Core;
+using CK.SqlServer.UtilTests;
+using System.Data.SqlClient;
+using CK.Text;
+
+namespace CK.SqlServer.Parser.Tests
+{
+    [TestFixture]
+    public class SqlParserTests
+    {
+        [TestCase( "typedView.sql", typeof( ISqlServerView ) )]
+        [TestCase( "typedprocedure.sql", typeof( ISqlServerStoredProcedure ) )]
+        [TestCase( "typedInlineTableFunction.sql", typeof( ISqlServerFunctionInlineTable ) )]
+        [TestCase( "typedScalarFunction.sql", typeof( ISqlServerFunctionScalar ) )]
+        [TestCase( "typedTableFunction.sql", typeof( ISqlServerFunctionTable ) )]
+        [TestCase( "typedScript.sql", typeof( ISqlServerScript ) )]
+        [TestCase( "typedTransformer.sql", typeof( ISqlServerTransformer ) )]
+        public void SqlServerParser_Parse_detects_type( string name, Type expectedType )
+        {
+            string text = TestHelper.LoadTextFromParsingScripts( name );
+            var result = new SqlServerParser().Parse( text );
+            Assert.That( result.IsError, Is.False );
+            Assert.That( result.Result, Is.InstanceOf( expectedType ) );
+        }
+
+        [TestCase( "create view simple as select 1;", null, "simple", "simple" )]
+        [TestCase( "create view [d].[a] as select 1;", "d", "a", "[d].[a]" )]
+        [TestCase( "create view [ [3]] nimp].[*µ ù%'B' m] as select 1;", " [3] nimp", "*µ ù%'B' m", "[ [3]] nimp].[*µ ù%'B' m]" )]
+        [TestCase( @"
+create view 
+[on
+multiples... 
+lines]
+
+.
+
+[
+
+nimp!] as select 1;", @"on
+multiples... 
+lines", @"
+
+nimp!", @"[on
+multiples... 
+lines].[
+
+nimp!]" )]
+        public void check_schema_and_name( string text, string schema, string name, string schemaName )
+        {
+            var result = new SqlServerParser().ParseView( text );
+            Assert.That( result.IsError, Is.False );
+            Assert.That( result.Result.Name, Is.EqualTo( name ) );
+            Assert.That( result.Result.Schema, Is.EqualTo( schema ) );
+            Assert.That( result.Result.SchemaName, Is.EqualTo( schemaName ) );
+        }
+
+    }
+}

@@ -1,39 +1,142 @@
-﻿using System;
+﻿using CK.Core;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace CK.SqlServer.Parser
 {
+    using TransformFunc = Func<IActivityMonitor, SqlTransformer, ISqlNode, ISqlNode>;
+
     /// <summary>
     /// Facade model implementation.
     /// </summary>
     public class SqlServerParser : ISqlServerParser
     {
-        public ISqlServerParserError ParseObject( string text, out ISqlServerObject sqlObject )
+        readonly SqlAnalyser _a = new SqlAnalyser();
+
+        delegate SqlAnalyser.ErrorResult ParseFunc<T>( out T parsed );
+
+        class ParseResult<T> : ISqlServerParserResult<T> where T : class, ISqlServerParsedText
         {
-            return SqlAnalyser.ParseStatement( out sqlObject, text );
+            readonly SqlAnalyser.ErrorResult _error;
+
+            public ParseResult( ParseFunc<T> f )
+            {
+                T result;
+                _error = f( out result );
+                Result = result;
+            }
+
+            public ParseResult( T result, SqlAnalyser.ErrorResult e )
+            {
+                Result = result;
+                _error = e;
+            }
+
+            public string ErrorMessage => _error.ErrorMessage;
+
+            public string HeadSource => _error.HeadSource;
+
+            public bool IsError => _error.IsError;
+
+            public T Result { get; }
+
+            public void LogOnError( IActivityMonitor monitor, bool asWarning ) => _error.LogOnError( monitor, asWarning );
         }
 
-        public ISqlServerParserError ParseStoredFunctionInlineTable( string text, out ISqlServerFunctionInlineTable sqlFInlineTable )
+        public ISqlServerParserResult<ISqlServerObject> ParseObject( string text )
         {
-            return SqlAnalyser.ParseStatement( out sqlFInlineTable, text );
+            _a.Reset( text );
+            return new ParseResult<ISqlServerObject>( _a.ParseStatement );
         }
 
-        public ISqlServerParserError ParseStoredFunctionScalar( string text, out ISqlServerFunctionScalar sqlFScalar )
+        public ISqlServerParserResult<ISqlServerView> ParseView( string text )
         {
-            return SqlAnalyser.ParseStatement( out sqlFScalar, text );
+            _a.Reset( text );
+            return new ParseResult<ISqlServerView>( _a.ParseStatement );
         }
 
-        public ISqlServerParserError ParseStoredFunctionTable( string text, out ISqlServerFunctionTable sqlFTable )
+        public ISqlServerParserResult<ISqlServerTransformer> ParseTransformer( string text )
         {
-            return SqlAnalyser.ParseStatement( out sqlFTable, text );
+            _a.Reset( text );
+            return new ParseResult<ISqlServerTransformer>( _a.ParseStatement );
         }
 
-        public ISqlServerParserError ParseStoredProcedure( string text, out ISqlServerStoredProcedure sqlProcedure )
+        public ISqlServerParserResult<ISqlServerFunctionInlineTable> ParseFunctionInlineTable( string text )
         {
-            return SqlAnalyser.ParseStatement( out sqlProcedure, text );
+            _a.Reset( text );
+            return new ParseResult<ISqlServerFunctionInlineTable>( _a.ParseStatement );
+        }
+
+        public ISqlServerParserResult<ISqlServerFunctionScalar> ParseFunctionScalar( string text )
+        {
+            _a.Reset( text );
+            return new ParseResult<ISqlServerFunctionScalar>( _a.ParseStatement );
+        }
+
+        public ISqlServerParserResult<ISqlServerFunctionTable> ParseFunctionTable( string text )
+        {
+            _a.Reset( text );
+            return new ParseResult<ISqlServerFunctionTable>( _a.ParseStatement );
+        }
+
+        public ISqlServerParserResult<ISqlServerStoredProcedure> ParseStoredProcedure( string text )
+        {
+            _a.Reset( text );
+            return new ParseResult<ISqlServerStoredProcedure>( _a.ParseStatement );
+        }
+
+        public ISqlServerParserResult<ISqlServerParsedText> Parse( string text )
+        {
+            _a.Reset( text );
+            SqlStatementList statements = _a.IsStatementList( true );
+            if( statements != null )
+            {
+                // SingleOrDefault throws on multiple items.
+                //var onlyOne = statements.Where( s => !s.IsGOSeparator() ).SingleOrDefault() as ISqlServerParsedText;
+                ISqlStatement onlyOne = null;
+                foreach( var s in statements )
+                {
+                    if( !s.IsGOSeparator() )
+                    {
+                        if( onlyOne != null )
+                        {
+                            onlyOne = null;
+                            break;
+                        }
+                        else onlyOne = s;
+                    }
+                }
+                ISqlServerParsedText parsed = onlyOne as ISqlServerParsedText;
+                if( parsed != null )
+                {
+                    return new ParseResult<ISqlServerParsedText>( parsed, _a.CreateErrorResult() );
+                }
+            }
+            return new ParseResult<ISqlServerParsedText>( statements, _a.CreateErrorResult() );
+        }
+
+        public ISqlServerParserResult<ISqlServerScript> ParseScript( string text )
+        {
+            _a.Reset( text );
+            return new ParseResult<ISqlServerScript>( _a.IsStatementList( true ), _a.CreateErrorResult() );
+        }
+
+        static TransformFunc _lateBound;
+
+        internal static ISqlNode LateBoundTransform( IActivityMonitor monitor, SqlTransformer t, ISqlNode target )
+        {
+            // Don't care to double initialization here: no lock is okay.
+            if( _lateBound == null )
+            {
+                Type host = SimpleTypeFinder.WeakResolver( "CK.SqlServer.Transform.SqlTransformHost, CK.SqlServer.Transform", true );
+                MethodInfo m = host.GetMethod( "Transform", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public );
+                _lateBound = (TransformFunc)m.CreateDelegate( typeof( TransformFunc ) );
+            }
+            return _lateBound( monitor, t, target );
         }
     }
 }

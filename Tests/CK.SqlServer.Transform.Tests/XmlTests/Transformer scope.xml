@@ -1,0 +1,39 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Tests>
+
+  <Test>
+    <Text>
+      create procedure CK.sTest as
+      begin
+        --[here]
+      end
+      create procedure CK.sTestOther as
+      begin
+        --[here]
+      end
+    </Text>
+    <Description>
+      create transformer on CK.sTest as
+      begin
+        add parameter @Id int;
+        inject
+        "
+          declare @i int;
+        "
+        after single "--[here]";
+      end
+    </Description>
+    <ResultText>
+      create procedure CK.sTest( @Id int ) as
+      begin
+        --[here]
+        declare @i int;
+      end
+      create procedure CK.sTestOther as
+      begin
+        --[here]
+      end
+    </ResultText>
+  </Test>
+
+</Tests>

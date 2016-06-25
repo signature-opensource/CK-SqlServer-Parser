@@ -1,0 +1,175 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Tests>
+
+  <Test>
+    <Text>
+      create procedure CK.sTest
+      as 
+      begin
+        insert into CK.tTable( X, Y, Z )
+          /*before*/select 1, /* comment inside*/2, 3/*after*/;
+        update CK.tTable set X = 8, Y = 7 where Z !&lt; 9 and T = 4;
+        select * from CK.tTable;
+      end
+    </Text>
+    <Description>
+      create transformer on CK.sTest
+      as
+      begin
+        replace first range {select 1, 2, 3} with "select 4, 5, 6";
+        replace first range {Z&gt;=9} with "Z = 9000";
+        replace first range {T=4} with "T = 4000";
+      end
+    </Description>
+    <ResultText>
+      create procedure CK.sTest
+      as  
+      begin
+        insert into CK.tTable( X, Y, Z )
+          /*before*/select 4, 5, 6/*after*/;
+        update CK.tTable set X = 8, Y = 7 where Z = 9000 and T = 4000;
+        select * from CK.tTable;
+      end
+    </ResultText>
+  </Test>
+
+  <Test>
+    <Text>
+      create procedure CK.sTest
+      as 
+      begin
+        insert into CK.tTable( X, Y, Z )
+          /*before*/select 1, /* comment inside*/2, 3/*after*/;
+        update CK.tTable set X = 8, Y = 7 where Z = 9;
+        select * from CK.tTable;
+      end
+    </Text>
+    <Description>
+      create transformer on CK.sTest
+      as
+      begin
+        replace first part {select} with "select 4, 5, 6";
+      end
+    </Description>
+    <ResultText>
+      create procedure CK.sTest
+      as  
+      begin
+        insert into CK.tTable( X, Y, Z )
+          /*before*/select 4, 5, 6/*after*/;
+        update CK.tTable set X = 8, Y = 7 where Z = 9;
+        select * from CK.tTable;
+      end
+    </ResultText>
+  </Test>
+
+  <Test>
+    <Text>
+      create procedure CK.sTest
+      as
+      begin
+        update CK.tTable set X = 8, Y = 7 where Z = 9 and T = 4;
+      end
+    </Text>
+    <Description>
+      create transformer on CK.sTest
+      as
+      begin
+        replace first range {and T = 4} with "or T = 8";
+      end
+    </Description>
+    <ResultText>
+      create procedure CK.sTest
+      as
+      begin
+        update CK.tTable set X = 8, Y = 7 where Z = 9 or T = 8;
+      end
+    </ResultText>
+  </Test>
+
+  <Test>
+    <Text>
+      select X from T;
+      update T set X = 8;
+    </Text>
+    <Description>
+      create transformer
+      as
+      begin
+        replace all range {X} with "Z";
+      end
+    </Description>
+    <ResultText>
+      select Z from T;
+      update T set Z = 8;
+    </ResultText>
+  </Test>
+
+  <Test>
+    <Text>
+      select X from T where X = 3 order by X;
+    </Text>
+    <Description>
+      create transformer
+      as
+      begin
+        replace all range {X} with "Z";
+      end
+    </Description>
+    <ResultText>
+      select Z from T where Z = 3 order by Z;
+    </ResultText>
+  </Test>
+  
+  <Test>
+    <Text>
+      select X; X; select X from X; update T set X = 9;
+    </Text>
+    <Description>
+      create transformer
+      as
+      begin
+        in all part {select}
+        begin
+          replace all range {X} with "Z";
+        end
+      end
+    </Description>
+    <ResultText>
+      select Z; X; select Z from Z; update T set X = 9;
+    </ResultText>
+  </Test>
+
+  <Test>
+    <Text>
+      select X from T where X = 3 order by X;
+    </Text>
+    <Description>
+      create transformer
+      as
+      begin
+      replace single part {select X} with "";
+      end
+    </Description>
+    <ResultText>
+      ;
+    </ResultText>
+  </Test>
+
+  <Test>
+    <Text>
+      select X from T where X = 3 order by X;
+    </Text>
+    <Description>
+      create transformer
+      as
+      begin
+        replace single statement {select X} with "";
+      end
+    </Description>
+    <ResultText>
+
+    </ResultText>
+  </Test>  
+  
+</Tests>

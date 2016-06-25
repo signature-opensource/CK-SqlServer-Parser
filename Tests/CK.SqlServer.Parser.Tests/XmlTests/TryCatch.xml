@@ -1,0 +1,173 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Tests>
+
+  <Test>
+    <Text>
+      BEGIN TRY
+          -- RAISERROR with severity 11-19 will cause execution to 
+          -- jump to the CATCH block.
+          RAISERROR ('Error raised in TRY block.', -- Message text.
+                     16, -- Severity.
+                     1 -- State.
+                     );
+      END TRY
+      BEGIN CATCH
+          DECLARE @ErrorMessage NVARCHAR(4000);
+          DECLARE @ErrorSeverity INT;
+          DECLARE @ErrorState INT;
+
+          SELECT 
+              @ErrorMessage = ERROR_MESSAGE(),
+              @ErrorSeverity = ERROR_SEVERITY(),
+              @ErrorState = ERROR_STATE();
+
+          -- Use RAISERROR inside the CATCH block to return error
+          -- information about the original error that caused
+          -- execution to jump to the CATCH block.
+          RAISERROR (@ErrorMessage, -- Message text.
+                     @ErrorSeverity, -- Severity.
+                     @ErrorState -- State.
+                     );
+      END CATCH;
+    </Text>
+    <Description>BEGIN TRY ... END TRY BEGIN CATCH ... END CATCH is a statement.</Description>
+    <Xml>
+      <Statements>
+        <TryCatch HasTerminator="true">
+          <TryBlock>
+            <Raiserror HasTerminator="true" />
+          </TryBlock>
+          <CatchBlock>
+            <DeclareVariable HasTerminator="true" />
+            <DeclareVariable HasTerminator="true" />
+            <DeclareVariable HasTerminator="true" />
+            <SelectStatement HasTerminator="true">
+              <SelectSpec />
+            </SelectStatement>
+            <Raiserror HasTerminator="true" />
+          </CatchBlock>
+        </TryCatch>
+      </Statements>
+    </Xml>
+  </Test>
+
+  <Test>
+    <Text>
+        CREATE PROCEDURE Production.uspDeleteWorkOrder ( @WorkOrderID int )
+        AS
+            SET NOCOUNT ON;
+            BEGIN TRY
+               BEGIN TRANSACTION 
+               -- Delete rows from the child table, WorkOrderRouting, for the specified work order.
+               DELETE FROM Production.WorkOrderRouting
+               WHERE WorkOrderID = @WorkOrderID;
+
+               -- Delete the rows from the parent table, WorkOrder, for the specified work order.
+               DELETE FROM Production.WorkOrder
+               WHERE WorkOrderID = @WorkOrderID;
+
+               COMMIT
+
+            END TRY
+            BEGIN CATCH
+              -- Determine if an error occurred.
+              IF @@TRANCOUNT > 0
+                 ROLLBACK
+
+              -- Return the error information.
+              DECLARE @ErrorMessage nvarchar(4000),  @ErrorSeverity int;
+              SELECT @ErrorMessage = ERROR_MESSAGE(),@ErrorSeverity = ERROR_SEVERITY();
+              RAISERROR(@ErrorMessage, @ErrorSeverity, 1);
+            END CATCH;
+
+        GO
+        EXEC Production.uspDeleteWorkOrder 13;
+
+        /* Intentionally generate an error by reversing the order in which rows are deleted from the
+           parent and child tables. This change does not cause an error when the procedure
+           definition is altered, but produces an error when the procedure is executed.
+        */
+        ALTER PROCEDURE Production.uspDeleteWorkOrder ( @WorkOrderID int )
+        AS
+            BEGIN TRY
+               BEGIN TRANSACTION 
+               -- Delete the rows from the parent table, WorkOrder, for the specified work order.
+               DELETE FROM Production.WorkOrder
+               WHERE WorkOrderID = @WorkOrderID;
+
+               -- Delete rows from the child table, WorkOrderRouting, for the specified work order.
+               DELETE FROM Production.WorkOrderRouting
+               WHERE WorkOrderID = @WorkOrderID;
+
+               COMMIT TRANSACTION
+            END TRY
+            BEGIN CATCH
+              -- Determine if an error occurred.
+              IF @@TRANCOUNT > 0
+                 ROLLBACK TRANSACTION
+
+              -- Return the error information.
+              DECLARE @ErrorMessage nvarchar(4000),  @ErrorSeverity int;
+              SELECT @ErrorMessage = ERROR_MESSAGE(),@ErrorSeverity = ERROR_SEVERITY();
+              RAISERROR(@ErrorMessage, @ErrorSeverity, 1);
+            END CATCH;
+        GO
+        -- Execute the altered procedure.
+        EXEC Production.uspDeleteWorkOrder 15;
+
+        DROP PROCEDURE Production.uspDeleteWorkOrder;
+    </Text>
+    <Description></Description>
+    <Xml>
+      <Statements>
+        <StoredProcedure StatementName="CreateProcedure">
+            <SetOption HasTerminator="true" />
+            <TryCatch HasTerminator="true">
+              <TryBlock>
+                <BeginTransaction />
+                <DeleteStatement HasTerminator="true" />
+                <DeleteStatement HasTerminator="true" />
+                <Statement StatementName="COMMIT" />
+              </TryBlock>
+              <CatchBlock>
+                <If>
+                  <Statement StatementName="ROLLBACK" />
+                </If>
+                <DeclareVariable HasTerminator="true" />
+                <SelectStatement HasTerminator="true">
+                  <SelectSpec />
+                </SelectStatement>
+                <Raiserror HasTerminator="true" />
+              </CatchBlock>
+            </TryCatch>
+        </StoredProcedure>
+        <Statement StatementName="GO" />
+        <ExecuteStatement HasTerminator="true" />
+        <StoredProcedure StatementName="AlterProcedure">
+            <TryCatch HasTerminator="true">
+              <TryBlock>
+                <BeginTransaction />
+                <DeleteStatement HasTerminator="true" />
+                <DeleteStatement HasTerminator="true" />
+                <Statement StatementName="COMMIT" />
+              </TryBlock>
+              <CatchBlock>
+                <If>
+                  <Statement StatementName="ROLLBACK" />
+                </If>
+                <DeclareVariable HasTerminator="true" />
+                <SelectStatement HasTerminator="true">
+                  <SelectSpec />
+                </SelectStatement>
+                <Raiserror HasTerminator="true" />
+              </CatchBlock>
+            </TryCatch>
+        </StoredProcedure>
+        <Statement StatementName="GO" />
+        <ExecuteStatement HasTerminator="true" />
+        <Statement StatementName="DROP" HasTerminator="true" />
+      </Statements>
+    </Xml>
+  </Test>
+
+</Tests>

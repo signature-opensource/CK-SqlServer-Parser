@@ -1,0 +1,138 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Tests>
+  <Test>
+    <Text>
+    <![CDATA[
+    
+         	/*****  Creation du flux XML *****************************************************************************/
+         	WITH XMLNAMESPACES (
+         		DEFAULT 'EDT_LETTRE_PEC_RELANCE_INSTRUCTION_ADH'
+         	)
+         	/**********************************************************************************************************/
+         		
+         	SELECT
+         	(		
+         	SELECT
+
+            dbo.GetXmlBenefiaireContact(@ID_BENEFICIAIRE, @TYPE_BENEFICIAIRE, @ID_ADRESSE, @ID_CONTACT) as BENEFICIAIRE,
+         
+         		/**********************************************************************************************/
+         		/*****************	ENTETE DE LA LETTRE *******************************************************/
+         		/**********************************************************************************************/
+         		(
+         			SELECT	              	
+         				ISNULL(COD_ADHERENT, '')				AS COD_ADHERENT,
+         				ISNULL(LIB_PRENOM_CHARGE_RELATION, '')	AS LIB_PRENOM_CHARGE_RELATION,
+         				ISNULL(LIB_NOM_CHARGE_RELATION, '')		AS LIB_NOM_CHARGE_RELATION,
+         				ISNULL(EMAIL_CHARGE_RELATION, '')		AS EMAIL,
+         
+         				dbo.GetXmlAdrUtilAvecTel(ENTETE.ID_UTIL, (SELECT TOP 1 BLN_TSA FROM ETABLISSEMENT WHERE ID_ETABLISSEMENT = @ID_BENEFICIAIRE), 1) AS EMETTEUR,
+         
+         				RTRIM(CASE WHEN PATINDEX('%CEDEX%', LIB_VILLE) <> 0 THEN LEFT(LIB_VILLE, PATINDEX('%CEDEX%', LIB_VILLE)-1) ELSE LIB_VILLE END) AS LIB_VILLE, -- retraitement de la ville au cas o— de la forme COMMUNE CEDEX 999
+         				dbo.GetFullDate(GETDATE()) AS DATE
+         			FROM #TMP_REFERENCE AS ENTETE     
+         			FOR XML AUTO, ELEMENTS, TYPE
+         		),
+         		#TMP_MODULES.COD_MODULE_PEC,
+         		#TMP_MODULES.NOM_STAGIARE,
+         		(
+         			SELECT TOP 1
+         				dbo.GetContactSalutation(@ID_CONTACT, 1)
+         			FROM CIVILITE
+         			FOR XML PATH('POLITESSE_HAUT'), TYPE
+         		),
+         		#TMP_MODULES.LIBL_MODULE_PEC AS TITRE_MODULE,
+         		DAT_DEBUT,
+         		DAT_FIN,
+         		ORGANISME_FORMATION,
+         			
+         		(
+         		SELECT A.LIB_EDT_DEB_PIECE_PEC, A.LIB_EDT_FIN_PIECE_PEC
+         		FROM 
+         		(
+         			SELECT	
+         					LIB_EDT_DEB_PIECE_PEC,
+         					LIB_EDT_FIN_PIECE_PEC, 
+         					BLN_ACTIF
+         			FROM    #TMP_PIECES
+         			WHERE  ID_MODULE_PEC = #TMP_MODULES.ID_MODULE_PEC
+         				AND BLN_ACTIF = 0 --absentes
+         			UNION 
+         				SELECT 
+         					LIB_EDT_DEB_MOTIF_NON_CONFORM_PIECE AS LIB_EDT_DEB_PIECE_PEC,
+         					LIB_EDT_FIN_MOTIF_NON_CONFORM_PIECE AS LIB_EDT_FIN_PIECE_PEC,
+         					BLN_ACTIF
+         				FROM    #TMP_PIECES
+         				WHERE  ID_MODULE_PEC = #TMP_MODULES.ID_MODULE_PEC
+         				AND  BLN_ACTIF =1 --presentes mais non conformes
+         		) AS A
+         			
+         		WHERE 	(LIB_EDT_DEB_PIECE_PEC IS NOT NULL OR LIB_EDT_FIN_PIECE_PEC IS NOT NULL)
+         		ORDER BY A.BLN_ACTIF 
+         		FOR XML RAW('PIECES_MANQUANTES'), ELEMENTS, TYPE, ROOT('PIECES_MANQUANTE')
+         		),
+         		(
+         			SELECT	TOP 1
+         					dbo.GetContactSalutation(@ID_CONTACT, 0)
+         			FROM CIVILITE
+         			FOR XML PATH('POLITESSE_BAS'), TYPE
+         		),
+         						
+         		/**********************************************************************************************/
+         		/*****************	SIGNATURE DE LA LETTRE ****************************************************/
+         		/**********************************************************************************************/
+         		NOM_CONSEILLER,
+         		FONCTION
+         
+         		/**************************************************************************************************/
+         		FROM	#TMP_MODULES
+         		FOR XML RAW('MODULES'), ELEMENTS, TYPE
+         	)
+         	FROM #TMP_REFERENCE
+         	FOR XML RAW('LETTRE'), ELEMENTS, TYPE
+    
+    
+    
+    ]]>
+    
+    </Text>
+    <Description>'next value for' is specifically handled as an expression.</Description>
+    <Xml>
+      <Statements>
+        <WithForXml>
+          <SelectStatement>
+            <SelectDecorator>
+              <SelectSpec>
+                <SelectDecorator>
+                  <SelectSpec>
+                    <SelectDecorator>
+                      <SelectSpec>
+                        <SelectSpec />
+                      </SelectSpec>
+                    </SelectDecorator>
+                    <SelectDecorator>
+                      <SelectSpec />
+                    </SelectDecorator>
+                    <SelectDecorator>
+                      <SelectSpec>
+                        <SelectCombine CombinationKind="UnionDistinct">
+                          <SelectSpec />
+                          <SelectSpec />
+                        </SelectCombine>
+                      </SelectSpec>
+                    </SelectDecorator>
+                    <SelectDecorator>
+                      <SelectSpec />
+                    </SelectDecorator>
+                  </SelectSpec>
+                </SelectDecorator>
+              </SelectSpec>
+            </SelectDecorator>
+          </SelectStatement>
+        </WithForXml>
+      </Statements>
+    </Xml>
+  </Test>
+  
+</Tests>
+

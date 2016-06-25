@@ -1,0 +1,1473 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Tests>
+  
+   <Test>
+      <Text>
+        <![CDATA[
+-- Version = *
+
+create proc CFLYTarget.sBuildingCreate
+(
+	@ActorId int ,
+	@Gid varchar(32) ,
+	@NetworkId int,
+
+	@JsonCoordinates nvarchar(max),
+	@Coordinates nvarchar(max),
+
+	@AgeClass tinyint,
+	@Conso float,
+	@Area float,
+	@MainPurpose char,
+	@MainPurposeDistribution tinyint,
+	@SecondaryPurpose char,
+	@SecondaryPurposeDistribution tinyint,
+	@Energy tinyint,
+	@EnergyPercentage tinyint,
+	@Energy2 tinyint,
+	@Energy2Percentage tinyint,
+	@OverwriteIfExists bit = 0
+)
+as
+begin
+	--[beginsp]
+
+		declare @g geography;
+		set @g = geography::STGeomFromText(@Coordinates, 4326); 
+		set @g = case 
+			when @g.STIsValid() = 0 then
+				case 
+					when @g.MakeValid().EnvelopeAngle() > 90 then @g.MakeValid().ReorientObject() 
+					else @g.MakeValid()  
+				end
+			else
+				case 
+					when @g.EnvelopeAngle() > 90 then @g.ReorientObject() 
+					else @g 
+				end
+		end
+
+
+		merge CFLYTarget.tBuilding as target
+		using ( select Gid = @Gid, NetworkId = @NetworkId ) as source 
+		on ( source.Gid = target.Gid and source.NetworkId = target.NetworkId )
+		when not matched 
+			by target then 
+				insert ( Gid, JsonCoordinates, Coordinates, NetworkId, ValidationDate, AgeClass, Conso, Area, MainPurpose, MainPurposeDistribution, SecondaryPurpose, SecondaryPurposeDistribution, Energy, EnergyPercentage, Energy2, Energy2Percentage ) 
+				values ( @Gid, @JsonCoordinates, @g, @NetworkId, '', @AgeClass, @Conso, @Area, @MainPurpose, @MainPurposeDistribution, @SecondaryPurpose, @SecondaryPurposeDistribution, @Energy, @EnergyPercentage, @Energy2, @Energy2Percentage )
+		when matched and @OverwriteIfExists = 1 then 
+				update 
+					set 
+						Coordinates = @g,
+						JsonCoordinates = @JsonCoordinates,
+						Conso = @Conso,
+						AgeClass = @AgeClass,
+						Area = @Area,
+						MainPurpose = @MainPurpose,
+						MainPurposeDistribution = @MainPurposeDistribution,
+						SecondaryPurpose = @SecondaryPurpose,
+						SecondaryPurposeDistribution = @SecondaryPurposeDistribution,
+						Energy = @Energy,
+						EnergyPercentage = @EnergyPercentage,
+						Energy2 = @Energy2,
+						Energy2Percentage = @Energy2Percentage,
+						SharedData = '{"conso":'+cast(IsNull(Conso,0) as varchar(30))+',"area":'+cast(IsNull(Area,0) as varchar(30))+',"mainPurpose":"'+cast(IsNull(MainPurpose,'') as varchar(30))+'","mainPurposeDistribution":'+cast(IsNull(MainPurposeDistribution, '') as varchar(30))+',"secondaryPurpose":"'+cast(IsNull(SecondaryPurpose, '') as varchar(30))+'","secondaryPurposeDistribution":'+cast(IsNull(SecondaryPurposeDistribution,'') as varchar(30))+',"energy":'+cast(IsNull(Energy,'') as varchar(30))+',"energy2":'+cast(IsNull(Energy2,'') as varchar(30))+',"energyPercentage":'+cast(IsNull(EnergyPercentage,'') as varchar(30))+',"energy2Percentage":'+cast(IsNull(Energy2Percentage,'') as varchar(30))+',"ageClass":'+case when AgeClass is null then '-1' else cast( AgeClass as varchar(30) ) end +'}'
+		;
+
+	--[endsp]
+end
+        ]]>
+  </Text>
+    <Description>Geometry</Description>
+    <Xml>
+      <Statements>
+        <StoredProcedure StatementName="CreateProcedure">
+          <DeclareVariable HasTerminator="true" />
+          <SetVariable HasTerminator="true" />
+          <SetVariable />
+          <MergeStatement HasTerminator="true" />
+        </StoredProcedure>
+      </Statements>
+    </Xml>
+   </Test>
+ 
+   <Test>
+      <Text>
+        <![CDATA[
+-- Version = 2.0.0
+CREATE FUNCTION CFLYIntranet.fHTMLDecode (@text NVARCHAR(4000))
+RETURNS NVARCHAR(4000) AS
+BEGIN
+	DECLARE @vcResult NVARCHAR(4000)
+	DECLARE @vcCrLf NVARCHAR(2)
+	DECLARE @siPos SMALLINT
+	DECLARE @vcEncoded NVARCHAR(7)
+	DECLARE @siChar SMALLINT
+
+	SET @vcCrLf = CHAR(13) + CHAR(10)
+
+	SELECT @vcResult = @text
+	SELECT @siPos = PATINDEX('%&#___;%', @vcResult)
+	WHILE (@siPos > 0)
+	BEGIN
+		SELECT @vcEncoded = SUBSTRING(@vcResult, @siPos, 6)
+		SELECT @siChar = CAST(SUBSTRING(@vcEncoded, 3, 3) AS SMALLINT)
+		SELECT @vcResult = REPLACE(@vcResult, @vcEncoded, NCHAR(@siChar))
+		SELECT @siPos = PATINDEX('%&#___;%', @vcResult)
+	END
+
+	SELECT @siPos = PATINDEX('%&#____;%', @vcResult)
+	WHILE (@siPos > 0)
+	BEGIN
+		SELECT @vcEncoded = SUBSTRING(@vcResult, @siPos, 7)
+		SELECT @siChar = CAST(SUBSTRING(@vcEncoded, 3, 4) AS SMALLINT)
+		SELECT @vcResult = REPLACE(@vcResult, @vcEncoded, NCHAR(@siChar))
+		SELECT @siPos = PATINDEX('%&#____;%', @vcResult)
+	END
+
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&quot;', NCHAR(0x0022))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&#39;', NCHAR(0x27))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&amp;', NCHAR(0x0026))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '<', NCHAR(0x003c))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '>', NCHAR(0x003e))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&nbsp;', NCHAR(0x00a0))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&iexcl;', NCHAR(0x00a1))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&cent;', NCHAR(0x00a2))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&pound;', NCHAR(0x00a3))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&curren;', NCHAR(0x00a4))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&yen;', NCHAR(0x00a5))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&brvbar;', NCHAR(0x00a6))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&sect;', NCHAR(0x00a7))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&uml;', NCHAR(0x00a8))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&copy;', NCHAR(0x00a9))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&ordf;', NCHAR(0x00aa))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&laquo;', NCHAR(0x00ab))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&not;', NCHAR(0x00ac))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&shy;', NCHAR(0x00ad))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&reg;', NCHAR(0x00ae))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&macr;', NCHAR(0x00af))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&deg;', NCHAR(0x00b0))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&plusmn;', NCHAR(0x00b1))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&sup2;', NCHAR(0x00b2))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&sup3;', NCHAR(0x00b3))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&acute;', NCHAR(0x00b4))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&micro;', NCHAR(0x00b5))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&para;', NCHAR(0x00b6))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&middot;', NCHAR(0x00b7))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&cedil;', NCHAR(0x00b8))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&sup1;', NCHAR(0x00b9))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&ordm;', NCHAR(0x00ba))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&raquo;', NCHAR(0x00bb))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&frac14;', NCHAR(0x00bc))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&frac12;', NCHAR(0x00bd))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&frac34;', NCHAR(0x00be))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&iquest;', NCHAR(0x00bf))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&Agrave;', NCHAR(0x00c0))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&Aacute;', NCHAR(0x00c1))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&Acirc;', NCHAR(0x00c2))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&Atilde;', NCHAR(0x00c3))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&Auml;', NCHAR(0x00c4))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&Aring;', NCHAR(0x00c5))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&AElig;', NCHAR(0x00c6))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&Ccedil;', NCHAR(0x00c7))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&Egrave;', NCHAR(0x00c8))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&Eacute;', NCHAR(0x00c9))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&Ecirc;', NCHAR(0x00ca))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&Euml;', NCHAR(0x00cb))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&Igrave;', NCHAR(0x00cc))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&Iacute;', NCHAR(0x00cd))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&Icirc;', NCHAR(0x00ce ))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&Iuml;', NCHAR(0x00cf))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&ETH;', NCHAR(0x00d0))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&Ntilde;', NCHAR(0x00d1))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&Ograve;', NCHAR(0x00d2))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&Oacute;', NCHAR(0x00d3))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&Ocirc;', NCHAR(0x00d4))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&Otilde;', NCHAR(0x00d5))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&Ouml;', NCHAR(0x00d6))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&times;', NCHAR(0x00d7))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&Oslash;', NCHAR(0x00d8))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&Ugrave;', NCHAR(0x00d9))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&Uacute;', NCHAR(0x00da))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&Ucirc;', NCHAR(0x00db))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&Uuml;', NCHAR(0x00dc))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&Yacute;', NCHAR(0x00dd))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&THORN;', NCHAR(0x00de))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&szlig;', NCHAR(0x00df))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&agrave;', NCHAR(0x00e0))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&aacute;', NCHAR(0x00e1))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&acirc;', NCHAR(0x00e2))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&atilde;', NCHAR(0x00e3))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&auml;', NCHAR(0x00e4))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&aring;', NCHAR(0x00e5))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&aelig;', NCHAR(0x00e6))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&ccedil;', NCHAR(0x00e7))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&egrave;', NCHAR(0x00e8))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&eacute;', NCHAR(0x00e9))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&ecirc;', NCHAR(0x00ea))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&euml;', NCHAR(0x00eb))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&igrave;', NCHAR(0x00ec))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&iacute;', NCHAR(0x00ed))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&icirc;', NCHAR(0x00ee))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&iuml;', NCHAR(0x00ef))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&eth;', NCHAR(0x00f0))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&ntilde;', NCHAR(0x00f1))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&ograve;', NCHAR(0x00f2))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&oacute;', NCHAR(0x00f3))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&ocirc;', NCHAR(0x00f4))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&otilde;', NCHAR(0x00f5))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&ouml;', NCHAR(0x00f6))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&divide;', NCHAR(0x00f7))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&oslash;', NCHAR(0x00f8))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&ugrave;', NCHAR(0x00f9))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&uacute;', NCHAR(0x00fa))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&ucirc;', NCHAR(0x00fb))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&uuml;', NCHAR(0x00fc))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&yacute;', NCHAR(0x00fd))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&thorn;', NCHAR(0x00fe))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&yuml;', NCHAR(0x00ff))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&OElig;', NCHAR(0x0152))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&oelig;', NCHAR(0x0153))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&Scaron;', NCHAR(0x0160))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&scaron;', NCHAR(0x0161))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&Yuml;', NCHAR(0x0178))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&fnof;', NCHAR(0x0192))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&circ;', NCHAR(0x02c6))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&tilde;', NCHAR(0x02dc))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&Alpha;', NCHAR(0x0391))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&Beta;', NCHAR(0x0392))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&Gamma;', NCHAR(0x0393))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&Delta;', NCHAR(0x0394))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&Epsilon;', NCHAR(0x0395))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&Zeta;', NCHAR(0x0396))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&Eta;', NCHAR(0x0397))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&Theta;', NCHAR(0x0398))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&Iota;', NCHAR(0x0399))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&Kappa;', NCHAR(0x039a))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&Lambda;', NCHAR(0x039b))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&Mu;', NCHAR(0x039c))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&Nu;', NCHAR(0x039d))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&Xi;', NCHAR(0x039e))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&Omicron;', NCHAR(0x039f))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&Pi;', NCHAR(0x03a0))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&Rho ;', NCHAR(0x03a1))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&Sigma;', NCHAR(0x03a3))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&Tau;', NCHAR(0x03a4))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&Upsilon;', NCHAR(0x03a5))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&Phi;', NCHAR(0x03a6))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&Chi;', NCHAR(0x03a7))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&Psi;', NCHAR(0x03a8))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&Omega;', NCHAR(0x03a9))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&alpha;', NCHAR(0x03b1))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&beta;', NCHAR(0x03b2))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&gamma;', NCHAR(0x03b3))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&delta;', NCHAR(0x03b4))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&epsilon;', NCHAR(0x03b5))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&zeta;', NCHAR(0x03b6))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&eta;', NCHAR(0x03b7))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&theta;', NCHAR(0x03b8))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&iota;', NCHAR(0x03b9))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&kappa;', NCHAR(0x03ba))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&lambda;', NCHAR(0x03bb))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&mu;', NCHAR(0x03bc))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&nu;', NCHAR(0x03bd))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&xi;', NCHAR(0x03be))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&omicron;', NCHAR(0x03bf))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&pi;', NCHAR(0x03c0))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&rho;', NCHAR(0x03c1))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&sigmaf;', NCHAR(0x03c2))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&sigma;', NCHAR(0x03c3))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&tau;', NCHAR(0x03c4))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&upsilon;', NCHAR(0x03c5))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&phi;', NCHAR(0x03c6))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&chi;', NCHAR(0x03c7))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&psi;', NCHAR(0x03c8))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&omega;', NCHAR(0x03c9))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&thetasym;', NCHAR(0x03d1))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&upsih;', NCHAR(0x03d2))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&piv;', NCHAR(0x03d6))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&ensp;', NCHAR(0x2002))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&emsp;', NCHAR(0x2003))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&thinsp;', NCHAR(0x2009))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&zwnj;', NCHAR(0x200c))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&zwj;', NCHAR(0x200d))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&lrm;', NCHAR(0x200e))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&rlm;', NCHAR(0x200f))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&ndash;', NCHAR(0x2013))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&mdash;', NCHAR(0x2014))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&lsquo;', NCHAR(0x2018))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&rsquo;', NCHAR(0x2019))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&sbquo;', NCHAR(0x201a))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&ldquo;', NCHAR(0x201c))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&rdquo;', NCHAR(0x201d))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&bdquo;', NCHAR(0x201e))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&dagger;', NCHAR(0x2020))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&Dagger;', NCHAR(0x2021))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&bull;', NCHAR(0x2022))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&hellip;', NCHAR(0x2026))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&permil;', NCHAR(0x2030))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&prime;', NCHAR(0x2032))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&Prime;', NCHAR(0x2033))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&lsaquo;', NCHAR(0x2039))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&rsaquo;', NCHAR(0x203a))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&oline;', NCHAR(0x203e))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&frasl;', NCHAR(0x2044))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&euro;', NCHAR(0x20ac))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&image;', NCHAR(0x2111))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&weierp;', NCHAR(0x2118))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&real;', NCHAR(0x211c))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&trade;', NCHAR(0x2122))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&alefsym;', NCHAR(0x2135))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&larr;', NCHAR(0x2190))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&uarr;', NCHAR(0x2191))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&rarr;', NCHAR(0x2192))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&darr;', NCHAR(0x2193))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&harr;', NCHAR(0x2194))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&crarr;', NCHAR(0x21b5))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&lArr;', NCHAR(0x21d0))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&uArr;', NCHAR(0x21d1))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&rArr;', NCHAR(0x21d2))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&dArr;', NCHAR(0x21d3))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&hArr;', NCHAR(0x21d4))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&forall;', NCHAR(0x2200))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&part;', NCHAR(0x2202))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&exist;', NCHAR(0x2203))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&empty;', NCHAR(0x2205))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&nabla;', NCHAR(0x2207))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&isin;', NCHAR(0x2208))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&notin;', NCHAR(0x2209))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&ni;', NCHAR(0x220b))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&prod;', NCHAR(0x220f))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&sum;', NCHAR(0x2211))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&minus;', NCHAR(0x2212))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&lowast;', NCHAR(0x2217))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&radic;', NCHAR(0x221a))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&prop;', NCHAR(0x221d))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&infin;', NCHAR(0x221e))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&ang;', NCHAR(0x2220))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&and;', NCHAR(0x2227))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&or;', NCHAR(0x2228))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&cap;', NCHAR(0x2229))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&cup;', NCHAR(0x222a))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&int;', NCHAR(0x222b))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&there4;', NCHAR(0x2234))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&sim;', NCHAR(0x223c))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&cong;', NCHAR(0x2245))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&asymp;', NCHAR(0x2248))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&ne;', NCHAR(0x2260))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&equiv;', NCHAR(0x2261))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&le;', NCHAR(0x2264))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&ge;', NCHAR(0x2265))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&sub;', NCHAR(0x2282))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&sup;', NCHAR(0x2283))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&nsub;', NCHAR(0x2284))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&sube;', NCHAR(0x2286))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&supe;', NCHAR(0x2287))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&oplus;', NCHAR(0x2295))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&otimes;', NCHAR(0x2297))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&perp;', NCHAR(0x22a5))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&sdot;', NCHAR(0x22c5))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&lceil;', NCHAR(0x2308))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&rceil;', NCHAR(0x2309))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&lfloor;', NCHAR(0x230a))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&rfloor;', NCHAR(0x230b))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&lang;', NCHAR(0x2329))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&rang;', NCHAR(0x232a))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&loz;', NCHAR(0x25ca))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&spades;', NCHAR(0x2660))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&clubs;', NCHAR(0x2663))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&hearts;', NCHAR(0x2665))
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '&diams;', NCHAR(0x2666))
+
+	SELECT @vcResult = REPLACE(@vcResult COLLATE FRENCH_CI_AS, '<p>', @vcCrLf)
+
+	RETURN @vcResult
+END
+        ]]>
+  </Text>
+    <Description>fHTMLDecode.</Description>
+    <Xml>
+      <Statements>
+        <FunctionScalar StatementName="CreateFunction">
+          <DeclareVariable />
+          <DeclareVariable />
+          <DeclareVariable />
+          <DeclareVariable />
+          <DeclareVariable />
+          <SetVariable />
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <While>
+            <BeginEndBlock>
+              <SelectStatement>
+                <SelectSpec />
+              </SelectStatement>
+              <SelectStatement>
+                <SelectSpec />
+              </SelectStatement>
+              <SelectStatement>
+                <SelectSpec />
+              </SelectStatement>
+              <SelectStatement>
+                <SelectSpec />
+              </SelectStatement>
+            </BeginEndBlock>
+          </While>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <While>
+            <BeginEndBlock>
+              <SelectStatement>
+                <SelectSpec />
+              </SelectStatement>
+              <SelectStatement>
+                <SelectSpec />
+              </SelectStatement>
+              <SelectStatement>
+                <SelectSpec />
+              </SelectStatement>
+              <SelectStatement>
+                <SelectSpec />
+              </SelectStatement>
+            </BeginEndBlock>
+          </While>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <SelectStatement>
+            <SelectSpec />
+          </SelectStatement>
+          <ReturnStatement />
+        </FunctionScalar>
+      </Statements>
+    </Xml>
+   </Test>  
+  
+  <Test>
+      <Text>
+        create procedure CKCore.sErrorRethrow
+        (
+	        @ProcId int
+        )
+        as
+        begin
+	        declare @EM nvarchar(2048) = ERROR_MESSAGE();
+
+	        if @EM is not null
+	        begin
+		        declare @ON sysname;
+		        if @EM like 'ck:%-{%}-[[]%]%' 
+		        begin
+			        set @ON = OBJECT_NAME(@ProcId);
+			        if @ON is null set @ON = N'(dynamic)';
+			        else set @ON = OBJECT_SCHEMA_NAME(@ProcId)+'.'+@ON;
+			        set @EM = @EM+'&lt;-'+@ON;
+			        raiserror( @EM, 16, 1 );
+		        end
+		        else
+		        begin
+			        set @ON = ERROR_PROCEDURE();
+			        if @ON is null set @ON = N'(dynamic)';
+			        declare @LN int = ERROR_LINE();
+			        raiserror( N'ck:%s-{%d}-[%s]', 16, 1, @ON, @LN, @EM );
+		        end			
+	        end
+        end  
+      </Text>
+      <Description>Lovely stored procedure.</Description>
+      <Xml>
+        <Statements>
+          <StoredProcedure StatementName="CreateProcedure">
+              <DeclareVariable HasTerminator="true" />
+              <If>
+                <BeginEndBlock>
+                    <DeclareVariable HasTerminator="true" />
+                    <If>
+                      <BeginEndBlock>
+                          <SetVariable HasTerminator="true" />
+                          <If>
+                            <SetVariable HasTerminator="true" />
+                            <SetVariable HasTerminator="true" />
+                          </If>
+                          <SetVariable HasTerminator="true" />
+                          <Raiserror HasTerminator="true" />
+                      </BeginEndBlock>
+                      <BeginEndBlock>
+                          <SetVariable HasTerminator="true" />
+                          <If>
+                            <SetVariable HasTerminator="true" />
+                          </If>
+                          <DeclareVariable HasTerminator="true" />
+                          <Raiserror HasTerminator="true" />
+                      </BeginEndBlock>
+                    </If>
+                </BeginEndBlock>
+              </If>
+          </StoredProcedure>
+        </Statements>
+      </Xml>
+    </Test>
+ 
+    <Test>
+      <Text>
+        create procedure CK.sResDataStringSet -- Merge inside!
+        (
+	        @ResId int, 
+	        @Val nvarchar(400)
+        )
+        as begin
+	        set nocount on;
+	        merge CK.tResDataString as t 
+		        using (select ResId = @ResId, Val = @Val) as s
+		        on t.ResId = s.ResId
+		        when matched then update set Val = @Val
+		        when not matched then insert(ResId,Val) values (@ResId, @Val);
+	        return 0;
+        end
+      </Text>
+      <Description>Lovely stored procedure.</Description>
+      <Xml>
+        <Statements>
+           <StoredProcedure StatementName="CreateProcedure">
+               <SetOption HasTerminator="true" />
+               <MergeStatement HasTerminator="true" />
+               <ReturnStatement HasTerminator="true" />
+           </StoredProcedure>
+        </Statements>
+      </Xml>
+    </Test>
+    
+    <Test>
+      <Text>
+        create procedure CK.sGroupRemoveAllUsers
+        (
+            @ActorId int,
+            @GroupId int
+        )
+        as begin
+          if @ActorId &lt;= 0 raiserror( 'Security.AnonymousNotAllowed', 16, 1 );
+          if @GroupId &lt;= 0 raiserror( 'Group.InvalidGroup', 16, 1 );
+
+          --[beginsp]
+
+          declare @UserId int;
+          declare @CUser cursor;
+          set @CUser = cursor local fast_forward for
+                  select ActorId from CK.tActorProfile where GroupId = @GroupId and ActorId &lt;&gt; @GroupId;
+          open @CUser;
+
+          fetch from @CUser into @UserId;
+          while @@FETCH_STATUS = 0
+          begin
+            exec CK.sGroupUserRemove @ActorId, @GroupId, @UserId;
+            fetch next from @CUser into @UserId;
+          end
+          deallocate @CUser;
+
+          --[endsp]
+        end
+      </Text>
+      <Description>Lovely stored procedure.</Description>
+      <Xml>
+        <Statements>
+          <StoredProcedure StatementName="CreateProcedure">
+              <If>
+                <Raiserror HasTerminator="true" />
+              </If>
+              <If>
+                <Raiserror HasTerminator="true" />
+              </If>
+              <DeclareVariable HasTerminator="true" />
+              <DeclareVariable HasTerminator="true" />
+              <SetVariable HasTerminator="true">
+                <SelectSpec />
+              </SetVariable>
+              <Statement StatementName="open" HasTerminator="true" />
+              <Statement StatementName="fetch" HasTerminator="true" />
+              <While>
+                <BeginEndBlock>
+                    <ExecuteStatement HasTerminator="true" />
+                    <Statement StatementName="fetch" HasTerminator="true" />
+                </BeginEndBlock>
+              </While>
+              <Statement StatementName="deallocate" HasTerminator="true" />
+          </StoredProcedure>
+        </Statements>
+      </Xml>
+    </Test>
+    
+  <Test>
+    <Text>
+create procedure cursor_usage
+as 
+begin
+      SET NOCOUNT ON
+
+      DECLARE @vendor_id int, @vendor_name nvarchar(50),
+      @message varchar(80), @product nvarchar(50)
+
+      PRINT '-------- Vendor Products Report --------'
+
+      DECLARE vendor_cursor CURSOR FOR
+        SELECT VendorID, Name
+        FROM Purchasing.Vendor
+        WHERE PreferredVendorStatus = 1
+        ORDER BY VendorID
+
+      OPEN vendor_cursor
+
+      FETCH NEXT FROM vendor_cursor
+      INTO @vendor_id, @vendor_name
+
+      WHILE @@FETCH_STATUS = 0
+      BEGIN
+        PRINT ' '
+        SELECT @message = '----- Products From Vendor: ' +
+        @vendor_name
+
+        PRINT @message
+
+        -- Declare an inner cursor based
+        -- on vendor_id from the outer cursor.
+
+        DECLARE product_cursor CURSOR FOR
+          SELECT v.Name
+          FROM Purchasing.ProductVendor pv, Production.Product v
+          WHERE pv.ProductID = v.ProductID AND
+          pv.VendorID = @vendor_id  -- Variable value from the outer cursor
+
+        OPEN product_cursor
+          FETCH NEXT FROM product_cursor INTO @product
+
+        IF @@FETCH_STATUS &lt;&gt; 0
+          PRINT ' === None === '     
+
+		    WHILE @@FETCH_STATUS = 0
+		    BEGIN
+			    SELECT @message = '         ' + @product
+			    PRINT @message
+			    FETCH NEXT FROM product_cursor INTO @product
+			  END
+
+		    CLOSE product_cursor
+		    DEALLOCATE product_cursor
+			  -- Get the next vendor.
+		    FETCH NEXT FROM vendor_cursor 
+		    INTO @vendor_id, @vendor_name
+	  END 
+
+	  CLOSE vendor_cursor;
+	  DEALLOCATE vendor_cursor;
+end</Text>
+    <Description>Cursor and no statement terminator at all.</Description>
+    <Xml>
+      <Statements>
+        <StoredProcedure StatementName="CreateProcedure">
+            <SetOption />
+            <DeclareVariable />
+            <Statement StatementName="PRINT" />
+            <DeclareCursor>
+              <SelectDecorator>
+                <SelectSpec />
+              </SelectDecorator>
+            </DeclareCursor>
+            <Statement StatementName="OPEN" />
+            <Statement StatementName="FETCH" />
+            <While>
+              <BeginEndBlock>
+                  <Statement StatementName="PRINT" />
+                  <SelectStatement>
+                    <SelectSpec />
+                  </SelectStatement>
+                  <Statement StatementName="PRINT" />
+                  <DeclareCursor>
+                    <SelectSpec />
+                  </DeclareCursor>
+                  <Statement StatementName="OPEN" />
+                  <Statement StatementName="FETCH" />
+                  <If>
+                    <Statement StatementName="PRINT" />
+                  </If>
+                  <While>
+                    <BeginEndBlock>
+                        <SelectStatement>
+                          <SelectSpec />
+                        </SelectStatement>
+                        <Statement StatementName="PRINT" />
+                        <Statement StatementName="FETCH" />
+                    </BeginEndBlock>
+                  </While>
+                  <Statement StatementName="CLOSE" />
+                  <Statement StatementName="DEALLOCATE" />
+                  <Statement StatementName="FETCH" />
+              </BeginEndBlock>
+            </While>
+            <Statement StatementName="CLOSE" HasTerminator="true" />
+            <Statement StatementName="DEALLOCATE" HasTerminator="true" />
+        </StoredProcedure>
+      </Statements>
+    </Xml>
+  </Test>
+    
+</Tests>

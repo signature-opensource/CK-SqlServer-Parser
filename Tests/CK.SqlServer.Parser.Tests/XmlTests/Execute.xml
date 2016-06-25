@@ -1,0 +1,82 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Tests>
+  
+  <Test>
+    <Text>
+      declare @InvariantKey varchar(64) = 'LKJLMK';
+      declare @CountSelect varchar(64) = 'murfn...';
+      execute CKCore.sInvariantRegister InvariantKey, CountSelect
+    </Text>
+    <Description>Execute can be called with variable names without @...</Description>
+    <Xml>
+      <Statements>
+        <DeclareVariable HasTerminator="true" />
+        <DeclareVariable HasTerminator="true" />
+        <ExecuteStatement />
+      </Statements>
+    </Xml>
+  </Test>
+
+  <Test>
+    <Text>
+      declare @SQLQuery AS NVARCHAR(1500)
+      declare @ParameterDefinition AS NVARCHAR(500)
+      set @SQLQuery = 'select * from sys.tables where name = @TableName or schema_id=@id or name=@OtherString';
+      set @ParameterDefinition = '@TableName varchar(50), @id int, @OtherString varchar(50)'
+      declare @TableName varchar(50) = 'tUser';
+      declare @OtherString varchar(50) = 'another';
+      declare @AnIdentifier int = 98;
+      execute sp_executesql @SQLQuery, @ParameterDefinition, TableName, @AnIdentifier, OtherString
+    </Text>
+    <Description>
+      Execute can be called with variable names without @ (but only for (n?)varchar parameters)
+      and the @ParameterDefinition MUST use the @...
+    </Description>
+    <Xml>
+      <Statements>
+        <DeclareVariable />
+        <DeclareVariable />
+        <SetVariable HasTerminator="true" />
+        <SetVariable />
+        <DeclareVariable HasTerminator="true" />
+        <DeclareVariable HasTerminator="true" />
+        <DeclareVariable HasTerminator="true" />
+        <ExecuteStatement />
+      </Statements>
+    </Xml>
+  </Test>
+
+  <Test>
+    <Text>
+      create procedure CK.sTest @i int output, @j varchar(50) output
+      as
+      begin
+        set @i = @i + @i;
+        set @j = @j + @j;
+        return 0;
+      end
+      GO
+      declare @AnIdentifier int = 98;
+      declare @AString varchar(50) = 'string';
+      exec CK.sTest @i = @AnIdentifier output, @j = AString;
+    </Text>
+    <Description>
+      When using explicit parameters, the parameter name MUST be @. Only the value (if varchar) can foreget it.
+      And in such case, the output keyword can NOT be used.
+    </Description>
+    <Xml>
+      <Statements>
+        <StoredProcedure StatementName="CreateProcedure">
+          <SetVariable HasTerminator="true" />
+          <SetVariable HasTerminator="true" />
+          <ReturnStatement HasTerminator="true" />
+        </StoredProcedure>
+        <Statement StatementName="GO" />
+        <DeclareVariable HasTerminator="true" />
+        <DeclareVariable HasTerminator="true" />
+        <ExecuteStatement HasTerminator="true" />
+      </Statements>
+    </Xml>
+  </Test>
+
+</Tests>

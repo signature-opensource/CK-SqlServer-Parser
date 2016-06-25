@@ -1,10 +1,3 @@
-#region Proprietary License
-/*----------------------------------------------------------------------------
-* This file (CK.SqlServer.Parser\Tokenizer\SqlTokenTypeError.cs) is part of CK-Database. 
-* Copyright © 2007-2014, Invenietis <http://www.invenietis.com>. All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,9 +21,14 @@ namespace CK.SqlServer.Parser
         EndOfInput = IsErrorOrEndOfInput,
 
         /// <summary>
+        /// The beginning of the input.
+        /// </summary>
+        BegOfInput = IsErrorOrEndOfInput | (1 << 30),
+
+        /// <summary>
         /// Error bit (all kind of errors, but not the end of the input).
         /// </summary>
-        IsError = 1 << 30,
+        IsError = 1 << 29,
 
         /// <summary>
         /// Error mask for any errors: all kind of errors have these 2 bits set.
@@ -38,9 +36,9 @@ namespace CK.SqlServer.Parser
         ErrorMask = IsErrorOrEndOfInput | IsError,
 
         /// <summary>
-        /// Error mask for errors raised at the <see cref="SqlTokenizer"/> level: the 3 bits - n°29, 30 &amp; 31 - are set.
+        /// Error mask for errors raised at the <see cref="SqlTokenizer"/> level: the 3 bits - n°28, 29 &amp; 31 - are set.
         /// </summary>
-        ErrorTokenizerMask = IsErrorOrEndOfInput | IsError | (1 << 29),
+        ErrorTokenizerMask = IsErrorOrEndOfInput | IsError | (1 << 28),
 
         /// <summary>
         /// Invalid character.
@@ -71,6 +69,11 @@ namespace CK.SqlServer.Parser
         /// Number value is immediately followed by an identifier: 45D for example.
         /// </summary>
         ErrorNumberIdentifierStartsImmediately = ErrorTokenizerMask | 6,
+
+        /// <summary>
+        /// A curly brace has not been doubled inside a curly braces string.
+        /// </summary>
+        ErrorMustDoubleOpenCurly = ErrorTokenizerMask | 7
 
     }
 }
