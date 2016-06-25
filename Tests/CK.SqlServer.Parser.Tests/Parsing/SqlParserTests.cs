@@ -32,5 +32,36 @@ namespace CK.SqlServer.Parser.Tests
             Assert.That( result.Result, Is.InstanceOf( expectedType ) );
         }
 
+        [TestCase( "create view simple as select 1;", null, "simple", "simple" )]
+        [TestCase( "create view [d].[a] as select 1;", "d", "a", "[d].[a]" )]
+        [TestCase( "create view [ [3]] nimp].[*µ ù%'B' m] as select 1;", " [3] nimp", "*µ ù%'B' m", "[ [3]] nimp].[*µ ù%'B' m]" )]
+        [TestCase( @"
+create view 
+[on
+multiples... 
+lines]
+
+.
+
+[
+
+nimp!] as select 1;", @"on
+multiples... 
+lines", @"
+
+nimp!", @"[on
+multiples... 
+lines].[
+
+nimp!]" )]
+        public void check_schema_and_name( string text, string schema, string name, string schemaName )
+        {
+            var result = new SqlServerParser().ParseView( text );
+            Assert.That( result.IsError, Is.False );
+            Assert.That( result.Result.Name, Is.EqualTo( name ) );
+            Assert.That( result.Result.Schema, Is.EqualTo( schema ) );
+            Assert.That( result.Result.SchemaName, Is.EqualTo( schemaName ) );
+        }
+
     }
 }

@@ -94,6 +94,8 @@ namespace CK.SqlServer.Parser
         /// </summary>
         public ISqlIdentifier FullName => _content.V3;
 
+        string ISqlServerTransformer.SchemaName => _content.V3?.ToStringHyperCompact();
+
         public SqlTokenIdentifier OnT => _content.V4;
 
         public ISqlIdentifier TargetFullName => _content.V5;
