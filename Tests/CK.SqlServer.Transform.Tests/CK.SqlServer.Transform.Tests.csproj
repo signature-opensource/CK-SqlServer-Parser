@@ -107,6 +107,9 @@
     <Content Include="XmlTests\Replace with.xml">
       <SubType>Designer</SubType>
     </Content>
+    <Content Include="XmlTests\General.xml">
+      <SubType>Designer</SubType>
+    </Content>
     <Content Include="XmlTests\_Current.xml">
       <SubType>Designer</SubType>
     </Content>

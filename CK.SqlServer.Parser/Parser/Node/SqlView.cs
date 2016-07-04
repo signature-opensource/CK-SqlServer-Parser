@@ -17,7 +17,7 @@ namespace CK.SqlServer.Parser
                         ISqlNode, 
                         SqlTokenTerminal>;
 
-    public sealed class SqlView : SqlNonToken, ISqlNamedStatement, ISqlServerView
+    public sealed class SqlView : SqlNonToken, ISqlNamedStatement, ISqlServerView, ISqlFullNameHolder
     {
         readonly CNode _content;
 
