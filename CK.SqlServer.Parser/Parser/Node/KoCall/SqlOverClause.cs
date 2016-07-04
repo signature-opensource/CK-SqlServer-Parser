@@ -8,7 +8,7 @@ using System.Text;
 
 namespace CK.SqlServer.Parser
 {
-    using CNode = SNode<SqlTokenIdentifier, SqlTokenOpenPar, SqlNodeList, SqlTokenClosePar>;
+    using CNode = SNode<SqlTokenIdentifier, SqlTokenOpenPar, ISqlNode, SqlTokenClosePar>;
 
     /// <summary>
     /// Captures a select column definition. 
@@ -17,7 +17,7 @@ namespace CK.SqlServer.Parser
     {
         readonly CNode _content;
 
-        public SqlOverClause( SqlTokenIdentifier overT, SqlTokenOpenPar opener, SqlNodeList overExpression, SqlTokenClosePar closer )
+        public SqlOverClause( SqlTokenIdentifier overT, SqlTokenOpenPar opener, ISqlNode overExpression, SqlTokenClosePar closer )
             : base( null, null )
         {
             _content = new CNode( overT, opener, overExpression, closer );
@@ -28,7 +28,6 @@ namespace CK.SqlServer.Parser
         {
             Helper.CheckToken( OverT, nameof( OverT ), SqlTokenType.Over );
             Helper.CheckNotNull( Opener, nameof( Opener ) );
-            Helper.CheckNotNull( OverContent, nameof( OverContent ) );
             Helper.CheckNotNull( Closer, nameof( Closer ) );
         }
 
@@ -56,7 +55,10 @@ namespace CK.SqlServer.Parser
 
         public SqlTokenOpenPar Opener => _content.V2;
 
-        public SqlNodeList OverContent => _content.V3;
+        /// <summary>
+        /// Gets the over clause content. May be null. 
+        /// </summary>
+        public ISqlNode OverContent => _content.V3;
 
         public SqlTokenClosePar Closer => _content.V4;
 

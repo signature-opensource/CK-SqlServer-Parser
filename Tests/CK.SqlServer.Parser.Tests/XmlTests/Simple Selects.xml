@@ -81,11 +81,7 @@
                         </EnclosedCommaList>
                       </Parameters>
                       <OverClause>
-                        <OverClause>
-                          <OverContent>
-                            <NodeList />
-                          </OverContent>
-                        </OverClause>
+                        <OverClause/>
                       </OverClause>
                     </KoCall>
                   </Definition>
