@@ -125,9 +125,11 @@ namespace CK.SqlServer.Parser
             {
                 SqlTokenOpenPar openPar;
                 if( !R.IsToken( out openPar, true ) ) return null;
+                ISqlNode overContent = IsAnyExpression( false );
+                if( R.IsError ) return null;
                 SqlTokenClosePar closePar;
-                SqlNodeList overContent = IsSqlNodeList( out closePar, null );
-                return overContent != null ? new SqlOverClause( overToken, openPar, overContent, closePar ) : null;
+                if( !R.IsToken( out closePar, true ) ) return null;
+                return new SqlOverClause( overToken, openPar, overContent, closePar );
             }
         }
 

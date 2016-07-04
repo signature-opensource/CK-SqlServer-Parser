@@ -1,6 +1,46 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <Tests>
  
+   <Test>
+    <Text>
+      create function CK.fResNamePrefixes( @ResName varchar(128) )
+      returns table with schemabinding
+       return
+		      with E1(n) as ( select 1 union all select 1), -- 2 rows
+		          E2(n) as (select 1 from E1 a, E1 b), -- 2*2  = 4 rows
+			      T(n) as ( 
+						      select top(len(@ResName)) n = row_number() over (order by  (select null) desc)-1 from E2
+					      ) 
+		      select	ParentLevel = row_number() over (order by  (select null) desc), 
+				      ParentPrefix = SUBSTRING(@ResName, 0, len(@ResName)-T.n ) collate Latin1_General_BIN2
+			      from T
+			      where len(@ResName) > 1 and SUBSTRING(@ResName, len(@ResName)-T.n, 1 ) = '.';
+    </Text>
+    <Description>CTE number table.</Description>
+    <Xml>
+      <Statements>
+        <FunctionInlineTable StatementName="CreateFunction">
+          <CTEStatement HasTerminator="true">
+            <SelectCombine CombinationKind="UnionAll">
+              <SelectSpec />
+              <SelectSpec />
+            </SelectCombine>
+            <SelectSpec />
+            <SelectSpec>
+              <SelectSpec />
+            </SelectSpec>
+            <SelectStatement HasTerminator="true">
+              <SelectSpec>
+                <SelectSpec />
+              </SelectSpec>
+            </SelectStatement>
+          </CTEStatement>
+        </FunctionInlineTable>
+      </Statements>
+    </Xml>
+   </Test>
+  
+  
   <Test>
     <Text>
       -- Define the CTE expression name and column list.

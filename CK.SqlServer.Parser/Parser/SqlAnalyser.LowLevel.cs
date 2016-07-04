@@ -282,6 +282,7 @@ namespace CK.SqlServer.Parser
             else R.MoveNext();
             return s;
         }
+
         SqlTokenTerminal GetOptionalTerminator()
         {
             SqlTokenTerminal term;
