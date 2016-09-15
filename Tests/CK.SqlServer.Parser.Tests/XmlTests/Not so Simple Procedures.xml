@@ -1,5 +1,31 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <Tests>
+   <Test>
+      <Text>
+        <![CDATA[
+create procedure dbo.OrderInsert(@OrdNo integer, @CustCode nvarchar(5))  
+  with native_compilation, schemabinding  
+as   
+  begin atomic with  
+    (transaction isolation level = snapshot, language = N'English')  
+  
+  declare @OrdDate datetime = getdate();  
+  insert into dbo.Ord (OrdNo, CustCode, OrdDate) values (@OrdNo, @CustCode, @OrdDate);  
+end  
+]]>
+  </Text>
+    <Description>Natively Compiled</Description>
+    <Xml>
+      <Statements>
+        <StoredProcedure StatementName="CreateProcedure">
+          <UnnamedStatement />
+          <DeclareVariable HasTerminator="true" />
+          <InsertStatement HasTerminator="true" />
+        </StoredProcedure>
+      </Statements>
+    </Xml>
+   </Test>
+ 
   
    <Test>
       <Text>
