@@ -30,7 +30,7 @@ namespace CK.SqlServer.Parser.Tests
             var result = new SqlServerParser().Parse( text );
             Assert.That( result.IsError, Is.False );
             Assert.That( result.Result, Is.InstanceOf( expectedType ) );
-            ISqlServerObject oSql = result as ISqlServerObject;
+            ISqlServerObject oSql = result.Result as ISqlServerObject;
             if( oSql != null )
             {
                 Assert.That( oSql.Options.SchemaBinding, Is.EqualTo( schemaBinding ) );

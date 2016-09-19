@@ -172,7 +172,9 @@ namespace CK.SqlServer.Parser
             get { return FullLeadingTrivias.Where( t => t.TokenType != SqlTokenType.None ).Cast<ISqlServerComment>(); }
         }
 
-        bool ISqlServerObjectOptions.SchemaBinding => Options.AllTokens.Any( t => t.TokenType == SqlTokenType.SchemaBinding );
+        bool ISqlServerObjectOptions.SchemaBinding => HasOptions
+                                                        ? Options.AllTokens.Any( t => t.TokenType == SqlTokenType.SchemaBinding )
+                                                        : false;
 
         ISqlServerObjectOptions ISqlServerObject.Options => this;
 
