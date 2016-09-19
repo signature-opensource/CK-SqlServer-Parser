@@ -12,7 +12,8 @@ namespace CK.SqlServer.Parser
                                                     ISqlNamedStatement, 
                                                     ISqlFullNameHolder,
                                                     ISqlParameterListHolder, 
-                                                    ISqlServerFunctionInlineTable
+                                                    ISqlServerFunctionInlineTable,
+                                                    ISqlServerObjectOptions
     {
         readonly SNode<
             SqlTokenIdentifier,
@@ -155,6 +156,9 @@ namespace CK.SqlServer.Parser
             get { return FullLeadingTrivias.Where( t => t.TokenType != SqlTokenType.None ).Cast<ISqlServerComment>(); }
         }
 
+        bool ISqlServerObjectOptions.SchemaBinding => Options.AllTokens.Any( t => t.TokenType == SqlTokenType.SchemaBinding );
+
+        ISqlServerObjectOptions ISqlServerObject.Options => this;
 
         string ISqlServerObject.ToStringSignature( bool withOptions )
         {

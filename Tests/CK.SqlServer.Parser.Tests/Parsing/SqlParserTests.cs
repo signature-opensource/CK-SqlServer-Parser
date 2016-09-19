@@ -17,19 +17,24 @@ namespace CK.SqlServer.Parser.Tests
     [TestFixture]
     public class SqlParserTests
     {
-        [TestCase( "typedView.sql", typeof( ISqlServerView ) )]
-        [TestCase( "typedprocedure.sql", typeof( ISqlServerStoredProcedure ) )]
-        [TestCase( "typedInlineTableFunction.sql", typeof( ISqlServerFunctionInlineTable ) )]
-        [TestCase( "typedScalarFunction.sql", typeof( ISqlServerFunctionScalar ) )]
-        [TestCase( "typedTableFunction.sql", typeof( ISqlServerFunctionTable ) )]
-        [TestCase( "typedScript.sql", typeof( ISqlServerScript ) )]
-        [TestCase( "typedTransformer.sql", typeof( ISqlServerTransformer ) )]
-        public void SqlServerParser_Parse_detects_type( string name, Type expectedType )
+        [TestCase( "typedView.sql", typeof( ISqlServerView ), true )]
+        [TestCase( "typedprocedure.sql", typeof( ISqlServerStoredProcedure ), false )]
+        [TestCase( "typedInlineTableFunction.sql", typeof( ISqlServerFunctionInlineTable ), false )]
+        [TestCase( "typedScalarFunction.sql", typeof( ISqlServerFunctionScalar ), true )]
+        [TestCase( "typedTableFunction.sql", typeof( ISqlServerFunctionTable ), false )]
+        [TestCase( "typedScript.sql", typeof( ISqlServerScript ), false )]
+        [TestCase( "typedTransformer.sql", typeof( ISqlServerTransformer ), false )]
+        public void SqlServerParser_Parse_detects_type( string name, Type expectedType, bool schemaBinding )
         {
             string text = TestHelper.LoadTextFromParsingScripts( name );
             var result = new SqlServerParser().Parse( text );
             Assert.That( result.IsError, Is.False );
             Assert.That( result.Result, Is.InstanceOf( expectedType ) );
+            ISqlServerObject oSql = result as ISqlServerObject;
+            if( oSql != null )
+            {
+                Assert.That( oSql.Options.SchemaBinding, Is.EqualTo( schemaBinding ) );
+            }
         }
 
         [TestCase( "create view simple as select 1;", null, "simple", "simple" )]

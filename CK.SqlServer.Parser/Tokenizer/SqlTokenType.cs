@@ -538,15 +538,15 @@ namespace CK.SqlServer.Parser
         // OpenDataSource, OpenRowSet, OpenXml and OpenQuery are reserved keywords.
         // OpenJSON is not a rserved keyword.
         // OpenJSON and OpenXML are both rowset functions that support WITH format specification.
-        OpenJSON        ,
-        Encryption      ,
-        SchemaBinding   ,
-        Input           ,
-        Called          ,
+        OpenJSON,
+        Encryption,
+        SchemaBinding,
+        Input,
+        Called,
         NativeCompilation,
-        Server          ,
-        Last            ,
-        XmlNamespaces   ,
+        Server,
+        Last,
+        XmlNamespaces,
 
         // This is not sql :)
         Transformer,
