@@ -17,7 +17,7 @@ namespace CK.SqlServer.Parser
                         ISqlNode, 
                         SqlTokenTerminal>;
 
-    public sealed class SqlView : SqlNonToken, ISqlNamedStatement, ISqlServerView, ISqlFullNameHolder
+    public sealed class SqlView : SqlNonToken, ISqlNamedStatement, ISqlServerView, ISqlFullNameHolder, ISqlServerObjectOptions
     {
         readonly CNode _content;
 
@@ -115,6 +115,10 @@ namespace CK.SqlServer.Parser
         internal protected override ISqlNode Accept( SqlNodeVisitor visitor ) => visitor.Visit( this );
 
         IEnumerable<ISqlServerComment> ISqlServerParsedText.HeaderComments => FullLeadingTrivias.Cast<ISqlServerComment>();
+
+        bool ISqlServerObjectOptions.SchemaBinding => Options.AllTokens.Any( t => t.TokenType == SqlTokenType.SchemaBinding );
+
+        ISqlServerObjectOptions ISqlServerObject.Options => this;
 
         string ISqlServerObject.ToStringSignature( bool withOptions )
         {

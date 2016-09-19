@@ -23,7 +23,8 @@ namespace CK.SqlServer.Parser
                                                 ISqlNamedStatement, 
                                                 ISqlFullNameHolder, 
                                                 ISqlParameterListHolder,
-                                                ISqlServerStoredProcedure
+                                                ISqlServerStoredProcedure,
+                                                ISqlServerObjectOptions
     {
         readonly CNode _content;
 
@@ -156,6 +157,9 @@ namespace CK.SqlServer.Parser
         internal protected override ISqlNode Accept( SqlNodeVisitor visitor ) => visitor.Visit( this );
 
         IEnumerable<ISqlServerComment> ISqlServerParsedText.HeaderComments => FullLeadingTrivias.Cast<ISqlServerComment>();
+        bool ISqlServerObjectOptions.SchemaBinding => Options.AllTokens.Any( t => t.TokenType == SqlTokenType.SchemaBinding );
+
+        ISqlServerObjectOptions ISqlServerObject.Options => this;
 
         string ISqlServerObject.ToStringSignature( bool withOptions )
         {

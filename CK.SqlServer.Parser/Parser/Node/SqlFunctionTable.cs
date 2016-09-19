@@ -12,7 +12,8 @@ namespace CK.SqlServer.Parser
                                                 ISqlNamedStatement, 
                                                 ISqlFullNameHolder,
                                                 ISqlParameterListHolder, 
-                                                ISqlServerFunctionTable
+                                                ISqlServerFunctionTable,
+                                                ISqlServerObjectOptions
     {
         readonly SNode<SqlTokenIdentifier,
             SqlTokenIdentifier,
@@ -166,14 +167,18 @@ namespace CK.SqlServer.Parser
 
         SqlServerObjectType ISqlServerObject.ObjectType => SqlServerObjectType.MultiStatementTableFunction;
 
-        string ISqlServerObject.ToStringSignature( bool withOptions )
-        {
-            return withOptions ? Header.ToStringCompact() : _content.Skip( 1 ).Take( 6 ).ToStringCompact();
-        }
-
         IEnumerable<ISqlServerComment> ISqlServerParsedText.HeaderComments
         {
             get { return FullLeadingTrivias.Where( t => t.TokenType != SqlTokenType.None ).Cast<ISqlServerComment>(); }
+        }
+
+        bool ISqlServerObjectOptions.SchemaBinding => Options.AllTokens.Any( t => t.TokenType == SqlTokenType.SchemaBinding );
+
+        ISqlServerObjectOptions ISqlServerObject.Options => this;
+
+        string ISqlServerObject.ToStringSignature( bool withOptions )
+        {
+            return withOptions ? Header.ToStringCompact() : _content.Skip( 1 ).Take( 6 ).ToStringCompact();
         }
 
         void ISqlServerParsedText.Write( StringBuilder b ) => Write( SqlTextWriter.CreateDefault( b ) );
