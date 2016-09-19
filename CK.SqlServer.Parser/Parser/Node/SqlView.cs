@@ -116,7 +116,9 @@ namespace CK.SqlServer.Parser
 
         IEnumerable<ISqlServerComment> ISqlServerParsedText.HeaderComments => FullLeadingTrivias.Cast<ISqlServerComment>();
 
-        bool ISqlServerObjectOptions.SchemaBinding => Options.AllTokens.Any( t => t.TokenType == SqlTokenType.SchemaBinding );
+        bool ISqlServerObjectOptions.SchemaBinding => HasOptions
+                                                        ? Options.AllTokens.Any( t => t.TokenType == SqlTokenType.SchemaBinding )
+                                                        : false;
 
         ISqlServerObjectOptions ISqlServerObject.Options => this;
 
