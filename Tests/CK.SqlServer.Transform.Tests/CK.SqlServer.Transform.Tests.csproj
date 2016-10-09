@@ -113,6 +113,9 @@
     <Content Include="XmlTests\_Current.xml">
       <SubType>Designer</SubType>
     </Content>
+    <Content Include="XmlTests\Stored Procedures.xml">
+      <SubType>Designer</SubType>
+    </Content>
     <Content Include="XmlTests\Inject location range.xml">
       <SubType>Designer</SubType>
     </Content>
