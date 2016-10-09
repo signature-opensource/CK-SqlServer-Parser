@@ -115,7 +115,7 @@ namespace CK.SqlServer.Parser
             SqlInsertStatement e = this;
             foreach( var c in columns )
             {
-                SqlTokenIdentifier idName = c.GetAutoColumnNameIdentifier( $"Col{e.Columns.Count + 1}" );
+                SqlTokenIdentifier idName = c.GetAutoColumnNameIdentifier( $"Col{e.Columns?.Count + 1}" );
                 e = e.AddSimpleColumn( idName, c.Definition );
             }
             return e;

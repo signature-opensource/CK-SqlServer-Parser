@@ -1,0 +1,40 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Tests>
+
+  <Test>
+    <Text>
+-- Version = *
+create procedure CK.sSimpleTransformTest
+(
+    @TextParam nvarchar(20) output
+)
+as
+begin
+	set @TextParam = N'No!';
+	return 0;
+end
+  </Text>
+    <Description>
+create transformer on CK.sSimpleTransformTest
+as
+begin
+	add parameter @Added int = 0;
+	replace single range {N'No!'} with "N'Yes! ' + cast(@Added as varchar)";
+end
+  </Description>
+    <ResultText>
+-- Version = *
+create procedure CK.sSimpleTransformTest
+(
+    @TextParam nvarchar(20) output,
+    @Added int = 0
+)
+as
+begin
+	set @TextParam = N'Yes! ' + cast(@Added as varchar);
+	return 0;
+end
+    </ResultText>
+  </Test>
+
+</Tests>
