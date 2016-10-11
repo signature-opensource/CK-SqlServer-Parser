@@ -3,6 +3,43 @@
 
   <Test>
     <Text>
+      <![CDATA[
+
+      if @ActorId <= 0 throw 50000, 'Security.AnonymousNotAllowed', 1;
+      exec CK.sGroupCreate @ActorId, 0, @ZoneIdResult output;
+	    insert into CK.tZone default values;
+      
+      ]]>
+    </Text>
+    <Description>
+      -- SetupConfig: {}
+      create transformer
+      as
+      begin
+        in single statement {exec CK.sGroupCreate}
+        begin
+          replace first {0} with "@ParentZoneId";
+        end
+
+        in single part {insert into CK.tZone}
+        begin
+          add column X = 4;
+        end
+      end
+    </Description>
+    <ResultText>
+      <![CDATA[
+      
+      if @ActorId <= 0 throw 50000, 'Security.AnonymousNotAllowed', 1;
+      exec CK.sGroupCreate @ActorId, @ParentZoneId, @ZoneIdResult output;
+	    insert into CK.tZone( X ) values ( 4 );
+      
+      ]]>
+    </ResultText>
+  </Test>
+  
+  <Test>
+    <Text>
       select X from T order by Y, X
     </Text>
     <Description>
@@ -20,4 +57,5 @@
     </ResultText>
   </Test>
 
+  
 </Tests>

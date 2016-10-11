@@ -99,6 +99,43 @@ namespace CK.SqlServer.Transform.Tests
             CheckRenderResult( result, a, transformed );
         }
 
+        [TestCase( "first {a}", "a", 0 )]
+        [TestCase( "first {a}", "b", -1 )]
+        [TestCase( "first {a}", "X|a", 1 )]
+        [TestCase( "first {a}", "X|Y|a|Z", 2 )]
+        [TestCase( "first {a}", "d|a|b|a|c|a", 1 )]
+        [TestCase( "first+1 {a}", "d|a|b|a|c|a", 3 )]
+        [TestCase( "first+2 {a}", "d|a|b|a|c|a", 5 )]
+        [TestCase( "first+3 {a}", "d|a|b|a|c|a", -1 )]
+
+        [TestCase( "last {a}", "a", 0 )]
+        [TestCase( "last {a}", "b", -1 )]
+        [TestCase( "last {a}", "X|a", 1 )]
+        [TestCase( "last {a}", "X|Y|a|Z", 2 )]
+        [TestCase( "last {a}", "d|a|b|a|c|a", 5 )]
+        [TestCase( "last-1 {a}", "d|a|b|a|c|a", 3 )]
+        [TestCase( "last-2 {a}", "d|a|b|a|c|a", 1 )]
+        [TestCase( "last-3 {a}", "d|a|b|a|c|a", -1 )]
+        public void checking_cardinality_filter( string cardinality, string text, int resultIndex )
+        {
+            var filterInfo = new SqlAnalyser( cardinality ).IsSqlTLocationFinder( true );
+            var info = new LocationCardinalityInfo( filterInfo );
+            var matcher = new SqlNodeScopePatternRange( filterInfo.Pattern.AllTokens.Skip(1).Take(1).ToArray() );
+            var filter = new SqlNodeScopeCardinalityFilter( matcher, info );
+            ISqlNode nodes = new SqlNodeList( text.Split('|').Select( t => SqlTokenIdentifier.Create( t ) ) );
+            var host = new SqlTransformHost( nodes, TestHelper.ConsoleMonitor );
+            var ranges = host.BuildRange( filter );
+            if( resultIndex >= 0 )
+            {
+                Assert.That( ranges.Count, Is.EqualTo( 1 ) );
+                Assert.That( ranges.First.Beg.Position, Is.EqualTo( resultIndex ) );
+            }
+            else
+            {
+                Assert.That( ranges, Is.SameAs( SqlNodeLocationRange.EmptySet ) );
+            }
+        }
+
         static void CheckRenderResult( string result, SqlAnalyser a, ISqlNode transformed, [CallerMemberName]string caller = null  )
         {
             a.Reset( result );

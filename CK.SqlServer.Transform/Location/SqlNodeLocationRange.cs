@@ -56,7 +56,7 @@ namespace CK.SqlServer.Transform
         /// <summary>
         /// Gets the most precise location that covers this range.
         /// </summary>
-        /// <returns>The most precise node' location that covers this range.</returns>
+        /// <returns>The most precise node's location that covers this range.</returns>
         public SqlNodeLocation GetCoveringLocation()
         {
             var b = Beg.ToFullLocation();
