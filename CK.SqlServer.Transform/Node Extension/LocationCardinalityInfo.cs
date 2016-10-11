@@ -20,6 +20,7 @@ namespace CK.SqlServer.Transform
             FromFirst = All = false;
             if( loc.FirstOrLastOrSingleOrAllT.TokenType == SqlTokenType.Single )
             {
+                // "single" is the same as "first out of 1".
                 ExpectedMatchCount = 1;
                 FromFirst = true;
             }
@@ -34,6 +35,7 @@ namespace CK.SqlServer.Transform
                 {
                     FromFirst = true;
                 }
+                // else it is SqlTokenType.Last: FromFirst = All = false;
             }
             Offset = loc.Offset?.Value ?? 0;
         }

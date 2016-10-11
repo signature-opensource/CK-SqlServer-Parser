@@ -58,7 +58,7 @@ namespace CK.SqlServer.Transform
                 if( _lastBuffer != null )
                 {
                     int idx = _lastBuffer.Count - _info.Offset - 1;
-                    r = _lastBuffer[idx];
+                    if( idx >= 0 ) r = _lastBuffer[idx];
                 }
                 return r;
             }
@@ -70,31 +70,35 @@ namespace CK.SqlServer.Transform
             if( inner != null
                 && inner.Count > 0
                 && !_hasError
-                && HandleMatchCount( context.Monitor, inner.Count ) )
+                && ShouldHandleBasedOnMatchCount( context.Monitor, inner.Count ) )
             {
                 if( _lastBuffer != null )
                 {
+                    Debug.Assert( !_info.FromFirst );
                     foreach( var r in inner ) _lastBuffer.Push( r );
                 }
                 else
                 {
                     Debug.Assert( _info.FromFirst );
-                    return _info.All ? inner : inner.Last;
+                    if( _info.All ) return inner;
+                    // ShouldHandleBasedOnMatchCount has incremented  _matchCount by inner.Count.
+                    int offsetInInner = _info.Offset - _matchCount + inner.Count;
+                    return offsetInInner == 0 ? inner.First : inner.ElementAt( offsetInInner );
                 }
             }
             return null;
         }
 
-        bool HandleMatchCount( IActivityMonitor monitor, int innerCount )
+        bool ShouldHandleBasedOnMatchCount( IActivityMonitor monitor, int innerCount )
         {
             if( (_matchCount = _matchCount+innerCount) > 1 
-                && (_info.ExpectedMatchCount > 0 
-                && _matchCount > _info.ExpectedMatchCount) )
+                && _info.ExpectedMatchCount > 0 
+                && _matchCount > _info.ExpectedMatchCount )
             {
-                monitor.Error().Send( $"Too many matches found for (max is {_info.ExpectedMatchCount})." );
+                monitor.Error().Send( $"Too many matches found for '{_inner.ToString()}' (max is {_info.ExpectedMatchCount})." );
                 _hasError = true;
             }
-            else if( !_info.FromFirst || (_info.All || _matchCount == _info.Offset + 1) )
+            else if( _info.All || !_info.FromFirst || _matchCount >= _info.Offset + 1 )
             {
                 return true;
             }

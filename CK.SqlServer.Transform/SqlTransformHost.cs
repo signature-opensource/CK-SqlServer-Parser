@@ -155,8 +155,8 @@ namespace CK.SqlServer.Transform
                 SqlNodeScopeBuilder rangeMatch = loc.IsNodeMatchRange 
                                                     ? (SqlNodeScopeBuilder)new SqlNodeScopePatternRange( loc.PatternRange )
                                                     : new SqlNodeScopeDepthPredicate( loc.NodeMatcher, loc.IsNodeMatchPart );
-                SqlNodeScopeBuilder withCard = new SqlNodeScopeCardinalityFilter( rangeMatch, loc.Card );
-                SqlNodeScopeBuilder newScope = scope != null ? new SqlNodeScopeIntersect( scope, withCard ) : withCard;
+                if( scope != null ) rangeMatch = new SqlNodeScopeIntersect( scope, rangeMatch );
+                SqlNodeScopeBuilder newScope = new SqlNodeScopeCardinalityFilter( rangeMatch, loc.Card );
 
                 return RunStatements( setScope.Statements, newScope );
             }

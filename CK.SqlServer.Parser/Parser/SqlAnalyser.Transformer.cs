@@ -151,7 +151,7 @@ namespace CK.SqlServer.Parser
         }
 
 
-        SqlTLocationFinder IsSqlTLocationFinder( bool expected )
+        public SqlTLocationFinder IsSqlTLocationFinder( bool expected )
         {
             SqlTokenIdentifier firstOrLastOrSingleOrAll;
             SqlTokenTerminal plusOrMinusT = null;

@@ -29,27 +29,20 @@ namespace CK.SqlServer.Transform.Transformers
 
         bool ApplyNodeMatchRange( SqlTransformHost t )
         {
-            SqlNodeScopeBuilder restriction = new SqlNodeScopePatternRange( _info.Location.PatternRange );
-            restriction = new SqlNodeScopeCardinalityFilter( restriction, _info.Location.Card ); 
-            var scope = _scope == null ? restriction : new SqlNodeScopeIntersect( _scope, restriction );
-            ISqlNodeLocationRange r = t.BuildRange( scope );
+            SqlNodeScopeBuilder pattern = new SqlNodeScopePatternRange( _info.Location.PatternRange );
+            if( _scope != null ) pattern = new SqlNodeScopeIntersect( _scope, pattern );
+            var final = new SqlNodeScopeCardinalityFilter( pattern, _info.Location.Card );
+            ISqlNodeLocationRange r = t.BuildRange( final );
+
+            //SqlNodeScopeBuilder restriction = new SqlNodeScopePatternRange( _info.Location.PatternRange );
+            //restriction = new SqlNodeScopeCardinalityFilter( restriction, _info.Location.Card ); 
+            //var scope = _scope == null ? restriction : new SqlNodeScopeIntersect( _scope, restriction );
+            //ISqlNodeLocationRange r = t.BuildRange( scope );
+
             if( r == null || r == SqlNodeLocationRange.EmptySet )
             {
                 t.Monitor.Error().Send( $"Range not found." );
                 return false;
-            }
-            if( _info.Location.Card.ExpectedMatchCount != 0 )
-            {
-                if( r.Count > _info.Location.Card.ExpectedMatchCount )
-                {
-                    t.Monitor.Error().Send( $"Too many ranges match: expected {_info.Location.Card.ExpectedMatchCount} but found {r.Count}." );
-                    return false;
-                }
-                else if( r.Count < _info.Location.Card.ExpectedMatchCount )
-                {
-                    t.Monitor.Error().Send( $"Missing ranges: expected {_info.Location.Card.ExpectedMatchCount} but found {r.Count}." );
-                    return false;
-                }
             }
             if( _info.ClearStarComments )
             {
@@ -58,15 +51,11 @@ namespace CK.SqlServer.Transform.Transformers
                 // recompute the ranges.
                 t.Visit( new TriviaCleaner( false, true, true ), r );
             }
-            if( _info.Location.Card.All && r.Count != 1 )
+            if( r.Count != 1 )
             {
                 foreach( var range in r ) ApplyToRangeBegEnd( t, range );
             }
-            else
-            {
-                int index = _info.Location.Card.FromFirst ? _info.Location.Card.Offset : r.Count - _info.Location.Card.Offset - 1;
-                ApplyToRangeBegEnd( t, r.ElementAt( index ) );
-            }
+            else ApplyToRangeBegEnd( t, r.First );
             t.NeedReparse = true;
             return true;
         }

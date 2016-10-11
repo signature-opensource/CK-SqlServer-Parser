@@ -3,37 +3,240 @@
 
   <Test>
     <Text>
--- Version = *
-create procedure CK.sSimpleTransformTest
-(
-    @TextParam nvarchar(20) output
-)
-as
-begin
-	set @TextParam = N'No!';
-	return 0;
-end
+      <![CDATA[
+      create procedure CK.sZoneCreate 
+      (
+	      @ActorId int,
+	      @ZoneIdResult int output
+      )
+      as
+      begin
+          if @ActorId <= 0 throw 50000, 'Security.AnonymousNotAllowed', 1;
+
+	      --[beginsp]
+
+	      --<PreZoneCreate revert />
+
+	      -- A Zone is a Group whose ZoneId is 0.  
+	      exec CK.sGroupCreate @ActorId, 0, @ZoneIdResult output;
+		
+	      -- Do create the Zone
+	      insert into CK.tZone( ZoneId ) values ( @ZoneIdResult );
+			
+	      --<PostZoneCreate />
+
+	      --[endsp]
+      end
+      ]]>
+    </Text>
+    <Description>
+      -- SetupConfig: {}
+      create transformer on CK.sZoneCreate
+      as
+      begin
+        add parameter @ParentZoneId int = 0 before @ZoneIdResult;
+
+        inject "-- stuff..." into "PreZoneCreate";
+
+        in single statement {exec CK.sGroupCreate}
+        begin
+          replace first {0} with "@ParentZoneId";
+        end
+
+        in single part {insert into CK.tZone}
+        begin
+          add column HierarchicalId = @NewZoneHId;
+        end
+      end
+    </Description>
+    <ResultText>
+      <![CDATA[
+      create procedure CK.sZoneCreate 
+      (
+	      @ActorId int,
+        @ParentZoneId int = 0,
+	      @ZoneIdResult int output
+      )
+      as
+      begin
+          if @ActorId <= 0 throw 50000, 'Security.AnonymousNotAllowed', 1;
+
+	      --[beginsp]
+
+	      --<PreZoneCreate revert >
+        -- stuff...
+        --</PreZoneCreate>*
+        
+	      -- A Zone is a Group whose ZoneId is 0.  
+	      exec CK.sGroupCreate @ActorId, @ParentZoneId, @ZoneIdResult output;
+		
+	      -- Do create the Zone
+	      insert into CK.tZone( ZoneId, HierarchicalId ) values ( @ZoneIdResult, @NewZoneHId );
+			
+	      --<PostZoneCreate />
+
+	      --[endsp]
+      end
+      ]]>
+    </ResultText>
+  </Test>
+
+  <Test>
+    <Text>
+      <![CDATA[
+      create procedure CK.sZoneCreate 
+      (
+	      @ActorId int,
+	      @ZoneIdResult int output
+      )
+      as
+      begin
+          if @ActorId <= 0 throw 50000, 'Security.AnonymousNotAllowed', 1;
+
+	      --[beginsp]
+
+	      --<PreZoneCreate revert />
+
+	      -- A Zone is a Group whose ZoneId is 0.  
+	      exec CK.sGroupCreate @ActorId, 0, @ZoneIdResult output;
+		
+	      -- Do create the Zone
+	      insert into CK.tZone( ZoneId ) values ( @ZoneIdResult );
+			
+	      --<PostZoneCreate />
+
+	      --[endsp]
+      end
+      ]]>
+    </Text>
+    <Description>
+      -- SetupConfig: {}
+      create transformer on CK.sZoneCreate
+      as
+      begin
+        add parameter @ParentZoneId int = 0 before @ZoneIdResult;
+
+        inject "-- stuff..." into "PreZoneCreate";
+
+        replace first+2 {0} with "@ParentZoneId";
+
+        in single part {insert into CK.tZone}
+        begin
+          add column HierarchicalId = @NewZoneHId;
+        end
+      end
+    </Description>
+    <ResultText>
+      <![CDATA[
+      create procedure CK.sZoneCreate 
+      (
+	      @ActorId int,
+        @ParentZoneId int = 0,
+	      @ZoneIdResult int output
+      )
+      as
+      begin
+          if @ActorId <= 0 throw 50000, 'Security.AnonymousNotAllowed', 1;
+
+	      --[beginsp]
+
+	      --<PreZoneCreate revert >
+        -- stuff...
+        --</PreZoneCreate>*
+        
+	      -- A Zone is a Group whose ZoneId is 0.  
+	      exec CK.sGroupCreate @ActorId, @ParentZoneId, @ZoneIdResult output;
+		
+	      -- Do create the Zone
+	      insert into CK.tZone( ZoneId, HierarchicalId ) values ( @ZoneIdResult, @NewZoneHId );
+			
+	      --<PostZoneCreate />
+
+	      --[endsp]
+      end
+      ]]>
+    </ResultText>
+  </Test>
+
+  
+  
+  <Test>
+    <Text>
+      -- SetupConfig: {}
+      alter Procedure CK.sAclCreate
+      (
+          @ActorId int,
+          @AclIdResult int output
+      )
+      as 
+      begin
+	      --[beginsp]
+	      insert into CK.tAcl default values;
+	      set @AclIdResult = scope_identity();
+	      --[endsp]
+      end
   </Text>
     <Description>
-create transformer on CK.sSimpleTransformTest
-as
-begin
-	add parameter @Added int = 0;
-	replace single range {N'No!'} with "N'Yes! ' + cast(@Added as varchar)";
-end
+      create transformer on CK.sAclCreate
+      as 
+      begin
+	      in single part {insert into CK.tAcl}
+	      begin
+		      add column AclTypeId = 0;
+	      end
+      end
   </Description>
     <ResultText>
--- Version = *
-create procedure CK.sSimpleTransformTest
-(
-    @TextParam nvarchar(20) output,
-    @Added int = 0
-)
-as
-begin
-	set @TextParam = N'Yes! ' + cast(@Added as varchar);
-	return 0;
-end
+        -- SetupConfig: {}
+        alter Procedure CK.sAclCreate
+        (
+            @ActorId int,
+            @AclIdResult int output
+        )
+        as 
+        begin
+	        --[beginsp]
+	        insert into CK.tAcl( AclTypeId ) values( 0 );
+	        set @AclIdResult = scope_identity();
+	        --[endsp]
+        end
+    </ResultText>
+  </Test>
+  
+  
+  <Test>
+    <Text>
+        -- Version = *
+        create procedure CK.sSimpleTransformTest
+        (
+            @TextParam nvarchar(20) output
+        )
+        as
+        begin
+	        set @TextParam = N'No!';
+	        return 0;
+        end
+  </Text>
+    <Description>
+        create transformer on CK.sSimpleTransformTest
+        as
+        begin
+	        add parameter @Added int = 0;
+	        replace single range {N'No!'} with "N'Yes! ' + cast(@Added as varchar)";
+        end
+  </Description>
+    <ResultText>
+        -- Version = *
+        create procedure CK.sSimpleTransformTest
+        (
+            @TextParam nvarchar(20) output,
+            @Added int = 0
+        )
+        as
+        begin
+	        set @TextParam = N'Yes! ' + cast(@Added as varchar);
+	        return 0;
+        end
     </ResultText>
   </Test>
 

@@ -3,44 +3,19 @@
 
   <Test>
     <Text>
--- SetupConfig: {}
-alter Procedure CK.sAclCreate
-(
-    @ActorId int,
-    @AclIdResult int output
-)
-as 
-begin
-	--[beginsp]
-	insert into CK.tAcl default values;
-	set @AclIdResult = scope_identity();
-	--[endsp]
-end
-  </Text>
+      <![CDATA[
+      ]]>
+    </Text>
     <Description>
-create transformer on CK.sAclCreate
-as 
-begin
-	in single part {insert into CK.tAcl}
-	begin
-		add column AclTypeId = 0;
-	end
-end
-  </Description>
+      -- SetupConfig: {}
+      create transformer
+      as
+      begin
+      end
+    </Description>
     <ResultText>
--- SetupConfig: {}
-alter Procedure CK.sAclCreate
-(
-    @ActorId int,
-    @AclIdResult int output
-)
-as 
-begin
-	--[beginsp]
-	insert into CK.tAcl( AclTypeId ) values( 0 );
-	set @AclIdResult = scope_identity();
-	--[endsp]
-end
+      <![CDATA[
+      ]]>
     </ResultText>
   </Test>
 

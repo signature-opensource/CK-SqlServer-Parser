@@ -36,11 +36,13 @@ namespace CK.SqlServer.Transform
             _last = null;
         }
 
+        [DebuggerStepThrough]
         internal ISqlNodeLocationRange Enter( IVisitContext context )
         {
             return Handle( (ISqlNodeLocationRangeInternal)DoEnter( context ) );
         }
 
+        [DebuggerStepThrough]
         internal ISqlNodeLocationRange Leave( IVisitContext context )
         {
             return Handle( (ISqlNodeLocationRangeInternal)DoLeave( context ) );
