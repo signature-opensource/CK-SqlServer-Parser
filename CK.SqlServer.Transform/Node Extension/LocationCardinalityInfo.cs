@@ -14,11 +14,12 @@ namespace CK.SqlServer.Transform
         public readonly int Offset;
         public readonly bool FromFirst;
         public readonly bool All;
+        public readonly bool Each;
 
         public LocationCardinalityInfo( SqlTLocationFinder loc )
         {
-            FromFirst = All = false;
-            if( loc.FirstOrLastOrSingleOrAllT.TokenType == SqlTokenType.Single )
+            FromFirst = All = Each = false;
+            if( loc.FirstOrLastOrSingleOrAllOrEachT.TokenType == SqlTokenType.Single )
             {
                 // "single" is the same as "first out of 1".
                 ExpectedMatchCount = 1;
@@ -27,11 +28,15 @@ namespace CK.SqlServer.Transform
             else
             {
                 ExpectedMatchCount = loc.ExpectedMatchCount?.Value ?? 0;
-                if( loc.FirstOrLastOrSingleOrAllT.TokenType == SqlTokenType.All )
+                if( loc.FirstOrLastOrSingleOrAllOrEachT.TokenType == SqlTokenType.All )
                 {
                     FromFirst = All = true;
                 }
-                else if( loc.FirstOrLastOrSingleOrAllT.TokenType == SqlTokenType.First )
+                else if( loc.FirstOrLastOrSingleOrAllOrEachT.TokenType == SqlTokenType.Each )
+                {
+                    FromFirst = All = Each = true;
+                }
+                else if( loc.FirstOrLastOrSingleOrAllOrEachT.TokenType == SqlTokenType.First )
                 {
                     FromFirst = true;
                 }
@@ -40,9 +45,14 @@ namespace CK.SqlServer.Transform
             Offset = loc.Offset?.Value ?? 0;
         }
 
-        public LocationCardinalityInfo( bool single )
+        /// <summary>
+        /// Initializes a "single" cardinality.
+        /// </summary>
+        /// <param name="single">Must be true.</param>
+        internal LocationCardinalityInfo( bool single )
         {
-            All = false;
+            Debug.Assert( single );
+            All = Each = false;
             ExpectedMatchCount = 1;
             FromFirst = true;
             Offset = 0;
@@ -50,6 +60,10 @@ namespace CK.SqlServer.Transform
 
         public override string ToString()
         {
+            if( Each )
+            {
+                return ExpectedMatchCount == 0 ? "each" : "each " + ExpectedMatchCount;
+            }
             if( All )
             {
                 return ExpectedMatchCount == 0 ? "all" : "all " + ExpectedMatchCount;

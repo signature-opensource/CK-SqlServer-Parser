@@ -4,17 +4,58 @@
   <Test>
     <Text>
       <![CDATA[
+      create procedure CK.sTest
+      as
+      begin
+		    declare @GroupId int;
+		    declare @CGroup cursor;
+		    set @CGroup = cursor local fast_forward for 
+			    select a.GroupId
+				    from CK.tActorProfile a
+				    inner join CK.tGroup g on g.GroupId = a.GroupId
+				    where g.ZoneId = @ZoneId and a.ActorId = @UserId and a.GroupId <> @ZoneId;
+
+       -- Another one
+			 select a.GroupId
+				    from CK.tActorProfile a
+				    inner join CK.tGroup g on g.GroupId = a.GroupId
+				    where g.ZoneId = @ZoneId and a.ActorId = @UserId and a.GroupId <> @ZoneId;
+      end
       ]]>
     </Text>
     <Description>
       -- SetupConfig: {}
-      create transformer
+      create transformer on CK.sTest
       as
       begin
+	      in single statement {set @CGroup = cursor}
+        begin
+	        in first part {select}
+	        begin
+		        inject "not exists(select * from CK.tZone where ZoneId = a.GroupId) and " before single {g.ZoneId = @ZoneId};
+	        end
+        end
       end
     </Description>
     <ResultText>
       <![CDATA[
+      create procedure CK.sTest
+      as
+      begin
+		    declare @GroupId int;
+		    declare @CGroup cursor;
+		    set @CGroup = cursor local fast_forward for 
+			    select a.GroupId
+				    from CK.tActorProfile a
+				    inner join CK.tGroup g on g.GroupId = a.GroupId
+				    where not exists(select * from CK.tZone where ZoneId = a.GroupId) and g.ZoneId = @ZoneId and a.ActorId = @UserId and a.GroupId <> @ZoneId;
+
+       -- Another one
+			 select a.GroupId
+				    from CK.tActorProfile a
+				    inner join CK.tGroup g on g.GroupId = a.GroupId
+				    where g.ZoneId = @ZoneId and a.ActorId = @UserId and a.GroupId <> @ZoneId;
+      end
       ]]>
     </ResultText>
   </Test>

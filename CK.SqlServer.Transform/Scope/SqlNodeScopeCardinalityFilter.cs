@@ -58,8 +58,9 @@ namespace CK.SqlServer.Transform
                 if( _lastBuffer != null )
                 {
                     int idx = _lastBuffer.Count - _info.Offset - 1;
-                    if( idx >= 0 ) r = _lastBuffer[idx];
+                    if( idx >= 0 ) r = _lastBuffer[idx].SetChunk( _info.Each );
                 }
+                Debug.Assert( r == null || r.IsChunk() == _info.Each );
                 return r;
             }
             return null;
@@ -80,10 +81,15 @@ namespace CK.SqlServer.Transform
                 else
                 {
                     Debug.Assert( _info.FromFirst );
-                    if( _info.All ) return inner;
-                    // ShouldHandleBasedOnMatchCount has incremented  _matchCount by inner.Count.
-                    int offsetInInner = _info.Offset - _matchCount + inner.Count;
-                    return offsetInInner == 0 ? inner.First : inner.ElementAt( offsetInInner );
+                    ISqlNodeLocationRange result = inner;
+                    if( !_info.All )
+                    {
+                        // ShouldHandleBasedOnMatchCount has incremented  _matchCount by inner.Count.
+                        int offsetInInner = _info.Offset - _matchCount + inner.Count;
+                        result = offsetInInner == 0 ? inner.First : inner.ElementAt( offsetInInner );
+                    }
+                    if( _info.Each ) result = result.SetChunk();
+                    return result;
                 }
             }
             return null;

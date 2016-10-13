@@ -29,7 +29,7 @@ namespace CK.SqlServer.Parser
         readonly CNode _content;
 
         public SqlTLocationFinder( 
-            SqlTokenIdentifier firtOrLastOrSingleOrAll, 
+            SqlTokenIdentifier firtOrLastOrSingleOrAllOrEach, 
             SqlTokenTerminal plusOrMinusT, 
             SqlTokenLiteralInteger offset, 
             SqlTokenIdentifier outT,
@@ -38,20 +38,20 @@ namespace CK.SqlServer.Parser
             ISqlNode pattern )
                : base( null, null )
         {
-            _content = new CNode( firtOrLastOrSingleOrAll, plusOrMinusT, offset, outT, ofT, expectedMatchCount, pattern );
+            _content = new CNode( firtOrLastOrSingleOrAllOrEach, plusOrMinusT, offset, outT, ofT, expectedMatchCount, pattern );
             CheckContent();
         }
 
         void CheckContent()
         {
-            Helper.CheckToken( FirstOrLastOrSingleOrAllT, nameof( FirstOrLastOrSingleOrAllT ), SqlTokenType.First, SqlTokenType.Last, SqlTokenType.Single, SqlTokenType.All );
-            if( FirstOrLastOrSingleOrAllT.TokenType == SqlTokenType.Single || FirstOrLastOrSingleOrAllT.TokenType == SqlTokenType.All )
+            Helper.CheckToken( FirstOrLastOrSingleOrAllOrEachT, nameof( FirstOrLastOrSingleOrAllOrEachT ), SqlTokenType.First, SqlTokenType.Last, SqlTokenType.Single, SqlTokenType.All );
+            if( FirstOrLastOrSingleOrAllOrEachT.TokenType == SqlTokenType.Single || FirstOrLastOrSingleOrAllOrEachT.TokenType == SqlTokenType.All )
             {
                 if( PlusOrMinusT != null || Offset != null ) throw new ArgumentException( "Invalid offset after 'single' or 'all'." );
             }
             else if( Offset != null )
             {
-                if( FirstOrLastOrSingleOrAllT.TokenType == SqlTokenType.Last )
+                if( FirstOrLastOrSingleOrAllOrEachT.TokenType == SqlTokenType.Last )
                 {
                     if( PlusOrMinusT == null || PlusOrMinusT.TokenType == SqlTokenType.Plus )
                     {
@@ -68,7 +68,8 @@ namespace CK.SqlServer.Parser
             }
             Helper.CheckNullableToken( OutT, nameof( OutT ), SqlTokenType.Out );
             Helper.CheckNullableToken( OfT, nameof( OfT ), SqlTokenType.Of );
-            if( FirstOrLastOrSingleOrAllT.TokenType == SqlTokenType.All )
+            if( FirstOrLastOrSingleOrAllOrEachT.TokenType == SqlTokenType.All
+                || FirstOrLastOrSingleOrAllOrEachT.TokenType == SqlTokenType.Each )
             {
                 if( ExpectedMatchCount == null ) Helper.CheckNull( OutT, nameof( OutT ) );
                 Helper.CheckBothNullOrNot( OutT, nameof( OutT ), OfT, nameof( OfT ) );
@@ -100,7 +101,7 @@ namespace CK.SqlServer.Parser
 
         public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
 
-        public SqlTokenIdentifier FirstOrLastOrSingleOrAllT => _content.V1;
+        public SqlTokenIdentifier FirstOrLastOrSingleOrAllOrEachT => _content.V1;
 
         public SqlTokenTerminal PlusOrMinusT => _content.V2;
 
