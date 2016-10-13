@@ -74,7 +74,6 @@
     <Compile Include="LocationVisitor\IVisitContext.cs" />
     <Compile Include="LocationVisitor\VisitedNodeRangeFilterStatus.cs" />
     <Compile Include="LocationVisitor\VisitedNodeRangeFilterStatusExtension.cs" />
-    <Compile Include="Location\SqlNodeLocationRangeChunk.cs" />
     <Compile Include="Location\ISqlNodeLocationRangeInternal.cs" />
     <Compile Include="Location\LocationRangeCombined.cs" />
     <Compile Include="Matcher\WindowToken.cs" />

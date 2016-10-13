@@ -34,6 +34,7 @@ namespace CK.SqlServer.Transform
         public void Reset()
         {
             _last = null;
+            DoReset();
         }
 
         [DebuggerStepThrough]
