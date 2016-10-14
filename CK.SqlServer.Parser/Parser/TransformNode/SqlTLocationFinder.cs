@@ -44,7 +44,7 @@ namespace CK.SqlServer.Parser
 
         void CheckContent()
         {
-            Helper.CheckToken( FirstOrLastOrSingleOrAllOrEachT, nameof( FirstOrLastOrSingleOrAllOrEachT ), SqlTokenType.First, SqlTokenType.Last, SqlTokenType.Single, SqlTokenType.All );
+            Helper.CheckToken( FirstOrLastOrSingleOrAllOrEachT, nameof( FirstOrLastOrSingleOrAllOrEachT ), SqlTokenType.First, SqlTokenType.Last, SqlTokenType.Single, SqlTokenType.All, SqlTokenType.Each );
             if( FirstOrLastOrSingleOrAllOrEachT.TokenType == SqlTokenType.Single || FirstOrLastOrSingleOrAllOrEachT.TokenType == SqlTokenType.All )
             {
                 if( PlusOrMinusT != null || Offset != null ) throw new ArgumentException( "Invalid offset after 'single' or 'all'." );

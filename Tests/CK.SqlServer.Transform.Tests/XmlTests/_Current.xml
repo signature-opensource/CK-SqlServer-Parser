@@ -7,19 +7,18 @@
       create procedure CK.sTest
       as
       begin
-		    declare @GroupId int;
-		    declare @CGroup cursor;
-		    set @CGroup = cursor local fast_forward for 
-			    select a.GroupId
-				    from CK.tActorProfile a
-				    inner join CK.tGroup g on g.GroupId = a.GroupId
-				    where g.ZoneId = @ZoneId and a.ActorId = @UserId and a.GroupId <> @ZoneId;
-
-       -- Another one
 			 select a.GroupId
 				    from CK.tActorProfile a
 				    inner join CK.tGroup g on g.GroupId = a.GroupId
 				    where g.ZoneId = @ZoneId and a.ActorId = @UserId and a.GroupId <> @ZoneId;
+			 select a.GroupId
+				    from CK.tActorProfile b
+				    inner join CK.tGroup g on g.GroupId = b.GroupId
+				    where g.ZoneId = @ZoneId and b.ActorId = @UserId and b.GroupId <> @ZoneId;
+			 select a.GroupId
+				    from CK.tActorProfile cXX
+				    inner join CK.tGroup g on g.GroupId = cXX.GroupId
+				    where g.ZoneId = @ZoneId and cXX.ActorId = @UserId and cXX.GroupId <> @ZoneId;
       end
       ]]>
     </Text>
@@ -28,12 +27,9 @@
       create transformer on CK.sTest
       as
       begin
-	      in single statement {set @CGroup = cursor}
+	      in each statement {select a.GroupId}
         begin
-	        in first part {select}
-	        begin
-		        inject "not exists(select * from CK.tZone where ZoneId = a.GroupId) and " before single {g.ZoneId = @ZoneId};
-	        end
+	        inject " -- Single in each scope..." after single {CK.tActorProfile ?};
         end
       end
     </Description>
@@ -42,19 +38,18 @@
       create procedure CK.sTest
       as
       begin
-		    declare @GroupId int;
-		    declare @CGroup cursor;
-		    set @CGroup = cursor local fast_forward for 
-			    select a.GroupId
-				    from CK.tActorProfile a
-				    inner join CK.tGroup g on g.GroupId = a.GroupId
-				    where not exists(select * from CK.tZone where ZoneId = a.GroupId) and g.ZoneId = @ZoneId and a.ActorId = @UserId and a.GroupId <> @ZoneId;
-
-       -- Another one
 			 select a.GroupId
-				    from CK.tActorProfile a
+				    from CK.tActorProfile a -- Single in each scope...
 				    inner join CK.tGroup g on g.GroupId = a.GroupId
 				    where g.ZoneId = @ZoneId and a.ActorId = @UserId and a.GroupId <> @ZoneId;
+			 select a.GroupId
+				    from CK.tActorProfile b -- Single in each scope...
+				    inner join CK.tGroup g on g.GroupId = b.GroupId
+				    where g.ZoneId = @ZoneId and b.ActorId = @UserId and b.GroupId <> @ZoneId;
+			 select a.GroupId
+				    from CK.tActorProfile cXX -- Single in each scope...
+				    inner join CK.tGroup g on g.GroupId = cXX.GroupId
+				    where g.ZoneId = @ZoneId and cXX.ActorId = @UserId and cXX.GroupId <> @ZoneId;
       end
       ]]>
     </ResultText>
