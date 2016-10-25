@@ -14,14 +14,24 @@ namespace CK.SqlServer.Parser
                         SqlEnclosedIdentifierCommaList, 
                         SqlNodeList, 
                         SqlTokenIdentifier, 
-                        ISqlNode, 
+                        ISqlNode,
+                        SqlNodeList,
                         SqlTokenTerminal>;
 
     public sealed class SqlView : SqlNonToken, ISqlNamedStatement, ISqlServerView, ISqlFullNameHolder, ISqlServerObjectOptions
     {
         readonly CNode _content;
 
-        public SqlView( SqlTokenIdentifier alterOrCreate, SqlTokenIdentifier type, ISqlIdentifier name, SqlEnclosedIdentifierCommaList columns, SqlNodeList options, SqlTokenIdentifier asToken, ISqlNode select, SqlTokenTerminal term )
+        public SqlView( 
+                SqlTokenIdentifier alterOrCreate, 
+                SqlTokenIdentifier type, 
+                ISqlIdentifier name, 
+                SqlEnclosedIdentifierCommaList columns, 
+                SqlNodeList options, 
+                SqlTokenIdentifier asToken, 
+                ISqlNode select,
+                SqlNodeList withCheckOption,
+                SqlTokenTerminal term )
             : base( null, null )
         {
             _content = new CNode(
@@ -32,6 +42,7 @@ namespace CK.SqlServer.Parser
                 options,
                 asToken,
                 select,
+                withCheckOption,
                 term );
             CheckContent();
         }
@@ -109,7 +120,9 @@ namespace CK.SqlServer.Parser
 
         public ISqlNode Select => _content.V7;
 
-        public SqlTokenTerminal StatementTerminator => _content.V8;
+        public SqlNodeList WithCheckOption => _content.V8;
+
+        public SqlTokenTerminal StatementTerminator => _content.V9;
 
         [DebuggerStepThrough]
         internal protected override ISqlNode Accept( SqlNodeVisitor visitor ) => visitor.Visit( this );

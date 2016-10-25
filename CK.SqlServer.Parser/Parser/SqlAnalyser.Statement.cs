@@ -32,7 +32,7 @@ namespace CK.SqlServer.Parser
                     : new SqlUnnamedStatement( n, GetOptionalTerminator() );
         }
          
-        public ISqlNamedStatement IsNamedStatement( bool expected )
+        public ISqlNamedStatement IsNamedStatement( bool expected, bool withStatementTerminator = true )
         {
             if( R.Current.TokenType == SqlTokenType.SemiColon )
             {
@@ -209,7 +209,7 @@ namespace CK.SqlServer.Parser
                     R.SetCurrentError( "Unxepected operator after select." );
                     return null;
                 }
-                return new SqlSelectStatement( select, GetOptionalTerminator() );
+                return new SqlSelectStatement( select, withStatementTerminator ? GetOptionalTerminator() : null );
             }
             if( id.TokenType == SqlTokenType.Insert )
             {
@@ -275,24 +275,11 @@ namespace CK.SqlServer.Parser
                 {
                     SqlEnclosedCommaList ns = IsEnclosedCommaList( true );
                     if( ns == null ) return null;
-                    ISqlNamedStatement statement = IsNamedStatement( true );
+                    ISqlNamedStatement statement = IsNamedStatement( true, withStatementTerminator );
                     if( statement == null ) return null;
                     return new SqlWithForXml( id, xmlNameSpacesT, ns, statement );
                 }
-                SqlCTENameList names = IsCommaList( 1, IsSqlCTEName, i => new SqlCTENameList( i ) );
-                if( names == null ) return null;
-                ISqlNamedStatement s = IsNamedStatement( true );
-                if( s == null ) return null;
-                if( s.StatementKnownName != StatementKnownName.Select
-                    && s.StatementKnownName != StatementKnownName.Insert
-                    && s.StatementKnownName != StatementKnownName.Update
-                    && s.StatementKnownName != StatementKnownName.Delete
-                    && s.StatementKnownName != StatementKnownName.Merge )
-                {
-                    R.SetCurrentError( "Outer statement of a With (CTE) must be Select, Insert, Update, Delete or Merge." );
-                    return null;
-                }
-                return new SqlCTEStatement( id, names, s );
+                return MatchCTEStatement( id, withStatementTerminator );
             }
             if( id.TokenType.IsStartStatement() )
             {
@@ -317,6 +304,25 @@ namespace CK.SqlServer.Parser
             R.MoveNext();
             R.MoveNext();
             return new SqlLabelDefinition( id, colon );
+        }
+
+        ISqlNamedStatement MatchCTEStatement( SqlTokenIdentifier withT, bool withStatementTerminator = true )
+        {
+            Debug.Assert( withT.TokenType == SqlTokenType.With );
+            SqlCTENameList names = IsCommaList( 1, IsSqlCTEName, i => new SqlCTENameList( i ) );
+            if( names == null ) return null;
+            ISqlNamedStatement s = IsNamedStatement( true, withStatementTerminator );
+            if( s == null ) return null;
+            if( s.StatementKnownName != StatementKnownName.Select
+                && s.StatementKnownName != StatementKnownName.Insert
+                && s.StatementKnownName != StatementKnownName.Update
+                && s.StatementKnownName != StatementKnownName.Delete
+                && s.StatementKnownName != StatementKnownName.Merge )
+            {
+                R.SetCurrentError( "Outer statement of a With (CTE) must be Select, Insert, Update, Delete or Merge." );
+                return null;
+            }
+            return new SqlCTEStatement( withT, names, s );
         }
 
         [DebuggerStepThrough]
@@ -770,10 +776,32 @@ namespace CK.SqlServer.Parser
             SqlNodeList options = IsSqlNodeList( out asToken, t => t.TokenType == SqlTokenType.As );
             if( options == null ) return null;
             if( options.IsEmpty ) options = null;
-             
-            ISqlNode body = IsAnyExpression( true );
+
+            ISqlNode body;
+            SqlTokenIdentifier withOrSelect;
+            if( R.IsToken( out withOrSelect, SqlTokenType.With, false ) )
+            {
+                body = MatchCTEStatement( withOrSelect, withStatementTerminator: false );
+            }
+            else
+            {
+                body = R.IsToken( out withOrSelect, SqlTokenType.Select, true )
+                        ? MatchSelectSpecification( withOrSelect )
+                        : null;
+            }
             if( body == null ) return null;
-            return new SqlView( alterOrCreate, type, name, columns, options, asToken, body, GetOptionalTerminator() );
+
+            SqlNodeList withCheckOption = null;
+            SqlTokenIdentifier withT;
+            SqlTokenIdentifier checkT;
+            SqlTokenIdentifier optionT;
+            if( R.IsToken( out withT, SqlTokenType.With, false ) )
+            {
+                if( !R.IsToken( out checkT, SqlTokenType.Check, true ) || !R.IsToken( out optionT, SqlTokenType.Option, true ) ) return null;
+                withCheckOption = new SqlNodeList( withT, checkT, optionT );
+            }
+
+            return new SqlView( alterOrCreate, type, name, columns, options, asToken, body, withCheckOption, GetOptionalTerminator() );
         }
 
         ISqlNamedStatement MatchFunction( SqlTokenIdentifier alterOrCreate )

@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <Tests>
-  
+
   <Test Mode="OneExpression">
     <Text>
       select'u''u'as'b''b'
@@ -995,4 +995,38 @@
     </Xml>
   </Test>
 
+  <Test Mode="OneExpression">
+    <Text>
+      select * from
+	      (select VName='InMainAndNotInSub', Detail = (select * from inMainAndNotInSub for JSON AUTO)
+		      union all
+	       select VName='InSubAndNotInMain', Detail = (select * from inSub1AndNotInMain for JSON AUTO)
+		      union all
+	       select VName='InSubAndNotInMain', Detail = (select * from inSub2AndNotInMain for JSON AUTO)
+		      union all
+	       select VName='InBothSub', Detail = (select * from inBothSub for JSON AUTO)) result
+      where result.Detail is not null
+    </Text>
+    <Description>sub select with json auto.</Description>
+    <Xml ToStringCompact="Columns,SelectFrom">
+      <Sql>
+        <SelectSpec>
+          <Columns>*</Columns>
+          <From>
+            <SelectFrom>from(select VName='InMainAndNotInSub', Detail=(select * from inMainAndNotInSub for JSON AUTO) union all select VName='InSubAndNotInMain', Detail=(select * from inSub1AndNotInMain for JSON AUTO) union all select VName='InSubAndNotInMain', Detail=(select * from inSub2AndNotInMain for JSON AUTO) union all select VName='InBothSub', Detail=(select * from inBothSub for JSON AUTO)) result</SelectFrom>
+          </From>
+          <WhereExpression>
+            <IsNull IsNotNull="true">
+              <Left>
+                <MultiIdentifier>result.Detail</MultiIdentifier>
+              </Left>
+            </IsNull>
+          </WhereExpression>
+        </SelectSpec>
+      </Sql>
+    </Xml>
+  </Test>
+   
+  
+  
 </Tests>

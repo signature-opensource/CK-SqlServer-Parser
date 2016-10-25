@@ -46,6 +46,7 @@ namespace CK.SqlServer.Parser.Tests.XmlTests
         [TestCase( "TryCatch.xml" )]
         [TestCase( "Unmodeled stuff.xml" )]
         [TestCase( "Update.xml" )]
+        [TestCase( "Views.xml" )]
         public void file_test( string fileName )
         {
             XmlSqlTester.RunAllTests( fileName, e => new XmlSqlTester( e ) );

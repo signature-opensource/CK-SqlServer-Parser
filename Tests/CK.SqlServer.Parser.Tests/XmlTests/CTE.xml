@@ -1,6 +1,105 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <Tests>
  
+  
+  <Test>
+    <Text>
+        with
+	        groups( PeriodId, PeriodName, GroupId, GroupName, GroupId1, GroupName1, GroupId2, GroupName2 )
+		        as (select	p.PeriodId, pG.GroupName,
+					        main.GroupId, main.GroupName,
+					        GroupId1 = g1.GroupId, GroupName1 = g1.GroupName,
+					        GroupId2 = g2.GroupId, GroupName2 = g2.GroupName
+				        from EV.tPeriod p
+				        cross join EVC.tGroupWithTwoSubGroups conf
+				        inner join CK.tGroup pG on pG.GroupId = p.PeriodId
+				        inner join CK.tGroup main on main.ZoneId = p.PeriodId and main.GroupName = conf.MainGroupName
+				        inner join CK.tGroup g1 on g1.ZoneId = p.PeriodId and g1.GroupName = conf.SubGroupName1
+				        inner join CK.tGroup g2 on g2.ZoneId = p.PeriodId and g2.GroupName = conf.SubGroupName2
+				        where p.PeriodId > 0),
+	        inMainAndNotInSub( Cost, UserId, UserName, PeriodId, PeriodName, GroupId, GroupName, GroupId1, GroupName1, GroupId2, GroupName2 )
+		        as (select conf.CostMainAndNotInSub, gU.UserId, gU.UserName, g.*
+					        from groups g
+					        inner join CK.tActorProfile gA on gA.GroupId = g.GroupId 
+					        inner join CK.tUser gU on gU.UserId = gA.ActorId
+					        inner join EVC.tGroupWithTwoSubGroups conf 
+									        on conf.MainGroupName = g.GroupName 
+										        and conf.SubGroupName1 = g.GroupName1 
+										        and conf.SubGroupName2 = g.GroupName2
+				        where gA.ActorId not in (select ActorId from CK.tActorProfile where GroupId = g.GroupId1 or GroupId = g.GroupId2)),
+	        inSub1AndNotInMain( Cost, UserId, UserName, PeriodId, PeriodName, GroupId, GroupName, SubGroupId, SubGroupName1 )
+		        as (select distinct 100, gU.UserId, gU.UserName, g.PeriodId, g.PeriodName, g.GroupId, g.GroupName, g.GroupId1, g.GroupName1
+					        from groups g
+					        inner join CK.tActorProfile gA on gA.GroupId = g.GroupId1
+					        inner join CK.tUser gU on gU.UserId = gA.ActorId
+				        where gA.ActorId not in (select ActorId from CK.tActorProfile where GroupId = g.GroupId )),
+	        inSub2AndNotInMain( Cost, UserId, UserName, PeriodId, PeriodName, GroupId, GroupName, SubGroupId, SubGroupName1 )
+		        as (select distinct 100, gU.UserId, gU.UserName, g.PeriodId, g.PeriodName, g.GroupId, g.GroupName, g.GroupId2, g.GroupName2
+					        from groups g
+					        inner join CK.tActorProfile gA on gA.GroupId = g.GroupId2
+					        inner join CK.tUser gU on gU.UserId = gA.ActorId
+				        where gA.ActorId not in (select ActorId from CK.tActorProfile where GroupId = g.GroupId )),
+	        inBothSub( Cost, UserId, UserName, PeriodId, PeriodName, GroupId1, GroupName1, GroupId2, GroupName2 )
+		        as (select 100, gU.UserId, gU.UserName, g.PeriodId, g.PeriodName, g.GroupId1, g.GroupName1, g.GroupId2, g.GroupName2
+					        from groups g
+					        inner join CK.tActorProfile g1 on g1.GroupId = g.GroupId1
+					        inner join CK.tActorProfile g2 on g2.GroupId = g.GroupId2
+					        inner join CK.tUser gU on gU.UserId = g2.ActorId
+					        where g2.ActorId = g1.ActorId)
+        select * from
+	        (select VName='InMainAndNotInSub', Detail = (select * from inMainAndNotInSub for JSON AUTO)
+		        union all
+	         select VName='InSubAndNotInMain', Detail = (select * from inSub1AndNotInMain for JSON AUTO)
+		        union all
+	         select VName='InSubAndNotInMain', Detail = (select * from inSub2AndNotInMain for JSON AUTO)
+		        union all
+	         select VName='InBothSub', Detail = (select * from inBothSub for JSON AUTO)) result
+        where result.Detail is not null;
+
+    </Text>
+    <Description>cte with json</Description>
+    <Xml ToStringCompact="Select">
+      <Sql>
+        <CTEStatement HasTerminator="true">
+          <Names>
+            <CTENameList>
+              <Item>
+                <CTEName Name="groups" ColumnNames="PeriodId, PeriodName, GroupId, GroupName, GroupId1, GroupName1, GroupId2, GroupName2">
+                  <Select>select p.PeriodId, pG.GroupName, main.GroupId, main.GroupName, GroupId1=g1.GroupId, GroupName1=g1.GroupName, GroupId2=g2.GroupId, GroupName2=g2.GroupName from EV.tPeriod p cross join EVC.tGroupWithTwoSubGroups conf inner join CK.tGroup pG on pG.GroupId=p.PeriodId inner join CK.tGroup main on main.ZoneId=p.PeriodId and main.GroupName=conf.MainGroupName inner join CK.tGroup g1 on g1.ZoneId=p.PeriodId and g1.GroupName=conf.SubGroupName1 inner join CK.tGroup g2 on g2.ZoneId=p.PeriodId and g2.GroupName=conf.SubGroupName2 where p.PeriodId&gt;0</Select>
+                </CTEName>
+              </Item>
+              <Item>
+                <CTEName Name="inMainAndNotInSub" ColumnNames="Cost, UserId, UserName, PeriodId, PeriodName, GroupId, GroupName, GroupId1, GroupName1, GroupId2, GroupName2">
+                  <Select>select conf.CostMainAndNotInSub, gU.UserId, gU.UserName, g.* from groups g inner join CK.tActorProfile gA on gA.GroupId=g.GroupId inner join CK.tUser gU on gU.UserId=gA.ActorId inner join EVC.tGroupWithTwoSubGroups conf on conf.MainGroupName=g.GroupName and conf.SubGroupName1=g.GroupName1 and conf.SubGroupName2=g.GroupName2 where gA.ActorId not in(select ActorId from CK.tActorProfile where GroupId=g.GroupId1 or GroupId=g.GroupId2)</Select>
+                </CTEName>
+              </Item>
+              <Item>
+                <CTEName Name="inSub1AndNotInMain" ColumnNames="Cost, UserId, UserName, PeriodId, PeriodName, GroupId, GroupName, SubGroupId, SubGroupName1">
+                  <Select>select distinct 100, gU.UserId, gU.UserName, g.PeriodId, g.PeriodName, g.GroupId, g.GroupName, g.GroupId1, g.GroupName1 from groups g inner join CK.tActorProfile gA on gA.GroupId=g.GroupId1 inner join CK.tUser gU on gU.UserId=gA.ActorId where gA.ActorId not in(select ActorId from CK.tActorProfile where GroupId=g.GroupId)</Select>
+                </CTEName>
+              </Item>
+              <Item>
+                <CTEName Name="inSub2AndNotInMain" ColumnNames="Cost, UserId, UserName, PeriodId, PeriodName, GroupId, GroupName, SubGroupId, SubGroupName1">
+                  <Select>select distinct 100, gU.UserId, gU.UserName, g.PeriodId, g.PeriodName, g.GroupId, g.GroupName, g.GroupId2, g.GroupName2 from groups g inner join CK.tActorProfile gA on gA.GroupId=g.GroupId2 inner join CK.tUser gU on gU.UserId=gA.ActorId where gA.ActorId not in(select ActorId from CK.tActorProfile where GroupId=g.GroupId)</Select>
+                </CTEName>
+              </Item>
+              <Item>
+                <CTEName Name="inBothSub" ColumnNames="Cost, UserId, UserName, PeriodId, PeriodName, GroupId1, GroupName1, GroupId2, GroupName2">
+                  <Select>select 100, gU.UserId, gU.UserName, g.PeriodId, g.PeriodName, g.GroupId1, g.GroupName1, g.GroupId2, g.GroupName2 from groups g inner join CK.tActorProfile g1 on g1.GroupId=g.GroupId1 inner join CK.tActorProfile g2 on g2.GroupId=g.GroupId2 inner join CK.tUser gU on gU.UserId=g2.ActorId where g2.ActorId=g1.ActorId</Select>
+                </CTEName>
+              </Item>
+            </CTENameList>
+          </Names>
+          <OuterStatement>
+            <SelectStatement HasTerminator="true">
+              <Select>select * from(select VName='InMainAndNotInSub', Detail=(select * from inMainAndNotInSub for JSON AUTO) union all select VName='InSubAndNotInMain', Detail=(select * from inSub1AndNotInMain for JSON AUTO) union all select VName='InSubAndNotInMain', Detail=(select * from inSub2AndNotInMain for JSON AUTO) union all select VName='InBothSub', Detail=(select * from inBothSub for JSON AUTO)) result where result.Detail is not null</Select>
+            </SelectStatement>
+          </OuterStatement>
+        </CTEStatement>
+      </Sql>
+    </Xml>
+  </Test>  
+  
    <Test>
     <Text>
       create function CK.fResNamePrefixes( @ResName varchar(128) )
