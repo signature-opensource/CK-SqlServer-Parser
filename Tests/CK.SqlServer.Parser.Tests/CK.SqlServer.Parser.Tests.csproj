@@ -134,6 +134,7 @@
     <Content Include="XmlTests\Trigger.xml" />
     <Content Include="XmlTests\TryCatch.xml" />
     <Content Include="XmlTests\Merge.xml" />
+    <Content Include="XmlTests\Views.xml" />
     <Content Include="XmlTests\Update.xml" />
     <Content Include="XmlTests\OpenXml.xml" />
     <Content Include="XmlTests\Insert.xml">
