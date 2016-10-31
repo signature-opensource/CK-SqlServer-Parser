@@ -137,4 +137,26 @@
     </Xml>
   </Test>
 
+  <Test>
+    <Text>
+    -- SetupConfig: {}
+    create function IVMedia.fPublicTypeMCView( @XLCID int = 9 ) returns table
+    as 
+      return select t.PublicTypeId, t.ProgName, t.ResId, DisplayName = s.Value, DisplayNameLCID = s.LCID
+        from IVMedia.tPublicType t
+        inner join CK.vMCResString s on s.ResId = t.ResId and s.XLCID = isnull(@XLCID,9)
+       where t.PublicTypeId > 0;
+    </Text>
+    <Description>Inline table value function.</Description>
+    <Xml>
+      <Statements>
+          <FunctionInlineTable StatementName="CreateFunction">
+            <SelectStatement HasTerminator="true">
+              <SelectSpec />
+            </SelectStatement>
+          </FunctionInlineTable>
+      </Statements>
+    </Xml>
+  </Test>
+
 </Tests>

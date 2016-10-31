@@ -785,9 +785,12 @@ namespace CK.SqlServer.Parser
             }
             else
             {
-                body = R.IsToken( out withOrSelect, SqlTokenType.Select, true )
-                        ? MatchSelectSpecification( withOrSelect )
-                        : null;
+                body = IsOneExpression( true );
+                if( body != null && !(body.UnPar is ISelectSpecification) )
+                {
+                    R.SetCurrentError( $"Expected select specification. Found {body.GetType().Name}: {body.ToStringHyperCompact()}" );
+                    return null;
+                }
             }
             if( body == null ) return null;
 
