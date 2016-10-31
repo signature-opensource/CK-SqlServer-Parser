@@ -3,6 +3,37 @@
 
   <Test>
     <Text>
+      create view CKonstV.vAll(Cost, VName, Detail) 
+      as 
+	      select Cost, VName, Detail from CKonstV.vViolationViewExists 
+		      union all 
+	      select Cost, VName, Detail from CKonstV.vUGroupImplyUGroup 
+		      union all 
+	      select Cost, VName, Detail from CKonstV.vUGroupsAreDisjoint
+    </Text>
+    <Description>A view with union inside.</Description>
+    <Xml ToStringCompact="ColumnNames,FullName,Select">
+      <Sql>
+        <View StatementName="CreateView">
+          <AlterOrCreateT>
+            <Identifier IsReservedKeyword="true">create</Identifier>
+          </AlterOrCreateT>
+          <ObjectTypeT>
+            <Identifier IsReservedKeyword="true">view</Identifier>
+          </ObjectTypeT>
+          <FullName>CKonstV.vAll</FullName>
+          <ColumnNames>(Cost, VName, Detail)</ColumnNames>
+          <AsT>
+            <Identifier IsReservedKeyword="true">as</Identifier>
+          </AsT>
+          <Select>select Cost, VName, Detail from CKonstV.vViolationViewExists union all select Cost, VName, Detail from CKonstV.vUGroupImplyUGroup union all select Cost, VName, Detail from CKonstV.vUGroupsAreDisjoint</Select>
+        </View>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test>
+    <Text>
       CREATE VIEW dbo.SeattleOnly  
       AS  
       SELECT p.LastName, p.FirstName, e.JobTitle, a.City, sp.StateProvinceCode  

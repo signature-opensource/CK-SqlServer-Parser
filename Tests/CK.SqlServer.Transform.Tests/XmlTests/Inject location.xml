@@ -3,6 +3,74 @@
 
   <Test>
     <Text>
+      -- SetupConfig: {  "Requires": ["CKonstV.vViolationViewExists"] }
+      create view CKonstV.vAll( Cost, VName, Detail )
+      as
+	      select Cost, VName, Detail from CKonstV.vViolationViewExists
+	   
+    </Text>
+    <Description>
+      create transformer on CKonstV.vAll as
+      begin
+	      inject "
+	      union all
+      select Cost, VName, Detail from CKonstV.vUGroupImplyUGroup
+	      union all
+		  select Cost, VName, Detail from CKonstV.vUGroupsAreDisjoint
+	    "
+	      after first part {select}
+      end
+    </Description>
+    <ResultText>
+      -- SetupConfig: {  "Requires": ["CKonstV.vViolationViewExists"] }
+      create view CKonstV.vAll( Cost, VName, Detail )
+      as
+	      select Cost, VName, Detail from CKonstV.vViolationViewExists
+	      union all
+      select Cost, VName, Detail from CKonstV.vUGroupImplyUGroup
+	      union all
+		  select Cost, VName, Detail from CKonstV.vUGroupsAreDisjoint
+    </ResultText>
+  </Test>
+  
+  <Test>
+    <Text>
+      -- SetupConfig: {  "Requires": ["CKonstV.vViolationViewExists"] }
+      create view CKonstV.vAll( Cost, VName, Detail )
+      as
+	      select Cost, VName, Detail from CKonstV.vViolationViewExists
+          union all
+        select *, 
+               (select 1 from table) 
+            from (select x from y) tSub
+	   
+    </Text>
+    <Description>
+      create transformer on CKonstV.vAll as
+      begin
+	      inject "
+	      union all
+      select Cost, VName, Detail from CKonstV.vUGroupImplyUGroup
+	    "
+	      after first part {select}
+      end
+    </Description>
+    <ResultText>
+      -- SetupConfig: {  "Requires": ["CKonstV.vViolationViewExists"] }
+      create view CKonstV.vAll( Cost, VName, Detail )
+      as
+	      select Cost, VName, Detail from CKonstV.vViolationViewExists
+	        union all
+        select Cost, VName, Detail from CKonstV.vUGroupImplyUGroup
+          union all
+        select *, 
+               (select 1 from table) 
+            from (select x from y) tSub
+    </ResultText>
+  </Test>
+
+  <Test>
+    <Text>
       create procedure CK.sTest as
       begin
         insert into S.tTable default values;
