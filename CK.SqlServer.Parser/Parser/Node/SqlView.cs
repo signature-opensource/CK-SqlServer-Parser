@@ -21,6 +21,8 @@ namespace CK.SqlServer.Parser
     public sealed class SqlView : SqlNonToken, ISqlNamedStatement, ISqlServerView, ISqlFullNameHolder, ISqlServerObjectOptions
     {
         readonly CNode _content;
+        // Cached formal columns.
+        IReadOnlyList<string> _formalColumnList;
 
         public SqlView( 
                 SqlTokenIdentifier alterOrCreate, 
@@ -148,6 +150,18 @@ namespace CK.SqlServer.Parser
                             IsAlterKeyword
                                 ? new SqlTokenIdentifier( SqlTokenType.Create, "create", AlterOrCreateT.LeadingTrivias, AlterOrCreateT.TrailingTrivias )
                                 : new SqlTokenIdentifier( SqlTokenType.Alter, "alter", AlterOrCreateT.LeadingTrivias, AlterOrCreateT.TrailingTrivias ) );
+        }
+
+        IReadOnlyList<string> ISqlServerView.FormalColumnList
+        {
+            get
+            {
+                if( _formalColumnList == null && HasColumnNames )
+                {
+                    _formalColumnList = ColumnNames.Select( id => id.ToString() ).ToArray();
+                }
+                return _formalColumnList;
+            }
         }
 
     }
