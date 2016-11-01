@@ -771,6 +771,7 @@ namespace CK.SqlServer.Parser
 
             // There must be at least one defined column if there is a parenthesis.
             SqlEnclosedIdentifierCommaList columns = IsEnclosedCommaList( false, 1, IsIdentifier, ( o, i, c ) => new SqlEnclosedIdentifierCommaList( o, i, c ) ); ;
+            if( R.IsError ) return null;
 
             SqlTokenIdentifier asToken;
             SqlNodeList options = IsSqlNodeList( out asToken, t => t.TokenType == SqlTokenType.As );
