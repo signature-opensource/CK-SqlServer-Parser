@@ -329,6 +329,81 @@ end
     <Xml>
       <Statements>
         <StoredProcedure StatementName="CreateProcedure">
+          <If>
+            <Statement StatementName="throw" HasTerminator="true" />
+          </If>
+          <DeclareVariable HasTerminator="true" />
+          <CTEStatement HasTerminator="true">
+            <SelectSpec />
+            <SelectSpec />
+            <SelectSpec />
+            <SelectSpec>
+              <SelectDecorator>
+                <SelectSpec>
+                  <SelectDecorator>
+                    <SelectSpec />
+                  </SelectDecorator>
+                  <SelectDecorator>
+                    <SelectSpec />
+                  </SelectDecorator>
+                  <SelectDecorator>
+                    <SelectSpec />
+                  </SelectDecorator>
+                </SelectSpec>
+              </SelectDecorator>
+            </SelectSpec>
+            <SelectSpec />
+            <SelectSpec />
+            <SelectSpec />
+            <SelectSpec>
+              <SelectDecorator>
+                <SelectSpec>
+                  <SelectDecorator>
+                    <SelectSpec />
+                  </SelectDecorator>
+                  <SelectDecorator>
+                    <SelectSpec />
+                  </SelectDecorator>
+                  <SelectDecorator>
+                    <SelectSpec />
+                  </SelectDecorator>
+                </SelectSpec>
+              </SelectDecorator>
+            </SelectSpec>
+            <SelectSpec />
+            <SelectSpec />
+            <SelectSpec />
+            <SelectSpec>
+              <SelectDecorator>
+                <SelectSpec>
+                  <SelectDecorator>
+                    <SelectSpec />
+                  </SelectDecorator>
+                  <SelectDecorator>
+                    <SelectSpec />
+                  </SelectDecorator>
+                  <SelectDecorator>
+                    <SelectSpec />
+                  </SelectDecorator>
+                </SelectSpec>
+              </SelectDecorator>
+            </SelectSpec>
+            <SelectSpec>
+              <SelectDecorator>
+                <SelectSpec>
+                  <SelectSpec>
+                    <SelectSpec />
+                    <SelectSpec />
+                    <SelectSpec />
+                  </SelectSpec>
+                </SelectSpec>
+              </SelectDecorator>
+            </SelectSpec>
+            <SelectStatement HasTerminator="true">
+              <SelectSpec />
+            </SelectStatement>
+          </CTEStatement>
+          <ReturnStatement HasTerminator="true" />
         </StoredProcedure>
       </Statements>
     </Xml>
