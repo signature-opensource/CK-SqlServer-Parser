@@ -483,7 +483,7 @@ namespace CK.SqlServer.Parser
             List<ISqlNode> items = new List<ISqlNode>();
             int initPar = R.ParenthesisDepth;
             Predicate<SqlToken> stop = t => R.ParenthesisDepth == initPar && SelectPartStopper( t );
-            if( !R.CollectUntil<SqlToken>( items, IsOneExpression, stop ) ) return null;
+            if( !R.CollectUntil( items, NaouakPart, stop ) ) return null;
             if( items.Count == 0 )
             {
                 R.SetCurrentError( "Extended expression expected." );
@@ -492,6 +492,17 @@ namespace CK.SqlServer.Parser
             return items.Count == 1 ? items[0] : new SqlNodeList( items );
         }
 
+        ISqlNode NaouakPart( bool expected )
+        {
+            Debug.Assert( !expected );
+            ISqlNode n = IsOneExpression( false );
+            if( n == null ) return n;
+            if( R.Current.TokenType == SqlTokenType.For && R.RawLookup.TokenType == SqlTokenType.SystemTime )
+            {
+                return new SqlNodeList( n, R.Read<SqlToken>() );
+            }
+            return n;
+        }
 
     }
 

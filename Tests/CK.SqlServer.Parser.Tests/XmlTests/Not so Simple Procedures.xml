@@ -1,6 +1,415 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <Tests>
-   <Test>
+
+  <Test>
+      <Text>
+        <![CDATA[
+create proc cty.sGetAllImpacts
+(
+    @ActorId int,
+    @From    datetime2,
+    @Result  nvarchar(max) out
+)
+as
+begin
+    if @ActorId <= 0 throw 5000, 'Security.InvalidActorId', 1;
+
+    --[beginsp]
+
+    declare @To datetime2 = sysutcdatetime();
+
+	-- #####################################
+    -- #                                   #
+    -- #          Updated regions          #
+    -- #                                   #
+    -- #####################################
+
+    with Region(InseeCode,   CurrentIsRemoved, OldIsRemoved, OldValidFrom,
+                CurrentName, OldName,          Number) as
+    (
+        select
+            InseeCode = r.InseeCode,
+            CurrentIsRemoved = r.IsRemoved,
+            OldIsRemoved = first_value(r.IsRemoved) over(partition by r.RegionId order by r.ValidFrom),
+            OldValidFrom = first_value(r.ValidFrom) over(partition by r.RegionId order by r.ValidFrom),
+            CurrentName = r.[Name],
+            OldName = first_value(r.[Name]) over(partition by r.RegionId order by r.ValidFrom),
+            Number = row_number() over(partition by r.RegionId order by r.ValidFrom desc)
+        from cty.tRegion for system_time between @From and @To r
+        where r.RegionId <> 0
+    ),
+    RegionStatus([Status], InseeCode, OldName, CurrentName) as
+    (
+        select
+            [Status] = case when r.CurrentIsRemoved = 0 and (r.OldValidFrom >= @From or r.OldIsRemoved = 1) then 'C'
+                            when r.CurrentIsRemoved = 0 and r.OldValidFrom < @From and r.OldIsRemoved = 0 and r.CurrentName <> r.OldName then 'U'
+                            when r.CurrentIsRemoved = 1 and (r.OldValidFrom < @From and r.OldIsRemoved = 0) then 'D'
+                            else 'N' end,
+            InseeCode = r.InseeCode,
+            OldName = r.OldName,
+            CurrentName = r.CurrentName
+        from Region r
+        where r.Number = 1
+    ),
+    RegionImpact([Status], InseeCode, OldName, CurrentName) as
+    (
+        select
+            [Status] = r.[Status],
+            InseeCode = r.InseeCode,
+            OldName = r.OldName,
+            CurrentName = r.CurrentName
+        from RegionStatus r
+        where r.[Status] <> 'N'
+    ),
+    RegionImpactJson([Json]) as
+    (
+        select [Json] = (
+            select
+                Created = (
+                    select
+                        InseeCode = r.InseeCode,
+                        [Name] = r.CurrentName
+                    from RegionImpact r
+                    where r.[Status] = 'C'
+                    order by r.InseeCode
+                    for json path),
+                Updated = (
+                    select
+                        InseeCode = r.InseeCode,
+                        CurrentName = r.CurrentName,
+                        OldName = r.OldName
+                    from RegionImpact r
+                    where r.[Status] = 'U'
+                    order by r.InseeCode
+                    for json path),
+                Deleted = (
+                    select
+                        r.InseeCode
+                    from RegionImpact r
+                    where r.[Status] = 'D'
+                    order by r.InseeCode
+                    for json path)
+            for json path, without_array_wrapper
+        )
+    ),
+    
+    -- #####################################
+    -- #                                   #
+    -- #        Updated departments        #
+    -- #                                   #
+    -- #####################################
+    
+    Department(InseeCode,   CurrentIsRemoved, OldIsRemoved,           OldValidFrom,
+               CurrentName, OldName,          CurrentRegionInseeCode, OldRegionInseeCode,
+               Number) as
+    (
+        select
+            InseeCode = d.InseeCode,
+            CurrentIsRemoved = d.IsRemoved,
+            OldIsRemoved = first_value(d.IsRemoved) over(partition by d.DepartmentId order by d.ValidFrom),
+            OldValidFrom = first_value(d.ValidFrom) over(partition by d.DepartmentId order by d.ValidFrom),
+            CurrentName = d.[Name],
+            OldName = first_value(d.[Name]) over(partition by d.DepartmentId order by d.ValidFrom),
+            CurrentRegionInseeCode = r.InseeCode,
+            OldRegionInseeCode = first_value(r.InseeCode) over(partition by d.DepartmentId order by d.ValidFrom),
+            Number = row_number() over(partition by d.DepartmentId order by d.ValidFrom desc)
+        from cty.tDepartment for system_time between @From and @To d
+            inner join cty.tRegion r on r.RegionId = d.RegionId
+        where d.DepartmentId <> 0
+    ),
+    DepartmentStatus([Status],           InseeCode,              OldName, CurrentName,
+                     OldRegionInseeCode, CurrentRegionInseeCode) as
+    (
+        select
+            [Status] = case when d.CurrentIsRemoved = 0 and (d.OldValidFrom >= @From or d.OldIsRemoved = 1) then 'C'
+                            when d.CurrentIsRemoved = 0 and d.OldValidFrom < @From and d.OldIsRemoved = 0 and (d.CurrentName <> d.OldName or d.CurrentRegionInseeCode <> d.OldRegionInseeCode) then 'U'
+                            when d.CurrentIsRemoved = 1 and (d.OldValidFrom < @From and d.OldIsRemoved = 0) then 'D'
+                            else 'N' end,
+            InseeCode = d.InseeCode,
+            OldName = d.OldName,
+            CurrentName = d.CurrentName,
+            OldRegionInseeCode = d.OldRegionInseeCode,
+            CurrentRegionInseeCode = d.CurrentRegionInseeCode
+        from Department d
+        where d.Number = 1
+    ),
+    DepartmentImpact([Status],           InseeCode,              OldName, CurrentName,
+                     OldRegionInseeCode, CurrentRegionInseeCode) as
+    (
+        select
+            [Status] = d.[Status],
+            InseeCode = d.InseeCode,
+            OldName = d.OldName,
+            CurrentName = d.CurrentName,
+            OldRegionInseeCode = d.OldRegionInseeCode,
+            CurrentRegionInseeCode = d.CurrentRegionInseeCode
+        from DepartmentStatus d
+        where d.[Status] <> 'N'
+    ),
+    DepartmentImpactJson([Json]) as
+    (
+        select [Json] = (
+            select
+                Created = (
+                    select
+                        InseeCode = d.InseeCode,
+                        [Name] = d.CurrentName,
+                        RegionInseeCode = d.CurrentRegionInseeCode
+                    from DepartmentImpact d
+                    where d.[Status] = 'C'
+                    order by d.InseeCode
+                    for json path),
+                Updated = (
+                    select
+                        InseeCode = d.InseeCode,
+                        CurrentName = d.CurrentName,
+                        OldName = d.OldName,
+                        CurrentRegionInseeCode = d.CurrentRegionInseeCode,
+                        OldRegionInseeCode = d.OldRegionInseeCode
+                    from DepartmentImpact d
+                    where d.[Status] = 'U'
+                    order by d.InseeCode
+                    for json path),
+                Deleted = (
+                    select
+                        d.InseeCode
+                    from DepartmentImpact d
+                    where d.[Status] = 'D'
+                    order by d.InseeCode
+                    for json path)
+            for json path, without_array_wrapper
+        )
+    ),
+    
+    -- ####################################
+    -- #                                  #
+    -- #          Updated cities          #
+    -- #                                  #
+    -- ####################################
+    
+    City(InseeCode,                  CurrentIsRemoved,       OldIsRemoved,           OldValidFrom,
+         CurrentName,                OldName,                CurrentSiren,           OldSiren,
+         CurrentLocalPopulation,     OldLocalPopulation,     CurrentTotalPopulation, OldTotalPopulation,
+         CurrentDepartmentInseeCode, OldDepartmentInseeCode, Number) as
+    (
+        select
+            InseeCode = c.InseeCode,
+            CurrentIsRemoved = c.IsRemoved,
+            OldIsRemoved = first_value(c.IsRemoved) over(partition by c.CityId order by c.ValidFrom),
+            OldValidFrom = first_value(c.ValidFrom) over(partition by c.CityId order by c.ValidFrom),
+            CurrentName = c.[Name],
+            OldName = first_value(c.[Name]) over(partition by c.CityId order by c.ValidFrom),
+            CurrentSiren = c.Siren,
+            OldSiren = first_value(c.Siren) over(partition by c.CityId order by c.ValidFrom),
+            CurrentLocalPopulation = c.LocalPopulation,
+            OldLocalPopulation = first_value(c.LocalPopulation) over(partition by c.CityId order by c.ValidFrom),
+            CurrentTotalPopulation = c.TotalPopulation,
+            OldTotalPopulation = first_value(c.TotalPopulation) over(partition by c.CityId order by c.ValidFrom),
+            CurrentDepartmentInseeCode = d.InseeCode,
+            OldDepartmentInseeCode = first_value(d.InseeCode) over(partition by c.CityId order by c.ValidFrom),
+            Number = row_number() over(partition by c.CityId order by c.ValidFrom desc)
+        from cty.tCity for system_time between @From and @To c
+            inner join cty.tDepartment d on d.DepartmentId = c.DepartmentId
+        where c.CityId <> 0
+    ),
+    CityStatus([Status],           InseeCode,              OldName,                CurrentName,
+               OldSiren,           CurrentSiren,           OldLocalPopulation,     CurrentLocalPopulation,
+               OldTotalPopulation, CurrentTotalPopulation, OldDepartmentInseeCode, CurrentDepartmentInseeCode) as
+    (
+        select
+            [Status] = case when c.CurrentIsRemoved = 0 and (c.OldValidFrom >= @From or c.OldIsRemoved = 1) then 'C'
+                            when c.CurrentIsRemoved = 0 and c.OldValidFrom < @From and c.OldIsRemoved = 0
+                                and (c.CurrentName <> c.OldName
+                                      or c.CurrentSiren <> c.OldSiren
+                                      or c.CurrentLocalPopulation <> c.OldLocalPopulation
+                                      or c.CurrentTotalPopulation <> c.OldTotalPopulation
+                                      or c.CurrentDepartmentInseeCode <> c.OldDepartmentInseeCode) then 'U'
+                            when c.CurrentIsRemoved = 1 and (c.OldValidFrom < @From and c.OldIsRemoved = 0) then 'D'
+                            else 'N' end,
+            InseeCode = c.InseeCode,
+            OldName = c.OldName,
+            CurrentName = c.CurrentName,
+            OldSiren = c.OldSiren,
+            CurrentSiren = c.CurrentSiren,
+            OldLocalPopulation = c.OldLocalPopulation,
+            CurrentLocalPopulation = c.CurrentLocalPopulation,
+            OldTotalPopulation = c.OldTotalPopulation,
+            CurrentTotalPopulation = c.CurrentTotalPopulation,
+            OldDepartmentInseeCode = c.OldDepartmentInseeCode,
+            CurrentDepartmentInseeCode = c.CurrentDepartmentInseeCode
+        from City c
+        where c.Number = 1
+    ),
+    CityImpact([Status],           InseeCode,              OldName,                CurrentName,
+               OldSiren,           CurrentSiren,           OldLocalPopulation,     CurrentLocalPopulation,
+               OldTotalPopulation, CurrentTotalPopulation, OldDepartmentInseeCode, CurrentDepartmentInseeCode) as
+    (
+        select
+            [Status] = c.[Status],
+            InseeCode = c.InseeCode,
+            OldName = c.OldName,
+            CurrentName = c.CurrentName,
+            OldSiren = c.OldSiren,
+            CurrentSiren = c.CurrentSiren,
+            OldLocalPopulation = c.OldLocalPopulation,
+            CurrentLocalPopulation = c.CurrentLocalPopulation,
+            OldTotalPopulation = c.OldTotalPopulation,
+            CurrentTotalPopulation = c.CurrentTotalPopulation,
+            OldDepartmentInseeCode = c.OldDepartmentInseeCode,
+            CurrentDepartmentInseeCode = c.CurrentDepartmentInseeCode
+        from CityStatus c
+        where c.[Status] <> 'N'
+    ),
+    CityImpactJson([Json]) as
+    (
+        select [Json] = (
+            select
+                Created = (
+                    select
+                        InseeCode = c.InseeCode,
+                        [Name] = c.CurrentName,
+                        Siren = c.CurrentSiren,
+                        DepartmentInseeCode = c.CurrentDepartmentInseeCode,
+                        LocalPopulation = c.CurrentLocalPopulation,
+                        TotalPopulation = c.CurrentTotalPopulation
+                    from CityImpact c
+                    where c.[Status] = 'C'
+                    order by c.InseeCode
+                    for json path),
+                Updated = (
+                    select
+                        InseeCode = c.InseeCode,
+                        CurrentName = c.CurrentName,
+                        OldName = c.OldName,
+                        CurrentSiren = c.CurrentSiren,
+                        OldSiren = c.OldSiren,
+                        CurrentDepartmentInseeCode = c.CurrentDepartmentInseeCode,
+                        OldDepartmentInseeCode = c.OldDepartmentInseeCode,
+                        CurrentLocalPopulation = c.CurrentLocalPopulation,
+                        OldLocalPopulation = c.OldLocalPopulation,
+                        CurrentTotalPopulation = c.CurrentTotalPopulation,
+                        OldTotalPopulation = c.OldTotalPopulation
+                    from CityImpact c
+                    where c.[Status] = 'U'
+                    order by c.InseeCode
+                    for json path),
+                Deleted = (
+                    select
+                        c.InseeCode
+                    from CityImpact c
+                    where c.[Status] = 'D'
+                    order by c.InseeCode
+                    for json path)
+            for json path, without_array_wrapper
+        )
+    ),
+    Impact([Json]) as
+    (
+        select [Json] = (
+            select
+                Regions = json_query(i.Regions),
+                Departments = json_query(i.Departments),
+                Cities = json_query(i.Cities)
+                from (select
+                          Regions = (select r.[Json] from RegionImpactJson r),
+                          Departments = (select d.[Json] from DepartmentImpactJson d),
+                          Cities = (select c.[Json] from CityImpactJson c)) i
+            for json path)
+    )
+    select @Result = i.[Json]
+    from Impact i;
+
+    --[endsp]
+
+    return 0;
+end
+]]>
+  </Text>
+    <Description>For System_Time !</Description>
+    <Xml>
+      <Statements>
+        <StoredProcedure StatementName="CreateProcedure">
+          <If>
+            <Statement StatementName="throw" HasTerminator="true" />
+          </If>
+          <DeclareVariable HasTerminator="true" />
+          <CTEStatement HasTerminator="true">
+            <SelectSpec />
+            <SelectSpec />
+            <SelectSpec />
+            <SelectSpec>
+              <SelectDecorator>
+                <SelectSpec>
+                  <SelectDecorator>
+                    <SelectSpec />
+                  </SelectDecorator>
+                  <SelectDecorator>
+                    <SelectSpec />
+                  </SelectDecorator>
+                  <SelectDecorator>
+                    <SelectSpec />
+                  </SelectDecorator>
+                </SelectSpec>
+              </SelectDecorator>
+            </SelectSpec>
+            <SelectSpec />
+            <SelectSpec />
+            <SelectSpec />
+            <SelectSpec>
+              <SelectDecorator>
+                <SelectSpec>
+                  <SelectDecorator>
+                    <SelectSpec />
+                  </SelectDecorator>
+                  <SelectDecorator>
+                    <SelectSpec />
+                  </SelectDecorator>
+                  <SelectDecorator>
+                    <SelectSpec />
+                  </SelectDecorator>
+                </SelectSpec>
+              </SelectDecorator>
+            </SelectSpec>
+            <SelectSpec />
+            <SelectSpec />
+            <SelectSpec />
+            <SelectSpec>
+              <SelectDecorator>
+                <SelectSpec>
+                  <SelectDecorator>
+                    <SelectSpec />
+                  </SelectDecorator>
+                  <SelectDecorator>
+                    <SelectSpec />
+                  </SelectDecorator>
+                  <SelectDecorator>
+                    <SelectSpec />
+                  </SelectDecorator>
+                </SelectSpec>
+              </SelectDecorator>
+            </SelectSpec>
+            <SelectSpec>
+              <SelectDecorator>
+                <SelectSpec>
+                  <SelectSpec>
+                    <SelectSpec />
+                    <SelectSpec />
+                    <SelectSpec />
+                  </SelectSpec>
+                </SelectSpec>
+              </SelectDecorator>
+            </SelectSpec>
+            <SelectStatement HasTerminator="true">
+              <SelectSpec />
+            </SelectStatement>
+          </CTEStatement>
+          <ReturnStatement HasTerminator="true" />
+        </StoredProcedure>
+      </Statements>
+    </Xml>
+   </Test>
+ 
+  <Test>
       <Text>
         <![CDATA[
 create procedure dbo.OrderInsert(@OrdNo integer, @CustCode nvarchar(5))  
@@ -26,7 +435,6 @@ end
     </Xml>
    </Test>
  
-  
    <Test>
       <Text>
         <![CDATA[

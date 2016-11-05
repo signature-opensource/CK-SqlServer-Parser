@@ -237,7 +237,7 @@ namespace CK.SqlServer.Parser
         {
             if( R.Current.TokenType != SqlTokenType.For || !R.RawLookup.TokenType.IsSelectForTargetType() )
             {
-                if( expected ) R.SetCurrentError( "Expected Select for clase." );
+                if( expected ) R.SetCurrentError( "Expected Select for clause." );
                 return null;
             }
             SqlTokenIdentifier forT = R.Read<SqlTokenIdentifier>();
