@@ -98,6 +98,7 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="XmlTests\Combine Select.xml" />
     <Content Include="XmlTests\Inject around.xml" />
     <Content Include="XmlTests\Inject location.xml" />
     <Content Include="XmlTests\In scope.xml">
