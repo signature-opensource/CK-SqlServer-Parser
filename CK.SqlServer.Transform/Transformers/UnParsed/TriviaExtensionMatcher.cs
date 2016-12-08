@@ -15,7 +15,7 @@ namespace CK.SqlServer.Transform.Transformers
     /// </summary>
     class TriviaExtensionMatcher
     {
-        static readonly Regex _rExt = new Regex( @"^</?(?<1>(\w|\.|-)+)(?<2>\s+revert)?\s*/?>", RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant );
+        static readonly Regex _rExt = new Regex( @"^</?(?<1>(\w|\.|-)+)(?<2>\s+rever(t|se))?\s*/?>", RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant );
 
         readonly IActivityMonitor _monitor;
         readonly string _injectedCode;
