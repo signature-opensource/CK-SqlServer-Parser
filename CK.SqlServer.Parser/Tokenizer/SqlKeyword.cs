@@ -335,6 +335,7 @@ namespace CK.SqlServer.Parser
         public static readonly SqlTokenIdentifier Part;
         public static readonly SqlTokenIdentifier Statement;
         public static readonly SqlTokenIdentifier Range;
+        public static readonly SqlTokenIdentifier Combine;
         public static readonly SqlTokenIdentifier Out;
 
         static Dictionary<string, SqlTokenType> _keywords;
@@ -724,6 +725,7 @@ namespace CK.SqlServer.Parser
             Part = RegKeyword( "part", SqlTokenType.Part );
             Statement = RegKeyword( "statement", SqlTokenType.Statement );
             Range = RegKeyword( "range", SqlTokenType.Range );
+            Combine = RegKeyword( "combine", SqlTokenType.Combine );
 
             Debug.Assert( (int)SqlTokenType.AssignOperatorCount == 9 );
             Assign				    = RegTerminal( SqlTokenType.Assign, "=" );

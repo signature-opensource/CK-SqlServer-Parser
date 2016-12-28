@@ -146,6 +146,21 @@ namespace CK.SqlServer.Parser
 
                 return new SqlTInScope( initT, loc, begintT, s, endT, GetOptionalTerminator() );
             }
+            else if( R.IsToken( out initT, SqlTokenType.Combine, false ) )
+            {
+                SqlTokenIdentifier selectT, operatorT, allT = null, withT;
+                if( !R.IsToken( out selectT, SqlTokenType.Select, true ) ) return null;
+                if( !R.IsToken( out operatorT, SqlTokenType.Intersect, false )
+                    || !R.IsToken( out operatorT, SqlTokenType.Except, false ) )
+                {
+                    if( !R.IsToken( out operatorT, SqlTokenType.Union, true ) ) return null;
+                    R.IsToken( out allT, SqlTokenType.All, false );
+                }
+                if( !R.IsToken( out withT, SqlTokenType.With, true ) ) return null;
+                ISqlNamedStatement select = IsNamedStatement( true );
+                if( select == null ) return null;
+                return new SqlTCombineSelect( initT, selectT, operatorT, allT, withT, select, GetOptionalTerminator() );
+            }
             if( expected ) R.SetCurrentError( "Expected transform statement." );
             return null;
         }
