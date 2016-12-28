@@ -1,22 +1,4 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <Tests>
 
-  <Test>
-    <Text>
-      <![CDATA[
-      ]]>
-    </Text>
-    <Description>
-      -- SetupConfig: {}
-      create transformer
-      as
-      begin
-      end
-    </Description>
-    <ResultText>
-      <![CDATA[
-      ]]>
-    </ResultText>
-  </Test>
-
 </Tests>

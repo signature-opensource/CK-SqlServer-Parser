@@ -165,30 +165,30 @@ namespace CK.SqlServer.Parser
             return null;
         }
 
-
         public SqlTLocationFinder IsSqlTLocationFinder( bool expected )
         {
-            SqlTokenIdentifier firstOrLastOrSingleOrAll;
+            SqlTokenIdentifier firstOrLastOrSingleOrAllOrEach;
             SqlTokenTerminal plusOrMinusT = null;
             SqlTokenLiteralInteger offset = null;
-            if( R.IsToken( out firstOrLastOrSingleOrAll, SqlTokenType.First, false ) )
+            if( R.IsToken( out firstOrLastOrSingleOrAllOrEach, SqlTokenType.First, false ) )
             {
                 if( R.IsToken( out plusOrMinusT, SqlTokenType.Plus, false ) )
                 {
                     if( !R.IsToken( out offset, true ) ) return null;
                 }
             }
-            else if( R.IsToken( out firstOrLastOrSingleOrAll, SqlTokenType.Last, false ) )
+            else if( R.IsToken( out firstOrLastOrSingleOrAllOrEach, SqlTokenType.Last, false ) )
             {
                 if( R.IsToken( out plusOrMinusT, SqlTokenType.Minus, false ) )
                 {
                     if( !R.IsToken( out offset, true ) ) return null;
                 }
             }
-            else if( !R.IsToken( out firstOrLastOrSingleOrAll, SqlTokenType.Single, false ) 
-                     && !R.IsToken( out firstOrLastOrSingleOrAll, SqlTokenType.All, false ) )
+            else if( !R.IsToken( out firstOrLastOrSingleOrAllOrEach, SqlTokenType.Single, false )
+                     && !R.IsToken( out firstOrLastOrSingleOrAllOrEach, SqlTokenType.All, false )
+                     && !R.IsToken( out firstOrLastOrSingleOrAllOrEach, SqlTokenType.Each, false ) )
             {
-                if( expected ) R.SetCurrentError( "Expected: first [+n] | last [-n] | single | all." );
+                if( expected ) R.SetCurrentError( "Expected: first [+n] | last [-n] | single | all | each." );
                 return null;
             }
             SqlTokenIdentifier outT, ofT = null;
@@ -197,13 +197,14 @@ namespace CK.SqlServer.Parser
             {
                 if( !R.IsToken( out ofT, SqlTokenType.Of, true ) ) return null;
                 if( !R.IsToken( out expectedMatchCount, true ) ) return null;
-                if( firstOrLastOrSingleOrAll.TokenType == SqlTokenType.Single )
+                if( firstOrLastOrSingleOrAllOrEach.TokenType == SqlTokenType.Single )
                 {
                     R.SetCurrentError( "Invalid 'out of n' specification after 'single'." );
                     return null;
                 }
             }
-            else if( firstOrLastOrSingleOrAll.TokenType == SqlTokenType.All )
+            else if( firstOrLastOrSingleOrAllOrEach.TokenType == SqlTokenType.All
+                        || firstOrLastOrSingleOrAllOrEach.TokenType == SqlTokenType.Each )
             {
                 R.IsToken( out expectedMatchCount, false );
             }
@@ -230,7 +231,7 @@ namespace CK.SqlServer.Parser
                 R.SetCurrentError( @"Expected: string litteral [...] or ""..."" or '...' or {pattern}." );
                 return null;
             }
-            return new SqlTLocationFinder( firstOrLastOrSingleOrAll, plusOrMinusT, offset, outT, ofT, expectedMatchCount, textOrSimplePattern );
+            return new SqlTLocationFinder( firstOrLastOrSingleOrAllOrEach, plusOrMinusT, offset, outT, ofT, expectedMatchCount, textOrSimplePattern );
         }
 
         SqlTNodeSimplePattern IsTNodeSimplePattern( bool expected )

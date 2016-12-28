@@ -34,6 +34,7 @@ namespace CK.SqlServer.Transform
         public void Reset()
         {
             _last = null;
+            DoReset();
         }
 
         [DebuggerStepThrough]
@@ -206,7 +207,6 @@ namespace CK.SqlServer.Transform
 
         }
 
-
         protected struct RangeBuffer
         {
             readonly List<SqlNodeLocationRange> _buffer;
@@ -225,7 +225,7 @@ namespace CK.SqlServer.Transform
                 ISqlNodeLocationRange r = SqlNodeLocationRange.EmptySet;
                 if( _buffer.Count > 0 )
                 {
-                    r = SqlNodeLocationRange.Create( _buffer, _buffer.Count );
+                    r = SqlNodeLocationRange.Create( _buffer, _buffer.Count, true );
                     _buffer.Clear();
                 }
                 return r;

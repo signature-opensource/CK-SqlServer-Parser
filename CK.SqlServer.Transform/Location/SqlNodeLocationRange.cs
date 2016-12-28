@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace CK.SqlServer.Transform
@@ -26,12 +27,16 @@ namespace CK.SqlServer.Transform
 
         public SqlNodeLocation End => _end;
 
+        internal readonly int EachNumber;
+
+        static int _eachNumberAuto;
+
         private SqlNodeLocationRange()
         {
             _beg = _end = null;
         }
 
-        public SqlNodeLocationRange( SqlNodeLocation beg, SqlNodeLocation end )
+        public SqlNodeLocationRange( SqlNodeLocation beg, SqlNodeLocation end, int eachNumber = 0 )
         {
             if( beg == null ) throw new ArgumentNullException( nameof( beg ) );
             if( beg.IsBegMarker ) throw new ArgumentException( "Range can not include the BegMarker.", nameof( beg ) );
@@ -40,6 +45,7 @@ namespace CK.SqlServer.Transform
             if( w < 0 ) throw new ArgumentException( "Range: beg position is after end." );
             _beg = beg;
             _end = w == 0 ? beg : end;
+            EachNumber = eachNumber >= 0 ? eachNumber : Interlocked.Increment( ref _eachNumberAuto );
         }
 
         /// <summary>
@@ -114,6 +120,13 @@ namespace CK.SqlServer.Transform
 
         ISqlNodeLocationRangeInternal ISqlNodeLocationRangeInternal.InternalSetEnd( SqlNodeLocation end ) => InternalSetEnd( end );
 
+        ISqlNodeLocationRangeInternal ISqlNodeLocationRangeInternal.InternalSetEachNumber( int value ) => InternalSetEachNumber( value );
+
+        internal SqlNodeLocationRange InternalSetEachNumber( int value = -1 )
+        {
+            return value == EachNumber ? this : new SqlNodeLocationRange( _beg, _end, value );
+        }
+
         public override string ToString()
         {
             Debug.Assert( Beg != null || this == EmptySet );
@@ -173,13 +186,14 @@ namespace CK.SqlServer.Transform
 
         static ISqlNodeLocationRange DoIntersect( Kind k, SqlNodeLocationRange r1, SqlNodeLocationRange r2 )
         {
+            int eachNumber = r1.EachNumber + r2.EachNumber;
             switch( k & ~Kind.Swapped )
             {
-                case Kind.Equal: return r1.MostPrecise( r2 );
-                case Kind.Contained: return r2;
-                case Kind.SameStart: return r1.Beg.ComparePathLength( r2.Beg ) >= 0 ? r1 : new SqlNodeLocationRange( r2.Beg, r1.End );
-                case Kind.SameEnd: return r2.End.ComparePathLength( r1.End ) >= 0 ? r2 : new SqlNodeLocationRange( r2.Beg, r1.End );
-                case Kind.Overlapped: return new SqlNodeLocationRange( r2.Beg, r1.End );
+                case Kind.Equal: return r1.MostPrecise( r2 ).InternalSetEachNumber( eachNumber );
+                case Kind.Contained: return r2.InternalSetEachNumber( eachNumber );
+                case Kind.SameStart: return r1.Beg.ComparePathLength( r2.Beg ) >= 0 ? r1.InternalSetEachNumber( eachNumber ) : new SqlNodeLocationRange( r2.Beg, r1.End, eachNumber );
+                case Kind.SameEnd: return r2.End.ComparePathLength( r1.End ) >= 0 ? r2.InternalSetEachNumber( eachNumber ) : new SqlNodeLocationRange( r2.Beg, r1.End, eachNumber );
+                case Kind.Overlapped: return new SqlNodeLocationRange( r2.Beg, r1.End, eachNumber );
                 case Kind.Congruent:
                 case Kind.Independent: return EmptySet;
             }

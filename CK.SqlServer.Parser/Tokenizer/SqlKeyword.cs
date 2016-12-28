@@ -326,6 +326,7 @@ namespace CK.SqlServer.Parser
         public static readonly SqlTokenIdentifier Before;
         public static readonly SqlTokenIdentifier Around;
         public static readonly SqlTokenIdentifier Inject;
+        public static readonly SqlTokenIdentifier Each;
         public static readonly SqlTokenIdentifier Single;
         public static readonly SqlTokenIdentifier Replace;
         public static readonly SqlTokenIdentifier Scope;
@@ -717,6 +718,7 @@ namespace CK.SqlServer.Parser
             Around = RegKeyword( "around", SqlTokenType.Around );
             Inject = RegKeyword( "inject", SqlTokenType.Inject );
             Single = RegKeyword( "single", SqlTokenType.Single );
+            Each = RegKeyword( "each", SqlTokenType.Each );
             Replace = RegKeyword( "replace", SqlTokenType.Replace );
             Scope = RegKeyword( "scope", SqlTokenType.Scope );
             //Largest = RegKeyword( "largest", SqlTokenType.Largest );

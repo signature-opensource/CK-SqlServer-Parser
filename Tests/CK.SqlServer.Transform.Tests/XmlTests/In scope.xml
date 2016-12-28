@@ -4,6 +4,40 @@
   <Test>
     <Text>
       <![CDATA[
+      create procedure CK.sGroupUserAdd
+      as
+      begin
+        exec CK.sZoneUserAdd @ActorId, @ZoneId, @UserId;
+        exec CK.sZoneUserAdd @UserId;
+      end
+      ]]>
+    </Text>
+    <Description>
+      -- SetupConfig: {}
+      create transformer on CK.sGroupUserAdd
+      as
+      begin
+	      in all 2 statement {exec CK.sZoneUserAdd}
+	      begin
+		      replace all 2 {@UserId} with "@UserId, @AutoAddUserInZone";
+	      end
+      end
+    </Description>
+    <ResultText>
+      <![CDATA[
+      create procedure CK.sGroupUserAdd
+      as
+      begin
+        exec CK.sZoneUserAdd @ActorId, @ZoneId, @UserId, @AutoAddUserInZone;
+        exec CK.sZoneUserAdd @UserId, @AutoAddUserInZone;
+      end
+      ]]>
+    </ResultText>
+  </Test>
+  
+  <Test>
+    <Text>
+      <![CDATA[
 
       if @ActorId <= 0 throw 50000, 'Security.AnonymousNotAllowed', 1;
       exec CK.sGroupCreate @ActorId, 0, @ZoneIdResult output;
@@ -56,6 +90,5 @@
       select Z from T order by Y, Z
     </ResultText>
   </Test>
-
   
 </Tests>

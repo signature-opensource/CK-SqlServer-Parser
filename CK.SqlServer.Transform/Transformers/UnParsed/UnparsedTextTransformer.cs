@@ -35,7 +35,7 @@ namespace CK.SqlServer.Transform.Transformers
             ISqlNodeLocationRange r = t.BuildRange( final );
 
             //SqlNodeScopeBuilder restriction = new SqlNodeScopePatternRange( _info.Location.PatternRange );
-            //restriction = new SqlNodeScopeCardinalityFilter( restriction, _info.Location.Card ); 
+            //restriction = new SqlNodeScopeCardinalityFilter( restriction, _info.Location.Card );
             //var scope = _scope == null ? restriction : new SqlNodeScopeIntersect( _scope, restriction );
             //ISqlNodeLocationRange r = t.BuildRange( scope );
 

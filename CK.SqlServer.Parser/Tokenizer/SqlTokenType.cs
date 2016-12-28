@@ -559,6 +559,7 @@ namespace CK.SqlServer.Parser
         Replace,
         Scope,
         Single,
+        Each,
         //Largest,
         //Deepest,
         //Nodes,
