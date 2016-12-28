@@ -514,27 +514,27 @@ namespace CK.SqlServer.Parser
         /// Rows is the official ISO identifier. Sql Server also accepts Row.
         /// </summary>
         Rows,            
-        Offset          ,
-        First           ,
-        Next            ,
-        Only            ,
-        Cast            ,
-        Insensitive     ,
-        Scroll          ,
-        Mark            ,
-        Json            ,
-        SystemTime      ,
-        Ties            ,
-        Value           ,
-        Matched         ,
-        Recompile       ,
-        Result          ,
-        Sets            ,
-        Undefined       ,
-        Login           ,
-        At              ,
-        Using           ,
-        Global          ,
+        Offset,
+        First,
+        Next,
+        Only,
+        Cast,
+        Insensitive,
+        Scroll,
+        Mark,
+        Json,
+        SystemTime,
+        Ties,
+        Value,
+        Matched,
+        Recompile,
+        Result,
+        Sets,
+        Undefined,
+        Login,
+        At,
+        Using,
+        Global,
         // OpenDataSource, OpenRowSet, OpenXml and OpenQuery are reserved keywords.
         // OpenJSON is not a rserved keyword.
         // OpenJSON and OpenXML are both rowset functions that support WITH format specification.
@@ -549,6 +549,7 @@ namespace CK.SqlServer.Parser
         XmlNamespaces,
 
         // This is not sql :)
+        // These identifiers support SqlTXXX (transformer) nodes.
         Transformer,
         Parameter,
         After,
@@ -558,12 +559,14 @@ namespace CK.SqlServer.Parser
         Replace,
         Scope,
         Single,
+        Each,
         //Largest,
         //Deepest,
         //Nodes,
         Range,
         Part,
         Statement,
+        Combine,
 
         #endregion
 

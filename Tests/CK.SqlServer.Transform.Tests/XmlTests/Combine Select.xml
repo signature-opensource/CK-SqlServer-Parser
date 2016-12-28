@@ -1,0 +1,83 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Tests>
+
+  <Test>
+    <Text>
+      create view S.V
+      as
+        select X, Y from T
+          intersect
+        select U, V from T;
+    </Text>
+    <Description>
+      create transformer on S.V as
+      begin
+        combine select union all with
+          select A, B from T
+            intersect 
+          select C, D from T
+      end
+    </Description>
+    <ResultText>
+      create view S.V
+      as
+        select X, Y from T
+          intersect
+        select U, V from T
+          union all 
+        (select A, B from T
+          intersect 
+        select C, D from T)
+    </ResultText>
+  </Test>
+
+
+  <Test>
+    <Text>
+      create view S.V
+      as
+        select X, Y from T
+          intersect
+        select U, V from T;
+    </Text>
+    <Description>
+      create transformer on S.V as
+      begin
+        combine select union all with
+          select A, B from T
+      end
+    </Description>
+    <ResultText>
+      create view S.V
+      as
+        select X, Y from T
+          intersect
+        select U, V from T
+          union all 
+        select A, B from T;
+    </ResultText>
+  </Test>
+
+  <Test>
+    <Text>
+      create view S.V
+      as
+        select X, Y from T;
+    </Text>
+    <Description>
+      create transformer on S.V as
+      begin
+        combine select union all with
+          select A, B from T
+      end
+    </Description>
+    <ResultText>
+      create view S.V
+      as
+        select X, Y from T
+        union all 
+        select A, B from T;
+  </ResultText>
+  </Test>
+  
+</Tests>

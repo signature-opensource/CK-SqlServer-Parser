@@ -9,7 +9,9 @@ using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
-
+    /// <summary>
+    /// Captures options expressed as: OPTION ( ... ).
+    /// </summary>
     public sealed class SqlOptionParOptions : ASqlNodePrefixedEnclosedSeparatedList<SqlTokenIdentifier,SqlTokenOpenPar, ISqlNode, SqlTokenComma, SqlTokenClosePar>
     {
         public SqlOptionParOptions( 

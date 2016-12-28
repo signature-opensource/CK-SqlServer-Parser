@@ -98,6 +98,8 @@ namespace CK.SqlServer.Transform.Tests.XmlTests
 
         [TestCase( "_Current.xml" )]
         [TestCase( "CK.DB.Basics.xml" )]
+        //[TestCase( "Combine Select.xml" )]
+        [TestCase( "Each support.xml" )]
         [TestCase( "General.xml" )]
         [TestCase( "In scope.xml" )]
         [TestCase( "Inject around.xml" )]

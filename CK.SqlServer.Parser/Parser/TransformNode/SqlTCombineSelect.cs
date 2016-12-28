@@ -1,69 +1,81 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using CK.Core;
+using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
-    /// <summary>
-    /// Operator that combines two <see cref="ISelectSpecification"/> with Union, Uinion All, Except or Intersect.
-    /// </summary>
-    public sealed class SelectCombine : SqlNonToken, ISelectSpecification
-    {
-        readonly SNode<ISqlNode, SqlTokenIdentifier, SqlTokenIdentifier, ISqlNode> _content;
+    using CNode = SNode<
+            SqlTokenIdentifier,
+            SqlTokenIdentifier,
+            SqlTokenIdentifier,
+            SqlTokenIdentifier,
+            SqlTokenIdentifier,
+            ISqlNamedStatement,
+            SqlTokenTerminal>;
 
-        public SelectCombine(
-            ISqlNode leftNode, 
-            SqlTokenIdentifier operatorT, 
+    /// <summary>
+    /// Injects unparsed text around, before or after a <see cref="SqlTLocationFinder"/>.
+    /// </summary>
+    public sealed class SqlTCombineSelect : SqlNonToken, ISqlTStatement
+    {
+        readonly CNode _content;
+
+        public SqlTCombineSelect( 
+            SqlTokenIdentifier combineT, 
+            SqlTokenIdentifier selectT,
+            SqlTokenIdentifier operatorT,
             SqlTokenIdentifier allT,
-            ISqlNode rightNode )
+            SqlTokenIdentifier withT,
+            ISqlNamedStatement select,
+            SqlTokenTerminal terminator)
             : base( null, null )
         {
-            _content = new SNode<ISqlNode, SqlTokenIdentifier, SqlTokenIdentifier, ISqlNode>( leftNode, operatorT, allT, rightNode );
+            _content = new CNode( combineT, selectT, operatorT, allT, withT, select, terminator );
             CheckContent();
         }
 
         void CheckContent()
         {
-            Helper.CheckUnPar<ISelectSpecification>( LeftNode, nameof( LeftNode ) );
+            Helper.CheckToken( CombineT, nameof( CombineT ), SqlTokenType.Combine );
+            Helper.CheckToken( SelectT, nameof( SelectT ), SqlTokenType.Select );
             Helper.CheckToken( OperatorT, nameof( OperatorT ), SqlTokenType.Union, SqlTokenType.Intersect, SqlTokenType.Except );
             Helper.CheckNullableToken( AllT, nameof( AllT ), SqlTokenType.All );
-            if( AllT != null ) Helper.CheckToken( OperatorT, nameof( OperatorT ), SqlTokenType.Union );
-            Helper.CheckNotNull( RightNode, nameof( RightNode ) );
+            Helper.CheckToken( WithT, nameof( WithT ), SqlTokenType.With );
+            Helper.CheckNotNull( Select, nameof( Select ) );
         }
 
-        SelectCombine( SelectCombine o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
+        SqlTCombineSelect( SqlTCombineSelect o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
             : base( leading, trailing )
         {
             if( items == null ) _content = o._content;
             else
             {
-                _content = new SNode<ISqlNode, SqlTokenIdentifier, SqlTokenIdentifier, ISqlNode>( items );
+                _content = new CNode( items );
                 CheckContent();
             }
         }
 
         protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IList<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
         {
-            return new SelectCombine( this, leading, content, trailing );
+            return new SqlTCombineSelect( this, leading, content, trailing );
         }
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
 
         public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
 
-        public ISqlNode LeftNode => _content.V1;
+        public SqlTokenIdentifier CombineT => _content.V1;
 
-        public ISelectSpecification Left => (ISelectSpecification)_content.V1.UnPar;
+        public SqlTokenIdentifier SelectT => _content.V2;
 
-        public SelectColumnList Columns => Left.Columns;
+        public SqlTokenIdentifier OperatorT => _content.V3;
 
-        public SqlTokenIdentifier OperatorT => _content.V2;
-
-        public SqlTokenIdentifier AllT => _content.V3;
+        public SqlTokenIdentifier AllT => _content.V4;
 
         /// <summary>
         /// Gets the operator token type: it can be: <see cref="SelectOperatorKind.UnionDistinct"/>, 
@@ -76,11 +88,11 @@ namespace CK.SqlServer.Parser
             {
                 return OperatorT.TokenType == SqlTokenType.Union
                         ? AllT == null ? SelectOperatorKind.UnionDistinct : SelectOperatorKind.UnionAll
-                        : (OperatorT.TokenType == SqlTokenType.Except 
-                            ? SelectOperatorKind.Except 
+                        : (OperatorT.TokenType == SqlTokenType.Except
+                            ? SelectOperatorKind.Except
                             : SelectOperatorKind.Intersect);
             }
-        } 
+        }
 
         public bool IsUnionDistinct => OperatorT.TokenType == SqlTokenType.Union && AllT == null;
 
@@ -90,11 +102,15 @@ namespace CK.SqlServer.Parser
 
         public bool IsIntersect => OperatorT.TokenType == SqlTokenType.Intersect;
 
-        public ISqlNode RightNode => _content.V4;
+        public SqlTokenIdentifier WithT => _content.V5;
 
-        public ISelectSpecification Right => (ISelectSpecification)_content.V4.UnPar;
+        public ISqlNamedStatement Select => _content.V6;
+
+        public SqlTokenTerminal StatementTerminator => _content.V7;
 
         [DebuggerStepThrough]
         internal protected override ISqlNode Accept( SqlNodeVisitor visitor ) => visitor.Visit( this );
+
     }
+
 }

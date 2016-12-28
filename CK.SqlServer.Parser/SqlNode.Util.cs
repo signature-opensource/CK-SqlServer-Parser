@@ -199,6 +199,22 @@ namespace CK.SqlServer.Parser
                 }
             }
 
+            public static void CheckToken( SqlToken token, string name, SqlTokenType t1, SqlTokenType t2, SqlTokenType t3, SqlTokenType t4, SqlTokenType t5 )
+            {
+                if( token == null ) throw new ArgumentNullException( name );
+                if( token.TokenType != t1 && token.TokenType != t2 && token.TokenType != t3 && token.TokenType != t4 && token.TokenType != t5 )
+                {
+                    throw new ArgumentException( string.Format( "{0} must be {1}, {2}, {3}, {4} or {5}, not {6}.",
+                                                                name,
+                                                                SqlKeyword.ToString( t1 ),
+                                                                SqlKeyword.ToString( t2 ),
+                                                                SqlKeyword.ToString( t3 ),
+                                                                SqlKeyword.ToString( t4 ),
+                                                                SqlKeyword.ToString( t5 ),
+                                                                SqlKeyword.ToString( token.TokenType ) ), name );
+                }
+            }
+
             public static void CheckNotNull( ISqlNode e, string name )
             {
                 if( e == null ) throw new ArgumentNullException( name );

@@ -189,6 +189,14 @@ namespace CK.SqlServer.Transform
                 return Apply( new Transformers.AddColumn( addColumn.Columns ), scope );
             }
             #endregion
+            var combineSelect = t as SqlTCombineSelect;
+            #region SqlTCombineSelect
+            if( combineSelect != null )
+            {
+                throw new NotImplementedException( "combinig selects has yet to be done." );
+            }
+            #endregion
+
             throw new NotSupportedException( $"Transform statement '{t.ToString()}' not supported." );
         }
 

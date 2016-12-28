@@ -13,6 +13,7 @@ namespace CK.SqlServer.Transform
     /// </summary>
     public interface ISqlNodeLocationRange : IEnumerable<SqlNodeLocationRange>
     {
+
         /// <summary>
         /// Gets the first <see cref="SqlNodeLocationRange"/>.
         /// </summary>

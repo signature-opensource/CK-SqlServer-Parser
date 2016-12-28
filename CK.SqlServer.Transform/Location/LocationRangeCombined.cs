@@ -14,12 +14,12 @@ namespace CK.SqlServer.Transform
         readonly ISqlNodeLocationRangeInternal _r1;
         readonly ISqlNodeLocationRangeInternal _r2;
 
-        internal LocationRangeCombined( ISqlNodeLocationRangeInternal r1, ISqlNodeLocationRangeInternal r2 )
+        internal LocationRangeCombined( ISqlNodeLocationRange r1, ISqlNodeLocationRange r2 )
         {
             Debug.Assert( r1 != null && r1 != SqlNodeLocationRange.EmptySet );
             Debug.Assert( r2 != null && r2 != SqlNodeLocationRange.EmptySet );
-            _r1 = r1;
-            _r2 = r2;
+            _r1 = (ISqlNodeLocationRangeInternal)r1;
+            _r2 = (ISqlNodeLocationRangeInternal)r2;
         }
 
         public int Count => _r1.Count + _r2.Count;
@@ -35,6 +35,11 @@ namespace CK.SqlServer.Transform
         public ISqlNodeLocationRangeInternal InternalSetEnd( SqlNodeLocation end )
         {
             return new LocationRangeCombined( _r1, _r2.InternalSetEnd( end ) );
+        }
+
+        public ISqlNodeLocationRangeInternal InternalSetEachNumber( int value )
+        {
+            return new LocationRangeCombined( _r1.InternalSetEachNumber( value ), _r2.InternalSetEachNumber( value ) );
         }
 
         public override string ToString()

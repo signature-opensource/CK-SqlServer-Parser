@@ -19,8 +19,7 @@ namespace CK.SqlServer.Transform
 
         internal LocationRangeList( IReadOnlyList<SqlNodeLocationRange> list )
         {
-            Debug.Assert( list != null && list.Count > 1 && list.All( r => r != null ) );
-            Debug.Assert( list.Select( (r,idx) => idx == 0 || list[idx-1].End.Position < r.Beg.Position ).All( ordered => ordered ) );
+            Debug.Assert( list != null && list.Count > 1 && list.All( r => r != null && r != SqlNodeLocationRange.EmptySet ) );
             _v = list;
         }
         public int Count => _v.Count;
@@ -38,6 +37,11 @@ namespace CK.SqlServer.Transform
             var v = _v.ToArray();
             v[v.Length - 1] = v[v.Length - 1].InternalSetEnd( end );
             return new LocationRangeList( v );
+        }
+
+        public ISqlNodeLocationRangeInternal InternalSetEachNumber( int value )
+        {
+            return new LocationRangeList( _v.Select( r => r.InternalSetEachNumber( value ) ).ToArray() );
         }
 
         public override string ToString()
