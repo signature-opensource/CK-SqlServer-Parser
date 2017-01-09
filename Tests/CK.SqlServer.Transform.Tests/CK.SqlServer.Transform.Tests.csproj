@@ -101,6 +101,9 @@
   <ItemGroup>
     <Content Include="XmlTests\Combine Select.xml" />
     <Content Include="XmlTests\Each support.xml" />
+    <Content Include="XmlTests\Add column.xml">
+      <SubType>Designer</SubType>
+    </Content>
     <Content Include="XmlTests\Inject around.xml" />
     <Content Include="XmlTests\Inject location.xml" />
     <Content Include="XmlTests\In scope.xml">

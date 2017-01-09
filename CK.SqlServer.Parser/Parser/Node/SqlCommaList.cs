@@ -29,6 +29,14 @@ namespace CK.SqlServer.Parser
             return new SqlCommaList( this, leading, content, trailing );
         }
 
+        /// <summary>
+        /// Inserts a new item in this list.
+        /// </summary>
+        /// <param name="idx">Insertion index.</param>
+        /// <param name="item">Item to insert.</param>
+        /// <returns>The newx list.</returns>
+        public SqlCommaList InsertAt( int idx, ISqlNode item ) => (SqlCommaList)DoInsertAt( idx, item );
+
         [DebuggerStepThrough]
         internal protected override ISqlNode Accept( SqlNodeVisitor visitor ) => visitor.Visit( this );
 

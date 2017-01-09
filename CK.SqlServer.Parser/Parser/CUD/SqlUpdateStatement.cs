@@ -93,6 +93,18 @@ namespace CK.SqlServer.Parser
 
         public SqlCommaList Assigns => _content.V4;
 
+        public SqlUpdateStatement AddColumns( IEnumerable<SelectColumn> columns )
+        {
+            SqlCommaList assignments = _content.V4;
+            foreach( var c in columns )
+            {
+                if( c.ColumnName == null ) throw new ArgumentException( nameof( columns ), "Columns must have a name." );
+                var eqC = c.ToEqualSyntax();
+                assignments = assignments.InsertAt( assignments.Count, eqC );
+            }
+            return this.ReplaceContentNode( 3, assignments );
+        }
+
         public bool HasOutputClause => _content.V5 != null;
 
         public SqlOutputClause OutputClause => _content.V5;
