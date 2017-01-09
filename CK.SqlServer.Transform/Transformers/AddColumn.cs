@@ -26,6 +26,17 @@ namespace CK.SqlServer.Transform.Transformers
                     : base.Visit( e );
         }
 
+        protected override ISqlNode Visit( SqlUpdateStatement e )
+        {
+            if( VisitContext.RangeFilterStatus.IsIncludedInFilteredRange() )
+            {
+                var missingName = _columns.FirstOrDefault( c => c.ColumnName == null );
+                if( missingName == null ) return e.AddColumns( _columns );
+                Monitor.Error().Send( $"'add column' in update expects column name to be specified: column '{missingName.Definition}'." );
+            }
+            return base.Visit( e ); 
+        }
+
         protected override ISqlNode Visit( SelectSpec e )
         {
             return VisitContext.RangeFilterStatus.IsIncludedInFilteredRange()

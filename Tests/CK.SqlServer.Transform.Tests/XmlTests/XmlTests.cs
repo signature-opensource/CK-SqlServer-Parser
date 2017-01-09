@@ -97,6 +97,7 @@ namespace CK.SqlServer.Transform.Tests.XmlTests
 
 
         [TestCase( "_Current.xml" )]
+        [TestCase( "Add column.xml" )]
         [TestCase( "CK.DB.Basics.xml" )]
         //[TestCase( "Combine Select.xml" )]
         [TestCase( "Each support.xml" )]

@@ -425,6 +425,11 @@ namespace CK.SqlServer.Parser
             return new SqlInsertStatement( header, intoT, target, columns, outputClause, values, GetOptionalTerminator() );
         }
 
+        /// <summary>
+        /// Header is [top {expr[%]}]
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         MIUDHeader MatchCUDHeader( SqlTokenIdentifier id )
         {
             SqlTokenIdentifier top = null;

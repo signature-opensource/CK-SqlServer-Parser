@@ -112,10 +112,9 @@ namespace CK.SqlServer.Parser
             return changed != null ? this.SetRawContent( changed ) : this;
         }
 
-
         /// <summary>
         /// Inserts a new item at a specified position in the list.
-        /// By default, <see cref="CreateDefaultSeparator"/> and <see cref="CreateDefaultSeparator"/> are used.
+        /// By default, <see cref="CreateDefaultSeparator"/> is used.
         /// </summary>
         /// <param name="idx">Insertion position.</param>
         /// <param name="item">Item to insert.</param>

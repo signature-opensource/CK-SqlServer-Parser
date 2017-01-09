@@ -1,0 +1,109 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Tests>
+
+  <Test>
+    <Text>
+      insert into tT default values;
+      insert into tT( Z ) values ( 3 );
+      insert into tT( Z ) select 3;
+    </Text>
+    <Description>
+      -- SetupConfig: {}
+      create transformer
+      as
+      begin
+      add column X = 1, Y = 2;
+      end
+    </Description>
+    <ResultText>
+      insert into tT( X, Y ) values( 1, 2 );
+      insert into tT( Z, X, Y ) values( 3, 1, 2 );
+      insert into tT( Z, X, Y ) select 3, 1, 2;
+    </ResultText>
+  </Test>
+
+  <Test>
+    <Text>
+      insert into tT( Z ) 
+        select A
+          from (select 4);
+    </Text>
+    <Description>
+      -- SetupConfig: {}
+      create transformer
+      as
+      begin
+	      add column X = 1, Y = 2;
+      end
+    </Description>
+    <ResultText>
+      insert into tT( Z, X, Y )
+        select A, 1, 2
+          from (select 4);
+    </ResultText>
+  </Test>
+
+  <Test>
+    <Text>
+      select @A = t.A
+      from tT t
+      inner join (select J from T) l on l.C = t.H
+      where B = 1;
+    </Text>
+    <Description>
+      -- SetupConfig: {}
+      create transformer
+      as
+      begin
+      add column X = l.N + 1, Y = 2;
+      end
+    </Description>
+    <ResultText>
+      select @A = t.A, X = l.N + 1, Y = 2
+      from tT t
+      inner join (select J from T) l on l.C = t.H
+      where B = 1;
+    </ResultText>
+  </Test>
+
+  <Test>
+    <Text>
+      update tT set A = 0 where B = 1;
+    </Text>
+    <Description>
+      -- SetupConfig: {}
+      create transformer
+      as
+      begin
+      add column X = 1, Y = 2;
+      end
+    </Description>
+    <ResultText>
+      update tT set A = 0, X = 1, Y = 2 where B = 1;
+    </ResultText>
+  </Test>
+
+  <Test>
+    <Text>
+      update x set A = 0
+      from tT x
+      inner join (select J from T) l on l.C = x.H
+      where B = 1;
+    </Text>
+    <Description>
+      -- SetupConfig: {}
+      create transformer
+      as
+      begin
+        add column X = l.M, Y = 2;
+      end
+    </Description>
+    <ResultText>
+      update x set A = 0, X = l.M, Y = 2
+      from tT x
+      inner join (select J from T) l on l.C = x.H
+      where B = 1;
+    </ResultText>
+  </Test>
+
+</Tests>
