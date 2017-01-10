@@ -125,13 +125,13 @@
     <Content Include="Parsing\Scripts\AdventureWorks2012-FullSchema.sql" />
     <Content Include="XmlTests\Big procedures.xml" />
     <Content Include="XmlTests\Execute.xml" />
+    <Content Include="XmlTests\For Xml.xml" />
     <Content Include="XmlTests\Functions.xml" />
     <Content Include="XmlTests\GrantDenyRevoke.xml" />
     <Content Include="XmlTests\Delete.xml" />
     <Content Include="XmlTests\Apply.xml" />
     <Content Include="XmlTests\String Split.xml" />
     <Content Include="XmlTests\Other Procedures.xml" />
-    <Content Include="XmlTests\For Xml.xml" />
     <Content Include="XmlTests\Trigger.xml" />
     <Content Include="XmlTests\TryCatch.xml" />
     <Content Include="XmlTests\Merge.xml" />

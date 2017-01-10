@@ -275,11 +275,20 @@ namespace CK.SqlServer.Parser
                 {
                     SqlEnclosedCommaList ns = IsEnclosedCommaList( true );
                     if( ns == null ) return null;
-                    ISqlNamedStatement statement = IsNamedStatement( true, withStatementTerminator );
-                    if( statement == null ) return null;
+                    ISqlNamedStatement statement;
+                    SqlTokenComma cteComma;
+                    if( R.IsToken( out cteComma, false ) )
+                    {
+                        return MatchCTEStatement( id, new SqlCTEXmlNamespace( xmlNameSpacesT, ns, cteComma ), withStatementTerminator );
+                    }
+                    else
+                    {
+                        statement = IsNamedStatement( true, withStatementTerminator );
+                        if( statement == null ) return null;
+                    }
                     return new SqlWithForXml( id, xmlNameSpacesT, ns, statement );
                 }
-                return MatchCTEStatement( id, withStatementTerminator );
+                return MatchCTEStatement( id, null, withStatementTerminator );
             }
             if( id.TokenType.IsStartStatement() )
             {
@@ -306,7 +315,7 @@ namespace CK.SqlServer.Parser
             return new SqlLabelDefinition( id, colon );
         }
 
-        ISqlNamedStatement MatchCTEStatement( SqlTokenIdentifier withT, bool withStatementTerminator = true )
+        ISqlNamedStatement MatchCTEStatement( SqlTokenIdentifier withT, SqlCTEXmlNamespace namespaces, bool withStatementTerminator = true )
         {
             Debug.Assert( withT.TokenType == SqlTokenType.With );
             SqlCTENameList names = IsCommaList( 1, IsSqlCTEName, i => new SqlCTENameList( i ) );
@@ -322,7 +331,7 @@ namespace CK.SqlServer.Parser
                 R.SetCurrentError( "Outer statement of a With (CTE) must be Select, Insert, Update, Delete or Merge." );
                 return null;
             }
-            return new SqlCTEStatement( withT, names, s );
+            return new SqlCTEStatement( withT, namespaces, names, s );
         }
 
         [DebuggerStepThrough]
@@ -787,7 +796,7 @@ namespace CK.SqlServer.Parser
             SqlTokenIdentifier withOrSelect;
             if( R.IsToken( out withOrSelect, SqlTokenType.With, false ) )
             {
-                body = MatchCTEStatement( withOrSelect, withStatementTerminator: false );
+                body = MatchCTEStatement( withOrSelect, null, withStatementTerminator: false );
             }
             else
             {
