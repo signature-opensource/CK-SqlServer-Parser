@@ -1,5 +1,147 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <Tests>
+
+
+  <Test>
+    <Text>
+      <![CDATA[
+ALTER procedure EpMA.svProjectAll
+(
+	@_ApplicationId	int,
+	@_ActorId		int,
+	@_CultureId		int,
+
+	@IncludeProjects	bit = 1,
+	@IncludeMandates	bit = 1,
+	@IncludeArchives	bit = 0,
+	@IncludeOnHold		bit = 0,
+	@ForAllActor		bit = 0,
+
+	@ProjectTypes nvarchar(128) = ''
+)
+as begin
+
+  declare @types table (val int)
+	insert into @types (val)
+	select part	from Neva.fSplitString(@ProjectTypes, ',');
+
+	WITH XMLNAMESPACES ('http://james.newtonking.com/projects/json' as json),
+	projects  as
+	(
+		select distinct p.ProjectId from EpMA.tProject p
+		left outer join EpMA.tTeamMember t on t.ProjectId = p.ProjectId
+		left outer join @types pt on pt.val = p.ProjectType
+		where (@ForAllActor = 1 OR Ep.fApplicationIsAdmin(@_ApplicationId, @_ActorId) = 1  OR t.UserId = @_ActorId )
+		AND (@ProjectTypes = '' OR pt.val is not null)
+	)  
+	select "@json:Array" = 'true',
+			p.ProjectId,
+			p.Code,
+			p.ProjectType,
+
+			p.IsMandateSigned,
+			p.IsArchived,
+			p.IsOnHold,
+			p.CalendarId,
+			p.SearchId,
+						 
+			p.CreatorId ,
+			p.Creator ,
+			p.CreationDate,
+
+			CustomerId = p.CustomerEntityId,
+			CustomerName = ISNULL(c.CompanyName, i.FirstName + ' ' + i.LastName),
+
+			LongListLength = (select count(*) from EpMA.tListMember lm where lm.ProjectId = p.ProjectId),
+			ControlListLength = (
+				select count(*) from EpMA.tListMember lm 
+				left outer join Ep.vDbObjStatus ds 
+					on ds.DbObjId = lm.ListMemberId 
+					AND ds.Row = 1 -- only lalst
+					AND ds.ResCultureId = @_CultureId
+					AND ds.ParentSystemKey = 'MA.ListMember.Declined' 
+				where lm.ProjectId = p.ProjectId and ds.DbObjStatusId is null
+				),
+		
+			TaskTotal = (select count(*) from EpTask.tDbObjTask dt where dt.DbObjId = p.ProjectId),
+			TaskCompleted = (select count(*) from EpTask.tTask t inner join  EpTask.tDbObjTask dt on dt.TaskId = t.TaskId where dt.DbObjId  = p.ProjectId AND t.IsDone = 1),
+			(
+				select 		top 1				
+						ds.[DbObjStatusId],
+						ds.[Date],
+						RepoValueName = rv.Name,
+						RepoPath = rv.Path,Title = REPLACE(ds.[Title], '{RepoValue}', ISNULL(rv.Value, ''))
+					from  [Ep].[tDbObjStatus] ds 
+					left outer join Ep.vRepoValue rv
+						on rv.RepoValueId = ds.RepoValueId AND rv.ResCultureId = @_CultureId
+					where ds.DbObjId = p.ProjectId
+					order by Date DESC
+				FOR XML PATH ('LastStatus'),  ELEMENTS, TYPE
+			),
+			Team = (
+				select "@json:Array" = 'true', t.UserId, u.DisplayName, t.IsResponsible
+				from EpMA.tTeamMember t 
+				inner join Ep.tUser u on t.UserId = u.UserId
+				where t.ProjectId = p.ProjectId
+				order by t.IsResponsible DESC, u.DisplayName
+				FOR XML PATH ('data'),  ELEMENTS, TYPE
+			 ),
+		Ep.fvDbObjLabel(p.ProjectId)
+		
+	from projects u
+	inner join EpMA.vProject p on p.ProjectId = u.ProjectId
+	inner join Ep.tDbObj d on d.DbObjId = p.ProjectId
+	
+	left outer join EpCrm.tCompany c on c.CompanyId = p.CustomerEntityId
+	left outer join EpCrm.tIndividual i on i.IndividualId = p.CustomerEntityId
+
+	where d.ApplicationId = @_ApplicationId
+	AND( @IncludeProjects = 1 AND p.IsMandateSigned = 0 
+		OR  @IncludeMandates = 1 AND p.IsMandateSigned = 1 )
+	AND ( p.IsArchived = 0 OR @IncludeArchives = 1   )
+	AND ( p.IsOnHold = 0 OR @IncludeOnHold = 1   )
+	
+	order by d.CreationDate DESC
+	FOR XML PATH('data'), root('data'), ELEMENTS, TYPE
+	
+
+end
+      ]]>
+    </Text>
+    <Description>For xml WITH both namespace and CTE (from Maxime :))</Description>
+    <Xml>
+      <Statements>
+        <StoredProcedure StatementName="AlterProcedure">
+          <DeclareVariable />
+          <InsertStatement HasTerminator="true">
+            <SelectSpec />
+          </InsertStatement>
+          <CTEStatement>
+            <SelectSpec />
+            <SelectStatement>
+              <SelectDecorator>
+                <SelectSpec>
+                  <SelectSpec />
+                  <SelectSpec />
+                  <SelectSpec />
+                  <SelectSpec />
+                  <SelectDecorator>
+                    <SelectSpec />
+                  </SelectDecorator>
+                  <SelectDecorator>
+                    <SelectSpec />
+                  </SelectDecorator>
+                </SelectSpec>
+              </SelectDecorator>
+            </SelectStatement>
+          </CTEStatement>
+        </StoredProcedure>
+      </Statements>
+    </Xml>
+  </Test>
+
+
+
   <Test>
     <Text>
     <![CDATA[
@@ -94,7 +236,6 @@
     
     
     ]]>
-    
     </Text>
     <Description>'next value for' is specifically handled as an expression.</Description>
     <Xml>

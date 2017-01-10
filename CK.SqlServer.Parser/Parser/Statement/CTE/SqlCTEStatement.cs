@@ -14,15 +14,16 @@ namespace CK.SqlServer.Parser
     /// </summary>
     public sealed class SqlCTEStatement : SqlNonToken, ISqlNamedStatement
     {
-        readonly SNode<SqlTokenIdentifier,SqlCTENameList,ISqlStatement> _content;
+        readonly SNode<SqlTokenIdentifier, SqlCTEXmlNamespace,SqlCTENameList, ISqlStatement> _content;
 
         public SqlCTEStatement( 
                 SqlTokenIdentifier withT,
+                SqlCTEXmlNamespace namespaces,
                 SqlCTENameList names,
                 ISqlStatement outerStatement )
             : base( null, null )
         {
-            _content = new SNode<SqlTokenIdentifier, SqlCTENameList, ISqlStatement>( withT, names, outerStatement );
+            _content = new SNode<SqlTokenIdentifier, SqlCTEXmlNamespace, SqlCTENameList, ISqlStatement>( withT, namespaces, names, outerStatement );
             CheckContent();
         }
 
@@ -39,7 +40,7 @@ namespace CK.SqlServer.Parser
             if( items == null ) _content = o._content;
             else
             {
-                _content = new SNode<SqlTokenIdentifier, SqlCTENameList, ISqlStatement>( items );
+                _content = new SNode<SqlTokenIdentifier, SqlCTEXmlNamespace, SqlCTENameList, ISqlStatement>( items );
                 CheckContent();
             }
         }
@@ -59,9 +60,13 @@ namespace CK.SqlServer.Parser
 
         public SqlTokenIdentifier WithT => _content.V1;
 
-        public SqlCTENameList Names => _content.V2;
+        public SqlCTEXmlNamespace XmlNamespaces => _content.V2;
 
-        public ISqlStatement OuterStatement => _content.V3;
+        public bool HasXmlNamespaces => _content.V2 != null;
+
+        public SqlCTENameList Names => _content.V3;
+
+        public ISqlStatement OuterStatement => _content.V4;
 
         [DebuggerStepThrough]
         internal protected override ISqlNode Accept( SqlNodeVisitor visitor ) => visitor.Visit( this );

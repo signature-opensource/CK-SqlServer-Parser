@@ -89,6 +89,7 @@
     <Compile Include="Parser\Node\ISqlFullNameHolder.cs" />
     <Compile Include="Parser\Node\ISqlStatementPart.cs" />
     <Compile Include="Parser\Node\SqlBasicValue.cs" />
+    <Compile Include="Parser\Statement\CTE\SqlCTEXmlNamespace.cs" />
     <Compile Include="Parser\Statement\CTE\SqlCTEName.cs" />
     <Compile Include="Parser\Statement\CTE\SqlCTENameList.cs" />
     <Compile Include="Parser\Statement\CTE\SqlCTEStatement.cs" />
