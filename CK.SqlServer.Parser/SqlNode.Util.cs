@@ -69,8 +69,7 @@ namespace CK.SqlServer.Parser
                 if( token == null ) throw new ArgumentNullException( name );
                 if( !predicate( token.TokenType ) )
                 {
-                    throw new ArgumentException( string.Format( "{0} must satisfy '{1}' predicate.",
-                                                                name, predicate.Method.Name ), name );
+                    throw new ArgumentException( $"'{name}' must satisfy '{predicate}' predicate.", name );
                 }
             }
 
@@ -128,8 +127,7 @@ namespace CK.SqlServer.Parser
             {
                 if( token == null && !predicate( token.TokenType ) )
                 {
-                    throw new ArgumentException( string.Format( "{0} must satisfy '{1}' predicate.",
-                                                                name, predicate.Method.Name ), name );
+                    throw new ArgumentException( $"{name} must satisfy '{predicate}' predicate.", name );
                 }
             }
 

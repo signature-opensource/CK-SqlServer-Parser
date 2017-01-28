@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "CK.SqlServer.Parser.Tests": {
+      "commandName": "Project",
+      "commandLineArgs": "-pause"
+    }
+  }
+}

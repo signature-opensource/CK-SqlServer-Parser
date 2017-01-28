@@ -1,4 +1,5 @@
-﻿using NUnit.Framework;
+﻿using CK.SqlServer.Parser;
+using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -6,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CK.SqlServer.Parser.Tests.Transform
+namespace CK.SqlServer.Transform.Tests.Transform
 {
     [TestFixture]
     public class SimpleTransformerParseTests

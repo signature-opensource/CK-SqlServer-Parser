@@ -8,12 +8,31 @@ using System.Xml.Linq;
 using System.Text.RegularExpressions;
 using CK.SqlServer.Parser;
 using CK.Text;
+using System.Reflection;
+using NUnit.Framework.Constraints;
+using System.Collections.Generic;
 
 namespace CK.SqlServer.UtilTests
 {
+#if NET451
+    public static class Does
+    {
+        public static SubstringConstraint Contain(string expected) => Is.StringContaining(expected);
+
+        public static EndsWithConstraint EndWith(string expected) => Is.StringEnding(expected);
+
+        public static StartsWithConstraint StartWith(string expected) => Is.StringStarting(expected);
+
+        public static ConstraintExpression Not => Is.Not;
+
+        public static SubstringConstraint Contain(this ConstraintExpression @this, string expected) => @this.StringContaining(expected);
+    }
+#endif
+
+
     public static class TestHelper
     {
-        static string _projectFolder;
+        static string _solutionFolder;
 
         static IActivityMonitor _monitor;
         static ActivityMonitorConsoleClient _console;
@@ -25,10 +44,7 @@ namespace CK.SqlServer.UtilTests
             _console = new ActivityMonitorConsoleClient();
         }
 
-        public static IActivityMonitor ConsoleMonitor
-        {
-            get { return _monitor; }
-        }
+        public static IActivityMonitor ConsoleMonitor => _monitor;
 
         public static bool LogsToConsole
         {
@@ -51,13 +67,30 @@ namespace CK.SqlServer.UtilTests
             }
         }
 
+        public static string TestProjectName
+        {
+            get
+            {
+                var transform = SimpleTypeFinder.WeakResolver("CK.SqlServer.Transform.SqlTransformHost, CK.SqlServer.Transform", false);
+                string project;
+                if (transform != null)
+                {
+                    project = "CK.SqlServer.Transform.Tests";
+                }
+                else project = "CK.SqlServer.Parser.Tests";
+                return project;
+            }
+        }
+
         public static string GetFolder( params string[] subNames )
         {
-            if( _projectFolder == null ) InitalizePaths();
-            var a = new string[ subNames.Length + 1 ];
-            a[0] = _projectFolder;
-            Array.Copy( subNames, 0, a, 1, subNames.Length );
-            return Path.Combine( a );
+            if( _solutionFolder == null ) InitalizePaths();
+            var all = new List<string>();
+            all.Add(_solutionFolder);
+            all.Add("Tests");
+            all.Add(TestProjectName);
+            all.AddRangeArray( subNames );
+            return Path.Combine( all.ToArray() );
         }
 
         public static string LoadTextFromParsingScripts( string fileName )
@@ -106,16 +139,22 @@ namespace CK.SqlServer.UtilTests
             return (T)statement;
         }
 
-        private static void InitalizePaths()
+        static void InitalizePaths()
         {
-            string p = new Uri( System.Reflection.Assembly.GetExecutingAssembly().CodeBase ).LocalPath;
-            // => CK.XXX.Tests/bin/Debug/
-            p = Path.GetDirectoryName( p );
-            // => CK.XXX.Tests/bin/
-            p = Path.GetDirectoryName( p );
-            // => CK.XXX.Tests/
-            p = Path.GetDirectoryName( p );
-            _projectFolder = p;
+#if NET451
+            string p = new Uri(System.Reflection.Assembly.GetExecutingAssembly().CodeBase).LocalPath;
+            p = Path.GetDirectoryName(p);
+#else
+            string p = Directory.GetCurrentDirectory();
+#endif
+            while (!Directory.EnumerateFiles(p).Where(f => f.EndsWith(".sln")).Any())
+            {
+                p = Path.GetDirectoryName(p);
+            }
+            _solutionFolder = p;
+
+            Console.WriteLine($"SolutionFolder is: {_solutionFolder}.");
+            Console.WriteLine($"Core path: {typeof(string).GetTypeInfo().Assembly.CodeBase}.");
         }
 
     }

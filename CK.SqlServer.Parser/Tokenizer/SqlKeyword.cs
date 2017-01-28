@@ -429,7 +429,7 @@ namespace CK.SqlServer.Parser
             Debug.Assert( _sqlDbTypesMapped[(int)(SqlTokenType.VariantDbType & SqlTokenType.IdentifierValueMask)] == SqlDbType.Variant );
             Debug.Assert( _sqlDbTypesMapped[(int)(SqlTokenType.TableDbType & SqlTokenType.IdentifierValueMask)] == SqlDbType.Structured );
 
-            _keywords = new Dictionary<string, SqlTokenType>( StringComparer.InvariantCultureIgnoreCase );
+            _keywords = new Dictionary<string, SqlTokenType>(StringComparer.OrdinalIgnoreCase );
             _typeToString = new Dictionary<SqlTokenType, string>();
 
             // Identifiers mapped to SqlTokenType.

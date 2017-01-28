@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using CK.SqlServer.Transform.Transformers;
 using CK.Text;
+using System.Reflection;
 
 namespace CK.SqlServer.Transform.Tests.XmlTests
 {
@@ -60,7 +61,7 @@ namespace CK.SqlServer.Transform.Tests.XmlTests
                         string errContains = ResultText.Substring( 6 ).Trim();
                         Assert.That( errors != null, $"Error expected '{errContains}'." );
                         var all = errors.Select( err => err.Text ).Concatenate( Environment.NewLine );
-                        Assert.That( all, Is.StringContaining( errContains ), "Expected error not found." );
+                        Assert.That( all, Does.Contain( errContains ), "Expected error not found." );
                         return null;
                     }
                     string actualText = e.ToString( true, true );

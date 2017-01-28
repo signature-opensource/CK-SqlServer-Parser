@@ -1,0 +1,22 @@
+{
+  "version": "0.0.0",
+
+  "dependencies": {
+    "CK.SqlServer.Parser": {"target": "project"}
+  },
+  "frameworks": {
+    "netstandard1.6": {
+      "dependencies": {
+        "NETStandard.Library": "1.6.1",
+        "NUnit": "3.6.0",
+        "System.Reflection.TypeExtensions": "4.3.0",
+        "nunitlite": "3.6.0"
+      }
+    },
+    "net451": {
+      "dependencies": {
+        "NUnit": "[2.6.4]"
+      }
+    }
+  }
+}

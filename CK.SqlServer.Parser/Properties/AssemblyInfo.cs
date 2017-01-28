@@ -3,7 +3,6 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-[assembly: CLSCompliant( true )]
 [assembly: AssemblyTitle( "CK.SqlServer.Parser" )]
 [assembly: AssemblyDescription( "" )]
 [assembly: AssemblyCulture( "" )]

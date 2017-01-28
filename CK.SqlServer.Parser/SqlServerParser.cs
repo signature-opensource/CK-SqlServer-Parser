@@ -133,7 +133,7 @@ namespace CK.SqlServer.Parser
             if( _lateBound == null )
             {
                 Type host = SimpleTypeFinder.WeakResolver( "CK.SqlServer.Transform.SqlTransformHost, CK.SqlServer.Transform", true );
-                MethodInfo m = host.GetMethod( "Transform", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public );
+                MethodInfo m = host.GetMethod( "Transform", BindingFlags.Static | BindingFlags.Public );
                 _lateBound = (TransformFunc)m.CreateDelegate( typeof( TransformFunc ) );
             }
             return _lateBound( monitor, t, target );

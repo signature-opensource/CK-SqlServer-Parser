@@ -1,4 +1,5 @@
-﻿using CK.SqlServer.UtilTests;
+﻿using CK.SqlServer.Parser;
+using CK.SqlServer.UtilTests;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -6,10 +7,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CK.SqlServer.Parser.Tests.Transform
+namespace CK.SqlServer.Transform.Tests.Transform
 {
     [TestFixture]
-    public class SimpleTransformTests
+    public class SimpleTransformViaModelTests
     {
         [TestCase( "procedure test( @i int ) as begin select 0; end" )]
         [TestCase( "function fTest( @i int ) returns int begin return 0; end" )]
@@ -48,7 +49,7 @@ namespace CK.SqlServer.Parser.Tests.Transform
             var r = new SqlAnalyser( text ).ParseStatement( out sqlObject );
             Assert.That( !r.IsError );
             ISqlServerObject o2 = sqlObject.SetSchema( schema );
-            Assert.That( o2.ToFullString(), Is.StringStarting( resultStart ) );
+            Assert.That( o2.ToFullString(), Does.StartWith( resultStart ) );
         }
 
         [TestCase( "One", 1, "Two", "Two" )]

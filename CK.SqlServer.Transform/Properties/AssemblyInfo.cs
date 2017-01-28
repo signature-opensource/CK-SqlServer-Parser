@@ -3,7 +3,6 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-[assembly: CLSCompliant( true )]
 [assembly: AssemblyTitle("CK.SqlServer.Transform")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyCulture("")]
