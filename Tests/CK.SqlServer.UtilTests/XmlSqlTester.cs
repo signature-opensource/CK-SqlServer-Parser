@@ -125,7 +125,7 @@ namespace CK.SqlServer.UtilTests
         {
             using( TestHelper.ConsoleMonitor.OpenInfo().Send( $"Running {fileName}." ) )
             {
-                XElement tests = XDocument.Load( TestHelper.GetFolder( folderName, fileName ) ).Root;
+                XElement tests = XDocument.Load( TestHelper.BuildPathInCurrentTestProject( folderName, fileName ) ).Root;
                 int i = 0;
                 foreach( var t in tests.Elements( "Test" ) )
                 {

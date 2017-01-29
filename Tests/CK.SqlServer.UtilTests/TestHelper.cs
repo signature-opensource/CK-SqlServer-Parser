@@ -33,6 +33,7 @@ namespace CK.SqlServer.UtilTests
     public static class TestHelper
     {
         static string _solutionFolder;
+        static string _configuration;
 
         static IActivityMonitor _monitor;
         static ActivityMonitorConsoleClient _console;
@@ -67,7 +68,25 @@ namespace CK.SqlServer.UtilTests
             }
         }
 
-        public static string TestProjectName
+        public static string SolutionFolder
+        {
+            get
+            {
+                if (_solutionFolder == null) InitalizePaths();
+                return _solutionFolder;
+            }
+        }
+
+        public static string Configuration
+        {
+            get
+            {
+                if (_solutionFolder == null) InitalizePaths();
+                return _configuration;
+            }
+        }
+
+        public static string CurrentTestProjectName
         {
             get
             {
@@ -82,20 +101,19 @@ namespace CK.SqlServer.UtilTests
             }
         }
 
-        public static string GetFolder( params string[] subNames )
+        public static string BuildPathInCurrentTestProject( params string[] subNames )
         {
-            if( _solutionFolder == null ) InitalizePaths();
             var all = new List<string>();
-            all.Add(_solutionFolder);
+            all.Add(SolutionFolder);
             all.Add("Tests");
-            all.Add(TestProjectName);
+            all.Add(CurrentTestProjectName);
             all.AddRangeArray( subNames );
             return Path.Combine( all.ToArray() );
         }
 
         public static string LoadTextFromParsingScripts( string fileName )
         {
-            return File.ReadAllText( TestHelper.GetFolder( "Parsing", "Scripts", fileName ) ).NormalizeEOL();
+            return File.ReadAllText( TestHelper.BuildPathInCurrentTestProject( "Parsing", "Scripts", fileName ) ).NormalizeEOL();
         }
 
         public static void AssertXmlStringEqual( string visitedString, XElement expected )
@@ -146,6 +164,11 @@ namespace CK.SqlServer.UtilTests
             p = Path.GetDirectoryName(p);
 #else
             string p = Directory.GetCurrentDirectory();
+#endif
+#if DEBUG
+            _configuration = "Debug";
+#else
+            _configuration = "Release";
 #endif
             while (!Directory.EnumerateFiles(p).Where(f => f.EndsWith(".sln")).Any())
             {

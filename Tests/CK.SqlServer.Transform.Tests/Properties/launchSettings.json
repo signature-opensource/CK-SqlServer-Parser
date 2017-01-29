@@ -2,7 +2,7 @@
   "profiles": {
     "CK.SqlServer.Transform.Tests": {
       "commandName": "Project",
-      "commandLineArgs": "-pause"
+      "commandLineArgs": "-gui"
     }
   }
 }

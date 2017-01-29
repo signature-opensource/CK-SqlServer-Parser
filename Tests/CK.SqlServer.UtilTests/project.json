@@ -10,7 +10,8 @@
         "NETStandard.Library": "1.6.1",
         "NUnit": "3.6.0",
         "System.Reflection.TypeExtensions": "4.3.0",
-        "nunitlite": "3.6.0"
+        "nunitlite": "3.6.0",
+        "System.Diagnostics.Process": "4.3.0" 
       }
     },
     "net451": {

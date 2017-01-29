@@ -3,6 +3,8 @@ using NUnit.Common;
 using NUnitLite;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Reflection;
 
 namespace CK.SqlServer.UtilTests
@@ -11,6 +13,14 @@ namespace CK.SqlServer.UtilTests
     {
         public static int Main(Type programType, string[] args)
         {
+            int idxGui = HandleArgument(ref args, "-gui");
+            if (idxGui >= 0)
+            {
+                var nunit = Path.Combine(TestHelper.SolutionFolder, "packages", "NUnit.Runners.Net4.2.6.4", "tools", "nunit.exe");
+                var toTest = Path.Combine(Directory.GetCurrentDirectory(), "bin", TestHelper.Configuration, "net451", "win7-x64", TestHelper.CurrentTestProjectName + ".exe");
+                var p = Process.Start(nunit, "\""+ toTest + "\" " + string.Join(" ", args));
+                return 0;
+            }
             int idxPause = HandleArgument(ref args, "-pause");
             int result = new AutoRun(programType.GetTypeInfo().Assembly)
                 .Execute(args, new ExtendedTextWrapper(Console.Out), Console.In);
