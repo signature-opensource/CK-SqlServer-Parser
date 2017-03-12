@@ -1,11 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.26228.4
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{12881CD7-3A65-4A6E-855D-D91650B1245A}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeCakeBuilder", "CodeCakeBuilder\CodeCakeBuilder.csproj", "{FD4817B6-3CD7-4E74-AA10-7CA95FDFCF2D}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{FEDE4316-205A-4E8D-852A-E00C000D6CEB}"
 	ProjectSection(SolutionItems) = preProject
@@ -14,19 +12,21 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		CK.SqlServer.Transform\Data Definition Manipulation Language.docx = CK.SqlServer.Transform\Data Definition Manipulation Language.docx
 		nuget.config = nuget.config
 		RepositoryInfo.xml = RepositoryInfo.xml
-		SharedAssemblyInfo.cs = SharedAssemblyInfo.cs
-		SharedKey.snk = SharedKey.snk
+		Common\Shared.props = Common\Shared.props
+		Common\SharedKey.snk = Common\SharedKey.snk
 	EndProjectSection
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "CK.SqlServer.Parser", "CK.SqlServer.Parser\CK.SqlServer.Parser.xproj", "{ABEF7832-B904-4C33-BC39-3959BCC680B5}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeCakeBuilder", "CodeCakeBuilder\CodeCakeBuilder.csproj", "{FD4817B6-3CD7-4E74-AA10-7CA95FDFCF2D}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "CK.SqlServer.Transform", "CK.SqlServer.Transform\CK.SqlServer.Transform.xproj", "{89A1C9B4-EE8F-4B53-B5B6-9CE2ECB3D29B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CK.SqlServer.Parser", "CK.SqlServer.Parser\CK.SqlServer.Parser.csproj", "{ABEF7832-B904-4C33-BC39-3959BCC680B5}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "CK.SqlServer.Parser.Tests", "Tests\CK.SqlServer.Parser.Tests\CK.SqlServer.Parser.Tests.xproj", "{ED57879D-0482-4BAF-8231-E7F9C3641E55}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CK.SqlServer.Transform", "CK.SqlServer.Transform\CK.SqlServer.Transform.csproj", "{89A1C9B4-EE8F-4B53-B5B6-9CE2ECB3D29B}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "CK.SqlServer.Transform.Tests", "Tests\CK.SqlServer.Transform.Tests\CK.SqlServer.Transform.Tests.xproj", "{44F365F5-18A0-4AE8-8511-6407F9C88D6E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CK.SqlServer.Parser.Tests", "Tests\CK.SqlServer.Parser.Tests\CK.SqlServer.Parser.Tests.csproj", "{ED57879D-0482-4BAF-8231-E7F9C3641E55}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "CK.SqlServer.UtilTests", "Tests\CK.SqlServer.UtilTests\CK.SqlServer.UtilTests.xproj", "{D86371BD-8AE3-47A3-B37D-F5B41B747DCD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CK.SqlServer.Transform.Tests", "Tests\CK.SqlServer.Transform.Tests\CK.SqlServer.Transform.Tests.csproj", "{44F365F5-18A0-4AE8-8511-6407F9C88D6E}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CK.SqlServer.UtilTests", "Tests\CK.SqlServer.UtilTests\CK.SqlServer.UtilTests.csproj", "{D86371BD-8AE3-47A3-B37D-F5B41B747DCD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

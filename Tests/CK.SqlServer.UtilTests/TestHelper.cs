@@ -33,7 +33,7 @@ namespace CK.SqlServer.UtilTests
     public static class TestHelper
     {
         static string _solutionFolder;
-        static string _configuration;
+        static string _buildConfiguration;
 
         static IActivityMonitor _monitor;
         static ActivityMonitorConsoleClient _console;
@@ -77,12 +77,12 @@ namespace CK.SqlServer.UtilTests
             }
         }
 
-        public static string Configuration
+        public static string BuildConfiguration
         {
             get
             {
                 if (_solutionFolder == null) InitalizePaths();
-                return _configuration;
+                return _buildConfiguration;
             }
         }
 
@@ -166,7 +166,7 @@ namespace CK.SqlServer.UtilTests
             string p = Directory.GetCurrentDirectory();
 #endif
 #if DEBUG
-            _configuration = "Debug";
+            _buildConfiguration = "Debug";
 #else
             _configuration = "Release";
 #endif

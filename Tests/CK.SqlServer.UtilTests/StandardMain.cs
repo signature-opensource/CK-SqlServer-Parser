@@ -17,7 +17,7 @@ namespace CK.SqlServer.UtilTests
             if (idxGui >= 0)
             {
                 var nunit = Path.Combine(TestHelper.SolutionFolder, "packages", "NUnit.Runners.Net4.2.6.4", "tools", "nunit.exe");
-                var toTest = Path.Combine(Directory.GetCurrentDirectory(), "bin", TestHelper.Configuration, "net451", "win7-x64", TestHelper.CurrentTestProjectName + ".exe");
+                var toTest = Path.Combine(Directory.GetCurrentDirectory(), "bin", TestHelper.BuildConfiguration, "net451", "win7-x64", TestHelper.CurrentTestProjectName + ".exe");
                 var p = Process.Start(nunit, "\""+ toTest + "\" " + string.Join(" ", args));
                 return 0;
             }
@@ -32,17 +32,16 @@ namespace CK.SqlServer.UtilTests
             return result;
         }
 
-        private static int HandleArgument(ref string[] args, string argument)
+        static int HandleArgument(ref string[] args, string argument)
         {
-            int idxPause = Array.IndexOf(args, argument);
-            if (idxPause >= 0)
+            int idxArg = Array.IndexOf(args, argument);
+            if (idxArg >= 0)
             {
                 var l = new List<string>(args);
-                l.RemoveAt(idxPause);
+                l.RemoveAt(idxArg);
                 args = l.ToArray();
             }
-
-            return idxPause;
+            return idxArg;
         }
     }
 }
