@@ -4,10 +4,8 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard1.3;net451</TargetFrameworks>
-    <AssemblyName>CK.SqlServer.Transform</AssemblyName>
-    <PackageId>CK.SqlServer.Transform</PackageId>
     <NetStandardImplicitPackageVersion Condition=" '$(TargetFramework)' == 'netstandard1.3' ">1.6.1</NetStandardImplicitPackageVersion>
-    <Description>T-Sql transformers (TQL DSL) implementation.</Description>
+    <Description>T-Sql transformers and TQL DSL implementation.</Description>
   </PropertyGroup>
 
   <ItemGroup>

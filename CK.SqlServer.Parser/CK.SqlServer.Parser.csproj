@@ -4,8 +4,6 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard1.3;net451</TargetFrameworks>
-    <AssemblyName>CK.SqlServer.Parser</AssemblyName>
-    <PackageId>CK.SqlServer.Parser</PackageId>
     <NetStandardImplicitPackageVersion Condition=" '$(TargetFramework)' == 'netstandard1.3' ">1.6.1</NetStandardImplicitPackageVersion>
     <Description>T-Sql parser implementation.</Description>  
   </PropertyGroup>
