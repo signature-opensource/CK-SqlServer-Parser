@@ -51,7 +51,7 @@ namespace CK.SqlServer.Parser
                     using( asWarning ? monitor.OpenWarn().Send( _errorMessage ) : monitor.OpenError().Send( _errorMessage ) )
                     {
                         // OpenError automatically sets the filter to Debug for the group, but not OpenWarn.
-                        if( asWarning ) monitor.SetMinimalFilter( LogFilter.Debug );
+                        if( asWarning ) monitor.TemporarilySetMinimalFilter( LogFilter.Debug );
                         monitor.Info().Send( _headSource );
                     }
                 }
