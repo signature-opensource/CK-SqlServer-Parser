@@ -22,19 +22,27 @@ namespace CodeCake
 {
     public static class DotNetCoreRestoreSettingsExtension
     {
-        public static T AddVersionArguments<T>(this T @this, SimpleRepositoryInfo info, Action<T> conf = null) where T : DotNetCoreSettings
+        public const string versionWhenInvalid = "0.0.0-AbsolutelyInvalid";
+
+        public static T AddVersionArguments<T>( this T @this, SimpleRepositoryInfo info, Action<T> conf = null ) where T : DotNetCoreSettings
         {
-            if (info.IsValid)
+            string version = versionWhenInvalid, assemblyVersion = "0.0", fileVersion = "0.0.0.0", informationalVersion = "";
+            if( info.IsValid )
             {
-                var prev = @this.ArgumentCustomization;
-                @this.ArgumentCustomization = args => (prev?.Invoke(args) ?? args)
-                        .Append($@"/p:CakeBuild=""true""")
-                        .Append($@"/p:Version=""{info.NuGetVersion}""")
-                        .Append($@"/p:AssemblyVersion=""{info.MajorMinor}.0""")
-                        .Append($@"/p:FileVersion=""{info.FileVersion}""")
-                        .Append($@"/p:InformationalVersion=""{info.SemVer} ({info.NuGetVersion}) - SHA1: {info.CommitSha} - CommitDate: {info.CommitDateUtc.ToString("u")}""");
+                version = info.NuGetVersion;
+                assemblyVersion = info.MajorMinor;
+                fileVersion = info.FileVersion;
+                informationalVersion = $"{info.SemVer} ({info.NuGetVersion}) - SHA1: {info.CommitSha} - CommitDate: {info.CommitDateUtc.ToString( "u" )}";
             }
-            conf?.Invoke(@this);
+            var prev2 = @this.ArgumentCustomization;
+            @this.ArgumentCustomization = args => (prev2?.Invoke( args ) ?? args)
+                    .Append( $@"/p:CakeBuild=""true""" )
+                    .Append( $@"/p:Version=""{version}""" )
+                    .Append( $@"/p:AssemblyVersion=""{assemblyVersion}.0""" )
+                    .Append( $@"/p:FileVersion=""{fileVersion}""" )
+                    .Append( $@"/p:InformationalVersion=""{informationalVersion}""" );
+
+            conf?.Invoke( @this );
             return @this;
         }
     }
@@ -65,7 +73,7 @@ namespace CodeCake
             SimpleRepositoryInfo gitInfo = Cake.GetSimpleRepositoryInfo();
 
             // Configuration is either "Debug" or "Release".
-            string configuration = null;
+            string configuration = "Debug";
 
             Task("Check-Repository")
                 .Does(() =>
@@ -77,13 +85,14 @@ namespace CodeCake
                         {
                             Cake.Warning("GitInfo is not valid, but you choose to continue...");
                         }
-                        else throw new Exception("Repository is not ready to be published.");
+                        else if(!Cake.AppVeyor().IsRunningOnAppVeyor) throw new Exception("Repository is not ready to be published.");
                     }
 
-                    configuration = gitInfo.IsValidRelease
-                                    && (gitInfo.PreReleaseName.Length == 0 || gitInfo.PreReleaseName == "rc")
-                                    ? "Release"
-                                    : "Debug";
+                    if( gitInfo.IsValidRelease
+                                    && (gitInfo.PreReleaseName.Length == 0 || gitInfo.PreReleaseName == "rc") )
+                    {
+                        configuration = "Release";
+                    }
 
                     Cake.Information("Publishing {0} projects with version={1} and configuration={2}: {3}",
                         projectsToPublish.Count(),
@@ -116,15 +125,12 @@ namespace CodeCake
                 .IsDependentOn("Restore-NuGet-Packages")
                 .Does(() =>
                 {
-                    foreach (var p in projects)
-                    {
-                        Cake.DotNetCoreBuild(p.Path.GetDirectory().FullPath,
-                            new DotNetCoreBuildSettings().AddVersionArguments(gitInfo, s =>
-                            {
-                                s.Configuration = configuration;
-                            }));
-                    }
-                });
+                    Cake.DotNetCoreBuild( solutionFileName,
+                        new DotNetCoreBuildSettings().AddVersionArguments( gitInfo, s =>
+                        {
+                            s.Configuration = configuration;
+                        } ) );
+                } );
 
             Task("Unit-Testing")
                 .IsDependentOn("Build")
@@ -135,25 +141,27 @@ namespace CodeCake
                             new
                             {
                                 ProjectPath = p.Path.GetDirectory(),
-                                NetCoreAppDll = p.Path.GetDirectory().CombineWithFilePath("bin/" + configuration + "/netcoreapp1.0/" + p.Name + ".dll"),
-                                Net451Exe = p.Path.GetDirectory().CombineWithFilePath("bin/" + configuration + "/net451/" + p.Name + ".exe"),
+                                NetCoreApp = p.Path.GetDirectory().CombineWithFilePath("bin/" + configuration + "/netcoreapp1.1/" + p.Name + ".dll"),
+                                Net451 = p.Path.GetDirectory().CombineWithFilePath("bin/" + configuration + "/net451/" + p.Name + ".dll"),
                             });
 
-                    foreach (var test in testDlls)
+                    foreach( var test in testDlls )
                     {
-                        using (Cake.Environment.SetWorkingDirectory(test.ProjectPath))
+                        if( System.IO.File.Exists( test.Net451.FullPath ) )
                         {
-                            Cake.Information("Testing: {0}", test.Net451Exe);
-                            Cake.NUnit(test.Net451Exe.FullPath, new NUnitSettings()
+                            Cake.Information( "Testing: {0}", test.Net451);
+                            Cake.NUnit( test.Net451.FullPath, new NUnitSettings()
                             {
-                                Framework = "v4.5",
-                                ResultsFile = test.ProjectPath.CombineWithFilePath("TestResult.Net451.xml")
-                            });
-                            Cake.Information("Testing: {0}", test.NetCoreAppDll);
-                            Cake.DotNetCoreExecute(test.NetCoreAppDll);
+                                Framework = "v4.5"
+                            } );
+                        }
+                        if( System.IO.File.Exists( test.NetCoreApp.FullPath ) )
+                        {
+                            Cake.Information( "Testing: {0}", test.NetCoreApp );
+                            Cake.DotNetCoreExecute( test.NetCoreApp );
                         }
                     }
-                });
+                } );
 
             Task("Create-NuGet-Packages")
                 .WithCriteria(() => gitInfo.IsValid)

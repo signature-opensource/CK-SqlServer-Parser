@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp1.1</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <OriginProjectName>CK.SqlServer.Parser.Tests</OriginProjectName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\CK.SqlServer.Parser\CK.SqlServer.Parser.csproj" />
+    <ProjectReference Include="..\CK.SqlServer.UtilTests\CK.SqlServer.UtilTests.csproj" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Compile Include="..\$(OriginProjectName)\**\*.cs" Exclude="..\$(OriginProjectName)\obj\**">
+      <Link>Include\%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <Visible>true</Visible>
+    </Compile>
+  </ItemGroup>
+  
+</Project>

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -457,6 +457,25 @@ identifer2";
                 var str = (SqlTokenLiteralString)t;
                 Assert.That( str.Value, Is.EqualTo( result ) );
             }
+        }
+
+        [TestCase( "0x", "[]" )]
+        [TestCase( @"0x1", "[1]" )]
+        [TestCase( @"0xF", "[15]" )]
+        [TestCase( @"0xFF", "[255]" )]
+        [TestCase( @"0xFF1", "[15,241]" )]
+        [TestCase( @"0xFFF", "[15,255]" )]
+        [TestCase( @"0xFFFF", "[255,255]" )]
+        [TestCase( @"0xFFFFF", "[15,255,255]" )]
+        public void literal_binary_values_are_handled_as_byte_array( string text, string result )
+        {
+            SqlTokenizer p = new SqlTokenizer();
+            var t = p.Parse( text ).Single( x => x.TokenType != SqlTokenType.EndOfInput );
+            Assert.That( t, Is.InstanceOf<SqlTokenLiteralBinary>() );
+            SqlBasicValue v = new SqlBasicValue( null, (SqlTokenLiteralBinary)t );
+            byte[] val = (byte[])v.NullOrLitteralDotNetValue;
+            var actual = "[" + val.Select( b => b.ToString() ).Concatenate(",") + "]";
+            Assert.That( actual, Is.EqualTo( result ) );
         }
 
     }

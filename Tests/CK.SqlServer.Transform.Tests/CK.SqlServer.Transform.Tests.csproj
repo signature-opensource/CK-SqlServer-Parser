@@ -3,9 +3,7 @@
   <Import Project="..\..\Common\Shared.props" />
 
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp1.0;net451</TargetFrameworks>
-    <OutputType>Exe</OutputType>
-    <RuntimeFrameworkVersion Condition=" '$(TargetFramework)' == 'netcoreapp1.0' ">1.1.1</RuntimeFrameworkVersion>
+    <TargetFrameworks>net451</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>
