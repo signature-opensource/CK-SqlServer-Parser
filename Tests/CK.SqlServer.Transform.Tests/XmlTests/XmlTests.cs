@@ -65,13 +65,13 @@ namespace CK.SqlServer.Transform.Tests.XmlTests
                         return null;
                     }
                     string actualText = e.ToString( true, true );
-                    using( TestHelper.ConsoleMonitor.OpenInfo().Send( "Expected Result" ) )
+                    using( TestHelper.ConsoleMonitor.OpenInfo( "Expected Result" ) )
                     {
-                        TestHelper.ConsoleMonitor.Trace().Send( ResultText );
+                        TestHelper.ConsoleMonitor.Trace( ResultText );
                     }
-                    using( TestHelper.ConsoleMonitor.OpenInfo().Send( "Actual Result" ) )
+                    using( TestHelper.ConsoleMonitor.OpenInfo( "Actual Result" ) )
                     {
-                        TestHelper.ConsoleMonitor.Trace().Send( actualText );
+                        TestHelper.ConsoleMonitor.Trace( actualText );
                     }
 
                     ISqlNode resultNode = ParseAndCheckSqlText( ResultText );
@@ -81,7 +81,7 @@ namespace CK.SqlServer.Transform.Tests.XmlTests
                     {
                         Assert.That( actual, Is.EqualTo( expected ) );
                     }
-                    if( actualText != ResultText ) TestHelper.ConsoleMonitor.Warn().Send( "Rendering is not perfect..." );
+                    if( actualText != ResultText ) TestHelper.ConsoleMonitor.Warn( "Rendering is not perfect..." );
                 }
                 return base.OnParsed( e );
             }

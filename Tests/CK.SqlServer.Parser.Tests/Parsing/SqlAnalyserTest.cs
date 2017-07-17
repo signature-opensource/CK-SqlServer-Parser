@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
@@ -41,7 +41,7 @@ namespace CK.SqlServer.Parser.Tests
 
             XElement visited = new SqlToXmlStatementVisitor().ToXml( "Statements", e );
             string visitedString = visited.ToString();
-            TestHelper.ConsoleMonitor.Trace().Send( visitedString );
+            TestHelper.ConsoleMonitor.Trace( visitedString );
             if( numberOfStatement != -1 )
             {
                 Assert.That( ((SqlStatementList)e).Count, Is.EqualTo( numberOfStatement ) );
@@ -68,14 +68,14 @@ namespace CK.SqlServer.Parser.Tests
                     var proc = p as ISqlServerStoredProcedure;
                     if( proc == null )
                     {
-                        using( TestHelper.ConsoleMonitor.OpenError().Send( "Found a " + p.GetType().Name ) )
+                        using( TestHelper.ConsoleMonitor.OpenError( "Found a " + p.GetType().Name ) )
                         {
-                            TestHelper.ConsoleMonitor.Trace().Send( p.ToString() );
+                            TestHelper.ConsoleMonitor.Trace( p.ToString() );
                             Assert.Fail( "Found a " + p.GetType().Name );
                         }
                     }
                     last = proc;
-                    TestHelper.ConsoleMonitor.Trace().Send( "Success: " + proc.ToStringSignature( true ) );
+                    TestHelper.ConsoleMonitor.Trace( "Success: " + proc.ToStringSignature( true ) );
                 }
                 var r = a.GetCurrentResult();
                 if( r.IsError )
@@ -212,13 +212,13 @@ namespace CK.SqlServer.Parser.Tests
                                 if( result.IsError )
                                 {
                                     result.LogOnError( TestHelper.ConsoleMonitor );
-                                    TestHelper.ConsoleMonitor.Trace().Send( fullBody );
+                                    TestHelper.ConsoleMonitor.Trace( fullBody );
                                 }
-                                else TestHelper.ConsoleMonitor.Trace().Send( "Successfuly parsed: " + result.Result.ToStringSignature( true ) );
+                                else TestHelper.ConsoleMonitor.Trace( "Successfuly parsed: " + result.Result.ToStringSignature( true ) );
                             }
                             catch( Exception ex )
                             {
-                                TestHelper.ConsoleMonitor.Fatal().Send( ex );
+                                TestHelper.ConsoleMonitor.Fatal( ex );
                             }
                         }
                     }

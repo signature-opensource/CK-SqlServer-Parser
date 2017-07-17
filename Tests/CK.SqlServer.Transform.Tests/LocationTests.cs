@@ -39,7 +39,7 @@ namespace CK.SqlServer.Transform.Tests
             {
                 List<SqlNodeLocation> locs;
                 ISqlNode n = new SqlAnalyser( text ).Parse( mode );
-                using( TestHelper.ConsoleMonitor.OpenInfo().Send( "GetAllLocations " + text ) )
+                using( TestHelper.ConsoleMonitor.OpenInfo( "GetAllLocations " + text ) )
                 {
                     var c = new AllLocations()
                     {
@@ -53,7 +53,7 @@ namespace CK.SqlServer.Transform.Tests
                         int i = 0;
                         foreach( var l in locs )
                         {
-                            TestHelper.ConsoleMonitor.Trace().Send( "[" + i++ + "] " + l.ToString() );
+                            TestHelper.ConsoleMonitor.Trace( "[" + i++ + "] " + l.ToString() );
                         }
                     }
                     CollectionAssert.AreEquivalent( locs.Select( l => l.ToString() ), afterLocs.Select( l => l.ToString() ) );

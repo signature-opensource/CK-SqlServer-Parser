@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
@@ -48,11 +48,11 @@ namespace CK.SqlServer.Parser
                 if( monitor == null ) throw new ArgumentNullException( "monitor" );
                 if( IsError )
                 {
-                    using( asWarning ? monitor.OpenWarn().Send( _errorMessage ) : monitor.OpenError().Send( _errorMessage ) )
+                    using( asWarning ? monitor.OpenWarn( _errorMessage ) : monitor.OpenError( _errorMessage ) )
                     {
                         // OpenError automatically sets the filter to Debug for the group, but not OpenWarn.
                         if( asWarning ) monitor.TemporarilySetMinimalFilter( LogFilter.Debug );
-                        monitor.Info().Send( _headSource );
+                        monitor.Info( _headSource );
                     }
                 }
             }

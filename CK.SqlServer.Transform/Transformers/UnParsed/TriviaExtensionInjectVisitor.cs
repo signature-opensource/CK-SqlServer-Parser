@@ -38,7 +38,7 @@ namespace CK.SqlServer.Transform.Transformers
             }
             if( VisitContext.Depth == 0  && _inserter.MatchCount == 0 )
             {
-                Monitor.Error().Send( $"Unable to find extension '{_injectInto.Target.Value}'." );
+                Monitor.Error( $"Unable to find extension '{_injectInto.Target.Value}'." );
             }
             return e;
         }

@@ -62,11 +62,11 @@ namespace CK.SqlServer.UtilTests
             {
                 if( ExpectedXml != null )
                 {
-                    using( TestHelper.ConsoleMonitor.OpenInfo().Send( "Checking detailed Xml." ) )
+                    using( TestHelper.ConsoleMonitor.OpenInfo( "Checking detailed Xml." ) )
                     {
                         XElement visited = new SqlToXmlVisitor( CombineElementType, ToStringCompactForms ).ToXml( "Sql", e );
                         string visitedString = visited.ToString();
-                        TestHelper.ConsoleMonitor.Trace().Send( visitedString );
+                        TestHelper.ConsoleMonitor.Trace( visitedString );
                         if( !XNode.DeepEquals( visited, ExpectedXml ) )
                         {
                             TestHelper.AssertXmlStringEqual( visitedString, ExpectedXml );
@@ -75,11 +75,11 @@ namespace CK.SqlServer.UtilTests
                 }
                 if( ExpectedStatementsXml != null )
                 {
-                    using( TestHelper.ConsoleMonitor.OpenInfo().Send( "Checking statements only Xml." ) )
+                    using( TestHelper.ConsoleMonitor.OpenInfo( "Checking statements only Xml." ) )
                     {
                         XElement visited = new SqlToXmlStatementVisitor().ToXml( "Statements", e );
                         string visitedString = visited.ToString();
-                        TestHelper.ConsoleMonitor.Trace().Send( visitedString );
+                        TestHelper.ConsoleMonitor.Trace( visitedString );
                         if( !XNode.DeepEquals( visited, ExpectedStatementsXml ) )
                         {
                             TestHelper.AssertXmlStringEqual( visitedString, ExpectedStatementsXml );
@@ -123,16 +123,16 @@ namespace CK.SqlServer.UtilTests
 
         public static void RunAllTests( string fileName, Func<XElement, XmlSqlTester> oneTestCreate, string folderName = "XmlTests" )
         {
-            using( TestHelper.ConsoleMonitor.OpenInfo().Send( $"Running {fileName}." ) )
+            using( TestHelper.ConsoleMonitor.OpenInfo( $"Running {fileName}." ) )
             {
                 XElement tests = XDocument.Load( TestHelper.BuildPathInCurrentTestProject( folderName, fileName ) ).Root;
                 int i = 0;
                 foreach( var t in tests.Elements( "Test" ) )
                 {
                     XmlSqlTester x = oneTestCreate( t );
-                    using( TestHelper.ConsoleMonitor.OpenInfo().Send( $"n°{i}-{x.Description} ({x.Mode.ToString()})" ) )
+                    using( TestHelper.ConsoleMonitor.OpenInfo( $"n°{i}-{x.Description} ({x.Mode.ToString()})" ) )
                     {
-                        TestHelper.ConsoleMonitor.Trace().Send( x.Text );
+                        TestHelper.ConsoleMonitor.Trace( x.Text );
                         x.ParseAndCheck();
                         ++i;
                     }

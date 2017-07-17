@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using NUnit.Framework;
 using CK.Core;
 using System;
@@ -57,11 +57,11 @@ namespace CK.SqlServer.UtilTests
                     if( value )
                     {
                         _monitor.Output.RegisterUniqueClient( c => c == _console, () => _console );
-                        _monitor.Info().Send( "Enabled Logs to console." );
+                        _monitor.Info( "Enabled Logs to console." );
                     }
                     else
                     {
-                        _monitor.Info().Send( "Disabled Logs to console." );
+                        _monitor.Info( "Disabled Logs to console." );
                         _monitor.Output.UnregisterClient( _console );
                     }
                 }

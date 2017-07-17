@@ -116,11 +116,11 @@ namespace CK.SqlServer.Transform
             {
                 if( RunStatement( t, scope ) )
                 {
-                    if( !(t is SqlTInScope) ) Monitor.Trace().Send( $"Successfully applied '{t.ToString()}'." );
+                    if( !(t is SqlTInScope) ) Monitor.Trace( $"Successfully applied '{t.ToString()}'." );
                 }
                 else
                 {
-                    Monitor.Error().Send( $"Failed to apply '{t.ToString()}'." );
+                    Monitor.Error( $"Failed to apply '{t.ToString()}'." );
                     return false;
                 }
             }
@@ -206,16 +206,16 @@ namespace CK.SqlServer.Transform
         /// <returns>True on success, false on error.</returns>
         public bool Reparse()
         {
-            using( _monitor.OpenTrace().Send( "Parsing transformation result." ) )
+            using( _monitor.OpenTrace( "Parsing transformation result." ) )
             {
                 string text = _root.Node.ToString( true, true );
                 ISqlNode newOne;
                 var result = SqlAnalyser.Parse( out newOne, ParseMode.OneOrMoreStatements, text );
                 if( result.IsError )
                 {
-                    using( _monitor.OpenError().Send( result.ErrorMessage ) )
+                    using( _monitor.OpenError( result.ErrorMessage ) )
                     {
-                        _monitor.Trace().Send( text );
+                        _monitor.Trace( text );
                     }
                     return false;
                 }

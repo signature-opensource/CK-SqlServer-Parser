@@ -9,8 +9,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CK.ActivityMonitor.StandardSender" Version="7.0.0" />
-    <PackageReference Include="CK.SqlServer.Parser.Model" Version="3.2.4" />
+    <PackageReference Include="CK.ActivityMonitor.SimpleSender" Version="8.0.0" />
+    <PackageReference Include="CK.SqlServer.Parser.Model" Version="3.2.5" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.3' ">
