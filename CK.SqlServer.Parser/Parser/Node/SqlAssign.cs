@@ -8,7 +8,7 @@ using System.Text;
 
 namespace CK.SqlServer.Parser
 {
-    public sealed class SqlAssign : SqlNonToken
+    public sealed class SqlAssign : SqlNonTokenAutoWidth
     {
         readonly SNode<ISqlNode, SqlTokenTerminal, ISqlNode> _content;
 

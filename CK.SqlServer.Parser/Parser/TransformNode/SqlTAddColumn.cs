@@ -15,7 +15,7 @@ namespace CK.SqlServer.Parser
             SelectColumnList,
             SqlTokenTerminal>;
 
-    public sealed class SqlTAddColumn : SqlNonToken, ISqlTStatement
+    public sealed class SqlTAddColumn : SqlNonTokenAutoWidth, ISqlTStatement
     {
          readonly CNode _content;
 

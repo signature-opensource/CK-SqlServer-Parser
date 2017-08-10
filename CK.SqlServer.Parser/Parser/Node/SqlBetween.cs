@@ -13,7 +13,7 @@ namespace CK.SqlServer.Parser
     /// <summary>
     /// 
     /// </summary>
-    public sealed class SqlBetween : SqlNonToken
+    public sealed class SqlBetween : SqlNonTokenAutoWidth
     {
         readonly SNode<ISqlNode, SqlTokenIdentifier, SqlTokenIdentifier, ISqlNode, SqlTokenIdentifier, ISqlNode> _content;
 

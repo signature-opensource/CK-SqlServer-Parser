@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -244,7 +244,7 @@ namespace CK.SqlServer.Parser
         /// <returns>The writer itself.</returns>
         public static ISqlTextWriter Write( this IEnumerable<ISqlNode> @this, ISqlTextWriter w )
         {
-            foreach( var n in @this ) n.Write( w );
+            foreach( var n in @this ) n?.Write( w );
             return w;
         }
 

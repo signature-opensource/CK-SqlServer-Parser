@@ -13,7 +13,7 @@ namespace CK.SqlServer.Parser
     /// <summary>
     /// Enclosable list of separated T (relies on <see cref="ISqlStructurallyEnclosed"/>).
     /// </summary>
-    public abstract class ASqlNodeEnclosableSeparatedList<TOpener,T,TSep,TCloser> : SqlNonToken, ISqlEnclosable, IReadOnlyList<T>
+    public abstract class ASqlNodeEnclosableSeparatedList<TOpener,T,TSep,TCloser> : SqlNonTokenAutoWidth, ISqlEnclosable, IReadOnlyList<T>
         where TOpener : class, ISqlNode
         where T : class, ISqlNode
         where TSep : class, ISqlNode

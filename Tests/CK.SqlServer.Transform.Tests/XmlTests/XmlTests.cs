@@ -74,7 +74,7 @@ namespace CK.SqlServer.Transform.Tests.XmlTests
                         TestHelper.ConsoleMonitor.Trace( actualText );
                     }
 
-                    ISqlNode resultNode = ParseAndCheckSqlText( ResultText );
+                    ISqlNode resultNode = ParseAndCheckSqlText( ResultText, ResultText );
                     string actual = e.ToStringHyperCompact();
                     string expected = resultNode.ToStringHyperCompact();
                     if( actual != expected )

@@ -17,7 +17,7 @@ namespace CK.SqlServer.Parser
             SqlTokenIdentifier,
             SqlTokenTerminal>;
 
-    public sealed class SqlTAddParameter : SqlNonToken, ISqlTStatement
+    public sealed class SqlTAddParameter : SqlNonTokenAutoWidth, ISqlTStatement
     {
          readonly CNode _content;
 

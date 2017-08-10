@@ -15,6 +15,10 @@ namespace CK.SqlServer.UtilTests
     {
         public readonly XElement TestElement;
         public readonly string Text;
+        /// <summary>
+        /// If &lt;AutoCorrectedText&gt; is not present, defaults to Text.
+        /// </summary>
+        public readonly string AutoCorrectedText;
         public readonly string Description;
         public readonly ParseMode Mode;
 
@@ -29,7 +33,8 @@ namespace CK.SqlServer.UtilTests
             TestElement = t;
             Mode = t.AttributeEnum( "Mode", ParseMode.OneOrMoreStatements );
             // TrimEnd the text because the last trivia is skipped.
-            Text = t.Element( "Text" ).Value.TrimEnd().NormalizeEOL();
+            Text = ((string)t.Element( "Text" )).TrimEnd().NormalizeEOL();
+            AutoCorrectedText = ((string)t.Element( "AutoCorrectedText" ))?.TrimEnd().NormalizeEOL() ?? Text;
             Description = t.Elements( "Description" ).Select( e => e.Value.NormalizeEOL() ).FirstOrDefault();
 
             XElement xmlTestElement = t.Element( "Xml" );
@@ -56,7 +61,7 @@ namespace CK.SqlServer.UtilTests
 
         public virtual void ParseAndCheck()
         {
-            ISqlNode e = ParseAndCheckSqlText( Text );
+            ISqlNode e = ParseAndCheckSqlText( Text, AutoCorrectedText );
             e = OnParsed( e );
             if( e != null )
             {
@@ -89,24 +94,24 @@ namespace CK.SqlServer.UtilTests
             }
         }
 
-        protected ISqlNode ParseAndCheckSqlText( string text )
+        protected ISqlNode ParseAndCheckSqlText( string text, string rewrittenText )
         {
             ISqlNode e;
             SqlAnalyser.ErrorResult r = SqlAnalyser.Parse( out e, Mode, text );
             Assert.That( r.IsError, Is.False, r.ToString() );
             string backFromTree = e.ToString( true, true );
-            if( backFromTree != text )
+            if( backFromTree != rewrittenText )
             {
                 var tokens = new SqlTokenizer().Parse( text )
                                 .Where( t => t.TokenType != SqlTokenType.EndOfInput )
                                 .ToList();
 
                 string backFromTokens = string.Join( "", tokens.Select( t => t.ToString( true, true ) ) );
-                if( backFromTokens != text )
+                if( backFromTokens != rewrittenText )
                 {
-                    Assert.That( backFromTokens, Is.EqualTo( text ), "Bug in tokenizer." );
+                    Assert.That( backFromTokens, Is.EqualTo( rewrittenText ), "Bug in tokenizer." );
                 }
-                Assert.That( backFromTree, Is.EqualTo( text ), "Bug in parser." );
+                Assert.That( backFromTree, Is.EqualTo( rewrittenText ), "Bug in parser." );
             }
             return e;
         }

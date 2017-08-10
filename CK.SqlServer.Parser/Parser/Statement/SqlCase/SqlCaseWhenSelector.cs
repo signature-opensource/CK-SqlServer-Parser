@@ -14,7 +14,7 @@ namespace CK.SqlServer.Parser
     /// <summary>
     /// Defines "when Expression then Value" items of <see cref="SqlCase"/> expression.
     /// </summary>
-    public sealed class SqlCaseWhenSelector : SqlNonToken
+    public sealed class SqlCaseWhenSelector : SqlNonTokenAutoWidth
     {
         readonly CNode _content;
 

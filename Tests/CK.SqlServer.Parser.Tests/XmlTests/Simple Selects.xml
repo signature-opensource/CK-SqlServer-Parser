@@ -3,6 +3,71 @@
 
   <Test Mode="OneExpression">
     <Text>
+      SELECT TOP(1) * FROM ttt
+    </Text>
+    <Description>
+      Top(1) (with parentheses) and star.
+      The parentheses are required.
+    </Description>
+    <Xml ToStringCompact="Top, Columns, From">
+      <Sql>
+        <SelectSpec>
+          <Top>(1)</Top>
+          <Columns>*</Columns>
+          <From>FROM ttt</From>
+        </SelectSpec>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test Mode="OneExpression">
+    <Text>
+      SELECT TOP 1 PERCENT * FROM ttt
+    </Text>
+    <AutoCorrectedText>
+      SELECT TOP (1) PERCENT * FROM ttt
+    </AutoCorrectedText>
+    <Description>
+      Top 1 (no parentheses) with star at the beginning.
+      Parentheses are automatically added.
+      This does not fail: PERCENT exits the IsOneExpression parse.
+    </Description>
+    <Xml ToStringCompact="Top, Columns, From">
+      <Sql>
+        <SelectSpec>
+           <Top>(1) PERCENT</Top>
+           <Columns>*</Columns>
+           <From>FROM ttt</From>
+        </SelectSpec>
+      </Sql>
+    </Xml>
+  </Test>
+
+  <Test Mode="OneExpression">
+    <Text>
+      SELECT TOP 1 abs(93), * FROM ttt
+    </Text>
+    <AutoCorrectedText>
+      SELECT TOP (1) abs(93), * FROM ttt
+    </AutoCorrectedText>
+    <Description>
+      Top 1 (no parentheses) with star at the end.
+      Parentheses are automatically added.
+      This does not fail: abs exits the IsOneExpression parse.
+    </Description>
+    <Xml ToStringCompact="Top, Columns, From">
+      <Sql>
+        <SelectSpec>
+          <Top>(1)</Top>
+          <Columns>abs(93), *</Columns>
+          <From>FROM ttt</From>
+        </SelectSpec>
+      </Sql>
+    </Xml>
+  </Test>
+  
+  <Test Mode="OneExpression">
+    <Text>
       select'u''u'as'b''b'
     </Text>
     <Description>Strange column naming.</Description>

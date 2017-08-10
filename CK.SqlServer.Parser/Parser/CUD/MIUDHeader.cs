@@ -12,7 +12,7 @@ namespace CK.SqlServer.Parser
     /// <summary>
     /// Captures {INSERT|UPDATE|MERGE|DELETE} [ TOP ( expression ) [ PERCENT ] ] 
     /// </summary>
-    public sealed class MIUDHeader : SqlNonToken
+    public sealed class MIUDHeader : SqlNonTokenAutoWidth
     {
         readonly SNode<SqlTokenIdentifier, SqlTokenIdentifier, ISqlNode, SqlTokenIdentifier> _content;
 

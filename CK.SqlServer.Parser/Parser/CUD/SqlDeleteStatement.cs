@@ -12,7 +12,7 @@ namespace CK.SqlServer.Parser
     /// <summary>
     /// 
     /// </summary>
-    public sealed class SqlDeleteStatement : SqlNonToken, ISqlNamedStatement
+    public sealed class SqlDeleteStatement : SqlNonTokenAutoWidth, ISqlNamedStatement
     {
         readonly SNode<
             MIUDHeader,

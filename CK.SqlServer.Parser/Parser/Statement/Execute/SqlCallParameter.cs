@@ -13,7 +13,7 @@ namespace CK.SqlServer.Parser
     /// <summary>
     /// Captures a call parameter.
     /// </summary>
-    public sealed class SqlCallParameter : SqlNonToken
+    public sealed class SqlCallParameter : SqlNonTokenAutoWidth
     {
         readonly CNode _content;
 

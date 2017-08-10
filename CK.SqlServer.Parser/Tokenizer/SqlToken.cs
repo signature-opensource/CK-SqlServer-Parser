@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -53,6 +53,9 @@ namespace CK.SqlServer.Parser
 
         public override sealed IEnumerable<ISqlNode> TrailingNodes => Util.Array.Empty<ISqlNode>();
 
+        /// <summary>
+        /// Gets always 1: the width of a token.
+        /// </summary>
         public override sealed int Width => 1;
 
         /// <summary>

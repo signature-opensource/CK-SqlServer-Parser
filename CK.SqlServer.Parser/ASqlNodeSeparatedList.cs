@@ -13,7 +13,7 @@ namespace CK.SqlServer.Parser
     /// <summary>
     /// Generic list of T separated by TSep.
     /// </summary>
-    public abstract class ASqlNodeSeparatedList<T,TSep> : SqlNonToken, IReadOnlyList<T>
+    public abstract class ASqlNodeSeparatedList<T,TSep> : SqlNonTokenAutoWidth, IReadOnlyList<T>
         where T : class, ISqlNode 
         where TSep : class, ISqlNode
     {

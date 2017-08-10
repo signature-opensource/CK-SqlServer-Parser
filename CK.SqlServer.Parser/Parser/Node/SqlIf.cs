@@ -9,7 +9,7 @@ using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
-    public sealed class SqlIf : SqlNonToken, ISqlNamedStatement
+    public sealed class SqlIf : SqlNonTokenAutoWidth, ISqlNamedStatement
     {
         readonly SNode<
             SqlTokenIdentifier, 

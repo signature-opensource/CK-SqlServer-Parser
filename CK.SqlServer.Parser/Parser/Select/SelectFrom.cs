@@ -12,7 +12,7 @@ namespace CK.SqlServer.Parser
     /// <summary>
     /// Captures the optional "From ..." select part.
     /// </summary>
-    public sealed class SelectFrom : SqlNonToken
+    public sealed class SelectFrom : SqlNonTokenAutoWidth
     {
         readonly SNode<SqlTokenIdentifier, ISqlNode> _content;
 

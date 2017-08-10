@@ -1,6 +1,67 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <Tests>
 
+
+  <Test>
+    <Text>
+      <![CDATA[
+      -- SetupConfig: { "Requires": [ "Dawk.vProductOldestVersion" ] }
+      alter view Dawk.vProductMonthlySalesEstimation
+      as
+      SELECT
+      p.ASIN,
+      p.ProductId,
+      IIF(pold.ProductId is not null  and pold.ReviewRatingCount > p.ReviewRatingCount, 'FromHistory', 'FromDate') as EstimationType,
+      IIF(
+      -- if we find a product version eligible for estimation from history we compute monthly sales from it
+      pold.ProductId is not null
+      -- when Amazon regulates reviews we can have negative offsets, in this case we estimate using product publication date
+      and pold.ReviewRatingCount < p.ReviewRatingCount,  
+			cast(round(((p.ReviewRatingCount - pold.ReviewRatingCount) * 30 / datediff(day, pold.ValidFrom, p.ValidFrom) / 0.07) * (
+				-- using average price from this version date to now
+				select avg(Price) as AvgPrice
+				from Dawk.tProduct for system_time all historic
+				where ProductId = p.ProductId
+					and ValidFrom >= pold.ValidFrom
+				group by ProductId
+			), 0) as int),
+			-- if no eligible product version: we use the product publication date to compute an average review count per month, 
+		    cast(round(p.ReviewRatingCount * 30 / datediff(day, p.ProductAgeDate, getutcdate()) / 0.07 * (
+				-- using average price from all history
+				select avg(Price) as AvgPrice
+				from Dawk.tProduct for system_time all 
+				where ProductId = p.ProductId
+				group by ProductId
+			), 0) as int)
+	    ) as EstimatedMonthlySales
+
+        FROM Dawk.tProduct p 
+	
+		-- join on product history looking for an aligible product version nearest from 30 days ago where review count was different from current version (limited between 15 to 45 days ago)
+        left outer join 
+		(
+			select p.ProductId, ph.ReviewRatingCount, ph.ValidFrom
+			from Dawk.tProduct p
+			outer apply (
+				select top(1) *, 
+			        abs(datediff(day, ph.ValidFrom, DATEADD(day, -30, GETUTCDATE()))) as TimeDistance
+				from Dawk.tProductHistory ph
+				where p.ProductId = ph.ProductId
+				and ph.ValidFrom < p.ValidFrom
+				and ph.ValidFrom >= DATEADD(day, -45, GETUTCDATE()) 
+				and ph.ValidFrom <= DATEADD(day, -15, GETUTCDATE())
+      and p.ReviewRatingCount <> ph.ReviewRatingCount
+      order by TimeDistance asc
+      ) as ph
+
+      ) pold on pold.ProductId = p.ProductId
+      ]]>
+    </Text>
+    <Description>Many thanks to Isaac for this marvellous view.</Description>
+    <Xml ToStringCompact="ColumnNames,FullName,Select">
+    </Xml>
+  </Test>
+  
   <Test>
     <Text>
       create view CKonstV.vAll(Cost, VName, Detail) 

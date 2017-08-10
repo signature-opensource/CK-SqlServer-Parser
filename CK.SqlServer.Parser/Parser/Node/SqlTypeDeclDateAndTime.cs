@@ -11,7 +11,7 @@ using CK.Core;
 
 namespace CK.SqlServer.Parser
 {
-    public sealed class SqlTypeDeclDateAndTime : SqlNonToken, ISqlUnifiedTypeDecl
+    public sealed class SqlTypeDeclDateAndTime : SqlNonTokenAutoWidth, ISqlUnifiedTypeDecl
     {
         readonly SNode<SqlTokenIdentifier, SqlTokenOpenPar, SqlTokenLiteralInteger, SqlTokenClosePar> _content;
 

@@ -13,7 +13,7 @@ namespace CK.SqlServer.Parser
     /// <summary>
     /// 
     /// </summary>
-    public class SqlIsNull : SqlNonToken
+    public class SqlIsNull : SqlNonTokenAutoWidth
     {
         readonly SNode<ISqlNode, SqlTokenIdentifier, SqlTokenIdentifier, SqlTokenIdentifier> _content;
 

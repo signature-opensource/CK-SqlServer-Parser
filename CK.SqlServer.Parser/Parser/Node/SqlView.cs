@@ -18,7 +18,7 @@ namespace CK.SqlServer.Parser
                         SqlNodeList,
                         SqlTokenTerminal>;
 
-    public sealed class SqlView : SqlNonToken, ISqlNamedStatement, ISqlServerView, ISqlFullNameHolder, ISqlServerObjectOptions
+    public sealed class SqlView : SqlNonTokenAutoWidth, ISqlNamedStatement, ISqlServerView, ISqlFullNameHolder, ISqlServerObjectOptions
     {
         readonly CNode _content;
         // Cached formal columns.

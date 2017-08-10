@@ -12,7 +12,7 @@ namespace CK.SqlServer.Parser
     /// <summary>
     /// Handles "GRANT perm TO target" statement. 
     /// </summary>
-    public sealed class SqlGrant : SqlNonToken, ISqlNamedStatement
+    public sealed class SqlGrant : SqlNonTokenAutoWidth, ISqlNamedStatement
     {
         readonly SNode<SqlTokenIdentifier, SqlNodeList, SqlTokenIdentifier, SqlNodeList, SqlTokenTerminal> _content;
 

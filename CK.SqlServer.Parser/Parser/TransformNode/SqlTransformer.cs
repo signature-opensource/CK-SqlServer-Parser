@@ -20,7 +20,7 @@ namespace CK.SqlServer.Parser
             SqlTokenIdentifier,
             SqlTokenTerminal>;
 
-    public sealed class SqlTransformer : SqlNonToken, ISqlNamedStatement, ISqlServerTransformer, ISqlFullNameHolder
+    public sealed class SqlTransformer : SqlNonTokenAutoWidth, ISqlNamedStatement, ISqlServerTransformer, ISqlFullNameHolder
     {
         readonly CNode _content;
 

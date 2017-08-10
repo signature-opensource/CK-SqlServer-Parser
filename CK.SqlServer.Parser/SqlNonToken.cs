@@ -8,20 +8,48 @@ using System.Threading.Tasks;
 
 namespace CK.SqlServer.Parser
 {
-    /// <summary>
-    /// Supports <see cref="Width"/> automatic computation.
-    /// </summary>
-    public abstract class SqlNonToken : SqlNonTokenBase
+    public abstract class SqlNonToken : SqlNode
     {
-        int _width;
-
         protected SqlNonToken( ImmutableList<SqlTrivia> leading = null, ImmutableList<SqlTrivia> trailing = null )
             : base( leading, trailing )
         {
-            _width = -1;
         }
 
-        public override sealed int Width => _width == -1 ? (_width = ChildrenNodes.Select( c => c.Width ).Sum()) : _width;
+        public override sealed bool IsToken( SqlTokenType t ) => false;
+
+        public override sealed IEnumerable<ISqlNode> LeadingNodes
+        {
+            get
+            {
+                ISqlNode n = this;
+                for( ;;)
+                {
+                    yield return n;
+                    if( n.ChildrenNodes.Count == 0 ) yield break;
+                    n = n.ChildrenNodes[0];
+                }
+            }
+        }
+
+        public override sealed IEnumerable<ISqlNode> TrailingNodes
+        {
+            get
+            {
+                ISqlNode n = this;
+                for( ;;)
+                {
+                    yield return n;
+                    if( n.ChildrenNodes.Count == 0 ) yield break;
+                    n = n.ChildrenNodes[n.ChildrenNodes.Count - 1];
+                }
+            }
+        }
+
+        public override sealed IEnumerable<SqlTrivia> FullLeadingTrivias => LeadingNodes.SelectMany( n => n.LeadingTrivias );
+
+        public override sealed IEnumerable<SqlTrivia> FullTrailingTrivias => TrailingNodes.Reverse().SelectMany( n => n.TrailingTrivias );
+
+        public override sealed IEnumerable<SqlToken> AllTokens => ChildrenNodes.ToTokens();
 
     }
 }

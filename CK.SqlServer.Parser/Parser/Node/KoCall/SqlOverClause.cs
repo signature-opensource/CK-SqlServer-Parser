@@ -13,7 +13,7 @@ namespace CK.SqlServer.Parser
     /// <summary>
     /// Captures a select column definition. 
     /// </summary>
-    public sealed class SqlOverClause : SqlNonToken
+    public sealed class SqlOverClause : SqlNonTokenAutoWidth
     {
         readonly CNode _content;
 

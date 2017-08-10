@@ -12,7 +12,7 @@ namespace CK.SqlServer.Parser
     /// <summary>
     /// Label definition (a target for the goto).
     /// </summary>
-    public sealed class SqlLabelDefinition : SqlNonToken, ISqlNamedStatement
+    public sealed class SqlLabelDefinition : SqlNonTokenAutoWidth, ISqlNamedStatement
     {
         readonly SNode<SqlTokenIdentifier, SqlTokenTerminal> _content;
 

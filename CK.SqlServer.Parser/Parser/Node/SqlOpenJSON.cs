@@ -10,7 +10,7 @@ using System.Collections.Immutable;
 namespace CK.SqlServer.Parser
 {
 
-    public sealed class SqlOpenJSON : SqlNonToken
+    public sealed class SqlOpenJSON : SqlNonTokenAutoWidth
     {
         readonly SNode<SqlTokenIdentifier, SqlEnclosedCommaList, SqlWithParOptions> _content;
 

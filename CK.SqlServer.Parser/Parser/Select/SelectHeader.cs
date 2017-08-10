@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -9,21 +9,37 @@ using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
+    using CNode = SNode<
+        SqlTokenIdentifier, 
+        SqlTokenIdentifier, 
+        SqlTokenIdentifier,
+        SqlPar, 
+        SqlTokenIdentifier, 
+        SqlTokenIdentifier, 
+        SqlTokenIdentifier>;
+    
     /// <summary>
     /// Captures SELECT [ ALL | DISTINCT ] [TOP ( expression ) [PERCENT] [ WITH TIES ] ] 
     /// </summary>
-    public sealed class SelectHeader : SqlNonToken
+    public sealed class SelectHeader : SqlNonTokenAutoWidth
     {
-        readonly SNode<SqlTokenIdentifier, SqlTokenIdentifier, SqlTokenIdentifier, ISqlNode, SqlTokenIdentifier, SqlTokenIdentifier, SqlTokenIdentifier> _content;
+        readonly CNode _content;
 
-        public SelectHeader( SqlTokenIdentifier select, SqlTokenIdentifier allOrDistinct = null, SqlTokenIdentifier top = null, ISqlNode topExpression = null, SqlTokenIdentifier percent = null, SqlTokenIdentifier with = null, SqlTokenIdentifier ties = null )
+        public SelectHeader( 
+            SqlTokenIdentifier select, 
+            SqlTokenIdentifier allOrDistinct = null, 
+            SqlTokenIdentifier top = null, 
+            SqlPar topExpression = null,
+            SqlTokenIdentifier percent = null, 
+            SqlTokenIdentifier with = null, 
+            SqlTokenIdentifier ties = null )
             : base( null, null )
         {
-            _content = new SNode<SqlTokenIdentifier, SqlTokenIdentifier, SqlTokenIdentifier, ISqlNode, SqlTokenIdentifier, SqlTokenIdentifier, SqlTokenIdentifier>(
+            _content = new CNode(
                 select, 
                 allOrDistinct, 
                 top, 
-                topExpression, 
+                topExpression,
                 percent, 
                 with, 
                 ties );
@@ -36,7 +52,7 @@ namespace CK.SqlServer.Parser
             if( items == null ) _content = o._content;
             else
             {
-                _content = new SNode<SqlTokenIdentifier, SqlTokenIdentifier, SqlTokenIdentifier, ISqlNode, SqlTokenIdentifier, SqlTokenIdentifier, SqlTokenIdentifier>( items );
+                _content = new CNode( items );
                 CheckContent();
             }
         }
@@ -51,7 +67,8 @@ namespace CK.SqlServer.Parser
             Helper.CheckToken( SelectT, nameof( SelectT ), SqlTokenType.Select );
             Helper.CheckNullableToken( AllOrDistinctT, nameof( AllOrDistinctT ), SqlTokenType.All, SqlTokenType.Distinct );
             Helper.CheckNullableToken( TopT, nameof( TopT ), SqlTokenType.Top );
-            Helper.CheckBothNullOrNot( TopT, nameof( TopT ), TopExpression, nameof(TopExpression) );
+            Helper.CheckBothNullOrNot( TopT, nameof( TopT ), TopExpression, nameof( TopExpression ) );
+
             Helper.CheckNullableToken( PercentT, nameof( PercentT ), SqlTokenType.Percent );
             Helper.CheckNullableToken( WithT, nameof( WithT ), SqlTokenType.With );
             Helper.CheckNullableToken( TiesT, nameof( TiesT ), SqlTokenType.Ties );
@@ -68,7 +85,7 @@ namespace CK.SqlServer.Parser
 
         public SqlTokenIdentifier TopT => _content.V3;
 
-        public ISqlNode TopExpression => _content.V4;
+        public SqlPar TopExpression => _content.V4;
 
         public SqlTokenIdentifier PercentT => _content.V5;
 

@@ -19,7 +19,7 @@ namespace CK.SqlServer.Parser
     /// <summary>
     /// Injects unparsed text into a named fragment.
     /// </summary>
-    public sealed class SqlTInjectInto : SqlNonToken, ISqlTStatement
+    public sealed class SqlTInjectInto : SqlNonTokenAutoWidth, ISqlTStatement
     {
         readonly CNode _content;
 

@@ -11,7 +11,7 @@ namespace CK.SqlServer.Parser
 {
     using CNode = SNode<SqlTypedIdentifier, SqlTokenTerminal, ISqlNode>;
 
-    public sealed class SqlVariableDeclaration : SqlNonToken
+    public sealed class SqlVariableDeclaration : SqlNonTokenAutoWidth
     {
         readonly CNode _content;
 

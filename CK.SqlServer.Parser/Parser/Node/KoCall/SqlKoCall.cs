@@ -10,7 +10,7 @@ namespace CK.SqlServer.Parser
 {
     using CNode = SNode<ISqlNode, SqlEnclosedCommaList, SqlOverClause>;
 
-    public sealed class SqlKoCall : SqlNonToken
+    public sealed class SqlKoCall : SqlNonTokenAutoWidth
     {
         readonly CNode _content;
 

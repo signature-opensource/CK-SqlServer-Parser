@@ -9,7 +9,7 @@ using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
-    public sealed class SqlParameter : SqlNonToken, ISqlServerParameter
+    public sealed class SqlParameter : SqlNonTokenAutoWidth, ISqlServerParameter
     {
         readonly SNode<SqlTypedIdentifier, SqlTokenTerminal, SqlBasicValue, SqlTokenIdentifier, SqlTokenIdentifier> _content;
         readonly SqlTokenType _inputTrivia;

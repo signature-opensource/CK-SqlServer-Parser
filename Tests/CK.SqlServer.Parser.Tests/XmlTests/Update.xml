@@ -30,7 +30,6 @@
     </Xml>
   </Test>
 
-
   <Test>
     <Text>
       UPDATE HumanResources.Employee
@@ -39,6 +38,13 @@
       ORDER BY HireDate ASC) AS th
       WHERE HumanResources.Employee.BusinessEntityID = th.BusinessEntityID
     </Text>
+    <AutoCorrectedText>
+      UPDATE HumanResources.Employee
+      SET VacationHours = VacationHours + 8
+      FROM (SELECT TOP (10) BusinessEntityID FROM HumanResources.Employee
+      ORDER BY HireDate ASC) AS th
+      WHERE HumanResources.Employee.BusinessEntityID = th.BusinessEntityID
+    </AutoCorrectedText>
     <Description>Using the TOP clause</Description>
     <Xml ToStringCompact="From,WhereExpression,Assigns">
       <Sql>
@@ -47,7 +53,7 @@
             <MultiIdentifier>HumanResources.Employee</MultiIdentifier>
           </Target>
           <Assigns>VacationHours=VacationHours+8</Assigns>
-          <From>FROM(SELECT TOP 10 BusinessEntityID FROM HumanResources.Employee ORDER BY HireDate ASC) AS th</From>
+          <From>FROM(SELECT TOP(10) BusinessEntityID FROM HumanResources.Employee ORDER BY HireDate ASC) AS th</From>
           <WhereExpression>HumanResources.Employee.BusinessEntityID=th.BusinessEntityID</WhereExpression>
         </UpdateStatement>
       </Sql>

@@ -12,7 +12,7 @@ namespace CK.SqlServer.Parser
     /// Captures a select column definition: it is either 'definition as name', 'name = definition' or the definition alone.
     /// The horrible syntax 'definition name' is also supported.
     /// </summary>
-    public sealed class SelectColumn : SqlNonToken
+    public sealed class SelectColumn : SqlNonTokenAutoWidth
     {
         readonly ISqlNode[] _items;
         readonly SqlToken _colName;
