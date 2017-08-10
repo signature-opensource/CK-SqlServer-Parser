@@ -15,10 +15,6 @@ namespace CK.SqlServer.UtilTests
     {
         public readonly XElement TestElement;
         public readonly string Text;
-        /// <summary>
-        /// If &lt;AutoCorrectedText&gt; is not present, defaults to Text.
-        /// </summary>
-        public readonly string AutoCorrectedText;
         public readonly string Description;
         public readonly ParseMode Mode;
 
@@ -27,6 +23,11 @@ namespace CK.SqlServer.UtilTests
         public readonly string[] ToStringCompactForms;
 
         public readonly XElement ExpectedStatementsXml;
+
+        /// <summary>
+        /// If &lt;AutoCorrectedText&gt; is not present, defaults to Text.
+        /// </summary>
+        public readonly string AutoCorrectedText;
 
         public XmlSqlTester( XElement t )
         {

@@ -36,6 +36,8 @@ namespace CK.SqlServer.Transform.Tests.XmlTests
                     }
                     else
                     {
+                        //var autoC = ((string)e.Element( "AutoCorrectedDescription" ))?.TrimEnd().NormalizeEOL();
+                        //if( autoC != null ) AutoCorrectedText = autoC;
                         SqlTransformer t = ParseTransformer( Description );
                         Transformer = n =>
                         {
@@ -64,6 +66,7 @@ namespace CK.SqlServer.Transform.Tests.XmlTests
                         Assert.That( all, Does.Contain( errContains ), "Expected error not found." );
                         return null;
                     }
+                    if( e == null ) Assert.Fail( "Transformer failed." );
                     string actualText = e.ToString( true, true );
                     using( TestHelper.ConsoleMonitor.OpenInfo( "Expected Result" ) )
                     {
