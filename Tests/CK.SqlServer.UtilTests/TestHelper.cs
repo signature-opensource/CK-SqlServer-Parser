@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using NUnit.Framework;
 using CK.Core;
 using System;
@@ -14,7 +14,7 @@ using System.Collections.Generic;
 
 namespace CK.SqlServer.UtilTests
 {
-#if NET451
+#if NET461
     public static class Does
     {
         public static SubstringConstraint Contain(string expected) => Is.StringContaining(expected);
