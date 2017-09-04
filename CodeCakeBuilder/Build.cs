@@ -1,4 +1,4 @@
-﻿using Cake.Common.Build;
+using Cake.Common.Build;
 using Cake.Common.Diagnostics;
 using Cake.Common.IO;
 using Cake.Common.Solution;
@@ -115,28 +115,32 @@ namespace CodeCake
                  {
                      Cake.CreateDirectory( releasesDir );
                      var testDlls = projects.Where( p => p.Name.EndsWith( ".Tests" ) ).Select( p =>
-                                 new
+                             new
                              {
                                  ProjectPath = p.Path.GetDirectory(),
-                                 NetCoreApp = p.Path.GetDirectory().CombineWithFilePath( "bin/" + configuration + "/netcoreapp1.1/" + p.Name + ".dll" ),
-                                 Net451 = p.Path.GetDirectory().CombineWithFilePath( "bin/" + configuration + "/net451/" + p.Name + ".dll" ),
+                                 NetCoreApp = p.Path.GetDirectory().CombineWithFilePath( "bin/" + configuration + "/netcoreapp2.0/" + p.Name + ".dll" ),
+                                 Net461 = p.Path.GetDirectory().CombineWithFilePath( "bin/" + configuration + "/net461/" + p.Name + ".dll" ),
                              } );
 
                      foreach( var test in testDlls )
                      {
-                         if( System.IO.File.Exists( test.Net451.FullPath ) )
+                         bool foundTest = false;
+                         if( System.IO.File.Exists( test.Net461.FullPath ) )
                          {
-                             Cake.Information( "Testing: {0}", test.Net451 );
-                             Cake.NUnit( test.Net451.FullPath, new NUnitSettings()
+                             Cake.Information( $"Testing: {test.Net461}" );
+                             Cake.NUnit( test.Net461.FullPath, new NUnitSettings()
                              {
                                  Framework = "v4.5"
                              } );
+                             foundTest = true;
                          }
                          if( System.IO.File.Exists( test.NetCoreApp.FullPath ) )
                          {
-                             Cake.Information( "Testing: {0}", test.NetCoreApp );
+                             Cake.Information( $"Testing: {test.NetCoreApp}" );
                              Cake.DotNetCoreExecute( test.NetCoreApp );
+                             foundTest = true;
                          }
+                         if( !foundTest ) Cake.Error( $"Tests not found {test.ProjectPath}." );
                      }
                  } );
 
