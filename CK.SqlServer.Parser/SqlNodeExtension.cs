@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -130,12 +130,17 @@ namespace CK.SqlServer.Parser
         }
 
         /// <summary>
-        /// Sets or removes/clears one or more children in raw children (see <see cref="ISqlNode.GetRawContent"/>).
+        /// Updates or removes/clears one or more children in children (see <see cref="ISqlNode.GetRawContent"/>).
         /// </summary>
         /// <param name="this">This node.</param>
-        /// <param name="replacer">Mapping function. Must rturn null to remove or clear the node.</param>
+        /// <param name="replacer">
+        /// Mapping function. Must return null to remove or clear the node.
+        /// The first parameter is the relative position of the child
+        /// node (the sum of the previous siblings <see cref="ISqlNode.Width"/>),
+        /// the second integer is the raw index in the <see cref="ISqlNode.GetRawContent"/> list.
+        /// </param>
         /// <returns>A new immutable object or this node if no change occurred.</returns>
-        static public T ReplaceContentNode<T>( this T @this, Func<ISqlNode, int, ISqlNode> replacer ) where T : ISqlNode
+        static public T ReplaceContentNode<T>( this T @this, Func<ISqlNode, int, int, ISqlNode> replacer ) where T : ISqlNode
         {
             return (T)((SqlNode)(object)@this).DoReplaceContentNode( replacer );
         }

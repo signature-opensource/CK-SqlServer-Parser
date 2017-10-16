@@ -1,4 +1,4 @@
-﻿using CK.Core;
+using CK.Core;
 using CK.SqlServer.Parser;
 using CK.SqlServer.UtilTests;
 using NUnit.Framework;
@@ -110,6 +110,7 @@ namespace CK.SqlServer.Transform.Tests.XmlTests
         [TestCase( "Inject around.xml" )]
         [TestCase( "Inject location range.xml" )]
         [TestCase( "Inject location.xml" )]
+        [TestCase( "LucBug.xml" )]
         [TestCase( "Replace with.xml" )]
         [TestCase( "Stored Procedures.xml" )]
         [TestCase( "Transformer scope.xml" )]

@@ -1,4 +1,4 @@
-﻿using CK.Core;
+using CK.Core;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -249,14 +249,15 @@ namespace CK.SqlServer.Parser
             return c != null ? DoClone( LeadingTrivias, c, TrailingTrivias ) : this;
         }
 
-        internal ISqlNode DoReplaceContentNode( Func<ISqlNode, int, ISqlNode> replacer )
+        internal ISqlNode DoReplaceContentNode( Func<ISqlNode, int, int, ISqlNode> replacer )
         {
             bool change = false;
             var list = GetRawContent();
+            var pos = 0;
             for( int i = 0; i < list.Count; ++i )
             {
                 var current = list[i];
-                var replaced = replacer( current, i );
+                var replaced = replacer( current, pos, i );
                 if( replaced != null || list is ISqlNode[] )
                 {
                     if( current != replaced )
@@ -270,6 +271,7 @@ namespace CK.SqlServer.Parser
                     change = true;
                     list.RemoveAt( i-- );
                 }
+                if( current != null ) pos += current.Width;
             }
             return change ? DoClone( LeadingTrivias, list, TrailingTrivias ) : this;
         }

@@ -1,4 +1,4 @@
-﻿using CK.Core;
+using CK.Core;
 using CK.SqlServer.Parser;
 using System;
 using System.Collections.Generic;
@@ -179,6 +179,7 @@ namespace CK.SqlServer.Transform
                         pAfter = addParam.ParameterName.Name;
                     }
                 }
+                if( NeedReparse && !Reparse() ) return false;
                 return Apply( new Transformers.AddParameter( addParam.Parameters, pBefore, pAfter ), scope );
             }
             #endregion
@@ -186,6 +187,7 @@ namespace CK.SqlServer.Transform
             #region SqlTAddColumn
             if( addColumn != null )
             {
+                if( NeedReparse && !Reparse() ) return false;
                 return Apply( new Transformers.AddColumn( addColumn.Columns ), scope );
             }
             #endregion

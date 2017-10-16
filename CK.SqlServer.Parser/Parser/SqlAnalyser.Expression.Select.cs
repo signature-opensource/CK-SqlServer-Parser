@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
@@ -189,7 +189,7 @@ namespace CK.SqlServer.Parser
                 //      are required.
                 //
                 // To work around this:
-                // - We still fail on select top 1 * from ...
+                // - We still fail on select top 1 * from ... So sorry...
                 // - But we succeed on select top (1) * from ... thanks to the explicit parse of the outer parentheses.
                 // - Whenever parentheses are missing (but the parse succeeds like in "select top 1 c1, c2 from ..."),
                 //   we automatically inject the parentheses around the top expression.
