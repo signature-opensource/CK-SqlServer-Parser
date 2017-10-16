@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace CK.SqlServer.Parser
 {
-    public sealed class SelectOrderBy : SqlNonToken
+    public sealed class SelectOrderBy : SqlNonTokenAutoWidth
     {
         readonly SNode<
                     SqlTokenIdentifier,

@@ -13,7 +13,7 @@ namespace CK.SqlServer.Parser
     /// <summary>
     /// Simple abstract wrapper around an array of T optionally enclosed.
     /// </summary>
-    public abstract class ASqlNodePrefixedEnclosedSeparatedList<TPrefix,TOpener,T,TSep,TCloser> : SqlNonToken, IReadOnlyList<T>
+    public abstract class ASqlNodePrefixedEnclosedSeparatedList<TPrefix,TOpener,T,TSep,TCloser> : SqlNonTokenAutoWidth, IReadOnlyList<T>
         where TPrefix : class, ISqlNode
         where TOpener : class, ISqlNode
         where T : class, ISqlNode

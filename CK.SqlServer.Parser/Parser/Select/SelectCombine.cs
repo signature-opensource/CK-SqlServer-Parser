@@ -11,7 +11,7 @@ namespace CK.SqlServer.Parser
     /// <summary>
     /// Operator that combines two <see cref="ISelectSpecification"/> with Union, Uinion All, Except or Intersect.
     /// </summary>
-    public sealed class SelectCombine : SqlNonToken, ISelectSpecification
+    public sealed class SelectCombine : SqlNonTokenAutoWidth, ISelectSpecification
     {
         readonly SNode<ISqlNode, SqlTokenIdentifier, SqlTokenIdentifier, ISqlNode> _content;
 

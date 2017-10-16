@@ -171,7 +171,7 @@ namespace CK.SqlServer.Transform.Transformers
         {
             if( ++_matchCount > 1 && (_finderInfo.Card.ExpectedMatchCount > 0 && _matchCount > _finderInfo.Card.ExpectedMatchCount) )
             {
-                monitor.Error().Send( $"Too many matches found for (max is {_finderInfo.Card.ExpectedMatchCount})." );
+                monitor.Error( $"Too many matches found for (max is {_finderInfo.Card.ExpectedMatchCount})." );
                 _hasError = true;
             }
             else if( !_finderInfo.Card.FromFirst || (_finderInfo.Card.All || _matchCount == _finderInfo.Card.Offset + 1) )

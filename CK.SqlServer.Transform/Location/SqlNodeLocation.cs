@@ -1,4 +1,4 @@
-﻿using CK.SqlServer.Parser;
+using CK.SqlServer.Parser;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -14,7 +14,8 @@ namespace CK.SqlServer.Transform
     public class SqlNodeLocation: IComparable<SqlNodeLocation>
     {
         /// <summary>
-        /// The node can be null (ie. unknown) when this location is returned by <see cref="Successor"/> or <see cref="Predecessor"/>.
+        /// The node can be null (ie. unknown) when this location is returned by <see cref="Successor"/>
+        /// or <see cref="Predecessor"/>.
         /// </summary>
         public readonly ISqlNode Node;
 
@@ -236,17 +237,19 @@ namespace CK.SqlServer.Transform
         public ISqlNode ChangeNode( ISqlNode newNode )
         {
             if( !IsQualifiedLocation ) throw new InvalidOperationException( "Node must be a qualified location." );
-            var toChange = this;
             var oldLeaf = Node;
             var newLeaf = newNode;
+            var toChange = this;
+            var lastPath = this;
             while( (toChange = toChange.Parent) != null )
             {
-                newLeaf = toChange.Node.ReplaceContentNode( ( n, i ) => n == oldLeaf ? newLeaf : n );
+                int deltaPos = lastPath.Position - toChange.Position;
+                newLeaf = toChange.Node.ReplaceContentNode( ( n, pos, i ) => n != null && pos == deltaPos ? newLeaf : n );
                 oldLeaf = toChange.Node;
+                lastPath = toChange;
             }
             return newLeaf;
         }
-
 
         LocationRoot GetRoot()
         {

@@ -172,7 +172,7 @@ namespace CK.SqlServer.Transform
             Debug.Assert( !_hasError );
             if( _matchCount < _info.ExpectedMatchCount )
             {
-                context.Monitor.Error().Send( $"Expected {_info.ExpectedMatchCount} ranges but found {_matchCount}." );
+                context.Monitor.Error( $"Expected {_info.ExpectedMatchCount} ranges but found {_matchCount}." );
                 _hasError = true;
             }
             if( _lastBuffer != null )
@@ -261,7 +261,7 @@ namespace CK.SqlServer.Transform
                 && _info.ExpectedMatchCount > 0 
                 && _matchCount > _info.ExpectedMatchCount )
             {
-                monitor.Error().Send( $"Too many matches found for '{_inner.Inner.ToString()}' (max is {_info.ExpectedMatchCount})." );
+                monitor.Error( $"Too many matches found for '{_inner.Inner.ToString()}' (max is {_info.ExpectedMatchCount})." );
                 _hasError = true;
             }
             else if( _info.All || !_info.FromFirst || _matchCount >= _info.Offset + 1 )

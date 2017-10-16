@@ -1,5 +1,6 @@
 # Basic appveyor configuration : CodeCakeBuilder does the job.
 version: build{build}
+image: Visual Studio 2017
 branches:
   only:
   - master
@@ -12,7 +13,7 @@ environment:
   MYGET_CI_API_KEY:
     secure: jhHWme6+MulQTwEN1kkwygP2kEf47L8SyndWGQWEvPn6dRwZh9ZQXXGz4e1Xk7q0
 install:
-- ps: CodeCakeBuilder\Bootstrap.ps1
+  - ps: CodeCakeBuilder\Bootstrap.ps1
 build_script:
 - CodeCakeBuilder\bin\Release\CodeCakeBuilder.exe -nointeraction
 test: off

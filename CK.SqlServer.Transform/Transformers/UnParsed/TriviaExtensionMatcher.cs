@@ -58,22 +58,22 @@ namespace CK.SqlServer.Transform.Transformers
             bool isClosing = t.Text[1] == '/';
             bool isAutoClosing = m.Value[m.Value.Length - 2] == '/';
             bool isRevert = m.Groups[2].Value.Length > 0;
-            if( isClosing && isAutoClosing ) _monitor.Error().Send( $"Invalid extension tag: '{t.Text}': can not start with '</' and end with '/>'." );
-            else if( isClosing && isRevert ) _monitor.Error().Send( $"Invalid extension tag: '{t.Text}': revert must be on the opening tag." );
+            if( isClosing && isAutoClosing ) _monitor.Error( $"Invalid extension tag: '{t.Text}': can not start with '</' and end with '/>'." );
+            else if( isClosing && isRevert ) _monitor.Error( $"Invalid extension tag: '{t.Text}': revert must be on the opening tag." );
             else
             {
                 if( isClosing )
                 {
-                    if( !_foundOpening ) _monitor.Error().Send( $"Closing '{t.Text}' has no opening." );
+                    if( !_foundOpening ) _monitor.Error( $"Closing '{t.Text}' has no opening." );
                     else if( _foundInsertPoint )
                     {
                         if( _foundOpeningIsAutoClosing )
                         {
-                            _monitor.Error().Send( $"Unexpected closing of extension tag: '{t.Text}': opening tag is auto closed (ends with '/>')." );
+                            _monitor.Error( $"Unexpected closing of extension tag: '{t.Text}': opening tag is auto closed (ends with '/>')." );
                         }
                         else if( !_foundOpeningIsRevert )
                         {
-                            _monitor.Error().Send( $"Unexpected closing of extension tag: '{t.Text}': it is already closed." );
+                            _monitor.Error( $"Unexpected closing of extension tag: '{t.Text}': it is already closed." );
                         }
                         // => This is the closing tag of a reverted extension.
                     }
@@ -85,7 +85,7 @@ namespace CK.SqlServer.Transform.Transformers
                 }
                 else // Opening tag.
                 {
-                    if( _foundOpening ) _monitor.Error().Send( $"Duplicate opening of extension tag: '{name}'." );
+                    if( _foundOpening ) _monitor.Error( $"Duplicate opening of extension tag: '{name}'." );
                     else
                     {
                         _foundOpening = true;

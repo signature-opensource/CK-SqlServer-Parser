@@ -21,7 +21,7 @@ namespace CK.SqlServer.Parser
             SqlTokenIdentifier,
             SqlIdentifierCommaList>;
 
-    public sealed class SqlCursorDefinition92 : SqlNonToken, ISqlCursorDefinition
+    public sealed class SqlCursorDefinition92 : SqlNonTokenAutoWidth, ISqlCursorDefinition
     {
         readonly CNode _content;
 

@@ -12,7 +12,7 @@ namespace CK.SqlServer.Parser
     /// <summary>
     /// Defines "next value for {sequence}>" expression.
     /// </summary>
-    public sealed class SqlCTEStatement : SqlNonToken, ISqlNamedStatement
+    public sealed class SqlCTEStatement : SqlNonTokenAutoWidth, ISqlNamedStatement
     {
         readonly SNode<SqlTokenIdentifier, SqlCTEXmlNamespace,SqlCTENameList, ISqlStatement> _content;
 

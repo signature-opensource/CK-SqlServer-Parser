@@ -12,7 +12,7 @@ namespace CK.SqlServer.Parser
     /// <summary>
     /// Captures an unnamed statement: it is only a <see cref="Content"/>.
     /// </summary>
-    public sealed class SqlUnnamedStatement : SqlNonToken, ISqlStatement
+    public sealed class SqlUnnamedStatement : SqlNonTokenAutoWidth, ISqlStatement
     {
         readonly SNode<ISqlNode, SqlTokenTerminal> _content;
 

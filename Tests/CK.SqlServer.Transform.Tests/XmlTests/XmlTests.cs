@@ -1,4 +1,4 @@
-﻿using CK.Core;
+using CK.Core;
 using CK.SqlServer.Parser;
 using CK.SqlServer.UtilTests;
 using NUnit.Framework;
@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using CK.SqlServer.Transform.Transformers;
 using CK.Text;
+using System.Reflection;
 
 namespace CK.SqlServer.Transform.Tests.XmlTests
 {
@@ -35,6 +36,8 @@ namespace CK.SqlServer.Transform.Tests.XmlTests
                     }
                     else
                     {
+                        //var autoC = ((string)e.Element( "AutoCorrectedDescription" ))?.TrimEnd().NormalizeEOL();
+                        //if( autoC != null ) AutoCorrectedText = autoC;
                         SqlTransformer t = ParseTransformer( Description );
                         Transformer = n =>
                         {
@@ -60,27 +63,28 @@ namespace CK.SqlServer.Transform.Tests.XmlTests
                         string errContains = ResultText.Substring( 6 ).Trim();
                         Assert.That( errors != null, $"Error expected '{errContains}'." );
                         var all = errors.Select( err => err.Text ).Concatenate( Environment.NewLine );
-                        Assert.That( all, Is.StringContaining( errContains ), "Expected error not found." );
+                        Assert.That( all, Does.Contain( errContains ), "Expected error not found." );
                         return null;
                     }
+                    if( e == null ) Assert.Fail( "Transformer failed." );
                     string actualText = e.ToString( true, true );
-                    using( TestHelper.ConsoleMonitor.OpenInfo().Send( "Expected Result" ) )
+                    using( TestHelper.ConsoleMonitor.OpenInfo( "Expected Result" ) )
                     {
-                        TestHelper.ConsoleMonitor.Trace().Send( ResultText );
+                        TestHelper.ConsoleMonitor.Trace( ResultText );
                     }
-                    using( TestHelper.ConsoleMonitor.OpenInfo().Send( "Actual Result" ) )
+                    using( TestHelper.ConsoleMonitor.OpenInfo( "Actual Result" ) )
                     {
-                        TestHelper.ConsoleMonitor.Trace().Send( actualText );
+                        TestHelper.ConsoleMonitor.Trace( actualText );
                     }
 
-                    ISqlNode resultNode = ParseAndCheckSqlText( ResultText );
+                    ISqlNode resultNode = ParseAndCheckSqlText( ResultText, ResultText );
                     string actual = e.ToStringHyperCompact();
                     string expected = resultNode.ToStringHyperCompact();
                     if( actual != expected )
                     {
                         Assert.That( actual, Is.EqualTo( expected ) );
                     }
-                    if( actualText != ResultText ) TestHelper.ConsoleMonitor.Warn().Send( "Rendering is not perfect..." );
+                    if( actualText != ResultText ) TestHelper.ConsoleMonitor.Warn( "Rendering is not perfect..." );
                 }
                 return base.OnParsed( e );
             }
@@ -106,6 +110,7 @@ namespace CK.SqlServer.Transform.Tests.XmlTests
         [TestCase( "Inject around.xml" )]
         [TestCase( "Inject location range.xml" )]
         [TestCase( "Inject location.xml" )]
+        [TestCase( "LucBug.xml" )]
         [TestCase( "Replace with.xml" )]
         [TestCase( "Stored Procedures.xml" )]
         [TestCase( "Transformer scope.xml" )]

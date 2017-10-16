@@ -9,7 +9,7 @@ namespace CK.SqlServer.Parser
     /// <summary>
     /// The 'begin catch' ... 'end catch' block of <see cref="SqlTryCatch"/> statement.
     /// </summary>
-    public sealed class SqlCatchBlock : SqlNonToken, ISqlStatementPart
+    public sealed class SqlCatchBlock : SqlNonTokenAutoWidth, ISqlStatementPart
     {
         readonly CNode _content;
 

@@ -144,15 +144,15 @@ namespace CK.SqlServer.Transform.Tests
 
             if( transformed.ToString( true ) != result )
             {
-                using( TestHelper.ConsoleMonitor.OpenWarn().Send( caller ) )
+                using( TestHelper.ConsoleMonitor.OpenWarn( caller ) )
                 {
-                    using( TestHelper.ConsoleMonitor.OpenInfo().Send( "Expected" ) )
+                    using( TestHelper.ConsoleMonitor.OpenInfo( "Expected" ) )
                     {
-                        TestHelper.ConsoleMonitor.Info().Send( result );
+                        TestHelper.ConsoleMonitor.Info( result );
                     }
-                    using( TestHelper.ConsoleMonitor.OpenInfo().Send( "Actual" ) )
+                    using( TestHelper.ConsoleMonitor.OpenInfo( "Actual" ) )
                     {
-                        TestHelper.ConsoleMonitor.Info().Send( transformed.ToString( true ) );
+                        TestHelper.ConsoleMonitor.Info( transformed.ToString( true ) );
                     }
                 }
                 Assume.That( false, "Rendering is not perfect..." );

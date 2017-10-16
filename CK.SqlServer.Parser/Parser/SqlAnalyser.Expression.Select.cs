@@ -171,7 +171,7 @@ namespace CK.SqlServer.Parser
             e = null;
             SqlTokenIdentifier allOrDistinct = null;
             SqlTokenIdentifier top = null;
-            ISqlNode topExpression = null;
+            SqlPar topParExpression = null;
             SqlTokenIdentifier percent = null;
             SqlTokenIdentifier with = null;
             SqlTokenIdentifier ties = null;
@@ -179,13 +179,45 @@ namespace CK.SqlServer.Parser
             if( !R.IsToken( out allOrDistinct, SqlTokenType.All, false ) ) R.IsToken( out allOrDistinct, SqlTokenType.Distinct, false );
             if( R.IsToken( out top, SqlTokenType.Top, false ) )
             {
-                if( (topExpression = IsOneExpression( true )) == null ) return false;
+                // Parsing: select top 1 * from ... is failing: the * is Mult and the expression parse fails.
+                // Quoting MSDN:
+                //
+                // Compatibility Support
+                //      For backward compatibility, the parentheses are optional in SELECT statements. 
+                //      We recommend that you always use parentheses for TOP in SELECT statements for consistency 
+                //      with its required use in INSERT, UPDATE, MERGE, and DELETE statements in which the parentheses 
+                //      are required.
+                //
+                // To work around this:
+                // - We still fail on select top 1 * from ... So sorry...
+                // - But we succeed on select top (1) * from ... thanks to the explicit parse of the outer parentheses.
+                // - Whenever parentheses are missing (but the parse succeeds like in "select top 1 c1, c2 from ..."),
+                //   we automatically inject the parentheses around the top expression.
+
+                SqlTokenOpenPar topOpenPar = null;
+                ISqlNode topExpression = null;
+                SqlTokenClosePar topClosePar = null;
+                R.IsToken( out topOpenPar, false );
+                if( (topExpression = IsOneExpression( true )) == null )
+                {
+                    if( topOpenPar == null ) R.SetCurrentError( "'select top n' should be 'select top(n)'. Note that parentheses are required in INSERT, UPDATE, MERGE, and DELETE statements." );
+                    return false;
+                }
+                if( topOpenPar != null && !R.IsToken( out topClosePar, true ) ) return false;
+                if( topOpenPar == null )
+                {
+                    topOpenPar = SqlKeyword.OpenPar;
+                    topClosePar = SqlKeyword.ClosePar;
+                    topExpression = topExpression.ExtractTrailingTrivias( (trivia,idx) => { topClosePar = topClosePar.AddTrailingTrivia( trivia ); return true; } );
+                }
+                topParExpression = new SqlPar( topOpenPar, topExpression, topClosePar );
+
                 if( R.IsToken( out percent, SqlTokenType.Percent, false ) )
                 {
                     if( R.IsToken( out with, SqlTokenType.With, false ) ) R.IsToken( out ties, SqlTokenType.Ties, true );
                 }
             }
-            e = new SelectHeader( select, allOrDistinct, top, topExpression, percent, with, ties );
+            e = new SelectHeader( select, allOrDistinct, top, topParExpression, percent, with, ties );
             return true;
         }
 

@@ -40,7 +40,7 @@ namespace CK.SqlServer.Parser.Tests
             SqlSetVariable e;
             SqlAnalyser.ErrorResult r = new SqlAnalyser( "set @v = (select 1==0);" ).ParseStatement( out e );
             Assert.That( r.IsError );
-            Assert.That( r.ErrorMessage, Is.StringStarting( "¤Error: Expected expression" ) );
+            Assert.That( r.ErrorMessage, Does.StartWith( "¤Error: Expected expression" ) );
         }
     }
 }

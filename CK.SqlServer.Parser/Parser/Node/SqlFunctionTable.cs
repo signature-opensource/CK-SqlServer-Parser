@@ -8,7 +8,7 @@ using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
-    public sealed class SqlFunctionTable : SqlNonToken, 
+    public sealed class SqlFunctionTable : SqlNonTokenAutoWidth, 
                                                 ISqlNamedStatement, 
                                                 ISqlFullNameHolder,
                                                 ISqlParameterListHolder, 

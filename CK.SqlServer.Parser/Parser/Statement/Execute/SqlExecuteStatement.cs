@@ -18,7 +18,7 @@ namespace CK.SqlServer.Parser
         SqlWithOptions, 
         SqlTokenTerminal>;
 
-    public sealed class SqlExecuteStatement : SqlNonToken, ISqlExecuteStatement
+    public sealed class SqlExecuteStatement : SqlNonTokenAutoWidth, ISqlExecuteStatement
     {
         readonly CNode _content;
 

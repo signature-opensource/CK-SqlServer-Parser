@@ -20,7 +20,7 @@ namespace CK.SqlServer.Parser
     /// <summary>
     /// Defines named selects in a <see cref="SqlCTEStatement"/>.
     /// </summary>
-    public sealed class SqlCTEName : SqlNonToken
+    public sealed class SqlCTEName : SqlNonTokenAutoWidth
     {
         readonly CNode _content;
 

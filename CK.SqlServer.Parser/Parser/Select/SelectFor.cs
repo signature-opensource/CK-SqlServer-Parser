@@ -12,7 +12,7 @@ namespace CK.SqlServer.Parser
     /// <summary>
     /// Captures the optional "For xml, browse, json or system_time" select part.
     /// </summary>
-    public sealed class SelectFor : SqlNonToken
+    public sealed class SelectFor : SqlNonTokenAutoWidth
     {
         readonly SNode<SqlTokenIdentifier, SqlTokenIdentifier, ISqlNode> _content;
 

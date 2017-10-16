@@ -6,7 +6,7 @@ using System.Diagnostics;
 
 namespace CK.SqlServer.Parser
 {
-    public sealed class SqlTypeDeclTable : SqlNonToken, ISqlUnifiedTypeDecl
+    public sealed class SqlTypeDeclTable : SqlNonTokenAutoWidth, ISqlUnifiedTypeDecl
     {
         readonly SNode<SqlTokenIdentifier, SqlTokenOpenPar, ISqlNode, SqlTokenClosePar> _content;
 

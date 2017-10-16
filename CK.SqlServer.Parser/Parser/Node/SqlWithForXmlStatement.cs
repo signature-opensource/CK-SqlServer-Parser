@@ -11,7 +11,7 @@ namespace CK.SqlServer.Parser
 {
     /// <summary>
     /// </summary>
-    public sealed class SqlWithForXml : SqlNonToken, ISqlNamedStatement
+    public sealed class SqlWithForXml : SqlNonTokenAutoWidth, ISqlNamedStatement
     {
         readonly SNode<SqlTokenIdentifier, SqlTokenIdentifier, SqlEnclosedCommaList, ISqlStatement> _content;
 

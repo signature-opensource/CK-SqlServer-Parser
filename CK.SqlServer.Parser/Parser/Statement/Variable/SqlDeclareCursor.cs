@@ -15,7 +15,7 @@ namespace CK.SqlServer.Parser
                     ISqlCursorDefinition, 
                     SqlTokenTerminal>;
 
-   public sealed class SqlDeclareCursor : SqlNonToken, ISqlNamedStatement
+   public sealed class SqlDeclareCursor : SqlNonTokenAutoWidth, ISqlNamedStatement
     {
         readonly CNode _content;
 

@@ -20,7 +20,7 @@ namespace CK.SqlServer.Parser
     /// <summary>
     /// Replace a <see cref="SqlTLocationFinder"/> with an unparsed text.
     /// </summary>
-    public sealed class SqlTInScope : SqlNonToken, ISqlTStatement
+    public sealed class SqlTInScope : SqlNonTokenAutoWidth, ISqlTStatement
     {
         readonly CNode _content;
 

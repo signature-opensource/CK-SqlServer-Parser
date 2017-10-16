@@ -15,7 +15,7 @@ namespace CK.SqlServer.Parser
     /// [part|statement|range] SqlTCurlyPattern
     /// Defaults to part.
     /// </summary>
-    public sealed class SqlTNodeSimplePattern : SqlNonToken
+    public sealed class SqlTNodeSimplePattern : SqlNonTokenAutoWidth
     {
         readonly CNode _content;
 

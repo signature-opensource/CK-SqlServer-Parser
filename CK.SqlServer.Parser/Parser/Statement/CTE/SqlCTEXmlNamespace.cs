@@ -17,7 +17,7 @@ namespace CK.SqlServer.Parser
     /// <summary>
     /// Defines the optional first "XMLNAMESPACES ('ns' as json)," in a <see cref="SqlCTEStatement"/>.
     /// </summary>
-    public sealed class SqlCTEXmlNamespace : SqlNonToken
+    public sealed class SqlCTEXmlNamespace : SqlNonTokenAutoWidth
     {
         readonly CNode _content;
 

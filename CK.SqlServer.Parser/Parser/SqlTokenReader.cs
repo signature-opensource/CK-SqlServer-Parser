@@ -13,7 +13,7 @@ namespace CK.SqlServer.Parser
     /// It adds useful behavior such as one token lookup and '=' (Assign vs. Compare) operator
     /// adaptation based on a toggle <see cref="AssignmentContext"/> flag.
     /// </summary>
-    internal class SqlTokenReader
+    public class SqlTokenReader
     {
         readonly SqlTokenizer _tokenizer;
         SqlToken _c;
@@ -261,7 +261,7 @@ namespace CK.SqlServer.Parser
             Debug.Assert( items != null && !IsError );
             while( !(Current is T && (stopperDefinition == null || stopperDefinition( (T)Current ))) )
             {
-                if( IsEndOfInput ) return SetCurrentError( "Expected stopper for node list: {0} {1}.", typeof( T ).Name, stopperDefinition != null ? stopperDefinition.Method.Name : null );
+                if( IsEndOfInput ) return SetCurrentError( "Expected stopper for node list: {0} {1}.", typeof( T ).Name, stopperDefinition != null ? stopperDefinition : null );
                 if( matcher != null )
                 {
                     ISqlNode item = matcher( false );

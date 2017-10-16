@@ -14,7 +14,7 @@ namespace CK.SqlServer.Parser
     /// with a <see cref="OrderBy"/> clause, a <see cref="For"/> xml, browse, json or system_time, 
     /// and/or a <see cref="Option"/> clause (int this order).
     /// </summary>
-    public class SelectDecorator : SqlNonToken, ISelectSpecification, ISqlStatementPart
+    public class SelectDecorator : SqlNonTokenAutoWidth, ISelectSpecification, ISqlStatementPart
     {
         readonly SNode<ISqlNode, SelectOrderBy, SelectFor, SqlOptionParOptions> _content;
 

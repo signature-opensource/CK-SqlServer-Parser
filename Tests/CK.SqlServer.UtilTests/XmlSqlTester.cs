@@ -24,12 +24,18 @@ namespace CK.SqlServer.UtilTests
 
         public readonly XElement ExpectedStatementsXml;
 
+        /// <summary>
+        /// If &lt;AutoCorrectedText&gt; is not present, defaults to Text.
+        /// </summary>
+        public readonly string AutoCorrectedText;
+
         public XmlSqlTester( XElement t )
         {
             TestElement = t;
             Mode = t.AttributeEnum( "Mode", ParseMode.OneOrMoreStatements );
             // TrimEnd the text because the last trivia is skipped.
-            Text = t.Element( "Text" ).Value.TrimEnd().NormalizeEOL();
+            Text = ((string)t.Element( "Text" )).TrimEnd().NormalizeEOL();
+            AutoCorrectedText = ((string)t.Element( "AutoCorrectedText" ))?.TrimEnd().NormalizeEOL() ?? Text;
             Description = t.Elements( "Description" ).Select( e => e.Value.NormalizeEOL() ).FirstOrDefault();
 
             XElement xmlTestElement = t.Element( "Xml" );
@@ -56,17 +62,17 @@ namespace CK.SqlServer.UtilTests
 
         public virtual void ParseAndCheck()
         {
-            ISqlNode e = ParseAndCheckSqlText( Text );
+            ISqlNode e = ParseAndCheckSqlText( Text, AutoCorrectedText );
             e = OnParsed( e );
             if( e != null )
             {
                 if( ExpectedXml != null )
                 {
-                    using( TestHelper.ConsoleMonitor.OpenInfo().Send( "Checking detailed Xml." ) )
+                    using( TestHelper.ConsoleMonitor.OpenInfo( "Checking detailed Xml." ) )
                     {
                         XElement visited = new SqlToXmlVisitor( CombineElementType, ToStringCompactForms ).ToXml( "Sql", e );
                         string visitedString = visited.ToString();
-                        TestHelper.ConsoleMonitor.Trace().Send( visitedString );
+                        TestHelper.ConsoleMonitor.Trace( visitedString );
                         if( !XNode.DeepEquals( visited, ExpectedXml ) )
                         {
                             TestHelper.AssertXmlStringEqual( visitedString, ExpectedXml );
@@ -75,11 +81,11 @@ namespace CK.SqlServer.UtilTests
                 }
                 if( ExpectedStatementsXml != null )
                 {
-                    using( TestHelper.ConsoleMonitor.OpenInfo().Send( "Checking statements only Xml." ) )
+                    using( TestHelper.ConsoleMonitor.OpenInfo( "Checking statements only Xml." ) )
                     {
                         XElement visited = new SqlToXmlStatementVisitor().ToXml( "Statements", e );
                         string visitedString = visited.ToString();
-                        TestHelper.ConsoleMonitor.Trace().Send( visitedString );
+                        TestHelper.ConsoleMonitor.Trace( visitedString );
                         if( !XNode.DeepEquals( visited, ExpectedStatementsXml ) )
                         {
                             TestHelper.AssertXmlStringEqual( visitedString, ExpectedStatementsXml );
@@ -89,24 +95,24 @@ namespace CK.SqlServer.UtilTests
             }
         }
 
-        protected ISqlNode ParseAndCheckSqlText( string text )
+        protected ISqlNode ParseAndCheckSqlText( string text, string rewrittenText )
         {
             ISqlNode e;
             SqlAnalyser.ErrorResult r = SqlAnalyser.Parse( out e, Mode, text );
             Assert.That( r.IsError, Is.False, r.ToString() );
             string backFromTree = e.ToString( true, true );
-            if( backFromTree != text )
+            if( backFromTree != rewrittenText )
             {
                 var tokens = new SqlTokenizer().Parse( text )
                                 .Where( t => t.TokenType != SqlTokenType.EndOfInput )
                                 .ToList();
 
                 string backFromTokens = string.Join( "", tokens.Select( t => t.ToString( true, true ) ) );
-                if( backFromTokens != text )
+                if( backFromTokens != rewrittenText )
                 {
-                    Assert.That( backFromTokens, Is.EqualTo( text ), "Bug in tokenizer." );
+                    Assert.That( backFromTokens, Is.EqualTo( rewrittenText ), "Bug in tokenizer." );
                 }
-                Assert.That( backFromTree, Is.EqualTo( text ), "Bug in parser." );
+                Assert.That( backFromTree, Is.EqualTo( rewrittenText ), "Bug in parser." );
             }
             return e;
         }
@@ -123,16 +129,16 @@ namespace CK.SqlServer.UtilTests
 
         public static void RunAllTests( string fileName, Func<XElement, XmlSqlTester> oneTestCreate, string folderName = "XmlTests" )
         {
-            using( TestHelper.ConsoleMonitor.OpenInfo().Send( $"Running {fileName}." ) )
+            using( TestHelper.ConsoleMonitor.OpenInfo( $"Running {fileName}." ) )
             {
-                XElement tests = XDocument.Load( TestHelper.GetFolder( folderName, fileName ) ).Root;
+                XElement tests = XDocument.Load( TestHelper.BuildPathInCurrentTestProject( folderName, fileName ) ).Root;
                 int i = 0;
                 foreach( var t in tests.Elements( "Test" ) )
                 {
                     XmlSqlTester x = oneTestCreate( t );
-                    using( TestHelper.ConsoleMonitor.OpenInfo().Send( $"n°{i}-{x.Description} ({x.Mode.ToString()})" ) )
+                    using( TestHelper.ConsoleMonitor.OpenInfo( $"n°{i}-{x.Description} ({x.Mode.ToString()})" ) )
                     {
-                        TestHelper.ConsoleMonitor.Trace().Send( x.Text );
+                        TestHelper.ConsoleMonitor.Trace( x.Text );
                         x.ParseAndCheck();
                         ++i;
                     }

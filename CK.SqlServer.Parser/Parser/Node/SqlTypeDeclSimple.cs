@@ -10,7 +10,7 @@ using System.Text;
 
 namespace CK.SqlServer.Parser
 {
-    public sealed class SqlTypeDeclSimple : SqlNonToken, ISqlUnifiedTypeDecl
+    public sealed class SqlTypeDeclSimple : SqlNonTokenAutoWidth, ISqlUnifiedTypeDecl
     {
         readonly SNode<SqlTokenIdentifier> _content;
 

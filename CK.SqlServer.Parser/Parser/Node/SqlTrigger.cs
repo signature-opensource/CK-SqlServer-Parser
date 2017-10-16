@@ -8,7 +8,7 @@ using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
-    public sealed class SqlTrigger : SqlNonToken, ISqlNamedStatement
+    public sealed class SqlTrigger : SqlNonTokenAutoWidth, ISqlNamedStatement
     {
         readonly SNode<
             SqlTokenIdentifier,

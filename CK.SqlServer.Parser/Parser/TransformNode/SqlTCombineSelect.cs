@@ -21,7 +21,7 @@ namespace CK.SqlServer.Parser
     /// <summary>
     /// Injects unparsed text around, before or after a <see cref="SqlTLocationFinder"/>.
     /// </summary>
-    public sealed class SqlTCombineSelect : SqlNonToken, ISqlTStatement
+    public sealed class SqlTCombineSelect : SqlNonTokenAutoWidth, ISqlTStatement
     {
         readonly CNode _content;
 

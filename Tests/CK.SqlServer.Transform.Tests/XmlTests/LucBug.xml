@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Tests>
+  <!-- Ensures that bug found by Luc Perret is fixed (see the last test). -->
+  <Test>
+    <Text>
+    create view CK.vT
+    as 
+	select  X,
+			Y;
+    </Text>
+    <Description>
+        create transformer on CK.vT
+        as
+        begin
+            add column Z = 3;
+            replace single {X,} with "X = 2,";
+        end
+    </Description>
+    <ResultText>
+    create view CK.vT
+    as 
+	select  X = 2,
+			Y,
+			Z = 3;
+    </ResultText>
+  </Test>
+    
+  <Test>
+    <Text>
+    create view CK.vT
+    as 
+	select  X,
+			Y;
+    </Text>
+    <Description>
+        create transformer on CK.vT
+        as
+        begin
+            replace single {X,} with "X = 2,";
+            -- Before applying a AddColumn, we reparse the
+            -- dirty (NeedReparse) text.
+            add column Z = 3;
+        end
+    </Description>
+    <ResultText>
+    create view CK.vT
+    as 
+	select  X = 2,
+			Y,
+			Z = 3;
+    </ResultText>
+  </Test>
+   
+  <Test>
+    <Text>
+    -- SetupConfig: {}
+    create view [CK].[vGroup]
+    as 
+	select  g.GroupId,
+			GroupName = g.GroupName,
+			UserCount = (select count(*) 
+							from CK.tUser u with(nolock) 
+							inner join CK.tActorProfile p with(nolock) on p.ActorId = u.UserId
+							where p.GroupId = g.GroupId)
+		from CK.tGroup g;
+    </Text>
+    <Description>
+        -- In v6.0.0-delta.4 this transformer fails miserably, letting
+        --
+        -- |  |  |  |     select  g2.GroupId,/*癃ck-skip㜒select  g.GroupId,*/
+        -- |  |  |  |             GroupName = g2.GroupName,/*癃ck-skip㜒GroupName = g.GroupName,*/
+        -- |  |  |  |             UserCount = (select count(*)
+        -- |  |  |  |           	             from CK.tUser u with(nolock)
+        -- |  |  |  |           				 inner join CK.tActorProfile p with(nolock) on p.ActorId = u.UserId
+        -- |  |  |  |           				where p.GroupId = g2.GroupId/*癃ck-skip㜒where p.GroupId = g.GroupId*/)
+        --
+        -- With v6.0.0, this works:
+        --   - "add column" (and "add parameters") now reparse any dirty text.
+        --   - The SqlNodeLocation.ChangeNode has been fixed to handle shared/reused nodes by parents.
+        --
+        create transformer on [CK].[vGroup]
+        as
+        begin
+
+        add column ManagerId = ap.ActorId;
+
+        inject "
+        join CK.tActorProfile ap on g.GroupId = ap.GroupId and ap.ActorId &lt;&gt; ap.GroupId
+                    join CK.tActorProfile ap2 on ap2.ActorId = ap.ActorId
+                    join CK.tGroup g2 on ap2.GroupId = g2.GroupId
+                    where g.GroupName = 'Manager' and g2.[Status] = 0
+                " after single {from CK.tGroup g};
+
+            replace single {GroupName = g.GroupName,} with "GroupName = g2.GroupName,";
+
+            replace single {select  g.GroupId,} with "select  g2.GroupId,";
+
+            replace single {where p.GroupId = g.GroupId} with "where p.GroupId = g2.GroupId";
+        end
+    </Description>
+    <ResultText>
+    -- SetupConfig: {}
+    create view [CK].[vGroup]
+    as 
+	select  g2.GroupId,
+			GroupName = g2.GroupName,
+			UserCount = (select count(*) 
+							from CK.tUser u with(nolock) 
+							inner join CK.tActorProfile p with(nolock) on p.ActorId = u.UserId
+							where p.GroupId = g2.GroupId),
+            ManagerId = ap.ActorId
+		from CK.tGroup g
+                join CK.tActorProfile ap on g.GroupId = ap.GroupId and ap.ActorId &lt;&gt; ap.GroupId
+                join CK.tActorProfile ap2 on ap2.ActorId = ap.ActorId
+                join CK.tGroup g2 on ap2.GroupId = g2.GroupId
+                where g.GroupName = 'Manager' and g2.[Status] = 0;
+    </ResultText>
+  </Test>
+
+    
+</Tests>

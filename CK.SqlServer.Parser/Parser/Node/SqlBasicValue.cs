@@ -1,10 +1,11 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Text;
 using CK.Core;
+using CK.Text;
 using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
@@ -12,7 +13,7 @@ namespace CK.SqlServer.Parser
     /// <summary>
     /// 
     /// </summary>
-    public sealed class SqlBasicValue : SqlNonToken, ISqlServerParameterDefaultValue
+    public sealed class SqlBasicValue : SqlNonTokenAutoWidth, ISqlServerParameterDefaultValue
     {
         readonly SNode<SqlTokenTerminal, SqlToken> _content;
 
@@ -100,7 +101,26 @@ namespace CK.SqlServer.Parser
                     string s = ((SqlTokenLiteralMoney)Value).Value;
                     return HasMinusSign ? '-' + s : s;
                 }
-                throw new NotSupportedException();
+                if( Value.TokenType == SqlTokenType.Binary )
+                {
+                    string s = ((SqlTokenLiteralBinary)Value).Value;
+                    Debug.Assert( s.StartsWith( "0x" ) );
+                    if( s.Length == 2 ) return Util.Array.Empty<byte>();
+                    byte[] val = new byte[(s.Length - 3) / 2 + 1];
+                    int iB = val.Length-1;
+                    for( int i = s.Length-1; i > 1;)
+                    {
+                        int low = s[i--].HexDigitValue();
+                        char cHigh = s[i--];
+                        if( cHigh != 'x')
+                        {
+                            val[iB--] = (byte)(cHigh.HexDigitValue() << 4 | low);
+                        }
+                        else val[iB--] = (byte)low;
+                    }
+                    return val;
+                }
+                throw new NotSupportedException( $"Token type: '{Value.TokenType}'." );
             }
         }
 

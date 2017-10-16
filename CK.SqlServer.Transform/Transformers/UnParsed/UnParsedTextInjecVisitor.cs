@@ -42,11 +42,11 @@ namespace CK.SqlServer.Transform.Transformers
             {
                 if( _inserter.MatchCount == 0 )
                 {
-                    Monitor.Error().Send( $"Unable to find: " + _info.Location.ToString() );
+                    Monitor.Error( $"Unable to find: " + _info.Location.ToString() );
                 }
                 else if( _inserter.ExpectedMatchCount != 0 && _inserter.MatchCount < _inserter.ExpectedMatchCount )
                 {
-                    Monitor.Error().Send( $"Missing matches: expecting {_inserter.ExpectedMatchCount} {_info.Location.WhatDescription}, found {_inserter.MatchCount}." );
+                    Monitor.Error( $"Missing matches: expecting {_inserter.ExpectedMatchCount} {_info.Location.WhatDescription}, found {_inserter.MatchCount}." );
                 }
                 else if( _inserter.RequiresConclude )
                 {

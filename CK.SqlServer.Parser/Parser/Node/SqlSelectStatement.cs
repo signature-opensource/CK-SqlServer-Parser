@@ -13,7 +13,7 @@ namespace CK.SqlServer.Parser
     /// Captures a select statement: it is a <see cref="Select"/> specification, optionally enclosed in <see cref="SqlPar"/>
     /// and followed by a satement terminator.
     /// </summary>
-    public sealed class SqlSelectStatement : SqlNonToken, ISqlNamedStatement, ISelectSpecification
+    public sealed class SqlSelectStatement : SqlNonTokenAutoWidth, ISqlNamedStatement, ISelectSpecification
     {
         readonly SNode<ISqlNode, SqlTokenTerminal> _content;
 

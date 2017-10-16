@@ -24,7 +24,7 @@ namespace CK.SqlServer.Parser
     /// | single 
     /// | all[[out of] n]) (<see cref="ISqlHasStringValue"/> | <see cref="SqlTNodeSimplePattern"/>) 
     /// </summary>
-    public sealed class SqlTLocationFinder : SqlNonToken
+    public sealed class SqlTLocationFinder : SqlNonTokenAutoWidth
     {
         readonly CNode _content;
 

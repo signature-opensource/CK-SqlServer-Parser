@@ -41,7 +41,7 @@ namespace CK.SqlServer.Transform.Transformers
 
             if( r == null || r == SqlNodeLocationRange.EmptySet )
             {
-                t.Monitor.Error().Send( $"Range not found." );
+                t.Monitor.Error( $"Range not found." );
                 return false;
             }
             if( _info.ClearStarComments )

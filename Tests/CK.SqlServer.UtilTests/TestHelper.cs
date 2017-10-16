@@ -8,12 +8,32 @@ using System.Xml.Linq;
 using System.Text.RegularExpressions;
 using CK.SqlServer.Parser;
 using CK.Text;
+using System.Reflection;
+using NUnit.Framework.Constraints;
+using System.Collections.Generic;
 
 namespace CK.SqlServer.UtilTests
 {
+#if NET461
+    public static class Does
+    {
+        public static SubstringConstraint Contain(string expected) => Is.StringContaining(expected);
+
+        public static EndsWithConstraint EndWith(string expected) => Is.StringEnding(expected);
+
+        public static StartsWithConstraint StartWith(string expected) => Is.StringStarting(expected);
+
+        public static ConstraintExpression Not => Is.Not;
+
+        public static SubstringConstraint Contain(this ConstraintExpression @this, string expected) => @this.StringContaining(expected);
+    }
+#endif
+
+
     public static class TestHelper
     {
-        static string _projectFolder;
+        static string _solutionFolder;
+        static string _buildConfiguration;
 
         static IActivityMonitor _monitor;
         static ActivityMonitorConsoleClient _console;
@@ -25,10 +45,7 @@ namespace CK.SqlServer.UtilTests
             _console = new ActivityMonitorConsoleClient();
         }
 
-        public static IActivityMonitor ConsoleMonitor
-        {
-            get { return _monitor; }
-        }
+        public static IActivityMonitor ConsoleMonitor => _monitor;
 
         public static bool LogsToConsole
         {
@@ -40,29 +57,63 @@ namespace CK.SqlServer.UtilTests
                     if( value )
                     {
                         _monitor.Output.RegisterUniqueClient( c => c == _console, () => _console );
-                        _monitor.Info().Send( "Enabled Logs to console." );
+                        _monitor.Info( "Enabled Logs to console." );
                     }
                     else
                     {
-                        _monitor.Info().Send( "Disabled Logs to console." );
+                        _monitor.Info( "Disabled Logs to console." );
                         _monitor.Output.UnregisterClient( _console );
                     }
                 }
             }
         }
 
-        public static string GetFolder( params string[] subNames )
+        public static string SolutionFolder
         {
-            if( _projectFolder == null ) InitalizePaths();
-            var a = new string[ subNames.Length + 1 ];
-            a[0] = _projectFolder;
-            Array.Copy( subNames, 0, a, 1, subNames.Length );
-            return Path.Combine( a );
+            get
+            {
+                if( _solutionFolder == null ) InitalizePaths();
+                return _solutionFolder;
+            }
+        }
+
+        public static string BuildConfiguration
+        {
+            get
+            {
+                if( _solutionFolder == null ) InitalizePaths();
+                return _buildConfiguration;
+            }
+        }
+
+        public static string CurrentTestProjectName
+        {
+            get
+            {
+                var transform = SimpleTypeFinder.WeakResolver( "CK.SqlServer.Transform.SqlTransformHost, CK.SqlServer.Transform", false );
+                string project;
+                if( transform != null )
+                {
+                    project = "CK.SqlServer.Transform.Tests";
+                }
+                else project = "CK.SqlServer.Parser.Tests";
+                return project;
+            }
+        }
+
+        public static string BuildPathInCurrentTestProject( params string[] subNames )
+        {
+            var all = new List<string>();
+            all.Add( SolutionFolder );
+            all.Add( "Tests" );
+            all.Add( CurrentTestProjectName );
+            all.AddRangeArray( subNames );
+            return Path.Combine( all.ToArray() );
         }
 
         public static string LoadTextFromParsingScripts( string fileName )
         {
-            return File.ReadAllText( TestHelper.GetFolder( "Parsing", "Scripts", fileName ) ).NormalizeEOL();
+            return File.ReadAllText( TestHelper.BuildPathInCurrentTestProject( "Parsing", "Scripts", fileName ) ).NormalizeEOL();
         }
 
         public static void AssertXmlStringEqual( string visitedString, XElement expected )
@@ -106,16 +157,22 @@ namespace CK.SqlServer.UtilTests
             return (T)statement;
         }
 
-        private static void InitalizePaths()
+        static void InitalizePaths()
         {
-            string p = new Uri( System.Reflection.Assembly.GetExecutingAssembly().CodeBase ).LocalPath;
-            // => CK.XXX.Tests/bin/Debug/
-            p = Path.GetDirectoryName( p );
-            // => CK.XXX.Tests/bin/
-            p = Path.GetDirectoryName( p );
-            // => CK.XXX.Tests/
-            p = Path.GetDirectoryName( p );
-            _projectFolder = p;
+            string p = AppContext.BaseDirectory;
+#if DEBUG
+            _buildConfiguration = "Debug";
+#else
+            _buildConfiguration = "Release";
+#endif
+            while( !Directory.EnumerateFiles( p ).Where( f => f.EndsWith( ".sln" ) ).Any() )
+            {
+                p = Path.GetDirectoryName( p );
+            }
+            _solutionFolder = p;
+
+            Console.WriteLine( $"SolutionFolder is: {_solutionFolder}." );
+            Console.WriteLine( $"Core path: {typeof( string ).GetTypeInfo().Assembly.CodeBase}." );
         }
 
     }

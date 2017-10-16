@@ -14,7 +14,7 @@ namespace CK.SqlServer.Parser
     ///     { table_alias | table_or_view | rowset_function_limited  [WITH( Table_Hint_Limited [ ...n] )] }
     ///       | @table_variable }
     /// </summary>
-    public sealed class IUDTarget : SqlNonToken
+    public sealed class IUDTarget : SqlNonTokenAutoWidth
     {
         readonly SNode<ISqlNode, SqlWithParOptions> _content;
 

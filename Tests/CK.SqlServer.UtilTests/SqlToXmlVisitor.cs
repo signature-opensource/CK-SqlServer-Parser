@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -190,18 +191,29 @@ namespace CK.SqlServer.UtilTests
         protected override ISqlNode Visit( SelectSpec e )
         {
             StartNode( e )
-                .Add( e.Header.TopT != null 
-                            ? new XElement( "Top",
-                                e.Header.PercentT != null ? new XAttribute( "Percent", "true" ) : null,
-                                e.Header.WithT != null ? new XAttribute( "WithTies", "true" ) : null,
-                                ToXml( "TopExpression", e.Header.TopExpression ) )
-                            : null,
+                .Add( SelectHeaderTopToXml( e.Header ),
                       ToXml( "Columns", e.Columns ),
                       e.IntoClause != null ? ToXml( "Into", e.IntoClause ) : null,
                       e.FromClause != null ? ToXml( "From", e.FromClause ) : null,
                       e.WhereExpression != null ? ToXml( "WhereExpression", e.WhereExpression ) : null,
                       e.GroupByClause != null ? ToXml( "GroupBy", e.GroupByClause ) : null );
             return e;
+        }
+
+        XElement SelectHeaderTopToXml( SelectHeader h )
+        {
+            if( h.TopT == null ) return null;
+            if( _shortForms.Contains("Top") )
+            {
+                return new XElement( "Top", new ISqlNode[] { h.TopExpression, h.PercentT, h.WithT }.ToStringCompact() );
+            }
+            else
+            {
+                return new XElement( "Top",
+                                        ToXml( "TopExpression", h.TopExpression ),
+                                        h.PercentT != null ? new XAttribute( "Percent", "true" ) : null,
+                                        h.WithT != null ? new XAttribute( "WithTies", "true" ) : null );
+            }
         }
 
         protected override ISqlNode Visit( SqlOutputClause e )

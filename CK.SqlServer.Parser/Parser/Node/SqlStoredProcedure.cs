@@ -19,7 +19,7 @@ namespace CK.SqlServer.Parser
                         SqlTokenIdentifier,
                         SqlTokenTerminal>;
 
-    public sealed class SqlStoredProcedure : SqlNonToken, 
+    public sealed class SqlStoredProcedure : SqlNonTokenAutoWidth, 
                                                 ISqlNamedStatement, 
                                                 ISqlFullNameHolder, 
                                                 ISqlParameterListHolder,

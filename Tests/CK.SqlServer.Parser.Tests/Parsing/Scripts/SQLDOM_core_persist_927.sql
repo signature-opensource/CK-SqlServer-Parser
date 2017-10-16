@@ -1,4 +1,4 @@
-/*
+ï»¿/*
 SQLDOM HTML parser and DOM tools for MSSQL.
 https://sourceforge.net/projects/sqldom/
 
@@ -506,7 +506,7 @@ BEGIN
   ELSE IF @Selector IS NOT NULL BEGIN
     INSERT INTO @tvTargetList (DEID)
     EXEC sdom.spgetDOM @DocID = @DocID OUTPUT, @Selector = @Selector, @ReturnDEIDsOnly = 1
-    SELECT TOP 1 @DEID = DEID FROM @tvTargetList
+    SELECT TOP (1) @DEID = DEID FROM @tvTargetList
   END    
   
   WHILE @DEID IS NOT NULL BEGIN
@@ -663,7 +663,7 @@ BEGIN
     SET @DEID = NULL
         
     IF EXISTS(SELECT DEID FROM @tvTargetList) BEGIN
-      SELECT TOP 1 @DEID = DEID FROM @tvTargetList
+      SELECT TOP (1) @DEID = DEID FROM @tvTargetList
     END
   END
 END
@@ -871,7 +871,7 @@ CREATE PROCEDURE sdom.spgetDOM
 @SuppressResultset bit = 0
 --$!ParseMarker
 --Note:  comments and code between marker and AS are subject to automatic removal by OpsStream
---©Copyright 2006-2010 by David Rueter, Automated Operations, Inc.
+--Â©Copyright 2006-2010 by David Rueter, Automated Operations, Inc.
 --May be held, used or transmitted only pursuant to an in-force licensing agreement with Automated Operations, Inc.
 --Contact info@opsstream.com / 800-964-3646 / 949-264-1555
 AS 
@@ -1340,7 +1340,7 @@ CREATE PROCEDURE sdom.spgetDOMHTML
 @HUIDLike varchar(900) = NULL
 --$!ParseMarker
 --Note:  comments and code between marker and AS are subject to automatic removal by OpsStream
---©Copyright 2006-2010 by David Rueter, Automated Operations, Inc.
+--Â©Copyright 2006-2010 by David Rueter, Automated Operations, Inc.
 --May be held, used or transmitted only pursuant to an in-force licensing agreement with Automated Operations, Inc.
 --Contact info@opsstream.com / 800-964-3646 / 949-264-1555
 AS 
@@ -1506,7 +1506,7 @@ BEGIN
         SET @StackTag = NULL
         SET @StackIncludeNode = NULL
         
-        SELECT TOP 1 
+        SELECT TOP (1) 
           @StackID = StackID,          
           @StackDEID = DEID,              
           @StackTag = CloseTag,
@@ -1586,7 +1586,7 @@ BEGIN
         SET @ThisAttribID = -1
         WHILE @ThisAttribID IS NOT NULL BEGIN 
           SET @ThisAttribID = NULL      
-          SELECT TOP 1
+          SELECT TOP (1)
             @ThisAttribID = da.DOMStyleID,
             @ThisAttribName = da.Name,
             @ThisAttribValue = da.Value
@@ -1613,7 +1613,7 @@ BEGIN
         SET @ThisAttribID = -1
         WHILE @ThisAttribID IS NOT NULL BEGIN 
           SET @ThisAttribID = NULL      
-          SELECT TOP 1
+          SELECT TOP (1)
             @ThisAttribID = da.DOMAttribID,
             @ThisAttribName = da.Name,
             @ThisAttribValue = da.Value
@@ -1689,7 +1689,7 @@ BEGIN
 
   WHILE EXISTS(SELECT StackID FROM @tvTagStack) BEGIN  
   
-    SELECT TOP 1 
+    SELECT TOP (1) 
       @StackID = StackID,          
       @StackDEID = DEID,              
       @StackTag = CloseTag,
@@ -1784,7 +1784,7 @@ BEGIN
   ELSE IF @Selector IS NOT NULL BEGIN
     INSERT INTO @tvTargetList (DEID)
     EXEC sdom.spgetDOM @DocID = @DocID OUTPUT, @Selector = @Selector, @ReturnDEIDsOnly = 1
-    SELECT TOP 1 @DEID = DEID FROM @tvTargetList
+    SELECT TOP (1) @DEID = DEID FROM @tvTargetList
   END
    
    
@@ -2190,7 +2190,7 @@ BEGIN
               SET @StackTag = ''     
               SET @PopDone = 0
                 
-              SELECT TOP 1 @TopStackID = TagStackID FROM @tvTagStack ORDER BY TagStackID DESC
+              SELECT TOP (1) @TopStackID = TagStackID FROM @tvTagStack ORDER BY TagStackID DESC
                                 
               WHILE (@TopStackID IS NOT NULL) AND 
                     (@StackTag <> @CloseTagName) AND
@@ -2220,7 +2220,7 @@ BEGIN
                 SET @TopStackID = NULL
                 SET @StackTag = NULL
                 
-                SELECT TOP 1
+                SELECT TOP (1)
                   @TopStackID = ts.TagStackID,
                   @StackTag = ts.Tag,
                   @LastDEID = ts.DEID,
@@ -2258,7 +2258,7 @@ BEGIN
     SET @DEID = NULL
         
     IF EXISTS(SELECT DEID FROM @tvTargetList) BEGIN
-      SELECT TOP 1 @DEID = DEID FROM @tvTargetList
+      SELECT TOP (1) @DEID = DEID FROM @tvTargetList
     END
   END
   
@@ -2550,7 +2550,7 @@ BEGIN
           
             --pop tag from stack and write closing tag to XML
             SET @Tag = ''
-            SELECT TOP 1 @Tag = Tag, @StackID = StackID FROM @tvStack ORDER BY StackID DESC      
+            SELECT TOP (1) @Tag = Tag, @StackID = StackID FROM @tvStack ORDER BY StackID DESC      
             DELETE FROM @tvStack WHERE StackID = @StackID
           
             IF @Tag <> '' BEGIN
@@ -2561,7 +2561,7 @@ BEGIN
           --We are on a comma.  If the top element is an array element, peek and write
           --a close tag and a re-open tag to XML
           SET @IsArrayElem = 0
-          SELECT TOP 1 @IsArrayElem = IsArrayElem, @Tag = Tag FROM @tvStack ORDER BY StackID DESC   
+          SELECT TOP (1) @IsArrayElem = IsArrayElem, @Tag = Tag FROM @tvStack ORDER BY StackID DESC   
           IF @LastChar = '}' AND @IsArrayElem = 1 BEGIN
             SET @XMLStr = @XMLStr + '</' + @Tag +'>' + '<' + @Tag + '>'                  
           END             
@@ -2572,7 +2572,7 @@ BEGIN
           
           --peek at stack and add first array element tag
           SET @Tag = ''
-          SELECT TOP 1 @Tag = Tag, @StackID = StackID FROM @tvStack ORDER BY StackID DESC     
+          SELECT TOP (1) @Tag = Tag, @StackID = StackID FROM @tvStack ORDER BY StackID DESC     
           
           IF @Tag <> '' BEGIN
             SET @Tag = @Tag + '_'
@@ -2586,7 +2586,7 @@ BEGIN
           --at end of object
           
           --pop tag from stack and write closing tag to XML
-          SELECT TOP 1 @Tag = Tag, @StackID = StackID FROM @tvStack ORDER BY StackID DESC     
+          SELECT TOP (1) @Tag = Tag, @StackID = StackID FROM @tvStack ORDER BY StackID DESC     
           DELETE FROM @tvStack WHERE StackID = @StackID
           
           IF @Tag <> '' BEGIN
@@ -2595,7 +2595,7 @@ BEGIN
           SET @Buf = ''                      
         END
         ELSE IF @C = ']' BEGIN                 
-          SELECT TOP 1 @Tag = Tag, @StackID = StackID FROM @tvStack ORDER BY StackID DESC     
+          SELECT TOP (1) @Tag = Tag, @StackID = StackID FROM @tvStack ORDER BY StackID DESC     
           DELETE FROM @tvStack WHERE StackID = @StackID
           
           IF @Tag <> '' BEGIN
@@ -2625,7 +2625,7 @@ BEGIN
   --pop any remaining tags from stack
   WHILE EXISTS(SELECT StackID FROM @tvStack) BEGIN
     SET @Tag = ''
-    SELECT TOP 1 @Tag = Tag, @StackID = StackID FROM @tvStack ORDER BY StackID DESC      
+    SELECT TOP (1) @Tag = Tag, @StackID = StackID FROM @tvStack ORDER BY StackID DESC      
     DELETE FROM @tvStack WHERE StackID = @StackID
     IF @Tag <> '' BEGIN
       SET @XMLStr = @XMLStr + '</' + @Tag + '>'
@@ -2727,7 +2727,7 @@ CREATE PROCEDURE sdom.spgetInitSession
 @SQLToExecute varchar(MAX) = NULL OUTPUT
 --$!ParseMarker
 --Note:  comments and code between marker and AS are subject to automatic removal by OpsStream
---©Copyright 2006-2010 by David Rueter, Automated Operations, Inc.
+--Â©Copyright 2006-2010 by David Rueter, Automated Operations, Inc.
 --May be held, used or transmitted only pursuant to an in-force licensing agreement with Automated Operations, Inc.
 --Contact info@opsstream.com / 800-964-3646 / 949-264-1555
 WITH EXECUTE AS OWNER
