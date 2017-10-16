@@ -72,7 +72,7 @@ namespace CK.SqlServer.UtilTests
         {
             get
             {
-                if (_solutionFolder == null) InitalizePaths();
+                if( _solutionFolder == null ) InitalizePaths();
                 return _solutionFolder;
             }
         }
@@ -81,7 +81,7 @@ namespace CK.SqlServer.UtilTests
         {
             get
             {
-                if (_solutionFolder == null) InitalizePaths();
+                if( _solutionFolder == null ) InitalizePaths();
                 return _buildConfiguration;
             }
         }
@@ -90,9 +90,9 @@ namespace CK.SqlServer.UtilTests
         {
             get
             {
-                var transform = SimpleTypeFinder.WeakResolver("CK.SqlServer.Transform.SqlTransformHost, CK.SqlServer.Transform", false);
+                var transform = SimpleTypeFinder.WeakResolver( "CK.SqlServer.Transform.SqlTransformHost, CK.SqlServer.Transform", false );
                 string project;
-                if (transform != null)
+                if( transform != null )
                 {
                     project = "CK.SqlServer.Transform.Tests";
                 }
@@ -104,9 +104,9 @@ namespace CK.SqlServer.UtilTests
         public static string BuildPathInCurrentTestProject( params string[] subNames )
         {
             var all = new List<string>();
-            all.Add(SolutionFolder);
-            all.Add("Tests");
-            all.Add(CurrentTestProjectName);
+            all.Add( SolutionFolder );
+            all.Add( "Tests" );
+            all.Add( CurrentTestProjectName );
             all.AddRangeArray( subNames );
             return Path.Combine( all.ToArray() );
         }
@@ -159,25 +159,20 @@ namespace CK.SqlServer.UtilTests
 
         static void InitalizePaths()
         {
-#if NET451
-            string p = new Uri(System.Reflection.Assembly.GetExecutingAssembly().CodeBase).LocalPath;
-            p = Path.GetDirectoryName(p);
-#else
-            string p = Directory.GetCurrentDirectory();
-#endif
+            string p = AppContext.BaseDirectory;
 #if DEBUG
             _buildConfiguration = "Debug";
 #else
-            _configuration = "Release";
+            _buildConfiguration = "Release";
 #endif
-            while (!Directory.EnumerateFiles(p).Where(f => f.EndsWith(".sln")).Any())
+            while( !Directory.EnumerateFiles( p ).Where( f => f.EndsWith( ".sln" ) ).Any() )
             {
-                p = Path.GetDirectoryName(p);
+                p = Path.GetDirectoryName( p );
             }
             _solutionFolder = p;
 
-            Console.WriteLine($"SolutionFolder is: {_solutionFolder}.");
-            Console.WriteLine($"Core path: {typeof(string).GetTypeInfo().Assembly.CodeBase}.");
+            Console.WriteLine( $"SolutionFolder is: {_solutionFolder}." );
+            Console.WriteLine( $"Core path: {typeof( string ).GetTypeInfo().Assembly.CodeBase}." );
         }
 
     }
