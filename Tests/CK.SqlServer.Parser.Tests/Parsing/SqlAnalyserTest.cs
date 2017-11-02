@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
@@ -172,6 +172,16 @@ namespace CK.SqlServer.Parser.Tests
 
                 Assert.That( sp.Header.ToStringCompact(), Is.EqualTo( "procedure CK.sStoredProcedureInputOutput @p1 int, @p2 tinyint=0, @p3 smallint output, @p4 nvarchar(50)=N'Murfn...', @p5 varchar(max) /*input*/output, @p6 char /*input*/output, @p7 Xml output, @p8 smalldatetime /*input*/output, @p9 smalldatetime=null" ) );
             } );
+        }
+
+        [TestCase( "select §e.ProductCode from CK.tProducts §e group by §e.ProductCode" )]
+        public void simple_dyn_fragment_test( string text )
+        {
+            var res = SqlAnalyser.Parse( out ISqlNode node, ParseMode.Statement, text );
+            Assert.That( res.IsError, Is.False );
+            var selectNode = (SelectSpec)(((SqlSelectStatement)node).Select);
+            var groupby = selectNode.GroupByClause;
+            Assert.That( groupby, Is.Not.Null );
         }
 
         [DebuggerStepThrough]

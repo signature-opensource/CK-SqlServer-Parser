@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -150,7 +150,7 @@ namespace CK.SqlServer.Parser
 
         internal static bool IsIdentifierStartChar( int c )
         {
-            return c == '@' || c == '#' || c == '$' || c == '_' || Char.IsLetter( (char)c );
+            return c == '@' || c == '#' || c == '$' || c == '_' || Char.IsLetter( (char)c ) || c == '§' ; // SqlDynFragment supports
         }
 
         internal static bool IsIdentifierChar( int c )
