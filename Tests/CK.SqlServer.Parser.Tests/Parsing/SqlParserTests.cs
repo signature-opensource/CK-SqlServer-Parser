@@ -60,7 +60,7 @@ namespace CK.SqlServer.Parser.Tests
 
         [TestCase( "create view simple as select 1;", null, "simple", "simple" )]
         [TestCase( "create view [d].[a] as select 1;", "d", "a", "[d].[a]" )]
-        [TestCase( "create view [ [3]] nimp].[*µ ù%'B' m] as select 1;", " [3] nimp", "*µ ù%'B' m", "[ [3]] nimp].[*µ ù%'B' m]" )]
+        [TestCase( "create view [ [3]] nimp].[*Âµ Ã¹%'B' m] as select 1;", " [3] nimp", "*Âµ Ã¹%'B' m", "[ [3]] nimp].[*Âµ Ã¹%'B' m]" )]
         [TestCase( @"
 create view 
 [on
@@ -88,7 +88,6 @@ nimp!]" )]
             Assert.That( result.Result.Schema, Is.EqualTo( schema ) );
             Assert.That( result.Result.SchemaName, Is.EqualTo( schemaName ) );
         }
-
 
     }
 }

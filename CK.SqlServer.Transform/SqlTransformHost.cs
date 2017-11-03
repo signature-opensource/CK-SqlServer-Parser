@@ -9,11 +9,20 @@ using System.Threading.Tasks;
 
 namespace CK.SqlServer.Transform
 {
+    /// <summary>
+    /// Hosts transformation of immutable <see cref="ISqlNode"/> by tracking
+    /// the changed root and handling range selection.
+    /// </summary>
     public class SqlTransformHost
     {
         readonly IActivityMonitor _monitor;
         LocationRoot _root;
 
+        /// <summary>
+        /// Initializes a new <see cref="SqlTransformHost"/>
+        /// </summary>
+        /// <param name="node">The initial root node. Can not be null.</param>
+        /// <param name="monitor">The monitor to use. Can not be null.</param>
         public SqlTransformHost( ISqlNode node, IActivityMonitor monitor )
         {
             if( node == null ) throw new ArgumentNullException( nameof( node ) );
@@ -71,7 +80,7 @@ namespace CK.SqlServer.Transform
         }
 
         /// <summary>
-        /// Gets the name space of the current <see cref="Root"/>.
+        /// Gets the name space of the current root <see cref="Node"/>.
         /// </summary>
         public ISqlNodeLocationManager CurrentNamespace => _root;
         
@@ -88,7 +97,7 @@ namespace CK.SqlServer.Transform
 
         /// <summary>
         /// Applies a <see cref="SqlTransformer"/> to <see cref="Node"/>.
-        /// <see cref="Reparse"/> is automatcally called if needed at the 
+        /// <see cref="Reparse"/> is automatically called if needed at the 
         /// end of the transformation.
         /// </summary>
         /// <param name="transformer">The transformer. Can not be null.</param>
