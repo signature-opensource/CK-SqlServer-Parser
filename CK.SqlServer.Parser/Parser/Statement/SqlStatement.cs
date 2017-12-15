@@ -9,18 +9,20 @@ using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
+    using CNode = SNode<ISqlIdentifier, ISqlNode, SqlTokenTerminal>;
+
     /// <summary>
     /// Captures any statement: it is a <see cref="Name"/> and a non empty <see cref="Content"/> 
     /// (a <see cref="SqlNodeList"/>).
     /// </summary>
     public sealed class SqlStatement : SqlNonTokenAutoWidth, ISqlNamedStatement
     {
-        readonly SNode<ISqlIdentifier, ISqlNode, SqlTokenTerminal> _content;
+        readonly CNode _content;
 
         public SqlStatement( ISqlIdentifier name, ISqlNode content, SqlTokenTerminal statementTerminator = null )
             : base( null, null )
         {
-            _content = new SNode<ISqlIdentifier, ISqlNode, SqlTokenTerminal>( name, content, statementTerminator );
+            _content = new CNode( name, content, statementTerminator );
             CheckContent();
         }
 
@@ -35,7 +37,7 @@ namespace CK.SqlServer.Parser
             if( items == null ) _content = o._content;
             else
             {
-                _content = new SNode<ISqlIdentifier, ISqlNode, SqlTokenTerminal>( items );
+                _content = new CNode( items );
                 CheckContent();
             }
         }

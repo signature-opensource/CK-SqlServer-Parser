@@ -11,7 +11,7 @@ namespace CK.SqlServer.Parser
 {
     public partial class SqlAnalyser
     {
-        SqlTransformer MatchTransformer( SqlTokenIdentifier alterOrCreate )
+        SqlTransformer MatchTransformer( SqlCreateOrAlter createOrAlter )
         {
             SqlTokenIdentifier type = R.Read<SqlTokenIdentifier>();
             Debug.Assert( type.TokenType == SqlTokenType.Transformer );
@@ -50,7 +50,7 @@ namespace CK.SqlServer.Parser
             SqlTokenIdentifier endT;
             if( !R.IsToken( out endT, SqlTokenType.End, true ) ) return null;
 
-            return new SqlTransformer( alterOrCreate, type, nameOrOnOrAs, onT, targetName, asT, begintT, s, endT, GetOptionalTerminator() );
+            return new SqlTransformer( createOrAlter, type, nameOrOnOrAs, onT, targetName, asT, begintT, s, endT, GetOptionalTerminator() );
         }
 
         ISqlTStatement IsTransformStatement( bool expected )

@@ -8,7 +8,7 @@ using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
-    using CNode = SNode<SqlTokenIdentifier, 
+    using CNode = SNode<SqlCreateOrAlter, 
                         SqlTokenIdentifier, 
                         ISqlIdentifier, 
                         SqlEnclosedIdentifierCommaList, 
@@ -24,8 +24,8 @@ namespace CK.SqlServer.Parser
         // Cached formal columns.
         IReadOnlyList<string> _formalColumnList;
 
-        public SqlView( 
-                SqlTokenIdentifier alterOrCreate, 
+        public SqlView(
+                SqlCreateOrAlter createOrAlter, 
                 SqlTokenIdentifier type, 
                 ISqlIdentifier name, 
                 SqlEnclosedIdentifierCommaList columns, 
@@ -37,7 +37,7 @@ namespace CK.SqlServer.Parser
             : base( null, null )
         {
             _content = new CNode(
-                alterOrCreate,
+                createOrAlter,
                 type,
                 name,
                 columns,
@@ -51,7 +51,7 @@ namespace CK.SqlServer.Parser
 
         void CheckContent()
         {
-            Helper.CheckToken( AlterOrCreateT, nameof( AlterOrCreateT ), SqlTokenType.Alter, SqlTokenType.Create );
+            Helper.CheckNotNull( CreateOrAlter, nameof( CreateOrAlter ) );
             Helper.CheckToken( ObjectTypeT, nameof( ObjectTypeT ), SqlTokenType.View );
             Helper.CheckNotNull( FullName, nameof( FullName ) );
             Helper.CheckNullableToken( AsT, nameof( AsT ), SqlTokenType.As );
@@ -70,17 +70,19 @@ namespace CK.SqlServer.Parser
             return new SqlView( leading, content, trailing );
         }
 
-        public StatementKnownName StatementKnownName => AlterOrCreateT.TokenType == SqlTokenType.Alter
+        public StatementKnownName StatementKnownName
+                                        => CreateOrAlter.StatementPrefix == CreateOrAlterStatementPrefix.Alter
                                             ? StatementKnownName.AlterView
-                                            : StatementKnownName.CreateView;
+                                            : (CreateOrAlter.StatementPrefix == CreateOrAlterStatementPrefix.Create
+                                                ? StatementKnownName.CreateView
+                                                : StatementKnownName.CreateOrAlterView);
+
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
 
         public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
 
-        public SqlTokenIdentifier AlterOrCreateT => _content.V1;
-
-        public bool IsAlterKeyword => AlterOrCreateT.TokenType == SqlTokenType.Alter;
+        public SqlCreateOrAlter CreateOrAlter => _content.V1;
 
         public SqlTokenIdentifier ObjectTypeT => _content.V2;
 
@@ -144,12 +146,12 @@ namespace CK.SqlServer.Parser
 
         void ISqlServerParsedText.Write( StringBuilder b ) => Write( SqlTextWriter.CreateDefault( b ) );
 
-        ISqlServerAlterOrCreateStatement ISqlServerAlterOrCreateStatement.ToggleAlterKeyword()
+        CreateOrAlterStatementPrefix ISqlServerAlterOrCreateStatement.StatementPrefix => CreateOrAlter.StatementPrefix;
+
+        public ISqlServerAlterOrCreateStatement WithStatementPrefix( CreateOrAlterStatementPrefix prefix )
         {
-            return this.ReplaceContentNode( 0,
-                            IsAlterKeyword
-                                ? new SqlTokenIdentifier( SqlTokenType.Create, "create", AlterOrCreateT.LeadingTrivias, AlterOrCreateT.TrailingTrivias )
-                                : new SqlTokenIdentifier( SqlTokenType.Alter, "alter", AlterOrCreateT.LeadingTrivias, AlterOrCreateT.TrailingTrivias ) );
+            var newOne = CreateOrAlter.WithStatementPrefix( prefix );
+            return newOne != CreateOrAlter ? this.ReplaceContentNode( 0, newOne ) : this;
         }
 
         IReadOnlyList<string> ISqlServerView.FormalColumnList

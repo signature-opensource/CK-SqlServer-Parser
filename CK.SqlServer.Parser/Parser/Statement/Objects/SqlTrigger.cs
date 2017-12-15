@@ -8,22 +8,23 @@ using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
+    using CNode = SNode<SqlCreateOrAlter,
+                        SqlTokenIdentifier,
+                        ISqlIdentifier,
+                        SqlTokenIdentifier,
+                        ISqlNode,
+                        SqlWithOptions,
+                        SqlNodeList,
+                        SqlTokenIdentifier,
+                        SqlStatementList,
+                        SqlTokenTerminal>;
+
     public sealed class SqlTrigger : SqlNonTokenAutoWidth, ISqlNamedStatement
     {
-        readonly SNode<
-            SqlTokenIdentifier,
-            SqlTokenIdentifier,
-            ISqlIdentifier,
-            SqlTokenIdentifier,
-            ISqlNode,
-            SqlWithOptions,
-            SqlNodeList,
-            SqlTokenIdentifier,
-            SqlStatementList,
-            SqlTokenTerminal> _content;
+        readonly CNode _content;
 
         public SqlTrigger( 
-            SqlTokenIdentifier alterOrCreate, 
+            SqlCreateOrAlter createOrAlter, 
             SqlTokenIdentifier type,
             ISqlIdentifier name,
             SqlTokenIdentifier onT,
@@ -35,8 +36,8 @@ namespace CK.SqlServer.Parser
             SqlTokenTerminal term )
             : base( null, null )
         {
-            _content = new SNode<SqlTokenIdentifier, SqlTokenIdentifier, ISqlIdentifier, SqlTokenIdentifier, ISqlNode, SqlWithOptions, SqlNodeList, SqlTokenIdentifier, SqlStatementList, SqlTokenTerminal>(
-                alterOrCreate,
+            _content = new CNode(
+                createOrAlter,
                 type,
                 name,
                 onT,
@@ -55,14 +56,14 @@ namespace CK.SqlServer.Parser
             if( items == null ) _content = o._content;
             else
             {
-                _content = new SNode<SqlTokenIdentifier, SqlTokenIdentifier, ISqlIdentifier, SqlTokenIdentifier, ISqlNode, SqlWithOptions, SqlNodeList, SqlTokenIdentifier, SqlStatementList, SqlTokenTerminal>( items );
+                _content = new CNode( items );
                 CheckContent();
             }
         }
 
         void CheckContent()
         {
-            Helper.CheckToken( AlterOrCreateT, nameof( AlterOrCreateT ), SqlTokenType.Alter, SqlTokenType.Create );
+            Helper.CheckNotNull( CreateOrAlter, nameof( CreateOrAlter ) );
             Helper.CheckToken( ObjectTypeT, nameof( ObjectTypeT ), SqlTokenType.Trigger );
             Helper.CheckNotNull( Name, nameof( Name ) );
             Helper.CheckNotNull( TargetName, nameof( TargetName ) );
@@ -76,18 +77,19 @@ namespace CK.SqlServer.Parser
             return new SqlTrigger( this, leading, content, trailing );
         }
 
-        public StatementKnownName StatementKnownName => AlterOrCreateT.TokenType == SqlTokenType.Alter
-                                    ? StatementKnownName.AlterTrigger
-                                    : StatementKnownName.CreateTrigger;
+        public StatementKnownName StatementKnownName
+                                        => CreateOrAlter.StatementPrefix == CreateOrAlterStatementPrefix.Alter
+                                            ? StatementKnownName.AlterTrigger
+                                            : (CreateOrAlter.StatementPrefix == CreateOrAlterStatementPrefix.Create
+                                                ? StatementKnownName.CreateTrigger
+                                                : StatementKnownName.CreateOrAlterTrigger);
 
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
 
         public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
 
-        public SqlTokenIdentifier AlterOrCreateT => _content.V1;
-
-        public bool IsAlter => AlterOrCreateT.TokenType == SqlTokenType.Alter;
+        public SqlCreateOrAlter CreateOrAlter => _content.V1;
 
         public SqlTokenIdentifier ObjectTypeT => _content.V2;
 

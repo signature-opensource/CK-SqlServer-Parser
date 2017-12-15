@@ -105,25 +105,34 @@ namespace CK.SqlServer.Parser
             if( id.TokenType == SqlTokenType.Create || id.TokenType == SqlTokenType.Alter )
             {
                 R.MoveNext();
+                SqlCreateOrAlter createOrAlter;
+                SqlTokenIdentifier orT;
+                if( id.TokenType == SqlTokenType.Create && R.IsToken( out orT, SqlTokenType.Or, false ) )
+                {
+                    SqlTokenIdentifier alterT;
+                    R.IsToken( out alterT, SqlTokenType.Alter, true );
+                    createOrAlter = new SqlCreateOrAlter( id, orT, alterT );
+                }
+                else createOrAlter = new SqlCreateOrAlter( id, null, null );
                 if( R.Current.TokenType == SqlTokenType.Procedure )
                 {
-                    return MatchStoredProcedure( id );
+                    return MatchStoredProcedure( createOrAlter );
                 }
                 if( R.Current.TokenType == SqlTokenType.View )
                 {
-                    return MatchView( id );
+                    return MatchView( createOrAlter );
                 }
                 if( R.Current.TokenType == SqlTokenType.Function )
                 {
-                    return MatchFunction( id );
+                    return MatchFunction( createOrAlter );
                 }
                 if( R.Current.TokenType == SqlTokenType.Trigger )
                 {
-                    return MatchTrigger( id );
+                    return MatchTrigger( createOrAlter );
                 }
                 if( R.Current.TokenType == SqlTokenType.Transformer )
                 {
-                    return MatchTransformer( id );
+                    return MatchTransformer( createOrAlter );
                 }
                 return IsStatementStartedByIdentifier( id );
             }
@@ -776,7 +785,7 @@ namespace CK.SqlServer.Parser
             return new SqlStatement( id, content, GetOptionalTerminator() );
         }
 
-        SqlView MatchView( SqlTokenIdentifier alterOrCreate )
+        SqlView MatchView( SqlCreateOrAlter createOrAlter )
         {
             SqlTokenIdentifier type = R.Read<SqlTokenIdentifier>();
             Debug.Assert( type.TokenType == SqlTokenType.View );
@@ -819,10 +828,10 @@ namespace CK.SqlServer.Parser
                 withCheckOption = new SqlNodeList( withT, checkT, optionT );
             }
 
-            return new SqlView( alterOrCreate, type, name, columns, options, asToken, body, withCheckOption, GetOptionalTerminator() );
+            return new SqlView( createOrAlter, type, name, columns, options, asToken, body, withCheckOption, GetOptionalTerminator() );
         }
 
-        ISqlNamedStatement MatchFunction( SqlTokenIdentifier alterOrCreate )
+        ISqlNamedStatement MatchFunction( SqlCreateOrAlter createOrAlter )
         {
             SqlTokenIdentifier type = R.Read<SqlTokenIdentifier>();
             Debug.Assert( type.TokenType == SqlTokenType.Function );
@@ -867,7 +876,7 @@ namespace CK.SqlServer.Parser
                 if( st == null ) return null;
 
                 return new SqlFunctionInlineTable(
-                                alterOrCreate,
+                                createOrAlter,
                                 type,
                                 name,
                                 parameters,
@@ -928,7 +937,7 @@ namespace CK.SqlServer.Parser
                 if( tableVariableNameT != null )
                 {
                     return new SqlFunctionTable(
-                                    alterOrCreate,
+                                    createOrAlter,
                                     type,
                                     name,
                                     parameters, 
@@ -945,7 +954,7 @@ namespace CK.SqlServer.Parser
                 else
                 {
                     return new SqlFunctionScalar(
-                                    alterOrCreate,
+                                    createOrAlter,
                                     type,
                                     name,
                                     parameters,
@@ -981,7 +990,7 @@ namespace CK.SqlServer.Parser
             return true;
         }
 
-        SqlStoredProcedure MatchStoredProcedure( SqlTokenIdentifier alterOrCreate )
+        SqlStoredProcedure MatchStoredProcedure( SqlCreateOrAlter createOrAlter )
         {
             SqlTokenIdentifier type = R.Read<SqlTokenIdentifier>();
             Debug.Assert( type.TokenType == SqlTokenType.Procedure );
@@ -1000,10 +1009,10 @@ namespace CK.SqlServer.Parser
             if( bodyStatements == null ) return null;
             SqlTokenIdentifier end = null;
             if( beginT != null && !R.IsToken( out end, SqlTokenType.End, true ) ) return null;
-            return new SqlStoredProcedure( alterOrCreate, type, name, parameters, options, asToken, beginT, bodyStatements, end, GetOptionalTerminator() );
+            return new SqlStoredProcedure( createOrAlter, type, name, parameters, options, asToken, beginT, bodyStatements, end, GetOptionalTerminator() );
         }
 
-        SqlTrigger MatchTrigger( SqlTokenIdentifier alterOrCreate )
+        SqlTrigger MatchTrigger( SqlCreateOrAlter createOrAlter )
         {
             SqlTokenIdentifier type = R.Read<SqlTokenIdentifier>();
             Debug.Assert( type.TokenType == SqlTokenType.Trigger );
@@ -1036,7 +1045,7 @@ namespace CK.SqlServer.Parser
             if( R.IsError ) return null;
             SqlStatementList bodyStatements = IsNestedStatementList( true );
             if( bodyStatements == null ) return null;
-            return new SqlTrigger( alterOrCreate, type, name, onT, target, options, configuration, asT, bodyStatements, GetOptionalTerminator() );
+            return new SqlTrigger( createOrAlter, type, name, onT, target, options, configuration, asT, bodyStatements, GetOptionalTerminator() );
         }
 
         ISqlNode IsFunctionOrProcedureOrTriggerOption( bool expected )

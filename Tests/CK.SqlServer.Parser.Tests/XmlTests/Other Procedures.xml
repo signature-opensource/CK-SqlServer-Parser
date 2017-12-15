@@ -1,9 +1,12 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8" ?>
 <Tests>
    
   <Test>
     <Text>
-ALTER PROCEDURE [dbo].[ACTION_ENGAGED]
+CREATE
+OR
+ALTER
+PROCEDURE [dbo].[ACTION_ENGAGED]
       @ID_ACTION int,
       @ID_MODULE int
 AS
@@ -75,7 +78,7 @@ END
     <Description>With options.</Description>
     <Xml>
       <Statements>
-        <StoredProcedure StatementName="AlterProcedure">
+        <StoredProcedure StatementName="CreateOrAlterProcedure">
             <DeclareVariable />
             <If>
               <SelectStatement>

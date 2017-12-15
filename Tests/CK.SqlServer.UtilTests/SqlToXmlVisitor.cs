@@ -1,4 +1,4 @@
-﻿using CK.SqlServer.Parser;
+using CK.SqlServer.Parser;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -340,7 +340,9 @@ namespace CK.SqlServer.UtilTests
         protected override ISqlNode Visit( SqlStoredProcedure e )
         {
             StartNode( e ).Add(
-                    e.IsAlterKeyword ? new XAttribute( "IsAlter", "true" ) : null,
+                    e.CreateOrAlter.StatementPrefix != CreateOrAlterStatementPrefix.Create
+                        ? new XAttribute( "IsAlter", "true" )
+                        : null,
                     new XElement( "Name", e.FullName.ToString() ),
                     ToXml( "Parameters", e.Parameters ),
                     e.HasOptions ? ToXml( "Options", e.Options ) : null,

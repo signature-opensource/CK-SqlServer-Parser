@@ -8,7 +8,7 @@ using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
-    using CNode = SNode<SqlTokenIdentifier,
+    using CNode = SNode<SqlCreateOrAlter,
                         SqlTokenIdentifier,
                         ISqlIdentifier,
                         SqlParameterList,
@@ -29,7 +29,7 @@ namespace CK.SqlServer.Parser
         readonly CNode _content;
 
         public SqlStoredProcedure( 
-            SqlTokenIdentifier alterOrCreate, 
+            SqlCreateOrAlter createOrAlter, 
             SqlTokenIdentifier type,
             ISqlIdentifier name, 
             SqlParameterList parameters,
@@ -42,7 +42,7 @@ namespace CK.SqlServer.Parser
             : base( null, null )
         {
             _content = new CNode(
-                alterOrCreate,
+                createOrAlter,
                 type,
                 name,
                 parameters,
@@ -68,7 +68,7 @@ namespace CK.SqlServer.Parser
 
         void CheckContent()
         {
-            Helper.CheckToken( AlterOrCreateT, nameof( AlterOrCreateT ), SqlTokenType.Alter, SqlTokenType.Create );
+            Helper.CheckNotNull( CreateOrAlter, nameof( CreateOrAlter ) );
             Helper.CheckToken( ObjectTypeT, nameof( ObjectTypeT ), SqlTokenType.Procedure );
             Helper.CheckNotNull( FullName, nameof( FullName ) );
             Helper.CheckNotNull( Parameters, nameof( Parameters ) );
@@ -84,18 +84,19 @@ namespace CK.SqlServer.Parser
             return new SqlStoredProcedure( this, leading, content, trailing );
         }
 
-        public StatementKnownName StatementKnownName => AlterOrCreateT.TokenType == SqlTokenType.Alter
-                                    ? StatementKnownName.AlterProcedure
-                                    : StatementKnownName.CreateProcedure;
+        public StatementKnownName StatementKnownName
+                                        => CreateOrAlter.StatementPrefix == CreateOrAlterStatementPrefix.Alter
+                                            ? StatementKnownName.AlterProcedure
+                                            : (CreateOrAlter.StatementPrefix == CreateOrAlterStatementPrefix.Create
+                                                ? StatementKnownName.CreateProcedure
+                                                : StatementKnownName.CreateOrAlterProcedure);
 
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
 
         public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
 
-        public SqlTokenIdentifier AlterOrCreateT => _content.V1;
-
-        public bool IsAlterKeyword => AlterOrCreateT.TokenType == SqlTokenType.Alter;
+        public SqlCreateOrAlter CreateOrAlter => _content.V1;
 
         public SqlTokenIdentifier ObjectTypeT => _content.V2;
 
@@ -170,12 +171,12 @@ namespace CK.SqlServer.Parser
 
         void ISqlServerParsedText.Write( StringBuilder b ) => Write( SqlTextWriter.CreateDefault( b ) );
 
-        ISqlServerAlterOrCreateStatement ISqlServerAlterOrCreateStatement.ToggleAlterKeyword()
+        CreateOrAlterStatementPrefix ISqlServerAlterOrCreateStatement.StatementPrefix => CreateOrAlter.StatementPrefix;
+
+        public ISqlServerAlterOrCreateStatement WithStatementPrefix( CreateOrAlterStatementPrefix prefix )
         {
-            return this.ReplaceContentNode( 0,
-                            IsAlterKeyword
-                                ? new SqlTokenIdentifier( SqlTokenType.Create, "create", AlterOrCreateT.LeadingTrivias, AlterOrCreateT.TrailingTrivias )
-                                : new SqlTokenIdentifier( SqlTokenType.Alter, "alter", AlterOrCreateT.LeadingTrivias, AlterOrCreateT.TrailingTrivias ) );
+            var newOne = CreateOrAlter.WithStatementPrefix( prefix );
+            return newOne != CreateOrAlter ? this.ReplaceContentNode( 0, newOne ) : this;
         }
 
         ISqlParameterListHolder ISqlParameterListHolder.SetParameters( SqlParameterList parameters ) => SetParameters( parameters );

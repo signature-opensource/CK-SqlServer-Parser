@@ -9,7 +9,7 @@ using System.Collections.Immutable;
 namespace CK.SqlServer.Parser
 {
     using CNode = SNode<
-            SqlTokenIdentifier,
+            SqlCreateOrAlter,
             SqlTokenIdentifier,
             ISqlIdentifier,
             SqlTokenIdentifier,
@@ -24,8 +24,8 @@ namespace CK.SqlServer.Parser
     {
         readonly CNode _content;
 
-        public SqlTransformer( 
-            SqlTokenIdentifier alterOrCreate, 
+        public SqlTransformer(
+            SqlCreateOrAlter createOrAlter, 
             SqlTokenIdentifier transfomerT,
             ISqlIdentifier name,
             SqlTokenIdentifier onT,
@@ -38,7 +38,7 @@ namespace CK.SqlServer.Parser
             : base( null, null )
         {
             _content = new CNode(
-                alterOrCreate,
+                createOrAlter,
                 transfomerT,
                 name,
                 onT,
@@ -64,7 +64,7 @@ namespace CK.SqlServer.Parser
 
         void CheckContent()
         {
-            Helper.CheckToken( AlterOrCreateT, nameof( AlterOrCreateT ), SqlTokenType.Alter, SqlTokenType.Create );
+            Helper.CheckNotNull( CreateOrAlter, nameof( CreateOrAlter ) );
             Helper.CheckToken( TransformerT, nameof( TransformerT ), SqlTokenType.Transformer );
             Helper.CheckNullableToken( OnT, nameof( OnT ), SqlTokenType.On );
             Helper.CheckBothNullOrNot( OnT, nameof( OnT ), TargetFullName, nameof( TargetFullName ) );
@@ -85,7 +85,7 @@ namespace CK.SqlServer.Parser
 
         public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
 
-        public SqlTokenIdentifier AlterOrCreateT => _content.V1;
+        public SqlCreateOrAlter CreateOrAlter => _content.V1;
 
         public SqlTokenIdentifier TransformerT => _content.V2;
 
