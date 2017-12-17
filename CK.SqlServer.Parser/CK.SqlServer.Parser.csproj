@@ -8,8 +8,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CK.ActivityMonitor.SimpleSender" Version="9.0.0" />
-    <PackageReference Include="CK.SqlServer.Parser.Model" Version="4.0.0" />
+    <PackageReference Include="CK.ActivityMonitor.SimpleSender" Version="9.0.1" />
+    <PackageReference Include="CK.SqlServer.Parser.Model" Version="5.0.0" />
     <PackageReference Include="System.Collections.Immutable" Version="1.4.0" />
   </ItemGroup>
 

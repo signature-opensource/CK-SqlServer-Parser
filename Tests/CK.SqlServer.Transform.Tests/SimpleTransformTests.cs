@@ -1,4 +1,4 @@
-﻿using CK.Core;
+using CK.Core;
 using CK.SqlServer.Parser;
 using NUnit.Framework;
 using System;
@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using CK.SqlServer.UtilTests;
 using CK.SqlServer.Transform.Transformers;
+using FluentAssertions;
 
 namespace CK.SqlServer.Transform.Tests
 {
@@ -159,6 +160,35 @@ namespace CK.SqlServer.Transform.Tests
             }
         }
 
+        [TestCase( "/*1*/create/*this will be lost*/or alter/*2*/procedure p as begin select 0; end",
+                   CreateOrAlterStatementPrefix.Create,
+                   "/*1*/create/*2*/procedure p as begin select 0; end" )]
+        [TestCase( "/*1*/create or alter procedure p as begin select 0; end",
+                   CreateOrAlterStatementPrefix.Alter,
+                   "/*1*/alter procedure p as begin select 0; end" )]
+        [TestCase( "/*1*/alter/*2*/procedure p as begin select 0; end",
+                   CreateOrAlterStatementPrefix.CreateOrAlter,
+                   "/*1*/create or alter/*2*/procedure p as begin select 0; end" )]
+        public void create_or_alter_mutations( string source, CreateOrAlterStatementPrefix target, string result )
+        {
+            var src = (ISqlServerAlterOrCreateStatement)new SqlAnalyser( source ).IsNamedStatement( true );
+            src = src.WithStatementPrefix( target );
+            src.ToFullString().Should().Be( result );
+        }
+
+        [Test]
+        public void create_or_alter_mutations()
+        {
+            const string source = "/*1*/create/*this will be lost*/or alter/*2*/procedure p as begin select 0; end";
+            var src = (ISqlServerAlterOrCreateStatement)new SqlAnalyser( source ).IsNamedStatement( true );
+            src.StatementPrefix.Should().Be( CreateOrAlterStatementPrefix.CreateOrAlter );
+            var create = src.WithStatementPrefix( CreateOrAlterStatementPrefix.Create );
+            create.StatementPrefix.Should().Be( CreateOrAlterStatementPrefix.Create );
+            create.ToFullString().Should().StartWith( "/*1*/create/*2*/procedure" );
+            var alter = src.WithStatementPrefix( CreateOrAlterStatementPrefix.Alter );
+            alter.StatementPrefix.Should().Be( CreateOrAlterStatementPrefix.Alter );
+            alter.ToFullString().Should().StartWith( "/*1*/alter/*2*/procedure" );
+        }
 
     }
 }

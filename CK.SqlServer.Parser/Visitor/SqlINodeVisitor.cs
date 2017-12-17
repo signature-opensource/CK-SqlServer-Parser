@@ -318,6 +318,8 @@ namespace CK.SqlServer.Parser
 
         internal protected virtual ISqlNode Visit( SqlCTENameList e ) => VisitStandard( e );
 
+        internal protected virtual ISqlNode Visit( SqlCreateOrAlter e ) => VisitStandard( e );
+
         internal protected virtual ISqlNode Visit( SqlCTEName e ) => VisitStandard( e );
 
         #endregion

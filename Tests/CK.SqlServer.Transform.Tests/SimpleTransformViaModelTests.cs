@@ -1,11 +1,8 @@
-﻿using CK.SqlServer.Parser;
+using CK.SqlServer.Parser;
 using CK.SqlServer.UtilTests;
 using NUnit.Framework;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using FluentAssertions;
 
 namespace CK.SqlServer.Transform.Tests.Transform
 {
@@ -20,23 +17,31 @@ namespace CK.SqlServer.Transform.Tests.Transform
         {
             ISqlServerObject sqlObject;
             var r = new SqlAnalyser( "create " + text ).ParseStatement( out sqlObject );
-            Assert.That( !r.IsError );
+            r.IsError.Should().BeFalse();
             ISqlServerAlterOrCreateStatement st = sqlObject as ISqlServerAlterOrCreateStatement;
-            Assert.That( st, Is.Not.Null );
-            Assert.That( st.IsAlterKeyword, Is.False );
-            ISqlServerAlterOrCreateStatement stA = st.ToggleAlterKeyword();
-            Assert.That( stA.IsAlterKeyword, Is.True );
+            st.Should().NotBeNull();
+            st.StatementPrefix.Should().Be( CreateOrAlterStatementPrefix.Create );
+            ISqlServerAlterOrCreateStatement stA = st.WithStatementPrefix( CreateOrAlterStatementPrefix.Alter );
+            stA.StatementPrefix.Should().Be( CreateOrAlterStatementPrefix.Alter );
             string alterV = stA.ToFullString();
-            Assert.That( alterV, Is.EqualTo( "alter " + text ) );
+            alterV.Should().Be( "alter " + text );
 
             var r2 = new SqlAnalyser( alterV ).ParseStatement( out sqlObject );
-            Assert.That( !r2.IsError );
+            r2.IsError.Should().BeFalse();
             ISqlServerAlterOrCreateStatement st2 = sqlObject as ISqlServerAlterOrCreateStatement;
             string alter2V = st2.ToFullString();
             Assert.That( alter2V, Is.EqualTo( "alter " + text ) );
-            ISqlServerAlterOrCreateStatement stC = st2.ToggleAlterKeyword();
-            string alterC = stC.ToFullString();
-            Assert.That( alterC, Is.EqualTo( "create " + text ) );
+            ISqlServerAlterOrCreateStatement stCA = st2.WithStatementPrefix( CreateOrAlterStatementPrefix.CreateOrAlter );
+            stCA.StatementPrefix.Should().Be( CreateOrAlterStatementPrefix.CreateOrAlter );
+            string alterCA = stCA.ToFullString();
+            alterCA.Should().Be( "create or alter " + text );
+
+            var r3 = new SqlAnalyser( alterCA ).ParseStatement( out sqlObject );
+            r3.IsError.Should().BeFalse();
+            ISqlServerAlterOrCreateStatement st3 = sqlObject as ISqlServerAlterOrCreateStatement;
+            st3.StatementPrefix.Should().Be( CreateOrAlterStatementPrefix.CreateOrAlter );
+            string alter3V = st3.ToFullString();
+            alter3V.Should().Be( "create or alter " + text );
         }
 
         [TestCase( "create procedure X.test( @i int ) as begin select 0; end", " $ ", "create procedure [ $ ].test" )]

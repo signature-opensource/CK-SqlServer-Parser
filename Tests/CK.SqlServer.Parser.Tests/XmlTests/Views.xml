@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8" ?>
 <Tests>
 
 
@@ -73,29 +73,33 @@
 	      select Cost, VName, Detail from CKonstV.vUGroupsAreDisjoint
     </Text>
     <Description>A view with union inside.</Description>
-    <Xml ToStringCompact="ColumnNames,FullName,Select">
-      <Sql>
-        <View StatementName="CreateView">
-          <AlterOrCreateT>
-            <Identifier IsReservedKeyword="true">create</Identifier>
-          </AlterOrCreateT>
-          <ObjectTypeT>
-            <Identifier IsReservedKeyword="true">view</Identifier>
-          </ObjectTypeT>
-          <FullName>CKonstV.vAll</FullName>
-          <ColumnNames>(Cost, VName, Detail)</ColumnNames>
-          <AsT>
-            <Identifier IsReservedKeyword="true">as</Identifier>
-          </AsT>
-          <Select>select Cost, VName, Detail from CKonstV.vViolationViewExists union all select Cost, VName, Detail from CKonstV.vUGroupImplyUGroup union all select Cost, VName, Detail from CKonstV.vUGroupsAreDisjoint</Select>
-        </View>
-      </Sql>
-    </Xml>
+      <Xml ToStringCompact="ColumnNames,FullName,Select">
+          <Sql>
+              <View StatementName="CreateView">
+                  <CreateOrAlter>
+                      <CreateOrAlter>
+                          <AlterOrCreateT>
+                              <Identifier IsReservedKeyword="true">create</Identifier>
+                          </AlterOrCreateT>
+                      </CreateOrAlter>
+                  </CreateOrAlter>
+                  <ObjectTypeT>
+                      <Identifier IsReservedKeyword="true">view</Identifier>
+                  </ObjectTypeT>
+                  <FullName>CKonstV.vAll</FullName>
+                  <ColumnNames>(Cost, VName, Detail)</ColumnNames>
+                  <AsT>
+                      <Identifier IsReservedKeyword="true">as</Identifier>
+                  </AsT>
+                  <Select>select Cost, VName, Detail from CKonstV.vViolationViewExists union all select Cost, VName, Detail from CKonstV.vUGroupImplyUGroup union all select Cost, VName, Detail from CKonstV.vUGroupsAreDisjoint</Select>
+              </View>
+          </Sql>
+      </Xml>
   </Test>
 
   <Test>
     <Text>
-      CREATE VIEW dbo.SeattleOnly  
+      CREATE OR ALTER VIEW dbo.SeattleOnly  
       AS  
       SELECT p.LastName, p.FirstName, e.JobTitle, a.City, sp.StateProvinceCode  
       FROM HumanResources.Employee e  
@@ -111,12 +115,10 @@
       WITH CHECK OPTION ;  
     </Text>
     <Description>A view with the WITH CHECK OPTION</Description>
-    <Xml ToStringCompact="SelectFrom,Columns,WhereExpression,WithCheckOption,FullName">
+    <Xml ToStringCompact="CreateOrAlter,SelectFrom,Columns,WhereExpression,WithCheckOption,FullName">
       <Sql>
-         <View StatementName="CreateView" HasTerminator="true">
-           <AlterOrCreateT>
-             <Identifier IsReservedKeyword="true">CREATE</Identifier>
-           </AlterOrCreateT>
+         <View StatementName="CreateOrAlterView" HasTerminator="true">
+             <CreateOrAlter>CREATE OR ALTER</CreateOrAlter>
            <ObjectTypeT>
              <Identifier IsReservedKeyword="true">VIEW</Identifier>
            </ObjectTypeT>
@@ -198,12 +200,10 @@
 
     </Text>
     <Description>create view with CTE.</Description>
-    <Xml ToStringCompact="Select,FullName">
+    <Xml ToStringCompact="CreateOrAlter,Select,FullName">
       <Sql>
         <View StatementName="CreateView" HasTerminator="true">
-          <AlterOrCreateT>
-            <Identifier IsReservedKeyword="true">create</Identifier>
-          </AlterOrCreateT>
+          <CreateOrAlter>create</CreateOrAlter>
           <ObjectTypeT>
             <Identifier IsReservedKeyword="true">view</Identifier>
           </ObjectTypeT>

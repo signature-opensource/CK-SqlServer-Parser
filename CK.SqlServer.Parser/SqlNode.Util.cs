@@ -1,4 +1,4 @@
-﻿using CK.Core;
+using CK.Core;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -155,16 +155,20 @@ namespace CK.SqlServer.Parser
                 }
             }
 
+            /// <summary>
+            /// Checks that a token's type is one of the two expected.
+            /// Throws an <see cref="ArgumentException"/> if it is not the case.
+            /// </summary>
+            /// <param name="token">The token to check. Must not be null.</param>
+            /// <param name="name">The name of the token (used for exception message).</param>
+            /// <param name="t1">First possible token type.</param>
+            /// <param name="t2">Second possible token type.</param>
             public static void CheckToken( SqlToken token, string name, SqlTokenType t1, SqlTokenType t2 )
             {
                 if( token == null ) throw new ArgumentNullException( name );
                 if( token.TokenType != t1 && token.TokenType != t2 )
                 {
-                    throw new ArgumentException( string.Format( "{0} must be {1} or {2}, not {3}.",
-                                                                name,
-                                                                SqlKeyword.ToString( t1 ),
-                                                                SqlKeyword.ToString( t2 ),
-                                                                SqlKeyword.ToString( token.TokenType ) ), name );
+                    throw new ArgumentException( $"{name} must be {SqlKeyword.ToString( t1 )} or {SqlKeyword.ToString( t2 )}, not {SqlKeyword.ToString( token.TokenType )}." );
                 }
             }
 
