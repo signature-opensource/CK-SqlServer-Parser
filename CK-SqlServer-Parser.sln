@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26403.7
+VisualStudioVersion = 15.0.27130.2010
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{12881CD7-3A65-4A6E-855D-D91650B1245A}"
 EndProject
@@ -31,6 +31,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CK.SqlServer.Parser.NetCore.Tests", "Tests\CK.SqlServer.Parser.NetCore.Tests\CK.SqlServer.Parser.NetCore.Tests.csproj", "{B4BF991B-B0BE-44E3-9409-14DAF902471D}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CK.SqlServer.Transform.NetCore.Tests", "Tests\CK.SqlServer.Transform.NetCore.Tests\CK.SqlServer.Transform.NetCore.Tests.csproj", "{EFCD8275-57D3-481D-A3C1-EA15FC4A54C0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CK.Testing.SqlTransform", "CK.Testing.SqlTransform\CK.Testing.SqlTransform.csproj", "{DA7584D9-DCEF-486B-80B1-63A612D156CA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -70,6 +72,10 @@ Global
 		{EFCD8275-57D3-481D-A3C1-EA15FC4A54C0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EFCD8275-57D3-481D-A3C1-EA15FC4A54C0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EFCD8275-57D3-481D-A3C1-EA15FC4A54C0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DA7584D9-DCEF-486B-80B1-63A612D156CA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DA7584D9-DCEF-486B-80B1-63A612D156CA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DA7584D9-DCEF-486B-80B1-63A612D156CA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DA7584D9-DCEF-486B-80B1-63A612D156CA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -80,5 +86,8 @@ Global
 		{D86371BD-8AE3-47A3-B37D-F5B41B747DCD} = {12881CD7-3A65-4A6E-855D-D91650B1245A}
 		{B4BF991B-B0BE-44E3-9409-14DAF902471D} = {12881CD7-3A65-4A6E-855D-D91650B1245A}
 		{EFCD8275-57D3-481D-A3C1-EA15FC4A54C0} = {12881CD7-3A65-4A6E-855D-D91650B1245A}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {0759FDD4-106E-4867-B0E2-77039F0111B9}
 	EndGlobalSection
 EndGlobal

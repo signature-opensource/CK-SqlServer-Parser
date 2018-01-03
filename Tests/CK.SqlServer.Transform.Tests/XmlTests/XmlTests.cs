@@ -12,6 +12,7 @@ using System.Xml.Linq;
 using CK.SqlServer.Transform.Transformers;
 using CK.Text;
 using System.Reflection;
+using FluentAssertions;
 
 namespace CK.SqlServer.Transform.Tests.XmlTests
 {
@@ -63,7 +64,7 @@ namespace CK.SqlServer.Transform.Tests.XmlTests
                         string errContains = ResultText.Substring( 6 ).Trim();
                         Assert.That( errors != null, $"Error expected '{errContains}'." );
                         var all = errors.Select( err => err.Text ).Concatenate( Environment.NewLine );
-                        Assert.That( all, Does.Contain( errContains ), "Expected error not found." );
+                        all.Should().Contain( errContains, "Expected error not found." );
                         return null;
                     }
                     if( e == null ) Assert.Fail( "Transformer failed." );

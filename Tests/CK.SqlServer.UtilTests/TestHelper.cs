@@ -11,109 +11,27 @@ using CK.Text;
 using System.Reflection;
 using NUnit.Framework.Constraints;
 using System.Collections.Generic;
+using CK.Testing;
+using FluentAssertions;
 
 namespace CK.SqlServer.UtilTests
 {
-#if NET461
-    public static class Does
-    {
-        public static SubstringConstraint Contain(string expected) => Is.StringContaining(expected);
-
-        public static EndsWithConstraint EndWith(string expected) => Is.StringEnding(expected);
-
-        public static StartsWithConstraint StartWith(string expected) => Is.StringStarting(expected);
-
-        public static ConstraintExpression Not => Is.Not;
-
-        public static SubstringConstraint Contain(this ConstraintExpression @this, string expected) => @this.StringContaining(expected);
-    }
-#endif
-
 
     public static class TestHelper
     {
-        static string _solutionFolder;
-        static string _buildConfiguration;
-
-        static IActivityMonitor _monitor;
-        static ActivityMonitorConsoleClient _console;
-
-        static TestHelper()
-        {
-            _monitor = new ActivityMonitor();
-            _monitor.Output.BridgeTarget.HonorMonitorFilter = false;
-            _console = new ActivityMonitorConsoleClient();
-        }
-
-        public static IActivityMonitor ConsoleMonitor => _monitor;
-
-        public static bool LogsToConsole
-        {
-            get { return _monitor.Output.Clients.Contains( _console ); }
-            set
-            {
-                if( value != LogsToConsole )
-                {
-                    if( value )
-                    {
-                        _monitor.Output.RegisterUniqueClient( c => c == _console, () => _console );
-                        _monitor.Info( "Enabled Logs to console." );
-                    }
-                    else
-                    {
-                        _monitor.Info( "Disabled Logs to console." );
-                        _monitor.Output.UnregisterClient( _console );
-                    }
-                }
-            }
-        }
-
-        public static string SolutionFolder
-        {
-            get
-            {
-                if( _solutionFolder == null ) InitalizePaths();
-                return _solutionFolder;
-            }
-        }
-
-        public static string BuildConfiguration
-        {
-            get
-            {
-                if( _solutionFolder == null ) InitalizePaths();
-                return _buildConfiguration;
-            }
-        }
-
-        public static string CurrentTestProjectName
-        {
-            get
-            {
-                var transform = SimpleTypeFinder.WeakResolver( "CK.SqlServer.Transform.SqlTransformHost, CK.SqlServer.Transform", false );
-                string project;
-                if( transform != null )
-                {
-                    project = "CK.SqlServer.Transform.Tests";
-                }
-                else project = "CK.SqlServer.Parser.Tests";
-                return project;
-            }
-        }
+        public static IActivityMonitor ConsoleMonitor => MonitorTestHelper.TestHelper.Monitor;
 
         public static string BuildPathInCurrentTestProject( params string[] subNames )
         {
             var all = new List<string>();
-            all.Add( SolutionFolder );
-            all.Add( "Tests" );
-            all.Add( CurrentTestProjectName );
+            all.Add( BasicTestHelper.TestHelper.TestProjectFolder.ToString().Replace(".NetCore", "" ) );
             all.AddRangeArray( subNames );
             return Path.Combine( all.ToArray() );
         }
 
         public static string LoadTextFromParsingScripts( string fileName )
         {
-            return File.ReadAllText( TestHelper.BuildPathInCurrentTestProject( "Parsing", "Scripts", fileName ) ).NormalizeEOL();
+            return File.ReadAllText( BuildPathInCurrentTestProject( "Parsing", "Scripts", fileName ) ).NormalizeEOL();
         }
 
         public static void AssertXmlStringEqual( string visitedString, XElement expected )
@@ -121,7 +39,7 @@ namespace CK.SqlServer.UtilTests
             visitedString = Regex.Replace( visitedString, @"\s+", " ", RegexOptions.CultureInvariant );
             string es = expected.ToString();
             es = Regex.Replace( es, @"\s+", " ", RegexOptions.CultureInvariant );
-            Assert.That( visitedString, Is.EqualTo( es ) );
+            visitedString.Should().Be( es );
         }
 
 
@@ -132,11 +50,11 @@ namespace CK.SqlServer.UtilTests
             if( addSemiColon ) text += ';';
             ISqlStatement statement;
             SqlAnalyser.ErrorResult r = SqlAnalyser.ParseStatement( out statement, text );
-            Assert.That( !r.IsError, r.ToString() );
-            Assert.That( statement, Is.InstanceOf<T>() );
+            r.IsError.Should().BeFalse( r.ToString() );
+            statement.Should().BeAssignableTo<T>();
             T s = (T)statement;
-            Assert.That( statement.ToString( true ).NormalizeEOL(), Is.EqualTo( text ) );
-            if( TestHelper.LogsToConsole ) Console.WriteLine( statement.ToXml() );
+            statement.ToString( true ).NormalizeEOL().Should().Be( text );
+            if( MonitorTestHelper.TestHelper.LogToConsole ) Console.WriteLine( statement.ToXml() );
             return s;
         }
 
@@ -152,27 +70,9 @@ namespace CK.SqlServer.UtilTests
             text = text.NormalizeEOL();
             ISqlStatement statement;
             SqlAnalyser.ErrorResult r = SqlAnalyser.ParseStatement( out statement, text );
-            Assert.That( !r.IsError, r.ToString() );
-            Assert.That( statement, Is.InstanceOf<T>() );
+            r.IsError.Should().BeFalse( r.ToString() );
+            statement.Should().BeAssignableTo<T>();
             return (T)statement;
-        }
-
-        static void InitalizePaths()
-        {
-            string p = AppContext.BaseDirectory;
-#if DEBUG
-            _buildConfiguration = "Debug";
-#else
-            _buildConfiguration = "Release";
-#endif
-            while( !Directory.EnumerateFiles( p ).Where( f => f.EndsWith( ".sln" ) ).Any() )
-            {
-                p = Path.GetDirectoryName( p );
-            }
-            _solutionFolder = p;
-
-            Console.WriteLine( $"SolutionFolder is: {_solutionFolder}." );
-            Console.WriteLine( $"Core path: {typeof( string ).GetTypeInfo().Assembly.CodeBase}." );
         }
 
     }
