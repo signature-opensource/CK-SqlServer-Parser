@@ -42,8 +42,8 @@
     <Reference Include="Cake.Core, Version=0.24.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Cake.Core.0.24.0\lib\net46\Cake.Core.dll</HintPath>
     </Reference>
-    <Reference Include="Code.Cake, Version=0.18.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Code.Cake.0.18.0\lib\net45\Code.Cake.dll</HintPath>
+    <Reference Include="Code.Cake, Version=0.19.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Code.Cake.0.19.0\lib\net45\Code.Cake.dll</HintPath>
     </Reference>
     <Reference Include="CSemVer, Version=1.1.0.0, Culture=neutral, PublicKeyToken=731c291b31fb8d27, processorArchitecture=MSIL">
       <HintPath>..\packages\CSemVer.1.1.0\lib\net461\CSemVer.dll</HintPath>
