@@ -11,7 +11,7 @@ namespace CK.Testing
     /// <summary>
     /// Standard implementation of <see cref="ISqlTransformHelperCore"/>.
     /// </summary>
-    public class SqlTransformerTestHelper : ISqlTransformHelperCore
+    public class SqlTransformTestHelper : ISqlTransformHelperCore
     {
         SqlServerParser _parser;
 
