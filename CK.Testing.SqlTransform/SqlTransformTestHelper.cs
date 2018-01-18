@@ -9,15 +9,15 @@ using System.Text;
 namespace CK.Testing
 {
     /// <summary>
-    /// Standard implementation of <see cref="ISqlTransformHelperCore"/>.
+    /// Standard implementation of <see cref="ISqlTransformTestHelperCore"/>.
     /// </summary>
-    public class SqlTransformTestHelper : ISqlTransformHelperCore
+    public class SqlTransformTestHelper : ISqlTransformTestHelperCore
     {
         SqlServerParser _parser;
 
-        SqlServerParser ISqlTransformHelperCore.SqlServerParser => _parser ?? (_parser = new SqlServerParser());
+        SqlServerParser ISqlTransformTestHelperCore.SqlServerParser => _parser ?? (_parser = new SqlServerParser());
 
-        string ISqlTransformHelperCore.GetObjectDefinition( string connectionString, string schemaName )
+        string ISqlTransformTestHelperCore.GetObjectDefinition( string connectionString, string schemaName )
         {
             using( var oCon = new SqlConnection( connectionString ) )
             {
@@ -26,7 +26,7 @@ namespace CK.Testing
             }
         }
 
-        IDisposable ISqlTransformHelperCore.TemporaryTransform( string connectionString, string transformer ) => DoTemporaryTransform( connectionString, transformer );
+        IDisposable ISqlTransformTestHelperCore.TemporaryTransform( string connectionString, string transformer ) => DoTemporaryTransform( connectionString, transformer );
 
         string DoGetObjectDefinition( SqlConnection oCon, string schemaName )
         {
@@ -124,9 +124,9 @@ namespace CK.Testing
         }
 
         /// <summary>
-        /// Gets the <see cref="ISqlTransformHelper"/> default implementation.
+        /// Gets the <see cref="ISqlTransformTestHelper"/> default implementation.
         /// </summary>
-        public static ISqlTransformHelper TestHelper => TestHelperResolver.Default.Resolve<ISqlTransformHelper>();
+        public static ISqlTransformTestHelper TestHelper => TestHelperResolver.Default.Resolve<ISqlTransformTestHelper>();
 
     }
 }

@@ -7,7 +7,7 @@ namespace CK.Testing.SqlTransform
     /// <summary>
     /// Supports temporary transformation of sql server objects.
     /// </summary>
-    public interface ISqlTransformHelperCore
+    public interface ISqlTransformTestHelperCore
     {
         /// <summary>
         /// Gets a shared reusable <see cref="SqlServerParser"/>.
