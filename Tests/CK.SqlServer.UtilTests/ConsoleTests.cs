@@ -1,4 +1,5 @@
-﻿using NUnit.Framework;
+using CK.Testing;
+using NUnit.Framework;
 
 namespace CK.SqlServer.UtilTests
 {
@@ -9,7 +10,7 @@ namespace CK.SqlServer.UtilTests
         [Explicit]
         public void toggle_console()
         {
-            TestHelper.LogsToConsole = !TestHelper.LogsToConsole;
+            MonitorTestHelper.TestHelper.LogToConsole = !MonitorTestHelper.TestHelper.LogToConsole;
         }
     }
 }

@@ -52,9 +52,9 @@ namespace CK.SqlServer.Transform.Tests.Transform
         {
             ISqlServerObject sqlObject;
             var r = new SqlAnalyser( text ).ParseStatement( out sqlObject );
-            Assert.That( !r.IsError );
+            r.IsError.Should().BeFalse();
             ISqlServerObject o2 = sqlObject.SetSchema( schema );
-            Assert.That( o2.ToFullString(), Does.StartWith( resultStart ) );
+            o2.ToFullString().Should().StartWith( resultStart );
         }
 
         [TestCase( "One", 1, "Two", "Two" )]
@@ -78,20 +78,19 @@ namespace CK.SqlServer.Transform.Tests.Transform
         {
             ISqlIdentifier t = (ISqlIdentifier)new SqlAnalyser( id ).IsOneExpression( true );
             if( result == "ArgumentException" )
-                Assert.Throws<ArgumentException>( () => t.SetPartName( idxPart, name ) );
+                t.Invoking( i => i.SetPartName( idxPart, name ) ).ShouldThrow<ArgumentException>();
             else if( result == "InvalidOperationException" )
-                Assert.Throws<InvalidOperationException>( () => t.SetPartName( idxPart, name ) );
+                t.Invoking( i => i.SetPartName( idxPart, name ) ).ShouldThrow<InvalidOperationException>();
             else
             {
                 var r = t.SetPartName( idxPart, name );
-                Assert.That( r.ToString(), Is.EqualTo( result ) );
+                r.ToString().Should().Be( result );
                 if( name != null )
                 {
-                    Assert.That( r.GetPartName( idxPart ), Is.EqualTo( name ) );
+                    r.GetPartName( idxPart ).Should().Be( name );
                 }
             }
         }
-
 
         [TestCase( "select X;", "create transformer as begin replace first range {X} with 'Y'; end", "select Y;" )]
         [TestCase( "set @V = 3;", "create transformer as begin replace first range {3} with '4'; end", "set @V = 4;" )]
@@ -99,12 +98,12 @@ namespace CK.SqlServer.Transform.Tests.Transform
         {
             SqlServerParser p = new SqlServerParser();
             ISqlServerParsedText o = p.Parse( original ).Result;
-            Assert.That( o, Is.Not.Null );
+            o.Should().NotBeNull();
             ISqlServerTransformer t = p.ParseTransformer( transform ).Result;
-            Assert.That( t, Is.Not.Null );
+            t.Should().NotBeNull();
             ISqlServerParsedText oT = t.SafeTransform( TestHelper.ConsoleMonitor, o );
-            Assert.That( oT, Is.Not.Null );
-            Assert.That( oT.ToFullString(), Is.EqualTo( final ) );
+            oT.Should().NotBeNull();
+            oT.ToFullString().Should().Be( final );
         }
     }
 

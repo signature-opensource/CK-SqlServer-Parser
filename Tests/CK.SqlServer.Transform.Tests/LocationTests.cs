@@ -1,6 +1,7 @@
-﻿using CK.Core;
+using CK.Core;
 using CK.SqlServer.Parser;
 using CK.SqlServer.UtilTests;
+using CK.Testing;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -48,12 +49,12 @@ namespace CK.SqlServer.Transform.Tests
                     c.VisitRoot( n );
                     locs = c.Collector;
                     var afterLocs = c.AfterCollector;
-                    if( TestHelper.LogsToConsole )
+                    if( MonitorTestHelper.TestHelper.LogToConsole )
                     {
                         int i = 0;
                         foreach( var l in locs )
                         {
-                            TestHelper.ConsoleMonitor.Trace( "[" + i++ + "] " + l.ToString() );
+                            MonitorTestHelper.TestHelper.Monitor.Trace( "[" + i++ + "] " + l.ToString() );
                         }
                     }
                     CollectionAssert.AreEquivalent( locs.Select( l => l.ToString() ), afterLocs.Select( l => l.ToString() ) );
