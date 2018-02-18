@@ -23,7 +23,7 @@ namespace CK.SqlServer.UtilTests
 
         public XElement ToXml( string name, ISqlNode item, params object[] xElements )
         {
-            if( _shortForms.Contains(name) )
+            if( _shortForms.Contains( name ) )
             {
                 var sE = new XElement( name );
                 sE.Add( item.ToString() );
@@ -437,6 +437,7 @@ namespace CK.SqlServer.UtilTests
             StartNode( e, x => x.Add( 
                 new XAttribute( "FunName", e.FunName.ToString() ), 
                 ToXml( "Parameters", e.Parameters ),
+                e.WithinGroup != null ? ToXml( "WithinGroup", e.WithinGroup ) : null,
                 e.OverClause != null ? ToXml( "OverClause", e.OverClause ) : null ) );
             return e;
         }

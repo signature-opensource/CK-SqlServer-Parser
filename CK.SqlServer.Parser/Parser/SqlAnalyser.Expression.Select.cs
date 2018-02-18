@@ -133,6 +133,24 @@ namespace CK.SqlServer.Parser
             }
         }
 
+        SqlWithinGroup IsWithinGroup( bool expected )
+        {
+            SqlTokenIdentifier withinToken;
+            if( !R.IsToken( out withinToken, SqlTokenType.Within, expected ) ) return null;
+            SqlTokenIdentifier groupToken;
+            if( !R.IsToken( out groupToken, SqlTokenType.Group, true ) ) return null;
+            using( R.SetAssignmentContext( false ) )
+            {
+                SqlTokenOpenPar openPar;
+                if( !R.IsToken( out openPar, true ) ) return null;
+                ISqlNode content = IsAnyExpression( false );
+                if( R.IsError ) return null;
+                SqlTokenClosePar closePar;
+                if( !R.IsToken( out closePar, true ) ) return null;
+                return new SqlWithinGroup( withinToken, groupToken, openPar, content, closePar );
+            }
+        }
+
         bool SelectPartStopper( SqlToken t )
         {
             return t.TokenType == SqlTokenType.EndOfInput

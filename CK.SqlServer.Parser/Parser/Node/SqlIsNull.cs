@@ -9,18 +9,20 @@ using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
-  
+
+    using CNode = SNode<ISqlNode, SqlTokenIdentifier, SqlTokenIdentifier, SqlTokenIdentifier>;
+
     /// <summary>
-    /// 
+    /// Operator ... is [not] null.
     /// </summary>
     public class SqlIsNull : SqlNonTokenAutoWidth
     {
-        readonly SNode<ISqlNode, SqlTokenIdentifier, SqlTokenIdentifier, SqlTokenIdentifier> _content;
+        readonly CNode _content;
 
         public SqlIsNull( ISqlNode left, SqlTokenIdentifier isT, SqlTokenIdentifier notT, SqlTokenIdentifier nullT )
             : base( null, null )
         {
-            _content = new SNode<ISqlNode, SqlTokenIdentifier, SqlTokenIdentifier, SqlTokenIdentifier>( left, isT, notT, nullT );
+            _content = new CNode( left, isT, notT, nullT );
             CheckContent();
         }
 
@@ -38,7 +40,7 @@ namespace CK.SqlServer.Parser
             if( items == null ) _content = o._content;
             else
             {
-                _content = new SNode<ISqlNode, SqlTokenIdentifier, SqlTokenIdentifier, SqlTokenIdentifier>( items );
+                _content = new CNode( items );
                 CheckContent();
             }
         }

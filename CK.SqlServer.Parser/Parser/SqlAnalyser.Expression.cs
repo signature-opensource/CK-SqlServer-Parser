@@ -204,9 +204,11 @@ namespace CK.SqlServer.Parser
                     left = new SqlOpenXml( (SqlTokenIdentifier)left, parameters, withT, schemaDefintion, schemaTable );
                     return true;
                 }
+                SqlWithinGroup withinGroup = IsWithinGroup( false );
+                if( R.IsError ) return false;
                 SqlOverClause over = IsOverClause( false );
                 if( R.IsError ) return false;
-                left = new SqlKoCall( left, parameters, over );
+                left = new SqlKoCall( left, parameters, withinGroup, over );
                 return true;
             }
             if( R.Current.TokenType == SqlTokenType.Collate )

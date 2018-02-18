@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Tests>
+  
+  <Test>
+    <Text>
+        select
+            PERCENTILE_DISC(0.5) WITHIN GROUP (ORDER BY Price) OVER (PARTITION BY KeywordId) as Price
+          from T 
+     </Text>
+    <Description>Sylvain...</Description>
+    <Xml ToStringCompact="NodeList, From">
+      <Sql>
+        <SelectStatement>
+          <Select>
+            <SelectSpec>
+              <Columns>
+                <SelectColumnList>
+                  <Item>
+                    <SelectColumn ColumnName="Price">
+                      <Definition>
+                        <KoCall FunName="PERCENTILE_DISC">
+                          <Parameters>
+                            <EnclosedCommaList>
+                              <Item>
+                                <LiteralDecimal>0.5</LiteralDecimal>
+                              </Item>
+                            </EnclosedCommaList>
+                          </Parameters>
+                          <WithinGroup>
+                            <WithinGroup>
+                              <WithinT>
+                                <Identifier IsReservedKeyword="true">WITHIN</Identifier>
+                              </WithinT>
+                              <GroupT>
+                                <Identifier IsReservedKeyword="true">GROUP</Identifier>
+                              </GroupT>
+                              <Content>
+                                <NodeList>ORDER BY Price</NodeList>
+                              </Content>
+                            </WithinGroup>
+                          </WithinGroup>
+                          <OverClause>
+                            <OverClause>
+                              <OverContent>
+                                <NodeList>PARTITION BY KeywordId</NodeList>
+                              </OverContent>
+                            </OverClause>
+                          </OverClause>
+                        </KoCall>
+                      </Definition>
+                    </SelectColumn>
+                  </Item>
+                </SelectColumnList>
+              </Columns>
+              <From>from T</From>
+            </SelectSpec>
+          </Select>
+        </SelectStatement>
+      </Sql>
+    </Xml>
+  </Test>
+    
+  <Test>
+    <Text>
+        SELECT DISTINCT Name AS DepartmentName  
+              ,PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY ph.Rate)   
+                                    OVER (PARTITION BY Name) AS MedianCont  
+              ,PERCENTILE_DISC(0.5) WITHIN GROUP (ORDER BY ph.Rate)   
+                                    OVER (PARTITION BY Name) AS MedianDisc  
+        FROM HumanResources.Department AS d  
+        INNER JOIN HumanResources.EmployeeDepartmentHistory AS dh   
+            ON dh.DepartmentID = d.DepartmentID  
+        INNER JOIN HumanResources.EmployeePayHistory AS ph  
+            ON ph.BusinessEntityID = dh.BusinessEntityID  
+        WHERE dh.EndDate IS NULL;
+    </Text>
+    <Description>From MSDN.</Description>
+    <Xml ToStringCompact="Select">
+      <Sql>
+        <SelectStatement HasTerminator="true">
+          <Select>SELECT DISTINCT Name AS DepartmentName, PERCENTILE_CONT(0.5) WITHIN GROUP(ORDER BY ph.Rate) OVER(PARTITION BY Name) AS MedianCont, PERCENTILE_DISC(0.5) WITHIN GROUP(ORDER BY ph.Rate) OVER(PARTITION BY Name) AS MedianDisc FROM HumanResources.Department AS d INNER JOIN HumanResources.EmployeeDepartmentHistory AS dh ON dh.DepartmentID=d.DepartmentID INNER JOIN HumanResources.EmployeePayHistory AS ph ON ph.BusinessEntityID=dh.BusinessEntityID WHERE dh.EndDate IS NULL</Select>
+        </SelectStatement>
+      </Sql>
+    </Xml>
+  </Test>  
+      
+   <Test>
+    <Text>
+        SELECT DISTINCT DepartmentName  
+            ,PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY BaseRate)  
+                OVER (PARTITION BY DepartmentName) AS MedianCont  
+            ,PERCENTILE_DISC(0.5) WITHIN GROUP (ORDER BY BaseRate)  
+                OVER (PARTITION BY DepartmentName) AS MedianDisc  
+            FROM dbo.DimEmployee;
+    </Text>
+    <Description>From MSDN.</Description>
+    <Xml ToStringCompact="KoCall, From">
+        <Sql>
+          <SelectStatement HasTerminator="true">
+            <Select>
+              <SelectSpec>
+                <Columns>
+                  <SelectColumnList>
+                    <Item>
+                      <SelectColumn>
+                        <Definition>
+                          <Identifier>DepartmentName</Identifier>
+                        </Definition>
+                      </SelectColumn>
+                    </Item>
+                    <Item>
+                      <SelectColumn ColumnName="MedianCont">
+                        <Definition>
+                          <KoCall>PERCENTILE_CONT(0.5) WITHIN GROUP(ORDER BY BaseRate) OVER(PARTITION BY DepartmentName)</KoCall>
+                        </Definition>
+                      </SelectColumn>
+                    </Item>
+                    <Item>
+                      <SelectColumn ColumnName="MedianDisc">
+                        <Definition>
+                          <KoCall>PERCENTILE_DISC(0.5) WITHIN GROUP(ORDER BY BaseRate) OVER(PARTITION BY DepartmentName)</KoCall>
+                        </Definition>
+                      </SelectColumn>
+                    </Item>
+                  </SelectColumnList>
+                </Columns>
+                <From>FROM dbo.DimEmployee</From>
+              </SelectSpec>
+            </Select>
+          </SelectStatement>
+        </Sql>
+    </Xml>
+   </Test>
+
+</Tests>
+

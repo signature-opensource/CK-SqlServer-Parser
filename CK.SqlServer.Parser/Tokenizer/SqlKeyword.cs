@@ -228,6 +228,7 @@ namespace CK.SqlServer.Parser
         public static readonly SqlTokenIdentifier Compute;
         public static readonly SqlTokenIdentifier Constraint;
         public static readonly SqlTokenIdentifier SessionUser;
+        public static readonly SqlTokenIdentifier Within;
         public static readonly SqlTokenIdentifier SetUser;
         public static readonly SqlTokenIdentifier Join;
         public static readonly SqlTokenIdentifier Shutdown;
@@ -616,8 +617,9 @@ namespace CK.SqlServer.Parser
             SecurityAudit	= RegKeyword( "securityaudit", SqlTokenType.SecurityAudit );
             Compute			= RegKeyword( "compute", SqlTokenType.Compute );
             Constraint		= RegKeyword( "constraint", SqlTokenType.Constraint );
-            SessionUser		= RegKeyword( "session_user", SqlTokenType.SessionUser );
-            SetUser			= RegKeyword( "setuser", SqlTokenType.SetUser );
+            SessionUser     = RegKeyword( "session_user", SqlTokenType.SessionUser );
+            Within          = RegKeyword( "within", SqlTokenType.Within );
+            SetUser         = RegKeyword( "setuser", SqlTokenType.SetUser );
             Join			= RegKeyword( "join", SqlTokenType.Join );
             Shutdown		= RegKeyword( "shutdown", SqlTokenType.Shutdown );
             Convert			= RegKeyword( "convert", SqlTokenType.Convert );
@@ -789,35 +791,35 @@ namespace CK.SqlServer.Parser
             _typeToString.Add( SqlTokenType.IdentifierStar, "*" );
             IdentifierStar = new SqlTokenIdentifier( SqlTokenType.IdentifierStar, "*", null, null );
 
-            _typeToString.Add( SqlTokenType.None, "¤None" );
-            _typeToString.Add( SqlTokenType.ErrorMask, "¤Error" );
-            _typeToString.Add( SqlTokenType.EndOfInput, "¤EndOfInput" );
-            _typeToString.Add( SqlTokenType.BegOfInput, "¤BegOfInput" );
-            _typeToString.Add( SqlTokenType.ErrorInvalidChar, "¤ErrorInvalidChar" );
-            _typeToString.Add( SqlTokenType.ErrorStringUnterminated, "¤ErrorStringUnterminated" );
-            _typeToString.Add( SqlTokenType.ErrorIdentifierUnterminated, "¤ErrorIdentifierUnterminated" );
-            _typeToString.Add( SqlTokenType.ErrorNumberUnterminatedValue, "¤ErrorNumberUnterminatedValue" );
-            _typeToString.Add( SqlTokenType.ErrorNumberValue, "¤ErrorNumberValue" );
-            _typeToString.Add( SqlTokenType.ErrorNumberIdentifierStartsImmediately, "¤ErrorNumberIdentifierStartsImmediately" );
+            _typeToString.Add( SqlTokenType.None, "Â¤None" );
+            _typeToString.Add( SqlTokenType.ErrorMask, "Â¤Error" );
+            _typeToString.Add( SqlTokenType.EndOfInput, "Â¤EndOfInput" );
+            _typeToString.Add( SqlTokenType.BegOfInput, "Â¤BegOfInput" );
+            _typeToString.Add( SqlTokenType.ErrorInvalidChar, "Â¤ErrorInvalidChar" );
+            _typeToString.Add( SqlTokenType.ErrorStringUnterminated, "Â¤ErrorStringUnterminated" );
+            _typeToString.Add( SqlTokenType.ErrorIdentifierUnterminated, "Â¤ErrorIdentifierUnterminated" );
+            _typeToString.Add( SqlTokenType.ErrorNumberUnterminatedValue, "Â¤ErrorNumberUnterminatedValue" );
+            _typeToString.Add( SqlTokenType.ErrorNumberValue, "Â¤ErrorNumberValue" );
+            _typeToString.Add( SqlTokenType.ErrorNumberIdentifierStartsImmediately, "Â¤ErrorNumberIdentifierStartsImmediately" );
 
             BegOfInput = new SqlTokenError( SqlTokenTypeError.BegOfInput );
             EndOfInput = new SqlTokenError( SqlTokenTypeError.EndOfInput );
 
-            _typeToString.Add( SqlTokenType.String, "¤String" );
-            _typeToString.Add( SqlTokenType.UnicodeString, "¤UnicodeString" );
-            _typeToString.Add( SqlTokenType.Integer, "¤Integer" );
-            _typeToString.Add( SqlTokenType.Binary, "¤Binary" );
-            _typeToString.Add( SqlTokenType.Float, "¤Float" );
-            _typeToString.Add( SqlTokenType.Decimal, "¤Decimal" );
-            _typeToString.Add( SqlTokenType.Money, "¤Money" );
-            _typeToString.Add( SqlTokenType.StarComment, "¤StarComment" );
-            _typeToString.Add( SqlTokenType.LineComment, "¤LineComment" );
+            _typeToString.Add( SqlTokenType.String, "Â¤String" );
+            _typeToString.Add( SqlTokenType.UnicodeString, "Â¤UnicodeString" );
+            _typeToString.Add( SqlTokenType.Integer, "Â¤Integer" );
+            _typeToString.Add( SqlTokenType.Binary, "Â¤Binary" );
+            _typeToString.Add( SqlTokenType.Float, "Â¤Float" );
+            _typeToString.Add( SqlTokenType.Decimal, "Â¤Decimal" );
+            _typeToString.Add( SqlTokenType.Money, "Â¤Money" );
+            _typeToString.Add( SqlTokenType.StarComment, "Â¤StarComment" );
+            _typeToString.Add( SqlTokenType.LineComment, "Â¤LineComment" );
 
-            _typeToString.Add( SqlTokenType.IdentifierStandard, "¤IdentifierStandard" );
-            _typeToString.Add( SqlTokenType.IdentifierQuoted, "¤IdentifierQuoted" );
-            _typeToString.Add( SqlTokenType.IdentifierQuotedBracket, "¤IdentifierQuotedBracket" );
-            _typeToString.Add( SqlTokenType.IdentifierVariable, "¤IdentifierVariable" );
-            _typeToString.Add( SqlTokenType.IdentifierSpecial, "¤IdentifierSpecial" );
+            _typeToString.Add( SqlTokenType.IdentifierStandard, "Â¤IdentifierStandard" );
+            _typeToString.Add( SqlTokenType.IdentifierQuoted, "Â¤IdentifierQuoted" );
+            _typeToString.Add( SqlTokenType.IdentifierQuotedBracket, "Â¤IdentifierQuotedBracket" );
+            _typeToString.Add( SqlTokenType.IdentifierVariable, "Â¤IdentifierVariable" );
+            _typeToString.Add( SqlTokenType.IdentifierSpecial, "Â¤IdentifierSpecial" );
         }
 
 

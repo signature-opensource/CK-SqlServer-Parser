@@ -8,30 +8,32 @@ using System.Text;
 
 namespace CK.SqlServer.Parser
 {
-    using CNode = SNode<SqlTokenIdentifier, SqlTokenOpenPar, ISqlNode, SqlTokenClosePar>;
+    using CNode = SNode<SqlTokenIdentifier, SqlTokenIdentifier, SqlTokenOpenPar, ISqlNode, SqlTokenClosePar>;
 
     /// <summary>
-    /// Captures a OVER ( [ partition_by_clause ] ). 
+    /// Captures a select column definition. 
     /// </summary>
-    public sealed class SqlOverClause : SqlNonTokenAutoWidth
+    public sealed class SqlWithinGroup : SqlNonTokenAutoWidth
     {
         readonly CNode _content;
 
-        public SqlOverClause( SqlTokenIdentifier overT, SqlTokenOpenPar opener, ISqlNode overExpression, SqlTokenClosePar closer )
+        public SqlWithinGroup( SqlTokenIdentifier withinT, SqlTokenIdentifier groupT, SqlTokenOpenPar opener, ISqlNode content, SqlTokenClosePar closer )
             : base( null, null )
         {
-            _content = new CNode( overT, opener, overExpression, closer );
+            _content = new CNode( withinT, groupT, opener, content, closer );
             CheckContent();
         }
 
         void CheckContent()
         {
-            Helper.CheckToken( OverT, nameof( OverT ), SqlTokenType.Over );
+            Helper.CheckToken( WithinT, nameof( WithinT ), SqlTokenType.Within );
+            Helper.CheckToken( GroupT, nameof( GroupT ), SqlTokenType.Group );
             Helper.CheckNotNull( Opener, nameof( Opener ) );
+            Helper.CheckNotNull( Content, nameof( Content ) );
             Helper.CheckNotNull( Closer, nameof( Closer ) );
         }
 
-        SqlOverClause( SqlOverClause o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
+        SqlWithinGroup( SqlWithinGroup o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
             : base( leading, trailing )
         {
             if( items == null ) _content = o._content;
@@ -44,23 +46,25 @@ namespace CK.SqlServer.Parser
 
         protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IList<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
         {
-            return new SqlOverClause( this, leading, content, trailing );
+            return new SqlWithinGroup( this, leading, content, trailing );
         }
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
 
         public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
 
-        public SqlTokenIdentifier OverT => _content.V1;
+        public SqlTokenIdentifier WithinT => _content.V1;
 
-        public SqlTokenOpenPar Opener => _content.V2;
+        public SqlTokenIdentifier GroupT => _content.V2;
+
+        public SqlTokenOpenPar Opener => _content.V3;
 
         /// <summary>
-        /// Gets the over clause content. May be null. 
+        /// Gets the within group content. Can not be null. 
         /// </summary>
-        public ISqlNode OverContent => _content.V3;
+        public ISqlNode Content => _content.V4;
 
-        public SqlTokenClosePar Closer => _content.V4;
+        public SqlTokenClosePar Closer => _content.V5;
 
         [DebuggerStepThrough]
         internal protected override ISqlNode Accept( SqlNodeVisitor visitor ) => visitor.Visit( this );
