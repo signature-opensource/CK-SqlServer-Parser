@@ -8,16 +8,16 @@ using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
-    using CNode = SNode<ISqlNode, SqlEnclosedCommaList, SqlOverClause>;
+    using CNode = SNode<ISqlNode, SqlEnclosedCommaList, SqlWithinGroup, SqlOverClause>;
 
     public sealed class SqlKoCall : SqlNonTokenAutoWidth
     {
         readonly CNode _content;
 
-        public SqlKoCall( ISqlNode funName, SqlEnclosedCommaList parameters, SqlOverClause over = null )
+        public SqlKoCall( ISqlNode funName, SqlEnclosedCommaList parameters, SqlWithinGroup withinGroup = null, SqlOverClause over = null )
             : base( null, null )
         {
-            _content = new CNode( funName, parameters, over );
+            _content = new CNode( funName, parameters, withinGroup, over );
             CheckContent();
         }
 
@@ -51,7 +51,9 @@ namespace CK.SqlServer.Parser
 
         public SqlEnclosedCommaList Parameters => _content.V2;
 
-        public SqlOverClause OverClause => _content.V3;
+        public SqlWithinGroup WithinGroup => _content.V3;
+
+        public SqlOverClause OverClause => _content.V4;
 
         [DebuggerStepThrough]
         internal protected override ISqlNode Accept( SqlNodeVisitor visitor ) => visitor.Visit( this );

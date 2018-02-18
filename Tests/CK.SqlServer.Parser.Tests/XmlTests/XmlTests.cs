@@ -1,4 +1,4 @@
-﻿using CK.Core;
+using CK.Core;
 using CK.SqlServer.UtilTests;
 using NUnit.Framework;
 using System;
@@ -47,6 +47,7 @@ namespace CK.SqlServer.Parser.Tests.XmlTests
         [TestCase( "Unmodeled stuff.xml" )]
         [TestCase( "Update.xml" )]
         [TestCase( "Views.xml" )]
+        [TestCase( "WithinGroup.xml" )]
         public void file_test( string fileName )
         {
             XmlSqlTester.RunAllTests( fileName, e => new XmlSqlTester( e ) );

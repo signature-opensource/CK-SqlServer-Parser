@@ -154,6 +154,8 @@ namespace CK.SqlServer.Parser
 
         internal protected virtual ISqlNode Visit( SqlOverClause e ) => VisitStandard( e );
 
+        internal protected virtual ISqlNode Visit( SqlWithinGroup e ) => VisitStandard( e );
+
         internal protected virtual ISqlNode Visit( SqlCollate e ) => VisitStandard( e );
 
         internal protected virtual ISqlNode Visit( SqlIf e ) => VisitStandard( e );
