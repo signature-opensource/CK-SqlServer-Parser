@@ -1,6 +1,19 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <Tests>
 
+    <Test>
+        <Text>
+            create view VV(X, Y, Z) with schemabinding
+            as
+            select 0, 1, 2
+        </Text>
+        <Description>A view with schemabinding.</Description>
+        <Xml ToStringCompact="Select">
+            <Sql>
+            </Sql>
+        </Xml>
+    </Test>
+    
 
   <Test>
     <Text>
