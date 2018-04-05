@@ -78,9 +78,9 @@ namespace CK.SqlServer.Transform.Tests.Transform
         {
             ISqlIdentifier t = (ISqlIdentifier)new SqlAnalyser( id ).IsOneExpression( true );
             if( result == "ArgumentException" )
-                t.Invoking( i => i.SetPartName( idxPart, name ) ).ShouldThrow<ArgumentException>();
+                t.Invoking( i => i.SetPartName( idxPart, name ) ).Should().Throw<ArgumentException>();
             else if( result == "InvalidOperationException" )
-                t.Invoking( i => i.SetPartName( idxPart, name ) ).ShouldThrow<InvalidOperationException>();
+                t.Invoking( i => i.SetPartName( idxPart, name ) ).Should().Throw<InvalidOperationException>();
             else
             {
                 var r = t.SetPartName( idxPart, name );
