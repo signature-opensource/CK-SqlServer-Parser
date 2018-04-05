@@ -1,16 +1,12 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
+<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\Common\Shared.props" />
-
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net461</TargetFrameworks>
-    <Description>T-Sql parser implementation.</Description>  
+    <Description>T-Sql parser implementation.</Description>
   </PropertyGroup>
-
   <ItemGroup>
-    <PackageReference Include="CK.ActivityMonitor.SimpleSender" Version="9.0.4" />
-    <PackageReference Include="CK.SqlServer.Parser.Model" Version="5.0.1" />
+    <PackageReference Include="CK.ActivityMonitor.SimpleSender" Version="9.0.5-Cblank-0011" />
+    <PackageReference Include="CK.SqlServer.Parser.Model" Version="5.0.2-Cblank-0007" />
     <PackageReference Include="System.Collections.Immutable" Version="1.4.0" />
   </ItemGroup>
-
 </Project>
