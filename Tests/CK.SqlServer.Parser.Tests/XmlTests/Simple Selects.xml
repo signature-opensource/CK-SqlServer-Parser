@@ -1,6 +1,6 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8" ?>
 <Tests>
-
+  
   <Test Mode="OneExpression">
     <Text>
       SELECT TOP(1) * FROM ttt

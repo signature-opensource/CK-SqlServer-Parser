@@ -1,5 +1,116 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8" ?>
 <Tests>
+  
+  <Test>
+    <Text>
+create procedure CV.sFolderStructureXml
+(
+       @ActorId int,
+       @ClientId int,
+       @PeriodId int
+)
+as
+begin
+
+       set nocount on;
+       
+       declare @FolderId int;
+
+       select @FolderId = f.FolderId
+        from CV.tFolder f
+             inner join CV.tFolderType t on t.FolderTypeId = f.FolderTypeId
+             where ClientId = @ClientId and t.PeriodId = @PeriodId;
+       if @@ROWCOUNT = 1
+       begin
+
+             select
+             FolderId,
+             IsValid = cast ( 0 as bit ),
+             Status,
+             (
+                    select 
+                    c.CategoryId,
+                    c.CategoryName,
+                    c.Idx,
+                    c.QuestionWeight,
+                    (
+                           select 
+                                  sc.SubCategoryName,
+                                  sc.SubCategoryId,
+                                  sc.FolderId,
+                                  sc.Idx,
+                           (
+                                  select 
+                                        q.QuestionId, 
+                                        q.FolderId,
+                                        q.FolderStatus,
+                                        q.Title ,
+                                        q.Weight,
+                                        q.ShortDescription,
+                                        q.HtmlDescription,
+                                        q.MaxAttachmentCount,
+                                        q.MinAttachmentCount,
+                                        q.QuestionType,
+                                        (
+                                               select top (1) *
+                            from CV.vAnswer a
+                                               where a.QuestionId = q.QuestionId and a.FolderId = @FolderId
+                                               order by a.AnswerId desc
+                                               FOR XML path('LastAnswer'), type
+                                        ),
+                                        (
+                                               select AttachmentId = a.FolderQuestionAttachmentId, a.CreationDate, u.UserId, a.FileName
+                                               from CV.tFolderQuestionAttachment a
+                                               inner join CK.tUser u on u.UserId = a.UploadUserId
+                                               where a.QuestionId = q.QuestionId and a.FolderId = @FolderId
+                                               FOR XML path('Attachment'), root('Attachments'), type
+                                        ),
+                                        (
+                                               select co.HistoryDate, co.ClientId, co.FirstName, co.LastName, co.UserType, co.Value, co.IsPublic, HistoryType = 'Comment'
+                                               from CV.vFolderQuestionHistory co
+                                               where co.QuestionId = q.QuestionId and co.FolderId = @FolderId and HistoryType = 'Comment'
+                                               FOR XML path('Comment'), root('Comments'), type
+                                        )
+                                  from CV.vFolderQuestions q
+                                  where q.FolderId = @FolderId and q.SubCategoryId = sc.SubCategoryId
+                                  order by q.QuestionId
+                                  FOR XML path('Question'), root('Questions'), type
+                           ) 
+                           from CV.vFolderSubCategories sc 
+                           where sc.FolderId = @FolderId and sc.CategoryId = c.CategoryId
+                           order by sc.Idx
+                           FOR XML path('SubCategory'), root('SubCategories'), type
+
+                    )
+                    from CV.vFolderCategories c
+                    where c.FolderId = @FolderId
+                    order by c.Idx
+                    FOR XML path('Category'), root('Categories'), type
+             )
+             from CV.tFolder f
+             where f.FolderId = @FolderId
+             FOR XML path('Folder')
+
+       end
+       else
+       begin
+             select null
+             for XML path('Folder')
+       end
+       return 0;
+end
+    </Text>
+    <Description>Null value without assign.</Description>
+    <Xml ToStringCompact="Parameters, Body" >
+      <Sql>
+        <StoredProcedure StatementName="CreateProcedure">
+          <Name>CV.sFolderStructureXml</Name>
+          <Parameters>(@ActorId int, @ClientId int, @PeriodId int)</Parameters>
+          <Body>set nocount on; declare @FolderId int; select @FolderId=f.FolderId from CV.tFolder f inner join CV.tFolderType t on t.FolderTypeId=f.FolderTypeId where ClientId=@ClientId and t.PeriodId=@PeriodId; if @@ROWCOUNT=1 begin select FolderId, IsValid=cast(0 as bit), Status,(select c.CategoryId, c.CategoryName, c.Idx, c.QuestionWeight,(select sc.SubCategoryName, sc.SubCategoryId, sc.FolderId, sc.Idx,(select q.QuestionId, q.FolderId, q.FolderStatus, q.Title, q.Weight, q.ShortDescription, q.HtmlDescription, q.MaxAttachmentCount, q.MinAttachmentCount, q.QuestionType,(select top(1) * from CV.vAnswer a where a.QuestionId=q.QuestionId and a.FolderId=@FolderId order by a.AnswerId desc FOR XML path('LastAnswer'), type),(select AttachmentId=a.FolderQuestionAttachmentId, a.CreationDate, u.UserId, a.FileName from CV.tFolderQuestionAttachment a inner join CK.tUser u on u.UserId=a.UploadUserId where a.QuestionId=q.QuestionId and a.FolderId=@FolderId FOR XML path('Attachment'), root('Attachments'), type),(select co.HistoryDate, co.ClientId, co.FirstName, co.LastName, co.UserType, co.Value, co.IsPublic, HistoryType='Comment' from CV.vFolderQuestionHistory co where co.QuestionId=q.QuestionId and co.FolderId=@FolderId and HistoryType='Comment' FOR XML path('Comment'), root('Comments'), type) from CV.vFolderQuestions q where q.FolderId=@FolderId and q.SubCategoryId=sc.SubCategoryId order by q.QuestionId FOR XML path('Question'), root('Questions'), type) from CV.vFolderSubCategories sc where sc.FolderId=@FolderId and sc.CategoryId=c.CategoryId order by sc.Idx FOR XML path('SubCategory'), root('SubCategories'), type) from CV.vFolderCategories c where c.FolderId=@FolderId order by c.Idx FOR XML path('Category'), root('Categories'), type) from CV.tFolder f where f.FolderId=@FolderId FOR XML path('Folder') end else begin select null for XML path('Folder') end return 0;</Body>
+        </StoredProcedure>
+      </Sql>
+    </Xml>
+  </Test>
   
   <Test>
     <Text>
@@ -65,9 +176,7 @@ end
         </StoredProcedure>
       </Sql>
     </Xml>
-  </Test>
-
-  
+  </Test>  
   
   <Test>
     <Text>
