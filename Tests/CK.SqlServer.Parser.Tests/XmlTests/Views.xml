@@ -1,6 +1,61 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <Tests>
 
+    <Test>
+        <Text>
+            create view VV(X, Y, Z) with schemabinding
+            as
+            select 0, 1, 2
+        </Text>
+        <Description>A view with schemabinding.</Description>
+        <Xml ToStringCompact="Select">
+            <Sql>
+                <View StatementName="CreateView">
+                    <CreateOrAlter>
+                        <CreateOrAlter>
+                            <AlterOrCreateT>
+                                <Identifier IsReservedKeyword="true">create</Identifier>
+                            </AlterOrCreateT>
+                        </CreateOrAlter>
+                    </CreateOrAlter>
+                    <ObjectTypeT>
+                        <Identifier IsReservedKeyword="true">view</Identifier>
+                    </ObjectTypeT>
+                    <FullName>
+                        <Identifier>VV</Identifier>
+                    </FullName>
+                    <ColumnNames>
+                        <EnclosedIdentifierCommaList>
+                            <Item>
+                                <Identifier>X</Identifier>
+                            </Item>
+                            <Item>
+                                <Identifier>Y</Identifier>
+                            </Item>
+                            <Item>
+                                <Identifier>Z</Identifier>
+                            </Item>
+                        </EnclosedIdentifierCommaList>
+                    </ColumnNames>
+                    <Options>
+                        <NodeList>
+                            <Item>
+                                <Identifier IsReservedKeyword="true">with</Identifier>
+                            </Item>
+                            <Item>
+                                <Identifier>schemabinding</Identifier>
+                            </Item>
+                        </NodeList>
+                    </Options>
+                    <AsT>
+                        <Identifier IsReservedKeyword="true">as</Identifier>
+                    </AsT>
+                    <Select>select 0, 1, 2</Select>
+                </View>
+            </Sql>
+        </Xml>
+    </Test>
+    
 
   <Test>
     <Text>
