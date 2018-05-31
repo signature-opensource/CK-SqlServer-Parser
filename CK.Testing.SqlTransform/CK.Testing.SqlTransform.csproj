@@ -9,6 +9,6 @@
     <PackageReference Include="CK.Testing.Monitoring" Version="0.4.1-C0006-local" />
   </ItemGroup>
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
-    <PackageReference Include="System.Data.SqlClient" Version="4.4.3" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.5.0" />
   </ItemGroup>
 </Project>
