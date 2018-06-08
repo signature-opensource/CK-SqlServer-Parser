@@ -6,7 +6,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\CK.SqlServer.Transform\CK.SqlServer.Transform.csproj" />
-    <PackageReference Include="CK.Testing.Monitoring" Version="0.4.1-C0045-local" />
+    <PackageReference Include="CK.Testing.Monitoring" Version="0.4.1-C0048-develop" />
   </ItemGroup>
   <ItemGroup Condition=" '$(TargetFramework)' != 'net461' ">
     <PackageReference Include="System.Data.SqlClient" Version="4.5.0" />
