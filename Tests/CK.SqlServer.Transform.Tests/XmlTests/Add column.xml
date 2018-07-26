@@ -1,24 +1,88 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8" ?>
+
 <Tests>
 
   <Test>
     <Text>
-      insert into tT default values;
-      insert into tT( Z ) values ( 3 );
-      insert into tT( Z ) select 3;
+      insert into CK.tUserSimpleInvitation( CreatedById ) values( @Options );
+      select @Dummy
+      insert into CK.tUserSimpleInvitation default values;
+  </Text>
+    <Description>
+      -- SetupConfig: {}
+      create transformer
+      as
+      begin
+        in all statement {insert into CK.tUserSimpleInvitation}
+        begin
+          add column FirstName = N'Albert';
+        end
+      end
+    </Description>
+    <ResultText>
+      insert into CK.tUserSimpleInvitation( CreatedById, FirstName ) values( @Options, N'Albert' );
+      select @Dummy
+      insert into CK.tUserSimpleInvitation( FirstName ) values( N'Albert' );
+    </ResultText>
+  </Test>
+
+  <Test>
+    <Text>
+      insert into CK.tUserSimpleInvitation( CreatedById ) values( @Options );
+      set @InvitationIdResult = SCOPE_IDENTITY();
+      insert into CK.tUserSimpleInvitation( InvitationSendCount )
+        select @Options;
+      select @InvitationTokenResult = InvitationToken from CK.tUserSimpleInvitation where InvitationId = @InvitationIdResult;
+      insert into CK.tUserSimpleInvitation( Options )
+        select O from t;
+      insert into CK.tUserSimpleInvitation default values;
+  </Text>
+    <Description>
+      -- SetupConfig: {}
+      create transformer
+      as
+      begin
+        in each statement {insert into CK.tUserSimpleInvitation}
+        begin
+          add column FirstName = N'Albert';
+        end
+      end
+    </Description>
+    <ResultText>
+      insert into CK.tUserSimpleInvitation( CreatedById, FirstName ) values( @Options, N'Albert' );
+      set @InvitationIdResult = SCOPE_IDENTITY();
+      insert into CK.tUserSimpleInvitation( InvitationSendCount, FirstName )
+        select @Options, N'Albert';
+      select @InvitationTokenResult = InvitationToken from CK.tUserSimpleInvitation where InvitationId = @InvitationIdResult;
+      insert into CK.tUserSimpleInvitation( Options, FirstName )
+        select O, N'Albert' from t;
+      insert into CK.tUserSimpleInvitation( FirstName ) values( N'Albert' );
+    </ResultText>
+  </Test>
+
+  <Test>
+    <Text>
+      insert into CK.tUserSimpleInvitation( CreatedById, EMail, ExpirationDateUtc, InvitationSendCount, LastInvitationSendDate, Options )
+            values( @ActorId, @EMail, @ExpirationDateUtc, @InvitationSendCount, @LastInvitationSendDate, @Options );
+      set @InvitationIdResult = SCOPE_IDENTITY();
+      select @InvitationTokenResult = InvitationToken from CK.tUserSimpleInvitation where InvitationId = @InvitationIdResult;
     </Text>
     <Description>
       -- SetupConfig: {}
       create transformer
       as
       begin
-      add column X = 1, Y = 2;
+        in single statement {insert into CK.tUserSimpleInvitation}
+        begin
+          add column FirstName = isnull(@FirstName,N'');
+        end
       end
     </Description>
     <ResultText>
-      insert into tT( X, Y ) values( 1, 2 );
-      insert into tT( Z, X, Y ) values( 3, 1, 2 );
-      insert into tT( Z, X, Y ) select 3, 1, 2;
+      insert into CK.tUserSimpleInvitation( CreatedById, EMail, ExpirationDateUtc, InvitationSendCount, LastInvitationSendDate, Options , FirstName)
+      values( @ActorId, @EMail, @ExpirationDateUtc, @InvitationSendCount, @LastInvitationSendDate, @Options, isnull(@FirstName,N''));
+      set @InvitationIdResult = SCOPE_IDENTITY();
+      select @InvitationTokenResult = InvitationToken from CK.tUserSimpleInvitation where InvitationId = @InvitationIdResult;
     </ResultText>
   </Test>
 

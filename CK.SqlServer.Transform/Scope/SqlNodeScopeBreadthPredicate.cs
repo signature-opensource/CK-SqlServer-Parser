@@ -1,4 +1,4 @@
-﻿using CK.SqlServer.Parser;
+using CK.SqlServer.Parser;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -34,7 +34,7 @@ namespace CK.SqlServer.Transform
                 && context.RangeFilterStatus.IsIncludedInFilteredRange() 
                 && _predicate( context.VisitedNode ) )
             {
-                var beg = context.GetCurrentLocation( true );
+                var beg = context.GetCurrentLocation();
                 Debug.Assert( beg.Node == context.VisitedNode );
                 return _current = new SqlNodeLocationRange( beg, context.LocationManager.GetRawLocation( beg.Position + context.VisitedNode.Width ) );
             }

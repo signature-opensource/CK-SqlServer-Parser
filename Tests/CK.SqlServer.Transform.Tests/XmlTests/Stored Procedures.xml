@@ -1,6 +1,86 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8" ?>
 <Tests>
-  
+
+  <Test>
+    <Text>
+      <![CDATA[
+      create procedure Test.sPocoThingRead
+      as
+      begin
+        return 0;
+      end
+      ]]>
+    </Text>
+    <Description>
+      -- SetupConfig: {}
+      create transformer on Test.sPocoThingRead
+      as
+      begin
+      add parameter @Name varchar(50) output;
+
+      inject "set @Name='Test';
+      " before single {return 0};
+      end
+    </Description>
+    <ResultText>
+      <![CDATA[
+      create procedure Test.sPocoThingRead 
+      (
+	      @Name varchar(50) output
+      )
+      as
+      begin
+        set @Name='Test';
+        return 0;
+      end
+      ]]>
+    </ResultText>
+  </Test>
+
+  <Test>
+    <Text>
+      <![CDATA[
+      create procedure Test.sPocoThingRead
+      (
+        @Name varchar(50) output
+      )
+      as
+      begin
+        set @Name='Test';
+        return 0;
+      end
+      ]]>
+    </Text>
+    <Description>
+-- SetupConfig: {}
+create transformer on Test.sPocoThingRead
+as
+begin
+  add parameter @Age int output, @Height int output;
+  inject "set @Age = 12; set @Height = 154;
+  " before single {return 0};
+end
+
+</Description>
+    <ResultText>
+      <![CDATA[
+      create procedure Test.sPocoThingRead 
+      (
+	      @Name varchar(50) output,
+        @Age int output,
+        @Height int output
+      )
+      as
+      begin
+        set @Name='Test';
+        set @Age=12;
+        set @Height=154;
+        return 0;
+      end
+      ]]>
+    </ResultText>
+  </Test>
+
   <Test>
     <Text>
       <![CDATA[
@@ -34,19 +114,19 @@
       create transformer on CK.sZoneCreate
       as
       begin
-        add parameter @ParentZoneId int = 0 before @ZoneIdResult;
+      add parameter @ParentZoneId int = 0 before @ZoneIdResult;
 
-        inject "-- stuff..." into "PreZoneCreate";
+      inject "-- stuff..." into "PreZoneCreate";
 
-        in single statement {exec CK.sGroupCreate}
-        begin
-          replace first {0} with "@ParentZoneId";
-        end
+      in single statement {exec CK.sGroupCreate}
+      begin
+      replace first {0} with "@ParentZoneId";
+      end
 
-        in single part {insert into CK.tZone}
-        begin
-          add column HierarchicalId = @NewZoneHId;
-        end
+      in single part {insert into CK.tZone}
+      begin
+      add column HierarchicalId = @NewZoneHId;
+      end
       end
     </Description>
     <ResultText>

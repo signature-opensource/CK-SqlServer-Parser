@@ -1,4 +1,4 @@
-﻿using CK.Core;
+using CK.Core;
 using CK.SqlServer.Parser;
 using CK.SqlServer.UtilTests;
 using NUnit.Framework;
@@ -144,13 +144,11 @@ namespace CK.SqlServer.Transform.Tests
             Assert.That( t.BuildRange( pI ).ToString(), Is.EqualTo( result ) );
         }
 
-        [TestCase( true )]
-        [TestCase( false )]
-        public void depth_versus_breadth_node_predicate( bool useQualifiedLocationNodeBuilder )
+        public void depth_versus_breadth_node_predicate()
         {
             string text = @"select * from (select * from (select * from sys.tables) t) t";
             ISqlNode node = new SqlAnalyser( text ).Parse();
-            var t = new SqlTransformHost( node, TestHelper.ConsoleMonitor ) { BuildQualifiedNodeLocations = useQualifiedLocationNodeBuilder };
+            var t = new SqlTransformHost( node, TestHelper.ConsoleMonitor );
 
             var pD = new SqlNodeScopeDepthPredicate( n => n.AllTokens.FirstOrDefault()?.TokenType == SqlTokenType.Select, false );
             var rD = t.BuildRange( pD );
@@ -171,17 +169,14 @@ namespace CK.SqlServer.Transform.Tests
             }
         }
 
-        [TestCase( true, "A", "[0,1[", "[<SqlTokenIdentifier>A] B C" )]
-        [TestCase( false, "A", "[0,1[", "[<SqlTokenIdentifier>A] B C" )]
-        [TestCase( true, "B", "[1,2[", "A [<SqlTokenIdentifier>B] C" )]
-        [TestCase( false, "B", "[1,2[", "A [<SqlTokenIdentifier>B] C" )]
-        [TestCase( true, "C", "[2,3[", "A B [<SqlTokenIdentifier>C]" )]
-        [TestCase( false, "C", "[2,3[", "A B [<SqlTokenIdentifier>C]" )]
-        public void range_trivia_injecter( bool useQualifiedLocationNodeBuilder, string item, string range, string result )
+        [TestCase( "A", "[0,1[", "[<SqlTokenIdentifier>A] B C" )]
+        [TestCase( "B", "[1,2[", "A [<SqlTokenIdentifier>B] C" )]
+        [TestCase( "C", "[2,3[", "A B [<SqlTokenIdentifier>C]" )]
+        public void range_trivia_injecter( string item, string range, string result )
         {
             string text = @"A B C";
             ISqlNode node = new SqlAnalyser( text ).Parse();
-            var t = new SqlTransformHost( node, TestHelper.ConsoleMonitor ) { BuildQualifiedNodeLocations = useQualifiedLocationNodeBuilder };
+            var t = new SqlTransformHost( node, TestHelper.ConsoleMonitor );
 
             var pA = new SqlNodeScopeDepthPredicate( n => n.ToString() == item );
             var rA = t.BuildRange( pA );
