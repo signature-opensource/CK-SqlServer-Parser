@@ -78,7 +78,7 @@ namespace CK.SqlServer.Transform
                     int endPos;
                     if( _filteredRange == null || (endPos = p + n.Width) <= _filteredRange.Current.Beg.Position )
                     {
-                        Leave( prev, true );
+                        Leave( prev );
                     }
                     else
                     {
@@ -94,7 +94,7 @@ namespace CK.SqlServer.Transform
                 return _rangeFilterStatus;
             }
 
-            public void Leave( ISqlNode prev, bool skipped )
+            public void Leave( ISqlNode prev )
             {
                 _builder.Leave( VisitedNode );
                 VisitedNode = prev;
@@ -212,7 +212,7 @@ namespace CK.SqlServer.Transform
                 v = AfterVisitItem( v );
                 // Clears the override.
                 _context.OverridePosition();
-                _context.Leave( prev, !doChildrenVisit );
+                _context.Leave( prev );
             }
             return v;
         }
