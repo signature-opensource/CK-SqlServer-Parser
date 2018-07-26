@@ -1,4 +1,4 @@
-﻿using CK.SqlServer.Parser;
+using CK.SqlServer.Parser;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -44,9 +44,8 @@ namespace CK.SqlServer.Transform
         /// Obtains the location of the currently visited node.
         /// When no nodes are being visited, the root is returned.
         /// </summary>
-        /// <param name="qualifiedLocation">True to force the obtention of a qualified location.</param>
-        /// <returns>A (potentially qualified) location.</returns>
-        SqlNodeLocation GetCurrentLocation( bool ensureQualifiedLocation = false );
+        /// <returns>A qualified location.</returns>
+        SqlNodeLocation GetCurrentLocation();
 
     }
 }
