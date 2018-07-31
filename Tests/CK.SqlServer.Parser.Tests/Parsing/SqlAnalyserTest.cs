@@ -103,6 +103,7 @@ namespace CK.SqlServer.Parser.Tests
                 Assert.That( sp.Parameters[0].Variable.Identifier.Name, Is.EqualTo( "@p1" ) );
                 Assert.That( sp.Parameters[0].Variable.TypeDecl.DbType, Is.EqualTo( SqlDbType.Int ) );
                 Assert.That( sp.Parameters[0].Variable.TypeDecl.SyntaxSize, Is.EqualTo( -2 ), "Size does not apply." );
+                Assert.That( sp.Parameters[0].IsNotNull, Is.False );
 
                 Assert.That( sp.Parameters[1].IsOutput, Is.False );
                 Assert.That( sp.Parameters[1].IsReadOnly, Is.False );
@@ -111,6 +112,7 @@ namespace CK.SqlServer.Parser.Tests
                 Assert.That( sp.Parameters[1].Variable.Identifier.IsVariable, Is.True );
                 Assert.That( sp.Parameters[1].Variable.Identifier.Name, Is.EqualTo( "@p2" ) );
                 Assert.That( sp.Parameters[1].Variable.TypeDecl.DbType, Is.EqualTo( SqlDbType.TinyInt ) );
+                Assert.That( sp.Parameters[1].IsNotNull, Is.True );
 
                 Assert.That( sp.Parameters[2].IsOutput, Is.True );
                 Assert.That( sp.Parameters[2].IsReadOnly, Is.False );
@@ -118,6 +120,7 @@ namespace CK.SqlServer.Parser.Tests
                 Assert.That( sp.Parameters[2].Variable.Identifier.IsVariable, Is.True );
                 Assert.That( sp.Parameters[2].Variable.Identifier.Name, Is.EqualTo( "@p3" ) );
                 Assert.That( sp.Parameters[2].Variable.TypeDecl.DbType, Is.EqualTo( SqlDbType.SmallInt ) );
+                Assert.That( sp.Parameters[2].IsNotNull, Is.True );
 
                 Assert.That( sp.Parameters[3].IsOutput, Is.False );
                 Assert.That( sp.Parameters[3].IsReadOnly, Is.False );
@@ -126,6 +129,7 @@ namespace CK.SqlServer.Parser.Tests
                 Assert.That( sp.Parameters[3].Variable.Identifier.Name, Is.EqualTo( "@p4" ) );
                 Assert.That( sp.Parameters[3].Variable.TypeDecl.DbType, Is.EqualTo( SqlDbType.NVarChar ) );
                 Assert.That( sp.Parameters[3].Variable.TypeDecl.SyntaxSize, Is.EqualTo( 50 ) );
+                Assert.That( sp.Parameters[3].IsNotNull, Is.False );
 
                 Assert.That( sp.Parameters[4].IsOutput, Is.True );
                 Assert.That( sp.Parameters[4].IsInputOutput, Is.True );
@@ -135,6 +139,7 @@ namespace CK.SqlServer.Parser.Tests
                 Assert.That( sp.Parameters[4].Variable.Identifier.Name, Is.EqualTo( "@p5" ) );
                 Assert.That( sp.Parameters[4].Variable.TypeDecl.DbType, Is.EqualTo( SqlDbType.VarChar ) );
                 Assert.That( sp.Parameters[4].Variable.TypeDecl.SyntaxSize, Is.EqualTo( -1 ), "Size is max." );
+                Assert.That( sp.Parameters[4].IsNotNull, Is.False );
 
                 Assert.That( sp.Parameters[5].IsOutput, Is.True );
                 Assert.That( sp.Parameters[5].IsInputOutput, Is.True );
@@ -144,6 +149,7 @@ namespace CK.SqlServer.Parser.Tests
                 Assert.That( sp.Parameters[5].Variable.Identifier.Name, Is.EqualTo( "@p6" ) );
                 Assert.That( sp.Parameters[5].Variable.TypeDecl.DbType, Is.EqualTo( SqlDbType.Char ) );
                 Assert.That( sp.Parameters[5].Variable.TypeDecl.SyntaxSize, Is.EqualTo( 0 ), "Size is undefined." );
+                Assert.That( sp.Parameters[5].IsNotNull, Is.True );
 
                 Assert.That( sp.Parameters[6].IsOutput, Is.True );
                 Assert.That( sp.Parameters[6].IsInputOutput, Is.False, "--input behind the comma..." );
@@ -153,6 +159,7 @@ namespace CK.SqlServer.Parser.Tests
                 Assert.That( sp.Parameters[6].Variable.Identifier.Name, Is.EqualTo( "@p7" ) );
                 Assert.That( sp.Parameters[6].Variable.TypeDecl.DbType, Is.EqualTo( SqlDbType.Xml ) );
                 Assert.That( sp.Parameters[6].Variable.TypeDecl.SyntaxSize, Is.EqualTo( -2 ), "Size does not apply." );
+                Assert.That( sp.Parameters[6].IsNotNull, Is.False );
 
                 Assert.That( sp.Parameters[7].IsOutput, Is.True );
                 Assert.That( sp.Parameters[7].IsInputOutput, Is.True, "-- input on the line above." );
@@ -162,6 +169,7 @@ namespace CK.SqlServer.Parser.Tests
                 Assert.That( sp.Parameters[7].Variable.Identifier.Name, Is.EqualTo( "@p8" ) );
                 Assert.That( sp.Parameters[7].Variable.TypeDecl.DbType, Is.EqualTo( SqlDbType.SmallDateTime ) );
                 Assert.That( sp.Parameters[7].Variable.TypeDecl.SyntaxSize, Is.EqualTo( -2 ), "Size does not apply." );
+                Assert.That( sp.Parameters[7].IsNotNull, Is.False );
 
                 Assert.That( sp.Parameters[8].IsOutput, Is.False );
                 Assert.That( sp.Parameters[8].IsInputOutput, Is.False );
@@ -170,7 +178,7 @@ namespace CK.SqlServer.Parser.Tests
                 Assert.That( sp.Parameters[8].DefaultValue.IsNull, Is.True );
                 Assert.That( sp.Parameters[8].DefaultValue.IsLiteral, Is.False );
 
-                Assert.That( sp.Header.ToStringCompact(), Is.EqualTo( "procedure CK.sStoredProcedureInputOutput @p1 int, @p2 tinyint=0, @p3 smallint output, @p4 nvarchar(50)=N'Murfn...', @p5 varchar(max) /*input*/output, @p6 char /*input*/output, @p7 Xml output, @p8 smalldatetime /*input*/output, @p9 smalldatetime=null" ) );
+                Assert.That( sp.Header.ToStringCompact(), Is.EqualTo( "procedure CK.sStoredProcedureInputOutput @p1 int, @p2 tinyint /*not null*/=0, @p3 smallint /*not null*/output, @p4 nvarchar(50)=N'Murfn...', @p5 varchar(max) /*input*/output, @p6 char /*not null, input*/output, @p7 Xml output, @p8 smalldatetime /*input*/output, @p9 smalldatetime=null" ) );
             } );
         }
 

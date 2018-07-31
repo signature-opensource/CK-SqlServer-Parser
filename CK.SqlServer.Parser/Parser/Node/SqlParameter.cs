@@ -6,32 +6,53 @@ using System.Linq;
 using System.Text;
 using CK.Core;
 using System.Collections.Immutable;
+using System.Text.RegularExpressions;
 
 namespace CK.SqlServer.Parser
 {
+    using CNode = SNode<SqlTypedIdentifier, SqlTokenTerminal, SqlBasicValue, SqlTokenIdentifier, SqlTokenIdentifier>;
+
     public sealed class SqlParameter : SqlNonTokenAutoWidth, ISqlServerParameter
     {
-        readonly SNode<SqlTypedIdentifier, SqlTokenTerminal, SqlBasicValue, SqlTokenIdentifier, SqlTokenIdentifier> _content;
-        readonly SqlTokenType _inputTrivia;
+        static readonly Regex _rNotNull = new Regex( @"\bnot\s+null\b", RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture );
+
+        readonly CNode _content;
+        readonly SqlTokenType _inputMarkerTrivia;
+        readonly SqlTokenType _notNullMarkerTrivia;
 
         public SqlParameter( SqlTypedIdentifier declVar, SqlTokenTerminal assignT = null, SqlBasicValue defaultValue = null, SqlTokenIdentifier outputT = null, SqlTokenIdentifier readonlyT = null )
             : base( null, null )
         {
-            _content = new SNode<SqlTypedIdentifier, SqlTokenTerminal, SqlBasicValue, SqlTokenIdentifier, SqlTokenIdentifier>( declVar, assignT, defaultValue, outputT, readonlyT );
-            _inputTrivia = CheckContent();
+            _content = new CNode( declVar, assignT, defaultValue, outputT, readonlyT );
+            (_inputMarkerTrivia,_notNullMarkerTrivia) = CheckContent();
         }
 
-        SqlTokenType CheckContent()
+        (SqlTokenType,SqlTokenType) CheckContent()
         {
             Helper.CheckIsVariable( Variable, nameof( Variable ) );
             Helper.CheckNullableToken( AssignT, nameof( AssignT ), SqlTokenType.Assign );
             Helper.CheckNullableToken( OutputT, nameof( OutputT ), SqlTokenType.Output, SqlTokenType.Out );
             Helper.CheckNullableToken( ReadOnlyT, nameof( ReadOnlyT ), SqlTokenType.Readonly );
-            return OutputT != null
-                        ? GetAllTrivias( this )
-                                    .Where( t => t.TokenType != SqlTokenType.None )
-                                    .FirstOrDefault( t => t.Text.Contains( "input" ) ).TokenType
-                        : SqlTokenType.None;
+
+            SqlTokenType inputMarker = SqlTokenType.None;
+            SqlTokenType notNullMarker = SqlTokenType.None;
+            foreach( SqlTrivia t in GetAllTrivias( this ) )
+            {
+                if( t.TokenType != SqlTokenType.None )
+                {
+                    if( OutputT != null && t.Text.Contains( "input" ) )
+                    {
+                        inputMarker = t.TokenType;
+                        if( notNullMarker != SqlTokenType.None ) break;
+                    }
+                    if( _rNotNull.Match( t.Text ).Success )
+                    {
+                        notNullMarker = t.TokenType;
+                        if( inputMarker != SqlTokenType.None || OutputT == null ) break;
+                    }
+                }
+            }
+            return (inputMarker, notNullMarker);
         }
 
         SqlParameter( SqlParameter o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
@@ -40,12 +61,13 @@ namespace CK.SqlServer.Parser
             if( items == null )
             {
                 _content = o._content;
-                _inputTrivia = o._inputTrivia;
+                _inputMarkerTrivia = o._inputMarkerTrivia;
+                _notNullMarkerTrivia = o._notNullMarkerTrivia;
             }
             else
             {
-                _content = new SNode<SqlTypedIdentifier, SqlTokenTerminal, SqlBasicValue, SqlTokenIdentifier, SqlTokenIdentifier>( items );
-                _inputTrivia = CheckContent();
+                _content = new CNode( items );
+                (_inputMarkerTrivia, _notNullMarkerTrivia) = CheckContent();
             }
         }
 
@@ -104,7 +126,12 @@ namespace CK.SqlServer.Parser
         /// Gets whether the parameter is input and output (by ref).
         /// <see cref="IsOutput"/> is true: the parameter uses the '/*input*/output' syntax.
         /// </summary>
-        public bool IsInputOutput => _inputTrivia != SqlTokenType.None;
+        public bool IsInputOutput => _inputMarkerTrivia != SqlTokenType.None;
+
+        /// <summary>
+        /// Gets whether the parameter is marked with the '/*not null*/ comment.
+        /// </summary>
+        public bool IsNotNull => _notNullMarkerTrivia != SqlTokenType.None;
 
         public SqlTokenIdentifier OutputT => _content.V4;
 
@@ -117,16 +144,31 @@ namespace CK.SqlServer.Parser
 
         public override void WriteWithoutTrivias( ISqlTextWriter w )
         {
-            if( (_inputTrivia == SqlTokenType.StarComment && w.SkipStarComment)
-                || (_inputTrivia == SqlTokenType.LineComment && w.SkipLineComment) )
+            bool mustWriteInputTrivia = (_inputMarkerTrivia == SqlTokenType.StarComment && w.SkipStarComment)
+                                        || (_inputMarkerTrivia == SqlTokenType.LineComment && w.SkipLineComment);
+            bool mustWriteNotNullTrivia = (_notNullMarkerTrivia == SqlTokenType.StarComment && w.SkipStarComment)
+                                        || (_notNullMarkerTrivia == SqlTokenType.LineComment && w.SkipLineComment);
+
+            if( mustWriteInputTrivia || mustWriteNotNullTrivia )
             {
                 foreach( var t in _content )
                 {
-                    if( t.IsToken( SqlTokenType.Output ) )
+                    if( mustWriteInputTrivia && t.IsToken( SqlTokenType.Output ) )
                     {
-                        w.Write( SqlTokenType.StarComment, "/*input*/", null, false );
+                        if( mustWriteNotNullTrivia )
+                        {
+                            w.Write( SqlTokenType.StarComment, "/*not null, input*/", null, false );
+                        }
+                        else
+                        {
+                            w.Write( SqlTokenType.StarComment, "/*input*/", null, false );
+                        }
                     }
                     t.Write( w );
+                    if( mustWriteNotNullTrivia && t == Variable && !mustWriteInputTrivia )
+                    {
+                        w.Write( SqlTokenType.StarComment, "/*not null*/", true, null );
+                    }
                 }
             }
             else base.WriteWithoutTrivias( w );
