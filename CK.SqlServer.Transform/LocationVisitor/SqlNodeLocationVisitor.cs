@@ -1,4 +1,4 @@
-﻿using CK.Core;
+using CK.Core;
 using CK.SqlServer.Parser;
 using System;
 using System.Collections.Generic;
@@ -19,31 +19,18 @@ namespace CK.SqlServer.Transform
     {
         class VContext : IVisitContext
         {
-            ISqlNodeLocationBuilder _builder;
+            readonly QualifiedLocationBuilder _builder;
             ISqlNodeLocationRange _rangeFilter;
             IEnumerator<SqlNodeLocationRange> _filteredRange;
-            IActivityMonitor _monitor;
             int _overridePos;
             VisitedNodeRangeFilterStatus _rangeFilterStatus;
 
-            public bool BuildQualifiedNodeLocations
+            public VContext()
             {
-                get { return _builder is QualifiedLocationBuilder; }
-                set
-                {
-                    if( _builder == null || value != _builder is QualifiedLocationBuilder )
-                    {
-                        _builder = value ? (ISqlNodeLocationBuilder)new QualifiedLocationBuilder() : new LightLocationBuilder();
-                    }
-                }
+                _builder = new QualifiedLocationBuilder();
             }
 
-            public IActivityMonitor Monitor
-            {
-                get { return _monitor; }
-                set { _monitor = value; }
-            }
-
+            public IActivityMonitor Monitor { get; set; }
 
             public void Reset( LocationRoot root, ISqlNodeLocationRange rangeFilter )
             {
@@ -91,7 +78,7 @@ namespace CK.SqlServer.Transform
                     int endPos;
                     if( _filteredRange == null || (endPos = p + n.Width) <= _filteredRange.Current.Beg.Position )
                     {
-                        Leave( prev, true );
+                        Leave( prev );
                     }
                     else
                     {
@@ -107,9 +94,9 @@ namespace CK.SqlServer.Transform
                 return _rangeFilterStatus;
             }
 
-            public void Leave( ISqlNode prev, bool skipped )
+            public void Leave( ISqlNode prev )
             {
-                _builder.Leave( VisitedNode, skipped );
+                _builder.Leave( VisitedNode );
                 VisitedNode = prev;
                 if( prev != null && _filteredRange != null )
                 {
@@ -142,10 +129,7 @@ namespace CK.SqlServer.Transform
                 _overridePos = pos;
             }
 
-            public SqlNodeLocation GetCurrentLocation( bool ensureQualifiedLocation )
-            {
-                return VisitedNode != null ? _builder.GetCurrent( Position, VisitedNode, ensureQualifiedLocation ) : _builder.Root;
-            }
+            public SqlNodeLocation GetCurrentLocation() =>  _builder.GetCurrent();
 
         }
 
@@ -157,19 +141,9 @@ namespace CK.SqlServer.Transform
         /// <summary>
         /// Initializes a new location visitor.
         /// </summary>
-        /// <param name="buildQualifiedNodeLocations">True to build qualified locations by default instead of raw ones.</param>
-        protected SqlNodeLocationVisitor( bool buildQualifiedNodeLocations = false )
+        protected SqlNodeLocationVisitor()
         {
-            _context = new VContext() { BuildQualifiedNodeLocations = buildQualifiedNodeLocations };
-        }
-
-        /// <summary>
-        /// Gets or sets whether qualified locations must be built by default or raw ones are enough.
-        /// </summary>
-        public bool BuildQualifiedNodeLocations
-        {
-            get { return _context.BuildQualifiedNodeLocations; }
-            set { _context.BuildQualifiedNodeLocations = value; }
+            _context = new VContext();
         }
 
         /// <summary>
@@ -238,7 +212,7 @@ namespace CK.SqlServer.Transform
                 v = AfterVisitItem( v );
                 // Clears the override.
                 _context.OverridePosition();
-                _context.Leave( prev, !doChildrenVisit );
+                _context.Leave( prev );
             }
             return v;
         }

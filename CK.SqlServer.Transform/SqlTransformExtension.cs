@@ -1,4 +1,4 @@
-﻿using CK.SqlServer.Parser;
+using CK.SqlServer.Parser;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -55,12 +55,15 @@ namespace CK.SqlServer.Transform
         {
             using( var e = @this.GetEnumerator() )
             {
-                while( e.MoveNext() )
+                bool hasNext = e.MoveNext();
+                while( hasNext )
                 {
                     SqlNodeLocationRange current = e.Current;
-                    while( e.MoveNext() && current.End.Position == e.Current.Beg.Position )
+                    hasNext = e.MoveNext();
+                    while( hasNext && current.End.Position == e.Current.Beg.Position )
                     {
                         current = current.InternalSetEnd( e.Current.End );
+                        hasNext = e.MoveNext();
                     }
                     yield return current;
                 }

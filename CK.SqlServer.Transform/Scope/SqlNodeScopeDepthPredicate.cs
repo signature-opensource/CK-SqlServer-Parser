@@ -1,4 +1,4 @@
-﻿using CK.SqlServer.Parser;
+using CK.SqlServer.Parser;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -35,7 +35,7 @@ namespace CK.SqlServer.Transform
         {
             if( _nodeMatcher.Match( context, context.VisitedNode ) )
             {
-                var beg = context.GetCurrentLocation( true );
+                var beg = context.GetCurrentLocation();
                 return new SqlNodeLocationRange( beg, context.LocationManager.GetRawLocation( beg.Position + context.VisitedNode.Width ) );
             }
             return null;
