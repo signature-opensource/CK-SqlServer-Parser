@@ -6,6 +6,6 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\CK.SqlServer.Transform\CK.SqlServer.Transform.csproj" />
-    <PackageReference Include="CK.Testing.Monitoring" Version="0.5.1-C0007-local" />
+    <PackageReference Include="CK.Testing.Monitoring" Version="0.5.1-C0009-local" />
   </ItemGroup>
 </Project>
