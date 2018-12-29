@@ -5,8 +5,8 @@
     <Description>T-Sql parser implementation.</Description>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="CK.ActivityMonitor.SimpleSender" Version="10.1.2--0062-develop" />
-    <PackageReference Include="CK.SqlServer.Parser.Model" Version="7.0.1--0048-develop" />
+    <PackageReference Include="CK.ActivityMonitor.SimpleSender" Version="10.1.2--0063-develop" />
+    <PackageReference Include="CK.SqlServer.Parser.Model" Version="7.0.1--0049-develop" />
     <PackageReference Include="System.Collections.Immutable" Version="1.5.0" />
   </ItemGroup>
 </Project>
