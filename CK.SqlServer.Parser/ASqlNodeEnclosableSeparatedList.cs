@@ -1,4 +1,4 @@
-﻿using CK.Core;
+using CK.Core;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -154,8 +154,9 @@ namespace CK.SqlServer.Parser
                 var content = _items.ToList();
                 if( _enclosed == 0 )
                 {
+                    var lastTrivia = _items[_items.Length - 1].FullTrailingTrivias;
                     content.Add( lastSep );
-                    content.Add( item );
+                    content.Add( item.SetTrivias( null, lastTrivia ) );
                 }
                 else
                 {
