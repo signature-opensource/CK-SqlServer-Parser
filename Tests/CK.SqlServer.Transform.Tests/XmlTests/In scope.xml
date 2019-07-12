@@ -1,6 +1,58 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8" ?>
 <Tests>
 
+  <Test>
+    <Text>
+      <![CDATA[
+    begin
+    --<PreRead revert />
+
+    --!Header: Always returns the DynObjId (and may be more fields if code is injected here).
+    select DynObjId
+        from CK.tDynObj
+        where DynObjId = @DynObjId;
+
+    --<ReadMembers />
+
+    --<PostRead />
+    end
+    ]]>
+    </Text>
+    <Description>
+      -- SetupConfig: {}
+      create transformer
+      as
+      begin
+		  -- Prepends the @PartDepth as the first column.
+		  -- If another package prepends another column, this will fail (this would need to be rewritten).
+		  -- TQL should enhance its InScope feature with after/before/between ... and ... suffixes.
+		  -- The code below should be: in first statement {select} after "--!Header:"
+		  -- This way, the injection will always "prepend" even if other transformations prepended stuff...
+		  in first statement {select DynObjId}
+		  begin
+		    inject " @PartDepth, " after first {select};
+		  end
+      end
+    </Description>
+    <ResultText>
+      <![CDATA[
+    begin
+    --<PreRead revert />
+
+    --!Header: Always returns the DynObjId (and may be more fields if code is injected here).
+    select @PartDepth, DynObjId
+        from CK.tDynObj
+        where DynObjId = @DynObjId;
+
+    --<ReadMembers />
+
+    --<PostRead />
+    end
+      ]]>
+    </ResultText>
+  </Test>
+
+  
   <Test>
     <Text>
       <![CDATA[
