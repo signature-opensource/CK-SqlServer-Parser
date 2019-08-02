@@ -1,5 +1,31 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8" ?>
 <Tests>
+  <Test>
+    <Text>
+	with 
+		touched as (select LayerDepId from CK.vDynObjLayerDep where LayerId = @LayerId),
+		t as (select f.LayerId, f.LayerDepId, f.Idx from CK.tDynObjLayerIndexFallback f inner join touched on touched.LayerDepId = f.LayerId),
+		s as (select e.LayerId, e.LayerDepId, e.FallBackIdx from CK.vDynObjLayerIndexFallbackExpected e inner join touched on touched.LayerDepId = e.LayerId)
+	merge t 
+		using s
+		on (s.LayerId = t.LayerId and s.LayerDepId = t.LayerDepId)
+	when matched then update set t.Idx = s.FallBackIdx
+	when not matched then insert(LayerId,LayerDepId,Idx) values (s.LayerId,s.LayerDepId,s.FallBackIdx) 
+	when not matched by source then delete;
+  </Text>
+    <Description></Description>
+    <Xml>
+      <Statements>
+        <CTEStatement HasTerminator="true">
+          <SelectSpec />
+          <SelectSpec />
+          <SelectSpec />
+          <MergeStatement HasTerminator="true" />
+        </CTEStatement>
+      </Statements>
+    </Xml>
+  </Test>
+
 
   <Test>
     <Text>
