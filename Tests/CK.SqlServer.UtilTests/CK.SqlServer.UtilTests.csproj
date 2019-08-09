@@ -1,19 +1,14 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\..\Common\Shared.props" />
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp2.1;net461</TargetFrameworks>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
     <IsTestProject>False</IsTestProject>
+    <IsPackable>False</IsPackable>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\CK.SqlServer.Parser\CK.SqlServer.Parser.csproj" />
     <ProjectReference Include="..\..\CK.Testing.SqlTransform\CK.Testing.SqlTransform.csproj" />
-  </ItemGroup>
-  <ItemGroup Condition=" '$(TargetFramework)' != 'net461' ">
-    <PackageReference Include="NUnit" Version="3.11.0" />
-    <PackageReference Include="NUnitLite" Version="3.11.0" />
-  </ItemGroup>
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net461' ">
-    <PackageReference Include="NUnit" Version="[2.6.4]" />
+    <PackageReference Include="NUnit" Version="3.12.0" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82a7f48d-3b50-4b1e-b82e-3ada8210c358}" />

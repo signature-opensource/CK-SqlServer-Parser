@@ -1,5 +1,84 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8" ?>
 <Tests>
+
+  <Test>
+    <Text>
+        -- SetupConfig: {}
+        -- 
+        create procedure CK.sDynObjAcquirePart
+	        @ActorId int,
+            @DynObjId int,
+	        @PartId int
+        as
+        begin
+	        --[beginsp]
+
+            declare @CurrentParentId int;
+            select @CurrentParentId = DynObjId from CK.tDynObjPart where PartId = @PartId;
+            if @CurrentParentId is not null
+            begin
+                exec CK.sDynObjReleasePart @ActorId, @DynObjId, @PartId;
+            end
+
+            --&lt;PreAcquirePart revert /&gt;
+
+            insert into CK.tDynObjPart( DynObjId, PartId ) values ( @DynObjId, @PartId );
+
+            --&lt;PostAcquirePart /&gt; 
+
+	        --[endsp]
+        end
+    </Text>
+    <Description>
+-- SetupConfig: {}
+-- 
+create transformer on CK.sDynObjAcquirePart
+as
+begin
+  add parameter @LayerId int = 0;
+  in single statement {select @CurrentParentId = DynObjId}
+  begin
+    replace single {PartId = @PartId} with "PartId = @PartId and LayerId = @LayerId";
+  end
+  in single statement {exec CK.sDynObjReleasePart}
+  begin
+    replace single {@PartId} with "@PartId, @LayerId";
+  end
+  in single statement {insert into}
+  begin
+    add column LayerId = @LayerId;
+  end
+end
+    </Description>
+    <ResultText>
+      -- SetupConfig: {}
+      --
+      create procedure CK.sDynObjAcquirePart
+        @ActorId int,
+        @DynObjId int,
+        @PartId int,
+        @LayerId int = 0
+      as
+      begin
+          --[beginsp]
+
+          declare @CurrentParentId int;
+          select @CurrentParentId = DynObjId from CK.tDynObjPart where PartId = @PartId and LayerId = @LayerId;
+          if @CurrentParentId is not null
+          begin
+            exec CK.sDynObjReleasePart @ActorId, @DynObjId, @PartId, @LayerId;
+          end
+
+          --&lt;PreAcquirePart revert /&gt;
+
+          insert into CK.tDynObjPart( DynObjId, PartId, LayerId ) values ( @DynObjId, @PartId, @LayerId );
+
+          --&lt;PostAcquirePart /&gt; 
+
+	        --[endsp]
+     end
+    </ResultText>
+  </Test>
 
   <Test>
     <Text>

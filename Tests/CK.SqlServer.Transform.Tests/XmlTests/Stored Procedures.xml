@@ -1,6 +1,78 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <Tests>
 
+
+    <Test>
+    <Text>
+create procedure CK.sDynObjCreate
+  @ActorId int,
+  @DynObjIdResult int output
+as
+begin
+  --[beginsp]
+
+  --&lt;PreCreate revert /&gt;
+
+  insert into CK.tDynObj default values;
+  set @DynObjIdResult = SCOPE_IDENTITY();
+
+  --&lt;PostCreate /&gt;
+
+  --[endsp]
+end
+    </Text>
+    <Description>
+-- SetupConfig: {"AddRequires": "CK.sDynObjPropagateThroughLayers"}
+--
+create transformer on CK.sDynObjCreate
+as
+begin
+	add parameter @OwnerLayerId int = 0, @IsPrivatelyOwned bit = 1;
+
+	in single part {insert into CK.tDynObj}
+	begin
+		add column OwnerId = @OwnerLayerId,IsPrivatelyOwned = @IsPrivatelyOwned;
+	end
+
+	inject "
+	    insert into CK.tDynObjLayered( LayerId, DynObjId ) values( @OwnerLayerId, @DynObjIdResult );
+	    if @IsPrivatelyOwned = 0 and @OwnerLayerId &lt;&gt; 0
+	    begin
+		    exec CK.sDynObjPropagateThroughLayers @ActorId, @DynObjIdResult, @OwnerLayerId, 1;
+	    end"
+	into "PostCreate";
+
+end
+    </Description>
+    <ResultText>
+create procedure CK.sDynObjCreate
+  @ActorId int,
+  @DynObjIdResult int output,
+  @OwnerLayerId int = 0,
+  @IsPrivatelyOwned bit = 1  
+as
+begin
+  --[beginsp]
+
+  --&lt;PreCreate revert /&gt;
+
+  insert into CK.tDynObj (OwnerId , IsPrivatelyOwned)values(@OwnerLayerId, @IsPrivatelyOwned);
+  set @DynObjIdResult = SCOPE_IDENTITY();
+
+  --&lt;PostCreate &gt;
+
+	    insert into CK.tDynObjLayered( LayerId, DynObjId ) values( @OwnerLayerId, @DynObjIdResult );
+	    if @IsPrivatelyOwned = 0 and @OwnerLayerId &lt;&gt; 0
+	    begin
+		    exec CK.sDynObjPropagateThroughLayers @ActorId, @DynObjIdResult, @OwnerLayerId, 1;
+	    end
+  --&lt;/PostCreate&gt;
+
+  --[endsp]
+end
+  </ResultText>
+  </Test>
+
   <Test>
     <Text>
       <![CDATA[

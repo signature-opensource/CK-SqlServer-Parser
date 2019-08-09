@@ -587,8 +587,8 @@ namespace CK.SqlServer.Parser
             {
                 R.IsToken( out asT, SqlTokenType.As, false );
                 if( !R.IsToken( out targetAliasName, true ) ) return null;
+                if( !R.IsToken( out usingT, SqlTokenType.Using, true ) ) return null;
             }
-            if( !R.IsToken( out usingT, SqlTokenType.Using, true ) ) return null;
 
             // We cannot use IsAnyExpression here since on top level, 
             // we hit the WHEN NOT MATCHED THEN INSERT clause (note: the insert here has no target table)

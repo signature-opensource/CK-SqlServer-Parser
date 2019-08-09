@@ -1,18 +1,16 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <Import Project="..\..\Common\Shared.props" />
-
   <PropertyGroup>
-    <TargetFrameworks>net461</TargetFrameworks>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <IsPackable>False</IsPackable>
   </PropertyGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\..\CK.SqlServer.Transform\CK.SqlServer.Transform.csproj" />
     <ProjectReference Include="..\CK.SqlServer.UtilTests\CK.SqlServer.UtilTests.csproj" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.2.0" />
+    <PackageReference Include="NUnit3TestAdapter" Version="3.13.0" />
   </ItemGroup>
-
   <ItemGroup>
     <Service Include="{82a7f48d-3b50-4b1e-b82e-3ada8210c358}" />
   </ItemGroup>
-
 </Project>
