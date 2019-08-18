@@ -3,6 +3,47 @@
 
   <Test>
     <Text>
+    create view CK.vDynObjPartTree( DynObjId, PartId, Depth, PartPath )
+    as
+	    with C 
+		    as (select p.DynObjId, p.PartId, Depth = 1, PartPath = cast(p.PartId as varbinary(max))
+					    from CK.tDynObjPart p
+					    where p.DynObjId > 0
+			    union all
+			    select C.DynObjId, p.PartId, C.Depth + 1, PartPath + cast(p.PartId as varbinary(max))
+					    from CK.tDynObjPart p
+					    inner join C on C.PartId = p.DynObjId)	
+	    select C.DynObjId, C.PartId, C.Depth, C.PartPath from C;
+    </Text>
+    <Description>
+-- SetupConfig: {}
+-- 
+create transformer on CK.vDynObjPartTree
+as
+begin
+  replace single {( DynObjId, PartId, Depth, PartPath )} with "( DynObjId, PartId, LayerId, Depth, PartPath )";
+  replace all 2 {, p.PartId,} with ", p.PartId, p.LayerId,";
+  replace all 2 {CK.tDynObjPart} with "CK.vDynObjPart";
+  replace single {, C.PartId, C.Depth,} with ", C.PartId, C.LayerId, C.Depth,";
+end
+    </Description>
+    <ResultText>
+      create view CK.vDynObjPartTree( DynObjId, PartId, LayerId, Depth, PartPath )
+      as
+	      with C 
+		      as (select p.DynObjId, p.PartId, p.LayerId, Depth = 1, PartPath = cast(p.PartId as varbinary(max))
+					      from CK.vDynObjPart p
+					      where p.DynObjId > 0
+			      union all
+			      select C.DynObjId, p.PartId, p.LayerId, C.Depth + 1, PartPath + cast(p.PartId as varbinary(max))
+					      from CK.vDynObjPart p
+					      inner join C on C.PartId = p.DynObjId)	
+	      select C.DynObjId, C.PartId, C.LayerId, C.Depth, C.PartPath from C;
+    </ResultText>
+  </Test>
+
+  <Test>
+    <Text>
         -- SetupConfig: {}
         -- 
         create procedure CK.sDynObjAcquirePart

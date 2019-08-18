@@ -191,6 +191,13 @@ namespace CK.SqlServer.Parser
                 if( expected ) R.SetCurrentError( "Expected: first [+n] | last [-n] | single | all | each." );
                 return null;
             }
+            SqlTokenLiteralInteger expectedMatchCountForAllAndEach = null;
+            if( firstOrLastOrSingleOrAllOrEach.TokenType == SqlTokenType.All
+                        || firstOrLastOrSingleOrAllOrEach.TokenType == SqlTokenType.Each )
+            {
+                R.IsToken( out expectedMatchCountForAllAndEach, false );
+            }
+
             SqlTokenIdentifier outT, ofT = null;
             SqlTokenLiteralInteger expectedMatchCount = null;
             if( R.IsToken( out outT, SqlTokenType.Out, false ) )
@@ -202,11 +209,18 @@ namespace CK.SqlServer.Parser
                     R.SetCurrentError( "Invalid 'out of n' specification after 'single'." );
                     return null;
                 }
+                if( expectedMatchCountForAllAndEach != null && expectedMatchCountForAllAndEach.Value != expectedMatchCount.Value )
+                {
+                    R.SetCurrentError( "'all' or 'each' when followed by 'N out of N', it must be the same N. You may use 'first' or 'last' if not all occurrences should be processed or just use 'all/each N' or 'all/each out of N'." );
+                    return null;
+                }
             }
-            else if( firstOrLastOrSingleOrAllOrEach.TokenType == SqlTokenType.All
-                        || firstOrLastOrSingleOrAllOrEach.TokenType == SqlTokenType.Each )
+            if( (firstOrLastOrSingleOrAllOrEach.TokenType == SqlTokenType.All || firstOrLastOrSingleOrAllOrEach.TokenType == SqlTokenType.Each)
+                && outT == null
+                && expectedMatchCountForAllAndEach != null )
             {
-                R.IsToken( out expectedMatchCount, false );
+                Debug.Assert( ofT == null && expectedMatchCount == null );
+                expectedMatchCount = expectedMatchCountForAllAndEach;
             }
 
             ISqlNode textOrSimplePattern = IsTNodeSimplePattern( false ); ;

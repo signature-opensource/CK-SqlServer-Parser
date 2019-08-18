@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
@@ -25,7 +25,8 @@ namespace CK.SqlServer.Parser
         }
 
         /// <summary>
-        /// True if this <see cref="SqlTokenType"/> is <see cref="SqlTokenType.IdentifierQuoted"/> or <see cref="SqlTokenType.IdentifierQuotedBracket"/>.
+        /// True if this <see cref="SqlTokenType"/> is "<see cref="SqlTokenType.IdentifierQuoted"/>" or
+        /// [<see cref="SqlTokenType.IdentifierQuotedBracket"/>].
         /// </summary>
         /// <param name="token">Token type.</param>
         /// <returns>True for a quoted identifier.</returns>
