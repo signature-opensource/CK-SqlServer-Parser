@@ -71,7 +71,6 @@ namespace CK.SqlServer.Parser
             if( FirstOrLastOrSingleOrAllOrEachT.TokenType == SqlTokenType.All
                 || FirstOrLastOrSingleOrAllOrEachT.TokenType == SqlTokenType.Each )
             {
-                if( ExpectedMatchCount == null ) Helper.CheckNull( OutT, nameof( OutT ) );
                 Helper.CheckBothNullOrNot( OutT, nameof( OutT ), OfT, nameof( OfT ) );
             }
             else
