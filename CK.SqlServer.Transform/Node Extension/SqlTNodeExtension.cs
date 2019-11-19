@@ -1,4 +1,4 @@
-﻿using CK.Core;
+using CK.Core;
 using CK.SqlServer.Parser;
 using System;
 using System.Collections.Generic;
@@ -11,7 +11,7 @@ namespace CK.SqlServer.Transform
 {
     public static class SqlTNodeExtension
     {
-        internal static LocationInfo GetFinderInfo( this SqlTLocationFinder @this ) => new LocationInfo( @this );
+        internal static LocationInfo GetFinderInfo( this ISqlTLocationFinder @this ) => new LocationInfo( @this );
 
         public static bool MatchPartOrStatement( this SqlTNodeSimplePattern @this, ISqlNode n )
         {
@@ -31,17 +31,6 @@ namespace CK.SqlServer.Transform
             {
                 tokens.Dispose();
             }
-        }
-
-
-        public static IEnumerable<SqlNodeLocationRange> ToRanges( this IEnumerable<SqlToken> @this, SqlTCurlyPattern pattern, int offset = 0 )
-        {
-            if( pattern == null ) throw new ArgumentNullException( nameof(pattern) );
-            yield break;
-            //List<PTokenList> list = AnalyzePattern( pattern );
-            //if( list.Count == 0 ) yield break;
-            //foreach( )
-            //return null;
         }
 
     }

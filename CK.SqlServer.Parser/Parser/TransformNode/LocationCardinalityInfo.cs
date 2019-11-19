@@ -1,4 +1,4 @@
-﻿using CK.SqlServer.Parser;
+using CK.SqlServer.Parser;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -6,9 +6,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CK.SqlServer.Transform
+namespace CK.SqlServer.Parser
 {
-    public struct LocationCardinalityInfo
+    /// <summary>
+    /// Captures a normalized cardinality of <see cref="SqlTMultiLocationFinder"/> and <see cref="SqlTOneLocationFinder"/>.
+    /// </summary>
+    public readonly struct LocationCardinalityInfo
     {
         public readonly int ExpectedMatchCount;
         public readonly int Offset;
@@ -16,10 +19,10 @@ namespace CK.SqlServer.Transform
         public readonly bool All;
         public readonly bool Each;
 
-        public LocationCardinalityInfo( SqlTLocationFinder loc )
+        public LocationCardinalityInfo( SqlTOneLocationFinder loc )
         {
             FromFirst = All = Each = false;
-            if( loc.FirstOrLastOrSingleOrAllOrEachT.TokenType == SqlTokenType.Single )
+            if( loc.FirstOrLastOrSingleT.TokenType == SqlTokenType.Single )
             {
                 // "single" is the same as "first out of 1".
                 ExpectedMatchCount = 1;
@@ -28,15 +31,7 @@ namespace CK.SqlServer.Transform
             else
             {
                 ExpectedMatchCount = loc.ExpectedMatchCount?.Value ?? 0;
-                if( loc.FirstOrLastOrSingleOrAllOrEachT.TokenType == SqlTokenType.All )
-                {
-                    FromFirst = All = true;
-                }
-                else if( loc.FirstOrLastOrSingleOrAllOrEachT.TokenType == SqlTokenType.Each )
-                {
-                    FromFirst = All = Each = true;
-                }
-                else if( loc.FirstOrLastOrSingleOrAllOrEachT.TokenType == SqlTokenType.First )
+                if( loc.FirstOrLastOrSingleT.TokenType == SqlTokenType.First )
                 {
                     FromFirst = true;
                 }
@@ -45,11 +40,26 @@ namespace CK.SqlServer.Transform
             Offset = loc.Offset?.Value ?? 0;
         }
 
+        public LocationCardinalityInfo( SqlTMultiLocationFinder loc )
+        {
+            FromFirst = All = Each = false;
+            ExpectedMatchCount = loc.ExpectedMatchCount?.Value ?? 0;
+            if( loc.AllOrEachT.TokenType == SqlTokenType.All )
+            {
+                FromFirst = All = true;
+            }
+            else if( loc.AllOrEachT.TokenType == SqlTokenType.Each )
+            {
+                FromFirst = All = Each = true;
+            }
+            Offset = 0;
+        }
+
         /// <summary>
         /// Initializes a "single" cardinality.
         /// </summary>
         /// <param name="single">Must be true.</param>
-        internal LocationCardinalityInfo( bool single )
+        public LocationCardinalityInfo( bool single )
         {
             Debug.Assert( single );
             All = Each = false;

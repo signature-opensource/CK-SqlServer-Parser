@@ -119,8 +119,8 @@ namespace CK.SqlServer.Transform.Tests
         [TestCase( "last-3 {a}", "d|a|b|a|c|a", -1 )]
         public void checking_cardinality_filter( string cardinality, string text, int resultIndex )
         {
-            var filterInfo = new SqlAnalyser( cardinality ).IsSqlTLocationFinder( true );
-            var info = new LocationCardinalityInfo( filterInfo );
+            var filterInfo = new SqlAnalyser( cardinality ).IsISqlTLocationFinder( true );
+            var info = filterInfo.GetCardinality();
             var matcher = new SqlNodeScopePatternRange( filterInfo.Pattern.AllTokens.Skip(1).Take(1).ToArray() );
             var filter = new SqlNodeScopeCardinalityFilter( matcher, info );
             ISqlNode nodes = new SqlNodeList( text.Split('|').Select( t => SqlTokenIdentifier.Create( t ) ) );

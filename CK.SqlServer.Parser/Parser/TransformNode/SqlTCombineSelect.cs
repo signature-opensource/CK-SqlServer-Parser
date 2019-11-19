@@ -19,7 +19,7 @@ namespace CK.SqlServer.Parser
             SqlTokenTerminal>;
 
     /// <summary>
-    /// Injects unparsed text around, before or after a <see cref="SqlTLocationFinder"/>.
+    /// Combine select.
     /// </summary>
     public sealed class SqlTCombineSelect : SqlNonTokenAutoWidth, ISqlTStatement
     {

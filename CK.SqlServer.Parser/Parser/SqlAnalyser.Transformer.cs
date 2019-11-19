@@ -112,14 +112,14 @@ namespace CK.SqlServer.Parser
                         && !R.IsToken( out beforeAfterOrAroundT, SqlTokenType.After, true ) ) return null;
                 }
 
-                SqlTLocationFinder loc = IsSqlTLocationFinder( true );
+                ISqlTLocationFinder loc = IsISqlTLocationFinder( true );
                 if( loc == null ) return null;
 
                 return new SqlTInject( initT, content, andT, content2, beforeAfterOrAroundT, loc, GetOptionalTerminator() );
             }
             else if( R.IsToken( out initT, SqlTokenType.Replace, false ) )
             {
-                SqlTLocationFinder loc = IsSqlTLocationFinder( true );
+                ISqlTLocationFinder loc = IsISqlTLocationFinder( true );
                 if( loc == null ) return null;
 
                 SqlTokenIdentifier withT;
@@ -132,7 +132,7 @@ namespace CK.SqlServer.Parser
             }
             else if( R.IsToken( out initT, SqlTokenType.In, false ) )
             {
-                SqlTLocationFinder loc = IsSqlTLocationFinder( true );
+                ISqlTLocationFinder loc = IsISqlTLocationFinder( true );
                 if( loc == null ) return null;
 
                 SqlTokenIdentifier begintT;
@@ -165,65 +165,106 @@ namespace CK.SqlServer.Parser
             return null;
         }
 
-        public SqlTLocationFinder IsSqlTLocationFinder( bool expected )
+
+        public SqlTOneLocationFinder IsSqlTOneLocationFinder( bool expected )
         {
-            SqlTokenIdentifier firstOrLastOrSingleOrAllOrEach;
+            SqlTokenIdentifier firstOrLastOrSingle;
             SqlTokenTerminal plusOrMinusT = null;
             SqlTokenLiteralInteger offset = null;
-            if( R.IsToken( out firstOrLastOrSingleOrAllOrEach, SqlTokenType.First, false ) )
+            if( R.IsToken( out firstOrLastOrSingle, SqlTokenType.First, false ) )
             {
                 if( R.IsToken( out plusOrMinusT, SqlTokenType.Plus, false ) )
                 {
                     if( !R.IsToken( out offset, true ) ) return null;
                 }
             }
-            else if( R.IsToken( out firstOrLastOrSingleOrAllOrEach, SqlTokenType.Last, false ) )
+            else if( R.IsToken( out firstOrLastOrSingle, SqlTokenType.Last, false ) )
             {
                 if( R.IsToken( out plusOrMinusT, SqlTokenType.Minus, false ) )
                 {
                     if( !R.IsToken( out offset, true ) ) return null;
                 }
             }
-            else if( !R.IsToken( out firstOrLastOrSingleOrAllOrEach, SqlTokenType.Single, false )
-                     && !R.IsToken( out firstOrLastOrSingleOrAllOrEach, SqlTokenType.All, false )
-                     && !R.IsToken( out firstOrLastOrSingleOrAllOrEach, SqlTokenType.Each, false ) )
+            else if( !R.IsToken( out firstOrLastOrSingle, SqlTokenType.Single, false ) )
             {
-                if( expected ) R.SetCurrentError( "Expected: first [+n] | last [-n] | single | all | each." );
+                if( expected ) R.SetCurrentError( "Expected: first [+n] | last [-n] | single." );
                 return null;
             }
-            SqlTokenLiteralInteger expectedMatchCountForAllAndEach = null;
-            if( firstOrLastOrSingleOrAllOrEach.TokenType == SqlTokenType.All
-                        || firstOrLastOrSingleOrAllOrEach.TokenType == SqlTokenType.Each )
-            {
-                R.IsToken( out expectedMatchCountForAllAndEach, false );
-            }
-
             SqlTokenIdentifier outT, ofT = null;
             SqlTokenLiteralInteger expectedMatchCount = null;
             if( R.IsToken( out outT, SqlTokenType.Out, false ) )
             {
                 if( !R.IsToken( out ofT, SqlTokenType.Of, true ) ) return null;
                 if( !R.IsToken( out expectedMatchCount, true ) ) return null;
-                if( firstOrLastOrSingleOrAllOrEach.TokenType == SqlTokenType.Single )
+                if( firstOrLastOrSingle.TokenType == SqlTokenType.Single )
                 {
-                    R.SetCurrentError( "Invalid 'out of n' specification after 'single'." );
-                    return null;
-                }
-                if( expectedMatchCountForAllAndEach != null && expectedMatchCountForAllAndEach.Value != expectedMatchCount.Value )
-                {
-                    R.SetCurrentError( "'all' or 'each' when followed by 'N out of N', it must be the same N. You may use 'first' or 'last' if not all occurrences should be processed or just use 'all/each N' or 'all/each out of N'." );
+                    R.SetCurrentError( "Invalid 'out of n' cardinality specification after 'single'." );
                     return null;
                 }
             }
-            if( (firstOrLastOrSingleOrAllOrEach.TokenType == SqlTokenType.All || firstOrLastOrSingleOrAllOrEach.TokenType == SqlTokenType.Each)
-                && outT == null
-                && expectedMatchCountForAllAndEach != null )
-            {
-                Debug.Assert( ofT == null && expectedMatchCount == null );
-                expectedMatchCount = expectedMatchCountForAllAndEach;
-            }
+            ISqlNode textOrSimplePattern = IsTextOrSimpleMatchPattern( true );
+            return textOrSimplePattern != null
+                    ? new SqlTOneLocationFinder( firstOrLastOrSingle, plusOrMinusT, offset, outT, ofT, expectedMatchCount, textOrSimplePattern )
+                    : null;
+        }
 
-            ISqlNode textOrSimplePattern = IsTNodeSimplePattern( false ); ;
+        public SqlTRangeLocationFinder IsSqlTRangeLocationFinder( bool expected )
+        {
+            SqlTokenIdentifier afterOrBeforeOrBetween;
+            if( !R.IsToken( out afterOrBeforeOrBetween, SqlTokenType.After, false )
+                && !R.IsToken( out afterOrBeforeOrBetween, SqlTokenType.Before, false )
+                && !R.IsToken( out afterOrBeforeOrBetween, SqlTokenType.Between, false ) )
+            {
+                if( expected ) R.SetCurrentError( "Expected after | before | between." );
+                return null;
+            }
+            SqlTOneLocationFinder firstLoc = IsSqlTOneLocationFinder( true );
+            if( firstLoc == null ) return null;
+            SqlTokenIdentifier andT = null;
+            SqlTOneLocationFinder secondLoc = null;
+            if( afterOrBeforeOrBetween.TokenType == SqlTokenType.Between )
+            {
+                if( !R.IsToken( out andT, SqlTokenType.And, true ) ) return null;
+                secondLoc = IsSqlTOneLocationFinder( true );
+                if( secondLoc == null ) return null;
+            }
+            return new SqlTRangeLocationFinder( afterOrBeforeOrBetween, firstLoc, andT, secondLoc );
+        }
+
+        public SqlTMultiLocationFinder IsSqlTMultiLocationFinder( bool expected )
+        {
+            SqlTokenIdentifier allOrEach;
+            if( !R.IsToken( out allOrEach, SqlTokenType.All, false )
+                && !R.IsToken( out allOrEach, SqlTokenType.Each, false ) )
+            {
+                if( expected ) R.SetCurrentError( "Expected: all | each token." );
+                return null;
+            }
+            SqlTokenLiteralInteger expectedMatchCount;
+            R.IsToken( out expectedMatchCount, false );
+
+            ISqlNode textOrSimplePattern = IsTextOrSimpleMatchPattern( true ); ;
+            return textOrSimplePattern != null
+                   ? new SqlTMultiLocationFinder( allOrEach, expectedMatchCount, textOrSimplePattern )
+                   : null;
+        }
+
+        public ISqlTLocationFinder IsISqlTLocationFinder( bool expected )
+        {
+            SqlTMultiLocationFinder m = IsSqlTMultiLocationFinder( false );
+            if( m != null ) return m;
+            if( !R.IsError )
+            {
+                SqlTOneLocationFinder o = IsSqlTOneLocationFinder( false );
+                if( o != null ) return o;
+                if( !R.IsError && expected ) R.SetCurrentError( "Missing first | last | single | all | each." );
+            }
+            return null;
+        }
+
+        ISqlNode IsTextOrSimpleMatchPattern( bool expected )
+        {
+            ISqlNode textOrSimplePattern = IsTNodeSimplePattern( false );
             if( R.IsError ) return null;
             if( textOrSimplePattern == null )
             {
@@ -242,10 +283,10 @@ namespace CK.SqlServer.Parser
             }
             if( textOrSimplePattern == null )
             {
-                R.SetCurrentError( @"Expected: string litteral [...] or ""..."" or '...' or {pattern}." );
+                if( expected ) R.SetCurrentError( @"Expected: string litteral [...] or ""..."" or '...' or {pattern}." );
                 return null;
             }
-            return new SqlTLocationFinder( firstOrLastOrSingleOrAllOrEach, plusOrMinusT, offset, outT, ofT, expectedMatchCount, textOrSimplePattern );
+            return textOrSimplePattern;
         }
 
         SqlTNodeSimplePattern IsTNodeSimplePattern( bool expected )

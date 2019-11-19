@@ -1,4 +1,4 @@
-﻿using CK.SqlServer.Parser;
+using CK.SqlServer.Parser;
 using CK.SqlServer.Transform.Transformers;
 using System;
 using System.Collections.Generic;
@@ -10,12 +10,12 @@ using System.Threading.Tasks;
 namespace CK.SqlServer.Transform
 {
     /// <summary>
-    /// Captures operational information from a <see cref="SqlTLocationFinder"/>.
+    /// Captures operational information from a <see cref="ISqlTLocationFinder"/>.
     /// Cardinality check is handled thanks to <see cref="LocationCardinalityInfo"/>.
     /// This handles the 5 kind of matches: part and statement, range match, trivia match 
     /// and fragment match.
     /// </summary>
-    internal struct LocationInfo
+    internal readonly struct LocationInfo
     {
         public readonly LocationCardinalityInfo Card;
         public readonly Func<SqlTrivia, bool> TriviaMatcher;
@@ -24,9 +24,9 @@ namespace CK.SqlServer.Transform
         public readonly bool IsNodeMatchPart;
         public readonly bool IsNodeMatchStatement;
         public readonly bool IsNodeMatchRange;
-        string _whatDescription;
+        readonly string _commentDesc;
 
-        public LocationInfo( SqlTLocationFinder loc )
+        public LocationInfo( ISqlTLocationFinder loc )
         {
             var t = loc.Pattern as ISqlHasStringValue;
             if( t == null )
@@ -38,7 +38,7 @@ namespace CK.SqlServer.Transform
                 IsNodeMatchPart = nodePattern.IsMatchPart;
                 IsNodeMatchStatement = nodePattern.IsMatchStatement;
                 IsNodeMatchRange = nodePattern.IsMatchRange;
-                _whatDescription = null;
+                _commentDesc = null;
             }
             else
             {
@@ -48,18 +48,18 @@ namespace CK.SqlServer.Transform
                 if( t.Value.StartsWith( "--" ) )
                 {
                     string lineComment = t.Value.Substring( 2 ).Trim();
-                    _whatDescription = $"line comment starting with '{lineComment}'";
+                    _commentDesc = $"line comment starting with '{lineComment}'";
                     TriviaMatcher = trivia => trivia.TokenType == SqlTokenType.LineComment && trivia.Text.TrimStart().StartsWith( lineComment );
                 }
                 else
                 {
                     Debug.Assert( t.Value.StartsWith( "/*" ) && t.Value.EndsWith( "*/" ) );
                     string starComment = t.Value.Substring( 2, t.Value.Length - 4 ).Trim();
-                    _whatDescription = $"comment containing '{starComment.Replace( '\r', '.' ).Replace( '\n', '.' )}'";
+                    _commentDesc = $"comment containing '{starComment.Replace( '\r', '.' ).Replace( '\n', '.' )}'";
                     TriviaMatcher = trivia => trivia.TokenType == SqlTokenType.StarComment && trivia.Text.Contains( starComment );
                 }
             }
-            Card = new LocationCardinalityInfo( loc );
+            Card = loc.GetCardinality();
         }
 
 
@@ -67,34 +67,28 @@ namespace CK.SqlServer.Transform
         {
             Card = new LocationCardinalityInfo( single:true );
             TriviaMatcher = m.Match;
+            _commentDesc = null;
             NodeMatcher = null;
             PatternRange = null;
             IsNodeMatchPart = IsNodeMatchRange = IsNodeMatchStatement = false;
-            _whatDescription = null;
         }
 
-        public string WhatDescription
+        public string GetDescription()
         {
-            get
+            if( _commentDesc != null ) return _commentDesc;
+            // This is no more cached (readonly struct) since this is used only
+            // for error details (and in debug by this ToString).
+            if( TriviaMatcher != null )
             {
-                if( _whatDescription == null )
-                {
-                    if( TriviaMatcher != null )
-                    {
-                        _whatDescription = $" extension named '{((TriviaExtensionMatcher)TriviaMatcher.Target).ExtensionName}'";
-                    }
-                    else
-                    {
-                        _whatDescription = "structural part(s) like {";
-                        if( IsNodeMatchStatement ) _whatDescription = "statement(s) like {";
-                        if( IsNodeMatchRange ) _whatDescription = "token(s) range like {";
-                        _whatDescription += PatternRange.ToStringCompact() + '}';
-                    }
-                }
-                return _whatDescription;
+                return $" extension named '{((TriviaExtensionMatcher)TriviaMatcher.Target).ExtensionName}'";
             }
+            var desc = "structural part(s) like {";
+            if( IsNodeMatchStatement ) desc = "statement(s) like {";
+            if( IsNodeMatchRange ) desc = "token(s) range like {";
+            desc += PatternRange.ToStringCompact() + '}';
+            return desc;
         }
 
-        public override string ToString() => Card.ToString() + " " + WhatDescription;
+        public override string ToString() => Card.ToString() + " " + GetDescription();
     }
 }

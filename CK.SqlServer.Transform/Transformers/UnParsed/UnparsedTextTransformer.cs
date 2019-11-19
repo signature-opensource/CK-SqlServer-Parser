@@ -24,7 +24,7 @@ namespace CK.SqlServer.Transform.Transformers
         public bool Apply( SqlTransformHost t )
         {
             if( _info.Location.IsNodeMatchRange ) return ApplyNodeMatchRange( t );
-            return t.Apply( new UnParsedTextInjecVisitor( _info ), _scope );
+            return t.Apply( new UnParsedTextInjectVisitor( _info ), _scope );
         }
 
         bool ApplyNodeMatchRange( SqlTransformHost t )

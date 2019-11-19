@@ -11,19 +11,19 @@ namespace CK.SqlServer.Parser
 {
     using CNode = SNode<
             SqlTokenIdentifier,
-            SqlTLocationFinder,
+            ISqlTLocationFinder,
             SqlTokenIdentifier,
             ISqlHasStringValue,
             SqlTokenTerminal>;
 
     /// <summary>
-    /// Replace a <see cref="SqlTLocationFinder"/> with an unparsed text.
+    /// Replace a <see cref="ISqlTLocationFinder"/> with an unparsed text.
     /// </summary>
     public sealed class SqlTReplace : SqlNonTokenAutoWidth, ISqlTStatement
     {
         readonly CNode _content;
 
-        public SqlTReplace( SqlTokenIdentifier replaceT, SqlTLocationFinder location, SqlTokenIdentifier withT, ISqlHasStringValue content, SqlTokenTerminal terminator )
+        public SqlTReplace( SqlTokenIdentifier replaceT, ISqlTLocationFinder location, SqlTokenIdentifier withT, ISqlHasStringValue content, SqlTokenTerminal terminator )
             : base( null, null )
         {
             _content = new CNode( replaceT, location, withT, content, terminator );
@@ -60,7 +60,7 @@ namespace CK.SqlServer.Parser
 
         public SqlTokenIdentifier ReplaceT => _content.V1;
 
-        public SqlTLocationFinder Location => _content.V2;
+        public ISqlTLocationFinder Location => _content.V2;
 
         public SqlTokenIdentifier WithT => _content.V3;
 

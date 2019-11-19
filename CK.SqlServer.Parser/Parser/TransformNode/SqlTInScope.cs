@@ -11,20 +11,20 @@ namespace CK.SqlServer.Parser
 {
     using CNode = SNode<
             SqlTokenIdentifier,
-            SqlTLocationFinder,
+            ISqlTLocationFinder,
             SqlTokenIdentifier,
             SqlTStatementList,
             SqlTokenIdentifier,
             SqlTokenTerminal>;
 
     /// <summary>
-    /// Replace a <see cref="SqlTLocationFinder"/> with an unparsed text.
+    /// Replace a <see cref="ISqlTLocationFinder"/> with an unparsed text.
     /// </summary>
     public sealed class SqlTInScope : SqlNonTokenAutoWidth, ISqlTStatement
     {
         readonly CNode _content;
 
-        public SqlTInScope( SqlTokenIdentifier inT, SqlTLocationFinder location, SqlTokenIdentifier beginT, SqlTStatementList statements, SqlTokenIdentifier endT, SqlTokenTerminal terminator )
+        public SqlTInScope( SqlTokenIdentifier inT, ISqlTLocationFinder location, SqlTokenIdentifier beginT, SqlTStatementList statements, SqlTokenIdentifier endT, SqlTokenTerminal terminator )
             : base( null, null )
         {
             _content = new CNode( inT, location, beginT, statements, endT, terminator );
@@ -62,7 +62,7 @@ namespace CK.SqlServer.Parser
 
         public SqlTokenIdentifier InT => _content.V1;
 
-        public SqlTLocationFinder Location => _content.V2;
+        public ISqlTLocationFinder Location => _content.V2;
 
         public SqlTokenIdentifier BeginT => _content.V3;
 
