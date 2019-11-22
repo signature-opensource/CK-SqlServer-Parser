@@ -1,4 +1,4 @@
-﻿using CK.SqlServer.Parser;
+using CK.SqlServer.Parser;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -8,10 +8,17 @@ using System.Threading.Tasks;
 
 namespace CK.SqlServer.Transform
 {
+
+    /// <summary>
+    /// Internal specialization of a <see cref="SqlNodeLocation"/> that is bound to a root node
+    /// and holds the cache of other <see cref="SqlNodeLocation"/> in this node.
+    /// </summary>
     class LocationRoot : SqlNodeLocation, ISqlNodeLocationManager
     {
         SqlNodeLocation[] _fullCache;
         Dictionary<ISqlNode, SqlNodeLocation> _qualifiedCache;
+        SqlNodeLocation _fullFirstCache;
+        SqlNodeLocation _fullLastCache;
 
         public SqlNodeLocation BegMarker { get; }
 

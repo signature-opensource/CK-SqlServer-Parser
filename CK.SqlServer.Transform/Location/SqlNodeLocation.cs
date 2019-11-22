@@ -111,9 +111,9 @@ namespace CK.SqlServer.Transform
         /// Compares this location to another one. The comparison is based on the <see cref="Position"/>, and, when the 
         /// two positions are equal, on the length of the path.
         /// </summary>
-        /// <param name="other">The location to compare to.</param>
-        /// <param name="parentIsGreater">True to consider shorter path to be better than a longer one.</param>
-        /// <returns></returns>
+        /// <param name="other">The location to compare to. Can be null.</param>
+        /// <param name="parentIsGreater">True to consider shorter path to be better than a longer one (when position are the same).</param>
+        /// <returns>Standard negative/0/positive value.</returns>
         public int CompareTo( SqlNodeLocation other, bool parentIsGreater )
         {
             int cmp = 1;
@@ -157,7 +157,7 @@ namespace CK.SqlServer.Transform
         /// Gets the greatest location between this and another one. If the two <see cref="Position"/> are the same,
         /// the most precise one is returned.
         /// </summary>
-        /// <param name="other">Other location to challenge.</param>
+        /// <param name="other">Other location to challenge. Can be null.</param>
         /// <returns>This or other.</returns>
         public SqlNodeLocation Max( SqlNodeLocation other )
         {
@@ -168,17 +168,17 @@ namespace CK.SqlServer.Transform
         /// Gets the lowest location between this and another one. If the two <see cref="Position"/> are the same,
         /// the most precise one is returned.
         /// </summary>
-        /// <param name="other">Other location to challenge.</param>
+        /// <param name="other">Other location to challenge. Can be null.</param>
         /// <returns>This or other.</returns>
         public SqlNodeLocation Min( SqlNodeLocation other )
         {
-            return CompareTo( other, true ) <= 0 ? this : other;
+            return CompareTo( other, true ) <= 0 ? this : (other ?? this);
         }
 
         /// <summary>
         /// Returns the most precise location when the two <see cref="Position"/> are the same, otherwise this.
         /// </summary>
-        /// <param name="other">The other location.</param>
+        /// <param name="other">The other location. Must not be null.</param>
         /// <returns>This or the other if positions are the same and other has a longer path than this.</returns>
         public SqlNodeLocation MostPrecise( SqlNodeLocation other )
         {

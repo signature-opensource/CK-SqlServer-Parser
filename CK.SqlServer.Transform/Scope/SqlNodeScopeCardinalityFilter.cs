@@ -1,4 +1,4 @@
-﻿using CK.Core;
+using CK.Core;
 using CK.SqlServer.Parser;
 using System;
 using System.Collections.Generic;
@@ -127,7 +127,7 @@ namespace CK.SqlServer.Transform
             }
         }
 
-        public SqlNodeScopeCardinalityFilter( SqlNodeScopeBuilder inner, LocationCardinalityInfo info )
+        public SqlNodeScopeCardinalityFilter( SqlNodeScopeBuilder inner, in LocationCardinalityInfo info )
         {
             if( inner == null ) throw new ArgumentNullException( nameof( inner ) );
             _inner = new EachSplitter( inner );

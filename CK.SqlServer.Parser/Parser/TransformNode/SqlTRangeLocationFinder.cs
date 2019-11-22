@@ -17,7 +17,7 @@ namespace CK.SqlServer.Parser
 
     /// <summary>
     /// <para>
-    /// (after|before) <see cref="SqlTOneLocationFinder"/> | between SqlTOneLocationFinder and SqlTOneLocationFinder
+    /// (after|before) <see cref="SqlTOneLocationFinder"/> | between <see cref="SqlTOneLocationFinder"/> and <see cref="SqlTOneLocationFinder"/>
     /// </para>
     /// This is used by <see cref="SqlTInScope"/>.
     /// </summary>

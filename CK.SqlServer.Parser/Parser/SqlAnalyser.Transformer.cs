@@ -41,16 +41,14 @@ namespace CK.SqlServer.Parser
             }
             if( asT == null && !R.IsToken( out asT, SqlTokenType.As, true ) ) return null;
 
-            SqlTokenIdentifier begintT;
-            if( !R.IsToken( out begintT, SqlTokenType.Begin, true ) ) return null;
+            SqlTokenIdentifier beginT;
+            if( !R.IsToken( out beginT, SqlTokenType.Begin, true ) ) return null;
+            SqlTStatementList block = IsList( false, IsTransformStatement, statements => R.IsToken( out SqlTokenIdentifier endT, SqlTokenType.End, true )
+                                                                                        ? new SqlTStatementList( beginT, statements, endT )
+                                                                                        : null );
+            if( block == null ) return null;
 
-            SqlTStatementList s = IsList( false, IsTransformStatement, statements => new SqlTStatementList( statements ) );
-            if( s == null ) return null;
-
-            SqlTokenIdentifier endT;
-            if( !R.IsToken( out endT, SqlTokenType.End, true ) ) return null;
-
-            return new SqlTransformer( createOrAlter, type, nameOrOnOrAs, onT, targetName, asT, begintT, s, endT, GetOptionalTerminator() );
+            return new SqlTransformer( createOrAlter, type, nameOrOnOrAs, onT, targetName, asT, block, GetOptionalTerminator() );
         }
 
         ISqlTStatement IsTransformStatement( bool expected )
@@ -132,19 +130,7 @@ namespace CK.SqlServer.Parser
             }
             else if( R.IsToken( out initT, SqlTokenType.In, false ) )
             {
-                ISqlTLocationFinder loc = IsISqlTLocationFinder( true );
-                if( loc == null ) return null;
-
-                SqlTokenIdentifier begintT;
-                if( !R.IsToken( out begintT, SqlTokenType.Begin, true ) ) return null;
-
-                SqlTStatementList s = IsList( false, IsTransformStatement, statements => new SqlTStatementList( statements ) );
-                if( s == null ) return null;
-
-                SqlTokenIdentifier endT;
-                if( !R.IsToken( out endT, SqlTokenType.End, true ) ) return null;
-
-                return new SqlTInScope( initT, loc, begintT, s, endT, GetOptionalTerminator() );
+                return MatchSqlTInScope( initT );
             }
             else if( R.IsToken( out initT, SqlTokenType.Combine, false ) )
             {
@@ -163,6 +149,33 @@ namespace CK.SqlServer.Parser
             }
             if( expected ) R.SetCurrentError( "Expected transform statement." );
             return null;
+        }
+        SqlTInScope MatchSqlTInScope( SqlTokenIdentifier inT )
+        {
+            Debug.Assert( inT.TokenType == SqlTokenType.In && !R.IsError );
+            ISqlNode loc = IsISqlTLocationFinder( false );
+            if( loc == null && !R.IsError ) loc = IsSqlTRangeLocationFinder( false );
+            if( loc == null )
+            {
+                if( !R.IsError ) R.SetCurrentError( "Expected 'after', 'before', 'between' or 'first', 'last', 'single', 'each' or 'all' token." );
+                return null;
+            }
+            SqlTokenIdentifier subordinatedInT;
+            if( R.IsToken( out subordinatedInT, SqlTokenType.In, false ) )
+            {
+                SqlTInScope sub = MatchSqlTInScope( subordinatedInT );
+                if( sub == null ) return null;
+                return new SqlTInScope( inT, loc, sub, GetOptionalTerminator() );
+            }
+            SqlTokenIdentifier begintT;
+            if( !R.IsToken( out begintT, SqlTokenType.Begin, true ) ) return null;
+
+            SqlTStatementList block = IsList( false, IsTransformStatement, statements => R.IsToken( out SqlTokenIdentifier endT, SqlTokenType.End, true )
+                                                                                        ? new SqlTStatementList( begintT, statements, endT )
+                                                                                        : null );
+            if( block == null ) return null;
+
+            return new SqlTInScope( inT, loc, block, GetOptionalTerminator() );
         }
 
 
@@ -249,6 +262,11 @@ namespace CK.SqlServer.Parser
                    : null;
         }
 
+        /// <summary>
+        /// Parses a <see cref="SqlTMultiLocationFinder"/> or <see cref="SqlTOneLocationFinder"/>.
+        /// </summary>
+        /// <param name="expected">Whether the finder must exist.</param>
+        /// <returns>The finder or null.</returns>
         public ISqlTLocationFinder IsISqlTLocationFinder( bool expected )
         {
             SqlTMultiLocationFinder m = IsSqlTMultiLocationFinder( false );

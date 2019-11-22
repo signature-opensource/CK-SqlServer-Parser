@@ -1,9 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
+  
   <Import Project="..\Common\Shared.props" />
+  
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net461</TargetFrameworks>
+    <LangVersion>8.0</LangVersion>
     <Description>T-Sql transformers and TQL DSL implementation.</Description>
   </PropertyGroup>
+  
   <ItemGroup>
     <ProjectReference Include="..\CK.SqlServer.Parser\CK.SqlServer.Parser.csproj" />
   </ItemGroup>
