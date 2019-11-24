@@ -17,39 +17,17 @@ namespace CK.SqlServer.Transform.Tests
 
             // Naked.
             a.Reset( "each {token}" );
-            a.IsSqlTLocationFinder( true ).Should().NotBeNull();
+            a.IsISqlTLocationFinder( true ).Should().NotBeNull();
 
             a.Reset( "all {token}" );
-            a.IsSqlTLocationFinder( true ).Should().NotBeNull();
+            a.IsISqlTLocationFinder( true ).Should().NotBeNull();
 
             // With 'N'.
             a.Reset( "all 4 {token}" );
-            a.IsSqlTLocationFinder( true ).Should().NotBeNull();
+            a.IsISqlTLocationFinder( true ).Should().NotBeNull();
 
             a.Reset( "each 90 {token}" );
-            a.IsSqlTLocationFinder( true ).Should().NotBeNull();
-
-            // With 'out of N'.
-            a.Reset( "all out of 4 {token}" );
-            a.IsSqlTLocationFinder( true ).Should().NotBeNull();
-
-            a.Reset( "each out of 90 {token}" );
-            a.IsSqlTLocationFinder( true ).Should().NotBeNull();
-
-            // With 'N out of N': the two N must be the same!
-            a.Reset( "all 1 out of 4" );
-            a.IsSqlTLocationFinder( true ).Should().BeNull();
-            a.GetCurrentResult().ErrorMessage.Should().Contain( "followed by 'N out of N'" );
-
-            a.Reset( "all 4 out of 4 {token}" );
-            a.IsSqlTLocationFinder( true ).Should().NotBeNull();
-
-            a.Reset( "each 90 out of 4" );
-            a.IsSqlTLocationFinder( true ).Should().BeNull();
-            a.GetCurrentResult().ErrorMessage.Should().Contain( "followed by 'N out of N'" );
-
-            a.Reset( "each 90 out of 90 {token}" );
-            a.IsSqlTLocationFinder( true ).Should().NotBeNull();
+            a.IsISqlTLocationFinder( true ).Should().NotBeNull();
 
         }
     }

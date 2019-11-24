@@ -15,17 +15,17 @@ namespace CK.SqlServer.Parser
             SqlTokenIdentifier,
             ISqlHasStringValue,
             SqlTokenIdentifier,
-            SqlTLocationFinder,
+            ISqlTLocationFinder,
             SqlTokenTerminal>;
 
     /// <summary>
-    /// Injects unparsed text around, before or after a <see cref="SqlTLocationFinder"/>.
+    /// Injects unparsed text around, before or after a <see cref="ISqlTLocationFinder"/>.
     /// </summary>
     public sealed class SqlTInject : SqlNonTokenAutoWidth, ISqlTStatement
     {
         readonly CNode _content;
 
-        public SqlTInject( SqlTokenIdentifier injecT, ISqlHasStringValue content, SqlTokenIdentifier andT, ISqlHasStringValue content2, SqlTokenIdentifier afterBeforeOrAroundT, SqlTLocationFinder location, SqlTokenTerminal terminator )
+        public SqlTInject( SqlTokenIdentifier injecT, ISqlHasStringValue content, SqlTokenIdentifier andT, ISqlHasStringValue content2, SqlTokenIdentifier afterBeforeOrAroundT, ISqlTLocationFinder location, SqlTokenTerminal terminator )
             : base( null, null )
         {
             _content = new CNode( injecT, content, andT, content2, afterBeforeOrAroundT, location, terminator );
@@ -80,7 +80,7 @@ namespace CK.SqlServer.Parser
 
         public SqlTokenIdentifier AfterBeforeOrAroundT => _content.V5;
 
-        public SqlTLocationFinder Location => _content.V6;
+        public ISqlTLocationFinder Location => _content.V6;
 
         public SqlTokenTerminal StatementTerminator => _content.V7;
 

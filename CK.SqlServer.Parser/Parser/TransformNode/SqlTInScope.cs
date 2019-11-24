@@ -11,33 +11,36 @@ namespace CK.SqlServer.Parser
 {
     using CNode = SNode<
             SqlTokenIdentifier,
-            SqlTLocationFinder,
-            SqlTokenIdentifier,
-            SqlTStatementList,
-            SqlTokenIdentifier,
+            ISqlNode,
+            ISqlNode,
             SqlTokenTerminal>;
 
     /// <summary>
-    /// Replace a <see cref="SqlTLocationFinder"/> with an unparsed text.
+    /// Create a scope around a <see cref="SqlTStatementList"/> or another <see cref="SqlTInScope"/> statement.
     /// </summary>
     public sealed class SqlTInScope : SqlNonTokenAutoWidth, ISqlTStatement
     {
         readonly CNode _content;
 
-        public SqlTInScope( SqlTokenIdentifier inT, SqlTLocationFinder location, SqlTokenIdentifier beginT, SqlTStatementList statements, SqlTokenIdentifier endT, SqlTokenTerminal terminator )
+        /// <summary>
+        /// Initializes a new <see cref="SqlTInScope"/>.
+        /// </summary>
+        /// <param name="inT">The 'in' token.</param>
+        /// <param name="location">The location is a <see cref="ISqlTLocationFinder"/> or a <see cref="SqlTRangeLocationFinder"/>.</param>
+        /// <param name="body">The transform statements (<see cref="SqlTStatementList"/>) or a subordinated <see cref="SqlTInScope"/>.</param>
+        /// <param name="terminator">Optional ';' terminator.</param>
+        public SqlTInScope( SqlTokenIdentifier inT, ISqlNode location, ISqlNode body, SqlTokenTerminal terminator )
             : base( null, null )
         {
-            _content = new CNode( inT, location, beginT, statements, endT, terminator );
+            _content = new CNode( inT, location, body, terminator );
             CheckContent();
         }
 
         void CheckContent()
         {
             Helper.CheckToken( InT, nameof( InT ), SqlTokenType.In );
-            Helper.CheckNotNull( Location, nameof( Location ) );
-            Helper.CheckToken( BeginT, nameof( BeginT ), SqlTokenType.Begin );
-            Helper.CheckNotNull( Statements, nameof( Statements ) );
-            Helper.CheckToken( EndT, nameof( EndT ), SqlTokenType.End );
+            Helper.CheckNotNull<ISqlTLocationFinder,SqlTRangeLocationFinder>( Location, nameof( Location ) );
+            Helper.CheckNotNull<SqlTStatementList,SqlTInScope>( Body, nameof( Body ) );
         }
 
         SqlTInScope( SqlTInScope o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
@@ -62,15 +65,14 @@ namespace CK.SqlServer.Parser
 
         public SqlTokenIdentifier InT => _content.V1;
 
-        public SqlTLocationFinder Location => _content.V2;
+        /// <summary>
+        /// Gets the location that a is <see cref="ISqlTLocationFinder"/> or a <see cref="SqlTRangeLocationFinder"/>.
+        /// </summary>
+        public ISqlNode Location => _content.V2;
 
-        public SqlTokenIdentifier BeginT => _content.V3;
+        public ISqlNode Body => _content.V3;
 
-        public SqlTStatementList Statements => _content.V4;
-
-        public SqlTokenIdentifier EndT => _content.V5;
-
-        public SqlTokenTerminal StatementTerminator => _content.V6;
+        public SqlTokenTerminal StatementTerminator => _content.V4;
 
         [DebuggerStepThrough]
         internal protected override ISqlNode Accept( SqlNodeVisitor visitor ) => visitor.Visit( this );

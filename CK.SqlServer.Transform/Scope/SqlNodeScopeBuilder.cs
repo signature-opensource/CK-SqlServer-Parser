@@ -1,4 +1,4 @@
-﻿using CK.SqlServer.Parser;
+using CK.SqlServer.Parser;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -207,7 +207,7 @@ namespace CK.SqlServer.Transform
 
         }
 
-        protected struct RangeBuffer
+        protected readonly struct RangeBuffer
         {
             readonly List<SqlNodeLocationRange> _buffer;
 

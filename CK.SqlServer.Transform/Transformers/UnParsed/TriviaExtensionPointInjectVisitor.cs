@@ -1,4 +1,4 @@
-﻿using CK.Core;
+using CK.Core;
 using CK.SqlServer.Parser;
 using System;
 using System.Collections.Generic;
@@ -10,16 +10,16 @@ using System.Threading.Tasks;
 
 namespace CK.SqlServer.Transform.Transformers
 {
-    public class TriviaExtensionInjectVisitor : SqlNodeLocationVisitor
+    public class TriviaExtensionPointInjectVisitor : SqlNodeLocationVisitor
     {
         readonly SqlTInjectInto _injectInto;
-        readonly TriviaExtensionMatcher _matcher;
+        readonly TriviaExtensionPointMatcher _matcher;
         readonly LocationInserter _inserter;
 
-        internal TriviaExtensionInjectVisitor( IActivityMonitor monitor, SqlTInjectInto injecter )
+        internal TriviaExtensionPointInjectVisitor( IActivityMonitor monitor, SqlTInjectInto injecter )
         {
             _injectInto = injecter;
-            _matcher = new TriviaExtensionMatcher( monitor, injecter.Target.Value, injecter.Content.Value );
+            _matcher = new TriviaExtensionPointMatcher( monitor, injecter.Target.Value, injecter.Content.Value );
             var loc = new LocationInfo( _matcher );
             _inserter = new LocationInserter( loc );
         }

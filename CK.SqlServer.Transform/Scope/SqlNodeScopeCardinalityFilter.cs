@@ -1,4 +1,4 @@
-﻿using CK.Core;
+using CK.Core;
 using CK.SqlServer.Parser;
 using System;
 using System.Collections.Generic;
@@ -11,7 +11,7 @@ using System.Collections;
 namespace CK.SqlServer.Transform
 {
     /// <summary>
-    /// Checks the number of ranges.
+    /// Checks the number of ranges and/or selects among them.
     /// </summary>
     public sealed class SqlNodeScopeCardinalityFilter : SqlNodeScopeBuilder
     {
@@ -127,7 +127,7 @@ namespace CK.SqlServer.Transform
             }
         }
 
-        public SqlNodeScopeCardinalityFilter( SqlNodeScopeBuilder inner, LocationCardinalityInfo info )
+        public SqlNodeScopeCardinalityFilter( SqlNodeScopeBuilder inner, in LocationCardinalityInfo info )
         {
             if( inner == null ) throw new ArgumentNullException( nameof( inner ) );
             _inner = new EachSplitter( inner );
@@ -243,13 +243,16 @@ namespace CK.SqlServer.Transform
                     Debug.Assert( _info.FromFirst );
                     if( _info.All )
                     {
-                        return _info.Each 
+                        return _info.Each
                                 ? ((ISqlNodeLocationRangeInternal)inner).InternalSetEachNumber()
                                 : inner;
                     }
                     // ShouldHandleBasedOnMatchCount has incremented  _matchCount by inner.Count.
                     int offsetInInner = _info.Offset - _matchCount + inner.Count;
-                    return offsetInInner == 0 ? inner.First : inner.ElementAt( offsetInInner );
+                    if( offsetInInner >= 0 )
+                    {
+                        return offsetInInner == 0 ? inner.First : inner.ElementAt( offsetInInner );
+                    }
                 }
             }
             return null;

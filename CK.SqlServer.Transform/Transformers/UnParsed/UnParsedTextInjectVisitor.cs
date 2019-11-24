@@ -1,4 +1,4 @@
-﻿using CK.Core;
+using CK.Core;
 using CK.SqlServer.Parser;
 using System;
 using System.Collections.Generic;
@@ -10,14 +10,14 @@ using System.Threading.Tasks;
 
 namespace CK.SqlServer.Transform.Transformers
 {
-    public class UnParsedTextInjecVisitor : SqlNodeLocationVisitor
+    public class UnParsedTextInjectVisitor : SqlNodeLocationVisitor
     {
         readonly UnparsedInjectInfo _info;
         readonly LocationInserter _inserter;
         readonly DepthFirstNodeMatcherHelper _nodeMatcher;
 
 
-        internal UnParsedTextInjecVisitor( UnparsedInjectInfo injecter )
+        internal UnParsedTextInjectVisitor( UnparsedInjectInfo injecter )
         {
             _info = injecter;
             _inserter = new LocationInserter( _info.Location );
@@ -46,7 +46,7 @@ namespace CK.SqlServer.Transform.Transformers
                 }
                 else if( _inserter.ExpectedMatchCount != 0 && _inserter.MatchCount < _inserter.ExpectedMatchCount )
                 {
-                    Monitor.Error( $"Missing matches: expecting {_inserter.ExpectedMatchCount} {_info.Location.WhatDescription}, found {_inserter.MatchCount}." );
+                    Monitor.Error( $"Missing matches: expecting {_inserter.ExpectedMatchCount} {_info.Location.GetDescription()}, found {_inserter.MatchCount}." );
                 }
                 else if( _inserter.RequiresConclude )
                 {

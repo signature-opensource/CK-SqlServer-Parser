@@ -11,13 +11,16 @@ using CK.Text;
 namespace CK.SqlServer.Parser
 {
     /// <summary>
-    /// List of possibly empty <see cref="ISqlTStatement">transformer statements</see>. 
+    /// List of possibly empty <see cref="ISqlTStatement">transformer statements</see> enclosed in a <see cref="SqlTokenType.Begin"/>
+    /// and <see cref="SqlTokenType.End"/>. 
     /// </summary>
-    public sealed class SqlTStatementList : ASqlNodeList<ISqlTStatement>
+    public sealed class SqlTStatementList : ASqlNodeEnclosableList<SqlTokenIdentifier, ISqlTStatement,SqlTokenIdentifier>
     {
-        public SqlTStatementList( IEnumerable<ISqlTStatement> statements )
-            : base( 0, statements )
+        public SqlTStatementList( SqlTokenIdentifier beginT, IEnumerable<ISqlTStatement> statements, SqlTokenIdentifier endT )
+            : base( 0, beginT, statements, endT )
         {
+            if( beginT.TokenType != SqlTokenType.Begin ) throw new ArgumentException();
+            if( endT.TokenType != SqlTokenType.End ) throw new ArgumentException();
         }
 
         SqlTStatementList( SqlTStatementList o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> statements, ImmutableList<SqlTrivia> trailing )
