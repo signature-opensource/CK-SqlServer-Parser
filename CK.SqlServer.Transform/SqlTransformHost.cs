@@ -154,52 +154,55 @@ namespace CK.SqlServer.Transform
             {
                 Debug.Assert( inScope.Location is ISqlTLocationFinder || inScope.Location is SqlTRangeLocationFinder );
                 Debug.Assert( inScope.Body is SqlTStatementList || inScope.Body is SqlTInScope );
+
+                SqlNodeScopeBuilder CreateScope( in LocationInfo loc )
+                {
+                    var s = loc.CreateScopeBuilder();
+                    // Intersects with the potential current scope.
+                    if( scope != null ) s = new SqlNodeScopeIntersect( scope, s );
+                    // Applies the cardinality specification.
+                    s = new SqlNodeScopeCardinalityFilter( s, loc.Card );
+                    return s;
+                }
+
                 for( ; ; )
                 {
                     SqlNodeScopeBuilder newScope;
                     if( inScope.Location is ISqlTLocationFinder oneOrMultiFinder )
                     {
-                        var loc = oneOrMultiFinder.GetFinderInfo();
+                        var loc = oneOrMultiFinder.GetFinderInfo( true );
                         Debug.Assert( (loc.IsNodeMatchRange && loc.PatternRange != null) != ((loc.IsNodeMatchPart || loc.IsNodeMatchStatement) && loc.NodeMatcher != null) );
-                        newScope = loc.CreateScopeBuilder();
-                        // Intersects with the potential current scope.
-                        if( scope != null ) newScope = new SqlNodeScopeIntersect( scope, newScope );
-                        // Applies the cardinality specification.
-                        newScope = new SqlNodeScopeCardinalityFilter( newScope, loc.Card );
+                        newScope = CreateScope( loc );
                     }
                     else
                     {
                         SqlTRangeLocationFinder r = (SqlTRangeLocationFinder)inScope.Location;
 
-                        var locFirstMatch = r.FirstLocation.GetFinderInfo();
-                        SqlNodeScopeBuilder matchFirst = locFirstMatch.TriviaMatcher != null
-                                                            ? new SqlNodeScopeFromTriviaMatcher( r.AfterOrBeforeOrBetweenT.TokenType != SqlTokenType.Before,
-                                                                                                 locFirstMatch.TriviaMatcher,
-                                                                                                 locFirstMatch.ToString() )
-                                                            : locFirstMatch.CreateScopeBuilder();
+                        var locFirstMatch = r.FirstLocation.GetFinderInfo( r.AfterOrBeforeOrBetweenT.TokenType != SqlTokenType.Before );
+                        SqlNodeScopeBuilder matchFirst = CreateScope( locFirstMatch );
 
                         if( r.AfterOrBeforeOrBetweenT.TokenType == SqlTokenType.After )
                         {
-                            newScope = matchFirst as SqlNodeScopeExtrema ?? new SqlNodeScopeExtrema( matchFirst, SqlNodeScopeExtrema.Option.After );
+                            newScope = new SqlNodeScopeExtrema( matchFirst, locFirstMatch.TriviaMatcher != null
+                                                                            ? SqlNodeScopeExtrema.Option.AfterIncluded
+                                                                            : SqlNodeScopeExtrema.Option.After );
                         }
                         else if( r.AfterOrBeforeOrBetweenT.TokenType == SqlTokenType.Before )
                         {
-                            newScope = matchFirst as SqlNodeScopeExtrema ?? new SqlNodeScopeExtrema( matchFirst, SqlNodeScopeExtrema.Option.Before );
+                            newScope = new SqlNodeScopeExtrema( matchFirst, locFirstMatch.TriviaMatcher != null
+                                                                            ? SqlNodeScopeExtrema.Option.BeforeIncluded
+                                                                            : SqlNodeScopeExtrema.Option.Before );
                         }
                         else
                         {
                             Debug.Assert( r.AfterOrBeforeOrBetweenT.TokenType == SqlTokenType.Between );
-                            LocationInfo locSecondMatch = r.SecondLocation.GetFinderInfo();
-                            SqlNodeScopeBuilder matchSecond = locFirstMatch.TriviaMatcher != null
-                                                                ? new SqlNodeScopeFromTriviaMatcher( false, locSecondMatch.TriviaMatcher, locSecondMatch.ToString() )
-                                                                : locSecondMatch.CreateScopeBuilder();
+                            LocationInfo locSecondMatch = r.SecondLocation.GetFinderInfo( false );
+                            SqlNodeScopeBuilder matchSecond = CreateScope( locSecondMatch );
 
-                            matchFirst = matchFirst as SqlNodeScopeExtrema ?? new SqlNodeScopeExtrema( matchFirst, SqlNodeScopeExtrema.Option.AfterIncluded );
-                            matchSecond = matchSecond as SqlNodeScopeExtrema ?? new SqlNodeScopeExtrema( matchSecond, SqlNodeScopeExtrema.Option.BeforeIncluded );
+                            matchFirst = new SqlNodeScopeExtrema( matchFirst, SqlNodeScopeExtrema.Option.AfterIncluded );
+                            matchSecond = new SqlNodeScopeExtrema( matchSecond, SqlNodeScopeExtrema.Option.BeforeIncluded );
                             newScope = new SqlNodeScopeIntersect( matchFirst, matchSecond );
                         }
-                        // Intersects with the potential current scope.
-                        if( scope != null ) newScope = new SqlNodeScopeIntersect( scope, newScope );
                     }
                     scope = newScope;
                     if( inScope.Body is SqlTStatementList statements )

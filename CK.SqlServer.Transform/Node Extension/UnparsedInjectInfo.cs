@@ -1,4 +1,4 @@
-﻿using CK.SqlServer.Parser;
+using CK.SqlServer.Parser;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,7 +20,7 @@ namespace CK.SqlServer.Transform
             Node = ins;
             TextBefore = ins.TextBefore;
             TextAfter = ins.TextAfter;
-            Location = ins.Location.GetFinderInfo();
+            Location = ins.Location.GetFinderInfo( false );
         }
 
         public UnparsedInjectInfo( SqlTReplace rep )
@@ -28,7 +28,7 @@ namespace CK.SqlServer.Transform
             Node = rep;
             TextBefore = rep.Content.Value + "/*" + SqlTokenizer.CommentPrefixToSkip;
             TextAfter = "*/";
-            Location = rep.Location.GetFinderInfo();
+            Location = rep.Location.GetFinderInfo( false );
             ClearStarComments = true;
         }
     }

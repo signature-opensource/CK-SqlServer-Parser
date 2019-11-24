@@ -179,6 +179,11 @@ namespace CK.SqlServer.Parser
         }
 
 
+        /// <summary>
+        /// Matches: (first [+ n] [out of n] | last [- n] [out of n] | single) (<see cref="ISqlHasStringValue"/> | <see cref="SqlTNodeSimplePattern"/>) 
+        /// </summary>
+        /// <param name="expected">True to set an error if not matched.</param>
+        /// <returns>The finder or null.</returns>
         public SqlTOneLocationFinder IsSqlTOneLocationFinder( bool expected )
         {
             SqlTokenIdentifier firstOrLastOrSingle;
@@ -221,6 +226,11 @@ namespace CK.SqlServer.Parser
                     : null;
         }
 
+        /// <summary>
+        /// Matches: (after|before <see cref="SqlTOneLocationFinder"/>) | (between <see cref="SqlTOneLocationFinder"/> and <see cref="SqlTOneLocationFinder"/>) 
+        /// </summary>
+        /// <param name="expected">True to set an error if not matched.</param>
+        /// <returns>The finder or null.</returns>
         public SqlTRangeLocationFinder IsSqlTRangeLocationFinder( bool expected )
         {
             SqlTokenIdentifier afterOrBeforeOrBetween;
@@ -244,6 +254,11 @@ namespace CK.SqlServer.Parser
             return new SqlTRangeLocationFinder( afterOrBeforeOrBetween, firstLoc, andT, secondLoc );
         }
 
+        /// <summary>
+        /// Matches: (each|all) [n] <see cref="SqlTNodeSimplePattern"/>.
+        /// </summary>
+        /// <param name="expected">True to set an error if not matched.</param>
+        /// <returns>The finder or null.</returns>
         public SqlTMultiLocationFinder IsSqlTMultiLocationFinder( bool expected )
         {
             SqlTokenIdentifier allOrEach;
@@ -256,16 +271,16 @@ namespace CK.SqlServer.Parser
             SqlTokenLiteralInteger expectedMatchCount;
             R.IsToken( out expectedMatchCount, false );
 
-            ISqlNode textOrSimplePattern = IsTextOrSimpleMatchPattern( true ); ;
-            return textOrSimplePattern != null
-                   ? new SqlTMultiLocationFinder( allOrEach, expectedMatchCount, textOrSimplePattern )
+            ISqlNode pattern = IsTextOrSimpleMatchPattern( true ); ;
+            return pattern != null
+                   ? new SqlTMultiLocationFinder( allOrEach, expectedMatchCount, pattern )
                    : null;
         }
 
         /// <summary>
         /// Parses a <see cref="SqlTMultiLocationFinder"/> or <see cref="SqlTOneLocationFinder"/>.
         /// </summary>
-        /// <param name="expected">Whether the finder must exist.</param>
+        /// <param name="expected">True to set an error if not matched.</param>
         /// <returns>The finder or null.</returns>
         public ISqlTLocationFinder IsISqlTLocationFinder( bool expected )
         {
@@ -282,7 +297,7 @@ namespace CK.SqlServer.Parser
 
         ISqlNode IsTextOrSimpleMatchPattern( bool expected )
         {
-            ISqlNode textOrSimplePattern = IsTNodeSimplePattern( false );
+            ISqlNode textOrSimplePattern = IsNodeSimplePattern( false );
             if( R.IsError ) return null;
             if( textOrSimplePattern == null )
             {
@@ -292,7 +307,7 @@ namespace CK.SqlServer.Parser
                     if( !text.Value.StartsWith( "--" )
                         && (!text.Value.StartsWith( "/*" ) || !text.Value.EndsWith( "*/" )) )
                     {
-                        R.SetCurrentError( @"Litteral string must start with -- or starts and ends with /* and */." );
+                        R.SetCurrentError( @"Litteral string is expected to match comments: it must start with -- or starts and ends with /* and */." );
                         return null;
                     }
                     R.MoveNext();
@@ -307,7 +322,7 @@ namespace CK.SqlServer.Parser
             return textOrSimplePattern;
         }
 
-        SqlTNodeSimplePattern IsTNodeSimplePattern( bool expected )
+        SqlTNodeSimplePattern IsNodeSimplePattern( bool expected )
         {
             SqlTokenIdentifier matchKindT;
             if( R.IsToken( out matchKindT, SqlTokenType.Part, false )

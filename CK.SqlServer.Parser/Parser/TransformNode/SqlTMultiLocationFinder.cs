@@ -15,7 +15,7 @@ namespace CK.SqlServer.Parser
             ISqlNode>;
 
     /// <summary>
-    /// (each|all) [n] (<see cref="ISqlHasStringValue"/> | <see cref="SqlTNodeSimplePattern"/>) 
+    /// (each|all) [n] (<see cref="ISqlHasStringValue"/> | <see cref="SqlTNodeSimplePattern"/>)
     /// </summary>
     public sealed class SqlTMultiLocationFinder : SqlNonTokenAutoWidth, ISqlTLocationFinder
     {
@@ -23,7 +23,7 @@ namespace CK.SqlServer.Parser
 
         public SqlTMultiLocationFinder( 
             SqlTokenIdentifier allOrEach, 
-            SqlTokenLiteralInteger expectedMatchCount, 
+            SqlTokenLiteralInteger expectedMatchCount,
             ISqlNode pattern )
                : base( null, null )
         {

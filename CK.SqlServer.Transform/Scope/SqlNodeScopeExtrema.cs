@@ -11,7 +11,7 @@ namespace CK.SqlServer.Transform
     /// <summary>
     /// Builds a unique range on the extrema of the inner range(s).
     /// </summary>
-    public class SqlNodeScopeExtrema : SqlNodeScopeBuilder
+    public sealed class SqlNodeScopeExtrema : SqlNodeScopeBuilder
     {
         /// <summary>
         /// Parameter for the extrema detection.
@@ -112,7 +112,7 @@ namespace CK.SqlServer.Transform
             return null;
         }
 
-        protected string ToString( string inner ) => _option switch
+        string ToString( string inner ) => _option switch
         {
             Option.None => $"(extrema of {inner})",
             Option.AfterIncluded => $"(from the start of {inner} to the end)",

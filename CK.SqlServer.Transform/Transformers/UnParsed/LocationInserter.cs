@@ -119,6 +119,9 @@ namespace CK.SqlServer.Transform.Transformers
             if( !_finderInfo.Card.FromFirst ) _lastBuffer = new FIFOBuffer<MatchedNode>( _finderInfo.Card.Offset + 1 );
         }
 
+        /// <summary>
+        /// Gets the match count.
+        /// </summary>
         public int MatchCount => _matchCount;
 
         /// <summary>

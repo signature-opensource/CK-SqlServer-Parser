@@ -121,7 +121,7 @@
       select 1;
 
       --!Header: Always returns the DynObjId (and here, fields have been injected in front of the existing ones!).
-      select @SomethingAddedInFront, DynObjId
+      select @PartDepth, @SomethingAddedInFront, DynObjId
           from CK.tDynObj
           where DynObjId = @DynObjId;
 

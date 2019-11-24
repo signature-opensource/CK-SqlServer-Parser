@@ -52,12 +52,20 @@ namespace CK.SqlServer.Transform
         /// </summary>
         public readonly bool IsNodeMatchStatement;
 
+        /// <summary>
+        /// Whether we are in an "after" context (as opposed to "before"). This is when <see cref="TriviaMatcher"/> is not null to
+        /// be able to configure <see cref="SqlNodeScopeFromTriviaMatcher"/>.
+        /// </summary>
+        public readonly bool IsAfterContext;
+
         readonly string _commentDesc;
 
-        public LocationInfo( ISqlTLocationFinder loc )
+        public LocationInfo( ISqlTLocationFinder loc, bool isAfterContext )
         {
-            if( loc.CreateTriviaMatcher( out TriviaMatcher, out _commentDesc ) )
+            IsAfterContext = isAfterContext;
+            if( loc.Pattern is ISqlHasStringValue c )
             {
+                ( TriviaMatcher, _commentDesc) = c.CreateCommentTriviaMatcher();
                 NodeMatcher = null;
                 PatternRange = null;
                 IsNodeMatchPart = IsNodeMatchStatement = IsNodeMatchRange = false;
@@ -78,6 +86,7 @@ namespace CK.SqlServer.Transform
 
         public LocationInfo( TriviaExtensionPointMatcher m )
         {
+            IsAfterContext = false;
             Card = new LocationCardinalityInfo( single:true );
             TriviaMatcher = m.Match;
             _commentDesc = null;
@@ -88,17 +97,15 @@ namespace CK.SqlServer.Transform
 
         /// <summary>
         /// Creates a <see cref="SqlNodeScopePatternRange"/> (if <see cref="IsNodeMatchRange"/> is true) or
-        /// a <see cref="SqlNodeScopeDepthPredicate"/> bound to the <see cref="NodeMatcher"/>.
-        /// This MUST not be called when <see cref="TriviaMatcher"/> is not null: matching a trivia requires
-        /// more information since a Trivia is between nodes (is not a node). Typically one need to know
-        /// if the node "before" or "after" must belong to the scope.
+        /// a <see cref="SqlNodeScopeDepthPredicate"/> bound to the <see cref="NodeMatcher"/> or a <see cref="SqlNodeScopeFromTriviaMatcher"/>
+        /// when <see cref="TriviaMatcher"/> is not null (<see cref="IsAfterContext"/> is used to configure the matcher).
         /// </summary>
         /// <returns>A scope builder.</returns>
         public SqlNodeScopeBuilder CreateScopeBuilder() => IsNodeMatchRange
                                                             ? (SqlNodeScopeBuilder)new SqlNodeScopePatternRange( PatternRange )
                                                             : (NodeMatcher != null
-                                                                ? new SqlNodeScopeDepthPredicate( NodeMatcher, IsNodeMatchPart )
-                                                                : throw new InvalidOperationException() );
+                                                                ? (SqlNodeScopeBuilder)new SqlNodeScopeDepthPredicate( NodeMatcher, IsNodeMatchPart )
+                                                                : new SqlNodeScopeFromTriviaMatcher( IsAfterContext, TriviaMatcher, _commentDesc ) );
 
 
         public string GetDescription()

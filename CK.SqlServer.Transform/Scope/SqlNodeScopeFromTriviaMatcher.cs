@@ -9,38 +9,119 @@ using System.Threading.Tasks;
 namespace CK.SqlServer.Transform
 {
     /// <summary>
-    /// Builds a range from the start to the first node that has a matching trivia or from
-    /// the end of the last node that has a matching trivia up to the end.
+    /// Builds mono-node ranges for nodes that have a matching trivia.
     /// </summary>
-    public sealed class SqlNodeScopeFromTriviaMatcher : SqlNodeScopeExtrema
+    public sealed class SqlNodeScopeFromTriviaMatcher : SqlNodeScopeBuilder
     {
         readonly Func<SqlTrivia, bool> _triviaMatcher;
         readonly string _triviaDescription;
+        readonly bool _nodeAfter;
+        readonly List<int> _posAhead;
+        int _prev0;
+        int _prev1;
 
         /// <summary>
         /// Initializes a new <see cref="SqlNodeScopeFromTriviaMatcher"/>.
         /// </summary>
-        /// <param name="afterRange">Whether the range after the match must be build.</param>
+        /// <param name="nodeAfter">Whether the node after the match must be selected (or the node before).</param>
         /// <param name="triviaMatcher">The trivia predicate.</param>
         /// <param name="triviaDescription">The description of the trivia predicate.</param>
-        public SqlNodeScopeFromTriviaMatcher( bool afterRange, Func<SqlTrivia, bool> triviaMatcher, string triviaDescription )
-            : base( new SqlNodeScopeBreadthPredicate( afterRange
-                                                        ? (Func<ISqlNode, bool>)(n => n.TrailingTrivias.Any( t => triviaMatcher( t ) ))
-                                                        : n => n.LeadingTrivias.Any( t => triviaMatcher( t ) ) ),
-                    afterRange ? Option.AfterIncluded : Option.BeforeIncluded )
+        public SqlNodeScopeFromTriviaMatcher( bool nodeAfter, Func<SqlTrivia, bool> triviaMatcher, string triviaDescription )
         {
             if( triviaMatcher == null ) throw new ArgumentException( nameof( triviaMatcher ) );
             if( triviaDescription == null ) throw new ArgumentException( nameof( triviaDescription ) );
             _triviaMatcher = triviaMatcher;
             _triviaDescription = triviaDescription;
+            _nodeAfter = nodeAfter;
+            _posAhead = new List<int>();
+            _prev0 = _prev1 = -2;
         }
+
+        protected override void DoReset()
+        {
+            _posAhead.Clear();
+            _prev0 = _prev1 = -2;
+        }
+
+        protected override ISqlNodeLocationRange DoEnter( IVisitContext context )
+        {
+            int pos = context.Position;
+            Debug.Assert( _posAhead.Count == 0 || _posAhead[0] >= pos - 1 );
+            bool emitBefore = false;
+            bool emitCurrent = false;
+            if( _posAhead.Count > 0 && _posAhead[0] <= pos )
+            {
+                if( _posAhead[0] == pos-1 ) 
+                {
+                    emitBefore = true;
+                    _posAhead.RemoveAt( 0 );
+                }
+                if( _posAhead.Count > 0 && _posAhead[0] == pos ) 
+                {
+                    emitCurrent = true;
+                    _posAhead.RemoveAt( 0 );
+                }
+            }
+            if( pos - 1 == _prev1 && pos == _prev0 ) return null;
+
+            var n = context.VisitedNode;
+            if( n.LeadingTrivias.Any( _triviaMatcher ) )
+            {
+                if( _nodeAfter ) emitCurrent = true;
+                else emitBefore = true;
+            }
+            if( n.TrailingTrivias.Any( _triviaMatcher ) )
+            {
+                if( _nodeAfter ) AddAhead( context.Position + n.Width );
+                else emitCurrent = true;
+            }
+            emitBefore &= pos - 1 != _prev0 && pos - 1 != _prev1;
+            emitCurrent &= pos != _prev0 && pos != _prev1;
+
+            if( emitBefore )
+            {
+                _prev1 = pos - 1;
+                var current = context.GetCurrentLocation();
+                var before = current.Predecessor();
+                if( before.IsBegMarker ) before = current;
+                var beforeRange = new SqlNodeLocationRange( before, current );
+                if( emitCurrent )
+                {
+                    _prev0 = pos;
+                    return new LocationRangeCombined( beforeRange, new SqlNodeLocationRange( current, current.Successor() ) );
+                }
+                return beforeRange;
+            }
+            if( emitCurrent )
+            {
+                _prev0 = pos;
+                var current = context.GetCurrentLocation();
+                return new SqlNodeLocationRange( current, current.Successor() );
+            }
+            return null;
+        }
+
+        void AddAhead( int position )
+        {
+            int idx = _posAhead.BinarySearch( position );
+            if( idx < 0 ) _posAhead.Insert( ~idx, position );
+        }
+
+        protected override ISqlNodeLocationRange DoLeave( IVisitContext context ) => null;
+
+        protected override ISqlNodeLocationRange DoConclude( IVisitContextBase context )
+        {
+            Debug.Assert( _posAhead.Count == 0 || _posAhead[0] == context.LocationManager.EndMarker.Position );
+            return null;
+        }
+
 
         /// <summary>
         /// Overridden to return the description of this builder.
         /// </summary>
         /// <returns>A readable string.</returns>
-        public override string ToString() => ToString( _triviaDescription );
-    
+        public override string ToString() => _nodeAfter ? $"(after {_triviaDescription})" : $"(before {_triviaDescription})";
+
     }
 
 }

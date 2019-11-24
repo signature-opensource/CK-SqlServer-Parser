@@ -263,31 +263,58 @@ namespace CK.SqlServer.Transform.Tests
             t.BuildRange( beforeIncluded ).ToString().Should().Be( "[0,18[" );
         }
 
-        [Test]
-        public void from_trivia_with_RangeLocationFinder()
-        {
-            string text = @"/*C1*/ select /*C2*/ * /*C3*/ from /*C4*/ (/*C5*/ select /*C6*/ * /*C7*/ from /*C8*/ (select /*C9*/ * /*C10*/ from /*C11*/ sys.tables /*C12*/ ) /*C13*/  t /*C14*/ ) /*C15*/ t /*C16*/";
-            var a = new SqlAnalyser( text );
-            ISqlNode node = a.Parse();
-            var t = new SqlTransformHost( node, TestHelper.ConsoleMonitor );
 
-            SqlNodeScopeBuilder CreateScopeBuilder( string rangeLocationFinderOnComment )
-            {
-                a.Reset( rangeLocationFinderOnComment );
-                var range = a.IsSqlTRangeLocationFinder( false );
-                range.Should().NotBeNull();
-                range.FirstLocation.CreateTriviaMatcher( out var matcher, out var description );
-                SqlNodeScopeBuilder result = new SqlNodeScopeFromTriviaMatcher( range.AfterOrBeforeOrBetweenT.TokenType != SqlTokenType.Before, matcher, description );
-                if( range.AfterOrBeforeOrBetweenT.TokenType == SqlTokenType.Between )
-                {
-                    range.SecondLocation.CreateTriviaMatcher( out matcher, out description ).Should().BeTrue();
-                    var second = new SqlNodeScopeFromTriviaMatcher( false, matcher, description );
-                    result = new SqlNodeScopeIntersect( result, second );
-                }
-                return result;
-            }
-            var afterC1 = CreateScopeBuilder( "after single '/* C1 */'" );
-            t.BuildRange( afterC1 ).ToString().Should().Be( "[0,11[" );
+        [Test]
+        public void SqlNodeScopeFromTriviaMatcher_on_flat_tokens()
+        {
+            string text = @"/*0*/A/*1*/B/*2*/C/*3*/";
+            var input = new SqlAnalyser( text ).Parse();
+            var h = new SqlTransformHost( input, TestHelper.ConsoleMonitor );
+
+            var after0 = new SqlNodeScopeFromTriviaMatcher( true, t => t.Text == "0", "After 0" );
+            h.BuildRange( after0 ).ToString().Should().Be( "[0,1[" );
+
+            var before0 = new SqlNodeScopeFromTriviaMatcher( false, t => t.Text == "0", "Before 0" );
+            h.BuildRange( before0 ).ToString().Should().Be( "]0[" );
+
+            var bothAAndB = new SqlNodeScopeFromTriviaMatcher( true, t => t.Text == "0" || t.Text == "1", "A and B." );
+            h.BuildRange( bothAAndB ).ToString().Should().Be( "[0,1[-[1,2[" );
+
+            var allAfter = new SqlNodeScopeFromTriviaMatcher( true, t => true, "AllAfter." );
+            h.BuildRange( allAfter ).ToString().Should().Be( "[0,1[-[1,2[-[2,3[" );
+
+            var allBefore = new SqlNodeScopeFromTriviaMatcher( false, t => true, "AllBefore." );
+            h.BuildRange( allBefore ).ToString().Should().Be( "]0[-[0,1[-[1,2[-[2,3[" );
+
+        }
+
+        [Test]
+        public void SqlNodeScopeFromTriviaMatcher_on_structure()
+        {
+            string text = @"/*0*/
+                            ( /*1*/
+                               A, /*2*/
+                               ( /*3*/
+                                 B /*4*/
+                               ) /*5*/
+                            )/*6*/";
+            var input = new SqlAnalyser( text ).Parse();
+            var h = new SqlTransformHost( input, TestHelper.ConsoleMonitor );
+
+            var after0 = new SqlNodeScopeFromTriviaMatcher( true, t => t.Text == "0", "After 0" );
+            h.BuildRange( after0 ).ToString().Should().Be( "[0,1[" );
+
+            var before6 = new SqlNodeScopeFromTriviaMatcher( false, t => t.Text == "6", "Before 6" );
+            h.BuildRange( before6 ).ToString().Should().Be( "[6,7[" );
+
+            var after6 = new SqlNodeScopeFromTriviaMatcher( true, t => t.Text == "6", "After 6" );
+            h.BuildRange( after6 ).ToString().Should().Be( "∅" );
+
+            var allAfter = new SqlNodeScopeFromTriviaMatcher( true, t => true, "AllAfter." );
+            h.BuildRange( allAfter ).ToString().Should().Be( "[0,1[-[1,2[-[3,4[-[4,5[-[5,6[-[6,7[" );
+
+            var allBefore = new SqlNodeScopeFromTriviaMatcher( false, t => true, "AllBefore." );
+            h.BuildRange( allBefore ).ToString().Should().Be( "]0[-[0,1[-[2,3[-[3,4[-[4,5[-[5,6[-[6,7[" );
 
         }
 
