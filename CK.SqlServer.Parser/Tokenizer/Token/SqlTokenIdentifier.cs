@@ -152,7 +152,7 @@ namespace CK.SqlServer.Parser
             }
         }
 
-        public override void WriteWithoutTrivias( ISqlTextWriter w ) => w.Write( TokenType, ToString() );
+        public override void WriteWithoutTrivias( ISqlTextWriter w ) => w.Write( this );
 
         [DebuggerStepThrough]
         internal protected override ISqlNode Accept( SqlNodeVisitor visitor ) => visitor.Visit( this );

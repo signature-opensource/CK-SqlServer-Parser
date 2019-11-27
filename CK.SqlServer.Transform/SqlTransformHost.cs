@@ -101,7 +101,8 @@ namespace CK.SqlServer.Transform
             if( transformer == null ) throw new ArgumentNullException( nameof( transformer ) );
             if( transformer.TargetFullName != null )
             {
-                var target = new SqlNodeScopeBreadthPredicate( n => n is ISqlFullNameHolder && ((ISqlFullNameHolder)n).FullName.ToStringHyperCompact() == transformer.TargetFullName.ToStringHyperCompact() );
+                var target = new SqlNodeScopeBreadthPredicate( n => n is ISqlFullNameHolder h
+                                                                    && h.FullName.ToStringHyperCompact() == transformer.TargetFullName.ToStringHyperCompact() );
                 if( scope == null ) scope = target;
                 else
                 {
@@ -118,7 +119,7 @@ namespace CK.SqlServer.Transform
             {
                 if( RunStatement( t, scope ) )
                 {
-                    if( !(t is SqlTInScope) ) Monitor.Trace( $"Successfully applied '{t.ToString()}'." );
+                    if( !(t is SqlTInScope) ) Monitor.Trace( $"No error for '{t.ToString()}'." );
                 }
                 else
                 {
