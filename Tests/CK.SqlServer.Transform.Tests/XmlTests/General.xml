@@ -2,7 +2,7 @@
 <Tests>
   <Test>
     <Text>
-ALTER view [CK].[vUserAuthProvider]( UserId, Scheme, LastUsed, UserName, CreationDate, PictureUrl )
+ALTER view [CK].[vUserAuthProvider]( UserId, Scheme, LastUsed )
 as 
 	select	UserId = 0, Scheme = 'Scheme (ProviderName when IsMultiScheme = 0)', LastUsed = 'non null datetime2(2)' -- (provider table).LastLoginTime
 		from CKCore.tSystem where 1 = 0
@@ -23,6 +23,7 @@ as
 create transformer on CK.vUserAuthProvider
 as
 begin
+  replace single {( UserId, Scheme, LastUsed )} with "( UserId, Scheme, LastUsed, UserName, CreationDate, PictureUrl )";
 
   inject "/* This header is useless once a real provider has been added.
   " before single part {select UserId = 0};
