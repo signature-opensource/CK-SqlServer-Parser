@@ -1,4 +1,4 @@
-﻿using CK.Core;
+using CK.Core;
 using CK.SqlServer.Parser;
 using System;
 using System.Collections;
@@ -14,7 +14,7 @@ namespace CK.SqlServer.Transform
     /// <summary>
     /// Semantically immutable object. <see cref="Beg"/> and <see cref="End"/> are actually mutable in 
     /// terms of path (but not in terms of positions): the goal is, whenever possible, to capture better, 
-    /// more precise, postions.
+    /// more precise, positions.
     /// </summary>
     public class SqlNodeLocationRange : ISqlNodeLocationRange, ISqlNodeLocationRangeInternal
     {
@@ -23,8 +23,15 @@ namespace CK.SqlServer.Transform
 
         public static readonly SqlNodeLocationRange EmptySet = new SqlNodeLocationRange();
 
+        /// <summary>
+        /// Gets the start of this range.
+        /// </summary>
         public SqlNodeLocation Beg => _beg;
 
+        /// <summary>
+        /// Gets the end of the range. This is greater than <see cref="Beg"/> and excluded in the range
+        /// (or is equal to <see cref="Beg"/> if <see cref="IsLocation"/> is true).
+        /// </summary>
         public SqlNodeLocation End => _end;
 
         internal readonly int EachNumber;

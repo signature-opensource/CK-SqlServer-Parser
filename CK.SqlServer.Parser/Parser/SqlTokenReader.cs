@@ -396,6 +396,10 @@ namespace CK.SqlServer.Parser
             return true;
         }
 
+        /// <summary>
+        /// Reinitializes this reader on a new input.
+        /// </summary>
+        /// <param name="text">The text to parse.</param>
         public void Reset( string text )
         {
             _assignmentContext = false;

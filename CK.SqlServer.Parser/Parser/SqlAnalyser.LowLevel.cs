@@ -66,29 +66,6 @@ namespace CK.SqlServer.Parser
         }
 
         /// <summary>
-        /// Reads a comma separated list of extended expressions that may be enclosed or not in parenthesis.
-        /// </summary>
-        /// <param name="expected">True to set an error if no enclosed list exists.</param>
-        /// <param name="parenthesis">Parenthesis mode.</param>
-        /// <returns>A <see cref="SqlEnclosableCommaList"/> or null.</returns>
-        SqlEnclosableCommaList IsEnclosableCommaList( bool expected, Parenthesis parenthesis = Parenthesis.Optional )
-        {
-            if( !expected 
-                && parenthesis == Parenthesis.Required
-                && R.Current.TokenType != SqlTokenType.OpenPar ) return null;
-            SqlTokenOpenPar openPar;
-            SqlTokenClosePar closePar;
-            List<ISqlNode> items = new List<ISqlNode>();
-            if( !R.CollectCommaList( items, out openPar, out closePar, IsExtendedExpression, 0, parenthesis ) ) return null;
-            if( openPar == null && items.Count == 0 )
-            {
-                if( expected ) R.SetCurrentError( "Expected enclosable comma list." );
-                return null;
-            }
-            return new SqlEnclosableCommaList( openPar, items, closePar );
-        }
-
-        /// <summary>
         /// Reads a typed list of nodes.
         /// </summary>
         /// <typeparam name="T">The type of nodes to read.</typeparam>
@@ -99,7 +76,7 @@ namespace CK.SqlServer.Parser
         /// <returns>Null on error or a posssibly empty list (if <paramref name="atLeastOne"/> is false).</returns>
         T IsList<T,TItem>( bool atLeastOne, Func<bool, TItem> matcher, Func<IEnumerable<TItem>,T> listCreator ) 
             where TItem : class, ISqlNode
-            where T : ASqlNodeList<TItem>
+            where T : class, ISqlNodeList<TItem>
         {
             TItem item = matcher( atLeastOne );
             if( item == null ) return R.IsError ? null : listCreator( Enumerable.Empty<TItem>() );

@@ -1,6 +1,143 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8" ?>
 <Tests>
 
+  <Test>
+    <Text>
+      create procedure CK.sTest as
+      begin
+        --[multiple]
+        select 
+            * from 
+            (
+              --[multiple]
+              select 
+                * from 
+                (
+                  --[multiple]
+                  select 
+                    * from sys.tables) t) t
+      end
+    </Text>
+    <Description>
+      create transformer as
+      begin
+        inject [ -- a comment... 
+        ] after all "--[multiple]";
+      end
+    </Description>
+    <ResultText>
+      create procedure CK.sTest as
+      begin
+          --[multiple]
+          -- a comment...
+        select 
+          * from 
+            (
+                --[multiple]
+                -- a comment...
+              select 
+                * from 
+                (
+                    --[multiple]
+                    -- a comment...
+                  select 
+                    * from sys.tables) t) t
+      end
+    </ResultText>
+  </Test>
+ 
+
+  <Test>
+    <Text>
+      create procedure CK.sTest as
+      begin
+        declare @1 int;
+        --[multiple]
+        declare @2 int;
+        --[unique1]
+        declare @3 int;
+        --[multiple]
+        declare @4 int;
+        --[unique1]
+        declare @5 int;
+        --[multiple]
+        declare @6 int;
+      end
+    </Text>
+    <Description>
+      create transformer as
+      begin
+        inject [
+          set @1 = 0;
+        ]
+        after first+1 "--[multiple]";
+      end
+    </Description>
+    <ResultText>
+      create procedure CK.sTest as
+      begin
+        declare @1 int;
+        --[multiple]
+        declare @2 int;
+        --[unique1]
+        declare @3 int;
+        --[multiple]
+        set @1 = 0;
+        declare @4 int;
+        --[unique1]
+        declare @5 int;
+        --[multiple]
+        declare @6 int;
+      end
+    </ResultText>
+  </Test>
+
+
+  <Test>
+    <Text>
+      create procedure CK.sTestMultiple as
+      begin
+        declare @1 int;
+        --[multiple]
+        declare @2 int;
+        --[unique1]
+        declare @3 int;
+        --[multiple]
+        declare @4 int;
+        --[unique2]
+        declare @5 int;
+        --[multiple]
+        declare @6 int;
+      end
+    </Text>
+    <Description>
+      create transformer as
+      begin
+        inject [
+          set @1 = 0;
+        ]
+        before last "--[multiple]";
+      end
+    </Description>
+    <ResultText>
+      create procedure CK.sTestMultiple as
+      begin
+        declare @1 int;
+        --[multiple]
+        declare @2 int;
+        --[unique1]
+        declare @3 int;
+        --[multiple]
+        declare @4 int;
+        --[unique2]
+        declare @5 int;
+        set @1 = 0;
+        --[multiple]
+        declare @6 int;
+      end
+    </ResultText>
+  </Test>
+  
   <Test>
     <Text>
       -- SetupConfig: {  "Requires": ["CKonstV.vViolationViewExists"] }
@@ -97,6 +234,30 @@
     </ResultText>
   </Test>
 
+  <Test>
+    <Text>
+      create procedure CK.sTest as
+      begin
+        insert into S.tTable default values;
+        insert into S.tOther default values;
+      end
+    </Text>
+    <Description>
+      -- inject before/after works the same for 'all' and 'each'.
+      create transformer on CK.sTest as
+      begin
+        inject ' set @X = 0; ' before each part {insert into S.?};
+        inject ' set @Y = 1;' after each statement {insert into S.};
+      end
+    </Description>
+    <ResultText>
+      create procedure CK.sTest as
+      begin
+        set @X = 0; insert into S.tTable default values; set @Y = 1; 
+        set @X = 0; insert into S.tOther default values; set @Y = 1; 
+      end
+    </ResultText>
+  </Test>
 
   <Test>
     <Text>
@@ -191,96 +352,6 @@
     </Description>
     <ResultText>ERROR: Missing matches</ResultText>
   </Test>
-  
-  <Test>
-    <Text>
-      create procedure CK.sTest as
-      begin
-        declare @1 int;
-        --[multiple]
-        declare @2 int;
-        --[unique1]
-        declare @3 int;
-        --[multiple]
-        declare @4 int;
-        --[unique2]
-        declare @5 int;
-        --[multiple]
-        declare @6 int;
-      end
-    </Text>
-    <Description>
-      create transformer as
-      begin
-        inject [
-          set @1 = 0;
-        ]
-        before last "--[multiple]";
-      end
-    </Description>
-    <ResultText>
-      create procedure CK.sTest as
-      begin
-        declare @1 int;
-        --[multiple]
-        declare @2 int;
-        --[unique1]
-        declare @3 int;
-        --[multiple]
-        declare @4 int;
-        --[unique2]
-        declare @5 int;
-        set @1 = 0;
-        --[multiple]
-        declare @6 int;
-      end
-    </ResultText>
-  </Test>
-
-  <Test>
-    <Text>
-      create procedure CK.sTest as
-      begin
-        --[multiple]
-        select 
-            * from 
-            (
-              --[multiple]
-              select 
-                * from 
-                (
-                  --[multiple]
-                  select 
-                    * from sys.tables) t) t
-      end
-    </Text>
-    <Description>
-      create transformer as
-      begin
-        inject [ -- a comment... 
-        ] after all "--[multiple]";
-      end
-    </Description>
-    <ResultText>
-      create procedure CK.sTest as
-      begin
-          --[multiple]
-          -- a comment...
-        select 
-          * from 
-            (
-                --[multiple]
-                -- a comment...
-              select 
-                * from 
-                (
-                    --[multiple]
-                    -- a comment...
-                  select 
-                    * from sys.tables) t) t
-      end
-    </ResultText>
-  </Test>
  
   <Test>
     <Text>
@@ -319,51 +390,6 @@
                   select 
                     --[multiple]
                     "Col" = 7, * from sys.tables) t) t
-      end
-    </ResultText>
-  </Test>
-
-  <Test>
-    <Text>
-      create procedure CK.sTest as
-      begin
-        declare @1 int;
-        --[multiple]
-        declare @2 int;
-        --[unique1]
-        declare @3 int;
-        --[multiple]
-        declare @4 int;
-        --[unique1]
-        declare @5 int;
-        --[multiple]
-        declare @6 int;
-      end
-    </Text>
-    <Description>
-      create transformer as
-      begin
-        inject [
-          set @1 = 0;
-        ]
-        after first+1 "--[multiple]";
-      end
-    </Description>
-    <ResultText>
-      create procedure CK.sTest as
-      begin
-        declare @1 int;
-        --[multiple]
-        declare @2 int;
-        --[unique1]
-        declare @3 int;
-        --[multiple]
-        set @1 = 0;
-        declare @4 int;
-        --[unique1]
-        declare @5 int;
-        --[multiple]
-        declare @6 int;
       end
     </ResultText>
   </Test>

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
@@ -110,6 +110,11 @@ namespace CK.SqlServer.Parser
             R = new SqlTokenReader( new SqlTokenizer() );
         }
 
+        /// <summary>
+        /// Reinitializes this analyzer on a new input.
+        /// </summary>
+        /// <param name="text">The text to parse.</param>
+        /// <returns>True on success, false if the first token cannot be read.</returns>
         public bool Reset( string text )
         {
             _statementLevel = 0;

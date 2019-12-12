@@ -1,5 +1,70 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <Tests>
+  <Test>
+    <Text>
+ALTER view [CK].[vUserAuthProvider]( UserId, Scheme, LastUsed )
+as 
+	select	UserId = 0, Scheme = 'Scheme (ProviderName when IsMultiScheme = 0)', LastUsed = 'non null datetime2(2)' -- (provider table).LastLoginTime
+		from CKCore.tSystem where 1 = 0
+
+	union all
+	select UserId, 'Twitter', LastLoginTime from CK.tUserTwitter where UserId > 0
+	
+	  union all
+  -- Ignores empty PwdHash since they are failed password migration.
+	select UserId, 'Basic', LastLoginTime from CK.tUserPassword where UserId > 0 and PwdHash != 0x
+	
+	  union all
+	select UserId, 'Google', LastLoginTime from CK.tUserGoogle where UserId > 0
+	  union all
+	select UserId, 'Facebook', LastLoginTime from CK.tUserFacebook where UserId > 0;
+    </Text>
+    <Description>
+create transformer on CK.vUserAuthProvider
+as
+begin
+  replace single {( UserId, Scheme, LastUsed )} with "( UserId, Scheme, LastUsed, UserName, CreationDate, PictureUrl )";
+
+  inject "/* This header is useless once a real provider has been added.
+  " before single part {select UserId = 0};
+
+  inject "*/" after first {union all};
+
+  in single part {select UserId, 'Twitter'}
+  begin
+     add column UserName = ScreenName, CreationDate, PictureUrl;
+  end
+  in single part {select UserId, 'Basic'}
+  begin   
+    add column UserName = N'', CreationDate, PictureUrl='';
+  end
+  in after single part {select UserId, 'Basic'}
+  begin   
+     add column UserName, CreationDate, PictureUrl;
+  end
+end
+    </Description>
+    <ResultText>
+ALTER view [CK].[vUserAuthProvider]( UserId, Scheme, LastUsed, UserName, CreationDate, PictureUrl )
+as 
+	/* This header is useless once a real provider has been added.
+	select	UserId = 0, Scheme = 'Scheme (ProviderName when IsMultiScheme = 0)', LastUsed = 'non null datetime2(2)' -- (provider table).LastLoginTime
+	--	from CKCore.tSystem where 1 = 0
+
+	union all*/
+	select UserId, 'Twitter', LastLoginTime, UserName = ScreenName, CreationDate, PictureUrl from CK.tUserTwitter where UserId > 0
+	
+	union all
+  -- Ignores empty PwdHash since they are failed password migration.
+	select UserId, 'Basic', LastLoginTime, UserName = N'', CreationDate, PictureUrl='' from CK.tUserPassword where UserId > 0 and PwdHash != 0x
+	
+	union all
+	select UserId, 'Google', LastLoginTime, UserName, CreationDate, PictureUrl from CK.tUserGoogle where UserId > 0
+		union all
+	select UserId, 'Facebook', LastLoginTime, UserName, CreationDate, PictureUrl from CK.tUserFacebook where UserId > 0;
+    </ResultText>
+  </Test>
+
 
   <Test>
     <Text>

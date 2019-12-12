@@ -1,4 +1,4 @@
-﻿using CK.Core;
+using CK.Core;
 using CK.SqlServer.Parser;
 using System;
 using System.Collections.Generic;
@@ -113,12 +113,15 @@ namespace CK.SqlServer.Transform.Transformers
             }
         }
 
-        public LocationInserter( LocationInfo finderInfo )
+        public LocationInserter( in LocationInfo finderInfo )
         {
             _finderInfo = finderInfo;
             if( !_finderInfo.Card.FromFirst ) _lastBuffer = new FIFOBuffer<MatchedNode>( _finderInfo.Card.Offset + 1 );
         }
 
+        /// <summary>
+        /// Gets the match count.
+        /// </summary>
         public int MatchCount => _matchCount;
 
         /// <summary>

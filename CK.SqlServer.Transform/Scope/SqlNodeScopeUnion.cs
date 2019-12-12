@@ -1,4 +1,4 @@
-﻿using CK.SqlServer.Parser;
+using CK.SqlServer.Parser;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace CK.SqlServer.Transform
 {
     /// <summary>
-    /// Builds intersected ranges.
+    /// Builds union ranges.
     /// </summary>
     public sealed class SqlNodeScopeUnion : SqlNodeScopeBuilder
     {

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -95,6 +95,8 @@ namespace CK.SqlServer.Parser
                 }
             }
 
+            public void Write( SqlTokenIdentifier id, bool? whiteSpaceBefore = null, bool? whiteSpaceAfter = null ) => Write( id.TokenType, id.ToString(), whiteSpaceBefore, whiteSpaceAfter );
+
             public void Write( SqlTokenType type, string text, bool? whiteSpaceBefore = null, bool? whiteSpaceAfter = null )
             {
                 if( SqlToken.RequiresSeparatorBetween( _prevTokenType, type ) )
@@ -131,6 +133,8 @@ namespace CK.SqlServer.Parser
                     _ensureWhiteSpace = _allowWhiteSpaceAfter;
                 }
             }
+
+            public void Write( SqlTokenIdentifier id, bool? whiteSpaceBefore = null, bool? whiteSpaceAfter = null ) => Write( id.TokenType, id.ToString(), whiteSpaceBefore, whiteSpaceAfter );
 
             public void Write( SqlTokenType type, string text, bool? whiteSpaceBefore = null, bool? whiteSpaceAfter = null )
             {
@@ -175,6 +179,12 @@ namespace CK.SqlServer.Parser
 
             public void Write( SqlTrivia t )
             {
+            }
+
+            public void Write( SqlTokenIdentifier id, bool? whiteSpaceBefore = null, bool? whiteSpaceAfter = null )
+            {
+                id = id.RemoveQuoteIfPossible( true );
+                Write( id.TokenType, id.ToString(), whiteSpaceBefore, whiteSpaceAfter );
             }
 
             public void Write( SqlTokenType type, string text, bool? whiteSpaceBefore = null, bool? whiteSpaceAfter = null )

@@ -1,4 +1,4 @@
-﻿using CK.Core;
+using CK.Core;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -13,7 +13,7 @@ namespace CK.SqlServer.Parser
     /// <summary>
     /// Abstract base class for an optionally enclosed list of nodes.
     /// </summary>
-    public abstract class ASqlNodeEnclosableList<TOpener,T,TCloser> : SqlNonTokenAutoWidth, ISqlEnclosable, IReadOnlyList<T>
+    public abstract class ASqlNodeEnclosableList<TOpener,T,TCloser> : SqlNonTokenAutoWidth, ISqlEnclosable, ISqlNodeList<T>
         where TOpener : class, ISqlNode
         where T : class, ISqlNode 
         where TCloser : class, ISqlNode
