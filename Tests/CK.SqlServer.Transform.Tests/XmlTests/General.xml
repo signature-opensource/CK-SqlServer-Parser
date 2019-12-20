@@ -1,5 +1,18 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <Tests>
+  
+  <!--<Test>
+    <Text>
+      Original.
+    </Text>
+    <Description>
+      Transformer.
+    </Description>
+    <ResultText>
+      Expected result.
+    </ResultText>
+  </Test>-->
+
   <Test>
     <Text>
 ALTER view [CK].[vUserAuthProvider]( UserId, Scheme, LastUsed )
@@ -64,7 +77,6 @@ as
 	select UserId, 'Facebook', LastLoginTime, UserName, CreationDate, PictureUrl from CK.tUserFacebook where UserId > 0;
     </ResultText>
   </Test>
-
 
   <Test>
     <Text>
