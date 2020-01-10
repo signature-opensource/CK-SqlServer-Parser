@@ -264,14 +264,14 @@ namespace CK.SqlServer.Transform
             using( _monitor.OpenTrace( "Parsing transformation result." ) )
             {
                 string text = _root.Node.ToString( true, true );
+                bool shouldTrace = _monitor.ShouldLogLine( LogLevel.Debug );
+                if( shouldTrace ) _monitor.UnfilteredLog( null, LogLevel.Debug, text, _monitor.NextLogTime(), null );
                 ISqlNode newOne;
                 var result = SqlAnalyser.Parse( out newOne, ParseMode.OneOrMoreStatements, text );
                 if( result.IsError )
                 {
-                    using( _monitor.OpenError( result.ErrorMessage ) )
-                    {
-                        _monitor.Trace( text );
-                    }
+                    if( !shouldTrace ) _monitor.Error( result.ErrorMessage );
+                    else using( _monitor.OpenError( result.ErrorMessage ) ) _monitor.Trace( text );
                     return false;
                 }
                 Node = newOne;
