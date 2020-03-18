@@ -100,7 +100,7 @@ namespace CK.Testing
                     case SqlServerObjectType.View: oType = "view"; break;
                     default: oType = "function"; break;
                 }
-                IDisposable restorer = new Restorer( oCon.ConnectionString, origin, oType, o.SchemaName );
+                IDisposable restorer = new Restorer( connectionString, origin, oType, o.SchemaName );
                 try
                 {
                     ExecuteNonQuery( oCon, $"drop {oType} {o.SchemaName};" );
