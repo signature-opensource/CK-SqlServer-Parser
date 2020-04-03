@@ -20,6 +20,7 @@ namespace CK.SqlServer.Parser
         SqlToken _rawLookup;
         int _parenthesisDepth;
         bool _assignmentContext;
+        bool _noTypeContextHint;
 
         public SqlTokenReader( SqlTokenizer tokenizer )
         {
@@ -45,11 +46,31 @@ namespace CK.SqlServer.Parser
             return t => t.TokenType == SqlTokenType.EndOfInput || (_parenthesisDepth == curDepth ? t.TokenType == SqlTokenType.ClosePar : false);
         }
 
+        /// <summary>
+        /// Drives wether = is <see cref="SqlTokenType.Equal"/> or <see cref="SqlTokenType.Assign"/>.
+        /// </summary>
+        /// <param name="assignment">Whether = is the assignment operator.</param>
+        /// <returns>To be disposed when leaving the "assignment" scope.</returns>
         public IDisposable SetAssignmentContext( bool assignment )
         {
             if( _assignmentContext == assignment ) return Util.EmptyDisposable;
+
             if( (_assignmentContext = assignment) ) return Util.CreateDisposableAction( () => _assignmentContext = false );
             return Util.CreateDisposableAction( () => _assignmentContext = true );
+        }
+
+        /// <summary>
+        /// Temporarily sets a context that disable <see cref="IsQuotedDbTypeWithUselessComments"/> work:
+        /// when this context is active, [Date] remains a QuotedIdentifier instead of being "lifted" in the <see cref="SqlTypeDeclDateAndTime"/>.
+        /// </summary>
+        /// <param name="noTypeContext">True to activate the "no type" context.</param>
+        /// <returns>To be disposed when leaving the "no type" scope.</returns>
+        public IDisposable SetNoTypeContextContext( bool noTypeContext )
+        {
+            if( _noTypeContextHint == noTypeContext ) return Util.EmptyDisposable;
+
+            if( (_noTypeContextHint = noTypeContext) ) return Util.CreateDisposableAction( () => _noTypeContextHint = false );
+            return Util.CreateDisposableAction( () => _noTypeContextHint = true );
         }
 
         /// <summary>
@@ -220,9 +241,18 @@ namespace CK.SqlServer.Parser
             return false;
         }
 
-        public SqlTokenIdentifier IsQuotedDbTypeWithUselessComments( bool expected )
+        /// <summary>
+        /// Attempts to transform the current <see cref="SqlTokenType.IdentifierQuoted"/> or <see cref="SqlTokenType.IdentifierQuotedBracket"/>
+        /// if <see cref="SetNoTypeContextContext(bool)"/> is not active and the identifier is
+        /// a "type" (see <see cref="SqlTokenTypeExtension.IsDbType(SqlTokenType)"/>).
+        /// </summary>
+        /// <returns>
+        /// The DBType identifier with <see cref="SqlTrivia.OpenBracketUselessComment"/> and <see cref="SqlTrivia.CloseBracketUselessComment"/>
+        /// around the brackets or the quotes or null.
+        /// </returns>
+        public SqlTokenIdentifier IsQuotedDbTypeWithUselessComments()
         {
-            if( Current.TokenType.IsQuotedIdentifier() )
+            if( !_noTypeContextHint && Current.TokenType.IsQuotedIdentifier() )
             {
                 SqlTokenIdentifier c = (SqlTokenIdentifier)_c;
                 SqlTokenType newType = SqlKeyword.MapKeyword( c.Name );
@@ -243,7 +273,6 @@ namespace CK.SqlServer.Parser
                     return new SqlTokenIdentifier( newType, c.Name, leading, trailing );
                 }
             }
-            if( expected ) SetCurrentError( "Expected quoted type identifier." );
             return null;
         }
 
@@ -280,25 +309,6 @@ namespace CK.SqlServer.Parser
                 }
             }
             Debug.Assert( !IsError );
-            return true;
-        }
-
-        /// <summary>
-        /// collects a list of nodes until a <paramref name="stopper"/> is found or the end of input or 
-        /// an error is encountered (in such case, stopper is set to null).
-        /// </summary>
-        /// <typeparam name="T">Type of tokens.</typeparam>
-        /// <param name="items">List of collected nodes.</param>
-        /// <param name="matcher">Function that can trasform the current token (and its following ones) into any kind of node.</param>
-        /// <param name="stopper">The stopper. Null if an error occurred or the end of the input was reached.</param>
-        /// <param name="stopperDefinition">Lambda that defines what the stopper should be. When null, the type of token is used.</param>
-        /// <returns>True if no error occurred.</returns>
-        internal bool CollectUntil<T>( List<ISqlNode> items, out T stopper, Func<bool, ISqlNode> matcher = null, Predicate<T> stopperDefinition = null ) where T : SqlToken
-        {
-            stopper = null;
-            if( !CollectUntil( items, matcher, stopperDefinition ) ) return false;
-            stopper = (T)Current;
-            MoveNext();
             return true;
         }
 
