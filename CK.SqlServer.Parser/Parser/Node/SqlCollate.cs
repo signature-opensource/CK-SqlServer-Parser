@@ -8,14 +8,16 @@ using System.Text;
 
 namespace CK.SqlServer.Parser
 {
+    using CNode = SNode<ISqlNode, SqlTokenIdentifier, SqlTokenIdentifier>;
+
     public sealed class SqlCollate : SqlNonTokenAutoWidth
     {
-        readonly SNode<ISqlNode, SqlTokenIdentifier, SqlTokenIdentifier> _content;
+        readonly CNode _content;
 
         public SqlCollate( ISqlNode left, SqlTokenIdentifier collateT, SqlTokenIdentifier nameT )
             : base( null, null )
         {
-            _content = new SNode<ISqlNode, SqlTokenIdentifier, SqlTokenIdentifier>( left, collateT, nameT );
+            _content = new CNode( left, collateT, nameT );
             CheckContent();
         }
 
@@ -32,7 +34,7 @@ namespace CK.SqlServer.Parser
             if( items == null ) _content = o._content;
             else
             {
-                _content = new SNode<ISqlNode, SqlTokenIdentifier, SqlTokenIdentifier>( items );
+                _content = new CNode( items );
                 CheckContent();
             }
         }
