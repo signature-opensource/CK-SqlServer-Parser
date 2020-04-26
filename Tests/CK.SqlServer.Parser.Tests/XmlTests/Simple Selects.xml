@@ -3,6 +3,22 @@
 
   <Test Mode="OneExpression">
     <Text>
+      select 'T' collate c, ODate AT TIME ZONE 'Pacific Standard Time' AS ODate_TimeZonePST
+    </Text>
+    <Description>
+      AT TIME ZONE (Sql Server 2016) is supported.
+    </Description>
+    <Xml ToStringCompact="Columns">
+      <Sql>
+        <SelectSpec>
+          <Columns>'T' collate c, ODate AT TIME ZONE 'Pacific Standard Time' AS ODate_TimeZonePST</Columns>
+        </SelectSpec>
+      </Sql>
+    </Xml>
+  </Test>
+  
+  <Test Mode="OneExpression">
+    <Text>
       select [as]=1, [Date]=2, [select]=3
     </Text>
     <Description>

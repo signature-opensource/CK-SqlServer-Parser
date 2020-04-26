@@ -21,10 +21,19 @@ namespace CK.SqlServer.Parser
             }
             // Not (as a left denotation) is the same as a between or a like (since it introduces them).
             // This could have been handled with a left and right binding power instead of only one power per operator.
+            Debug.Assert( SqlTokenizer.PrecedenceLevel( SqlTokenType.OpNotRightLevel ) == 10 );
             while( !R.IsErrorOrEndOfInput
-                    && ((R.Current.TokenType == SqlTokenType.Not && SqlTokenizer.PrecedenceLevel( SqlTokenType.OpNotRightLevel ) > rightBindingPower)
+                    && ((R.Current.TokenType == SqlTokenType.Not && rightBindingPower < 10)
                         ||
-                        (R.Current.TokenType != SqlTokenType.Not && SqlTokenizer.PrecedenceLevel( R.Current.TokenType ) > rightBindingPower)) )
+                        (R.Current.TokenType != SqlTokenType.Not && SqlTokenizer.PrecedenceLevel( R.Current.TokenType ) > rightBindingPower)
+                        ||
+                        // Ugly hack: AT TIME must act as a highly prioritized operator.
+                        // Since AT is not a reseved keyword, it is a valid comumn name (the collate operator is keyword):
+                        //
+                        //      select name at from sys.tables; -- OK
+                        //      select name collate from sys.tables; -- !Invalid syntax.
+                        //
+                        (R.Current.TokenType == SqlTokenType.At && R.RawLookup.TokenType == SqlTokenType.TimeDbType) ) )
             {
                 if( !ExpressionCombineLed( ref e ) ) break;
             }
@@ -217,6 +226,17 @@ namespace CK.SqlServer.Parser
                 SqlTokenIdentifier name;
                 if( !R.IsToken( out name, true ) ) return false;
                 left = new SqlCollate( left, collate, name );
+                return true;
+            }
+            if( R.Current.TokenType == SqlTokenType.At )
+            {
+                SqlTokenIdentifier atT = R.Read<SqlTokenIdentifier>();
+                SqlTokenIdentifier timeT, zoneT;
+                if( !R.IsToken( out timeT, SqlTokenType.TimeDbType, true )
+                    || !R.IsToken( out zoneT, SqlTokenType.Zone, true ) ) return false;
+                ISqlNode timeZone;
+                if( (timeZone = IsExpression( precedenceLevel, true )) == null ) return false;
+                left = new SqlAtTimeZone( left, atT, timeT, zoneT, timeZone );
                 return true;
             }
             if( (R.Current.TokenType & SqlTokenType.IsAssignOperator) != 0 )

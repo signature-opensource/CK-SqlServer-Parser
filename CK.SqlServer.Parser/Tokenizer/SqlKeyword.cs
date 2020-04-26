@@ -129,6 +129,7 @@ namespace CK.SqlServer.Parser
         public static readonly SqlTokenIdentifier Undefined;
         public static readonly SqlTokenIdentifier Login;
         public static readonly SqlTokenIdentifier At;
+        public static readonly SqlTokenIdentifier Zone;
         public static readonly SqlTokenIdentifier Using;
         public static readonly SqlTokenIdentifier Global;
         public static readonly SqlTokenIdentifier OpenJSON;
@@ -522,6 +523,7 @@ namespace CK.SqlServer.Parser
             Server              = RegKeyword( "server", SqlTokenType.Server );
             Last                = RegKeyword( "last", SqlTokenType.Last );
             XmlNamespaces       = RegKeyword( "xmlnamespaces", SqlTokenType.XmlNamespaces );
+            Zone                = RegKeyword( "zone", SqlTokenType.Zone );
 
             // LogicalOperator (they are reserved keywords).
             Or = RegKeyword( "or", SqlTokenType.Or );
