@@ -17,8 +17,6 @@ namespace CK.SqlServer.Transform
     {
         SqlNodeLocation[] _fullCache;
         Dictionary<ISqlNode, SqlNodeLocation> _qualifiedCache;
-        SqlNodeLocation _fullFirstCache;
-        SqlNodeLocation _fullLastCache;
 
         public SqlNodeLocation BegMarker { get; }
 

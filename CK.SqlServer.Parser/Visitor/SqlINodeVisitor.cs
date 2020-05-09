@@ -158,6 +158,8 @@ namespace CK.SqlServer.Parser
 
         internal protected virtual ISqlNode Visit( SqlCollate e ) => VisitStandard( e );
 
+        internal protected virtual ISqlNode Visit( SqlAtTimeZone e ) => VisitStandard( e );
+
         internal protected virtual ISqlNode Visit( SqlIf e ) => VisitStandard( e );
 
         internal protected virtual ISqlNode Visit( SqlCursorDefinition e ) => VisitStandard( e );

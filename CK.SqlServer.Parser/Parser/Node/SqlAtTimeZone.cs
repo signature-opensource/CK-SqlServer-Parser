@@ -8,27 +8,29 @@ using System.Text;
 
 namespace CK.SqlServer.Parser
 {
-    using CNode = SNode<ISqlNode, SqlTokenIdentifier, SqlTokenIdentifier>;
+    using CNode = SNode<ISqlNode, SqlTokenIdentifier, SqlTokenIdentifier, SqlTokenIdentifier, ISqlNode>;
 
-    public sealed class SqlCollate : SqlNonTokenAutoWidth
+    public sealed class SqlAtTimeZone : SqlNonTokenAutoWidth
     {
         readonly CNode _content;
 
-        public SqlCollate( ISqlNode left, SqlTokenIdentifier collateT, SqlTokenIdentifier nameT )
+        public SqlAtTimeZone( ISqlNode left, SqlTokenIdentifier atT, SqlTokenIdentifier timeT, SqlTokenIdentifier zoneT, ISqlNode timeZone )
             : base( null, null )
         {
-            _content = new CNode( left, collateT, nameT );
+            _content = new CNode( left, atT, timeT, zoneT, timeZone );
             CheckContent();
         }
 
         void CheckContent()
         {
             Helper.CheckNotNull( Left, nameof( Left ) );
-            Helper.CheckToken( CollateT, nameof( CollateT ), SqlTokenType.Collate );
-            Helper.CheckNotNull( CollationName, nameof( CollationName ) );
+            Helper.CheckToken( AtT, nameof( AtT ), SqlTokenType.At );
+            Helper.CheckToken( TimeT, nameof( TimeT ), SqlTokenType.TimeDbType );
+            Helper.CheckToken( ZoneT, nameof( ZoneT ), SqlTokenType.Zone );
+            Helper.CheckNotNull( TimeZone, nameof( TimeZone ) );
         }
 
-        SqlCollate( SqlCollate o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
+        SqlAtTimeZone( SqlAtTimeZone o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
             : base( leading, trailing )
         {
             if( items == null ) _content = o._content;
@@ -41,7 +43,7 @@ namespace CK.SqlServer.Parser
 
         protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IList<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
         {
-            return new SqlCollate( this, leading, content, trailing );
+            return new SqlAtTimeZone( this, leading, content, trailing );
         }
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
@@ -50,9 +52,13 @@ namespace CK.SqlServer.Parser
 
         public ISqlNode Left => _content.V1;
 
-        public SqlTokenIdentifier CollateT => _content.V2;
+        public SqlTokenIdentifier AtT => _content.V2;
 
-        public SqlTokenIdentifier CollationName => _content.V3;
+        public SqlTokenIdentifier TimeT => _content.V3;
+
+        public SqlTokenIdentifier ZoneT => _content.V4;
+
+        public ISqlNode TimeZone => _content.V5;
 
         [DebuggerStepThrough]
         internal protected override ISqlNode Accept( SqlNodeVisitor visitor ) => visitor.Visit( this );
