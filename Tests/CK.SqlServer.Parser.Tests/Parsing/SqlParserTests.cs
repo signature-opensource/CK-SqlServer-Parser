@@ -59,7 +59,7 @@ namespace CK.SqlServer.Parser.Tests
 
 
         [TestCase( "create view simple as select 1;", null, "simple", "simple" )]
-        [TestCase( "create view [d].[a] as select 1;", "d", "a", "[d].[a]" )]
+        [TestCase( "create view [d].[a] as select 1;", "d", "a", "d.a" )]
         [TestCase( "create view [ [3]] nimp].[*µ ù%'B' m] as select 1;", " [3] nimp", "*µ ù%'B' m", "[ [3]] nimp].[*µ ù%'B' m]" )]
         [TestCase( @"
 create view 

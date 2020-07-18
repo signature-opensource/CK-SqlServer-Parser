@@ -1,4 +1,4 @@
-﻿using CK.Core;
+using CK.Core;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -16,7 +16,7 @@ namespace CK.SqlServer.Parser
 
     }
 
-    struct SNode<T> : IReadOnlyList<ISqlNode>
+    readonly struct SNode<T> : IReadOnlyList<ISqlNode>
         where T : class, ISqlNode
     {
         public readonly T V;
@@ -78,7 +78,7 @@ namespace CK.SqlServer.Parser
         static T Invalid() { throw new InvalidOperationException(); }
     }
 
-    struct SNode<T1, T2> : IReadOnlyList<ISqlNode>
+    readonly struct SNode<T1, T2> : IReadOnlyList<ISqlNode>
         where T1 : ISqlNode
         where T2 : ISqlNode
     {
@@ -106,7 +106,7 @@ namespace CK.SqlServer.Parser
                     }
                 }
             }
-            throw new ArgumentException( string.Format( "Expected {0}, {1}, {2}.",
+            throw new ArgumentException( string.Format( "Expected {0}, {1}.",
                 typeof( T1 ).Name, typeof( T2 ).Name ), "content" );
         }
 
@@ -138,7 +138,7 @@ namespace CK.SqlServer.Parser
 
     }
 
-    struct SNode<T1, T2, T3> : IReadOnlyList<ISqlNode>
+    readonly struct SNode<T1, T2, T3> : IReadOnlyList<ISqlNode>
         where T1 : ISqlNode
         where T2 : ISqlNode
         where T3 : ISqlNode
@@ -201,7 +201,7 @@ namespace CK.SqlServer.Parser
 
     }
 
-    struct SNode<T1, T2, T3, T4> : IReadOnlyList<ISqlNode>
+    readonly struct SNode<T1, T2, T3, T4> : IReadOnlyList<ISqlNode>
         where T1 : ISqlNode
         where T2 : ISqlNode
         where T3 : ISqlNode
@@ -271,7 +271,7 @@ namespace CK.SqlServer.Parser
         public IList<ISqlNode> GetRawContent() => new ISqlNode[] { V1, V2, V3, V4 };
     }
 
-    struct SNode<T1, T2, T3, T4, T5> : IReadOnlyList<ISqlNode>
+    readonly struct SNode<T1, T2, T3, T4, T5> : IReadOnlyList<ISqlNode>
         where T1 : ISqlNode
         where T2 : ISqlNode
         where T3 : ISqlNode
@@ -349,7 +349,7 @@ namespace CK.SqlServer.Parser
         public IList<ISqlNode> GetRawContent() => new ISqlNode[] { V1, V2, V3, V4, V5 };
     }
 
-    struct SNode<T1, T2, T3, T4, T5, T6> : IReadOnlyList<ISqlNode>
+    readonly struct SNode<T1, T2, T3, T4, T5, T6> : IReadOnlyList<ISqlNode>
         where T1 : ISqlNode
         where T2 : ISqlNode
         where T3 : ISqlNode
@@ -435,7 +435,7 @@ namespace CK.SqlServer.Parser
         public IList<ISqlNode> GetRawContent() => new ISqlNode[] { V1, V2, V3, V4, V5, V6 };
     }
 
-    struct SNode<T1, T2, T3, T4, T5, T6, T7> : IReadOnlyList<ISqlNode>
+    readonly struct SNode<T1, T2, T3, T4, T5, T6, T7> : IReadOnlyList<ISqlNode>
         where T1 : ISqlNode
         where T2 : ISqlNode
         where T3 : ISqlNode
@@ -529,7 +529,7 @@ namespace CK.SqlServer.Parser
         public IList<ISqlNode> GetRawContent() => new ISqlNode[] { V1, V2, V3, V4, V5, V6, V7 };
     }
 
-    struct SNode<T1, T2, T3, T4, T5, T6, T7, T8> : IReadOnlyList<ISqlNode>
+    readonly struct SNode<T1, T2, T3, T4, T5, T6, T7, T8> : IReadOnlyList<ISqlNode>
         where T1 : ISqlNode
         where T2 : ISqlNode
         where T3 : ISqlNode
@@ -638,7 +638,7 @@ namespace CK.SqlServer.Parser
         public IList<ISqlNode> GetRawContent() => new ISqlNode[] { V1, V2, V3, V4, V5, V6, V7, V8 };
     }
 
-    struct SNode<T1, T2, T3, T4, T5, T6, T7, T8, T9> : IReadOnlyList<ISqlNode>
+    readonly struct SNode<T1, T2, T3, T4, T5, T6, T7, T8, T9> : IReadOnlyList<ISqlNode>
         where T1 : ISqlNode
         where T2 : ISqlNode
         where T3 : ISqlNode
@@ -756,7 +756,7 @@ namespace CK.SqlServer.Parser
         public IList<ISqlNode> GetRawContent() => new ISqlNode[] { V1, V2, V3, V4, V5, V6, V7, V8, V9 };
     }
 
-    struct SNode<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> : IReadOnlyList<ISqlNode>
+    readonly struct SNode<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> : IReadOnlyList<ISqlNode>
         where T1 : ISqlNode
         where T2 : ISqlNode
         where T3 : ISqlNode
@@ -883,7 +883,7 @@ namespace CK.SqlServer.Parser
         public IList<ISqlNode> GetRawContent() => new ISqlNode[] { V1, V2, V3, V4, V5, V6, V7, V8, V9, V10 };
     }
 
-    struct SNode<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> : IReadOnlyList<ISqlNode>
+    readonly struct SNode<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> : IReadOnlyList<ISqlNode>
         where T1 : ISqlNode
         where T2 : ISqlNode
         where T3 : ISqlNode
@@ -1019,7 +1019,7 @@ namespace CK.SqlServer.Parser
         public IList<ISqlNode> GetRawContent() => new ISqlNode[] { V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11 };
     }
 
-    struct SNode<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> : IReadOnlyList<ISqlNode>
+    readonly struct SNode<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> : IReadOnlyList<ISqlNode>
             where T1 : ISqlNode
             where T2 : ISqlNode
             where T3 : ISqlNode
@@ -1163,8 +1163,7 @@ namespace CK.SqlServer.Parser
         public IList<ISqlNode> GetRawContent() => new ISqlNode[] { V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12 };
     }
 
-
-    struct SNode<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> : IReadOnlyList<ISqlNode>
+    readonly struct SNode<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> : IReadOnlyList<ISqlNode>
             where T1 : ISqlNode
             where T2 : ISqlNode
             where T3 : ISqlNode

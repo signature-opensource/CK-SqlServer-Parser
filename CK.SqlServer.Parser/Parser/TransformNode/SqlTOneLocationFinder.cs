@@ -21,15 +21,14 @@ namespace CK.SqlServer.Parser
     /// <summary>
     /// (first [+ n] [out of n] 
     /// | last [- n] [out of n] 
-    /// | single 
-    /// | all[[out of] n]) (<see cref="ISqlHasStringValue"/> | <see cref="SqlTNodeSimplePattern"/>) 
+    /// | single) (<see cref="ISqlHasStringValue"/> | <see cref="SqlTNodeSimplePattern"/>) 
     /// </summary>
-    public sealed class SqlTLocationFinder : SqlNonTokenAutoWidth
+    public sealed class SqlTOneLocationFinder : SqlNonTokenAutoWidth, ISqlTLocationFinder
     {
         readonly CNode _content;
 
-        public SqlTLocationFinder( 
-            SqlTokenIdentifier firtOrLastOrSingleOrAllOrEach, 
+        public SqlTOneLocationFinder( 
+            SqlTokenIdentifier firtOrLastOrSingle, 
             SqlTokenTerminal plusOrMinusT, 
             SqlTokenLiteralInteger offset, 
             SqlTokenIdentifier outT,
@@ -38,20 +37,20 @@ namespace CK.SqlServer.Parser
             ISqlNode pattern )
                : base( null, null )
         {
-            _content = new CNode( firtOrLastOrSingleOrAllOrEach, plusOrMinusT, offset, outT, ofT, expectedMatchCount, pattern );
+            _content = new CNode( firtOrLastOrSingle, plusOrMinusT, offset, outT, ofT, expectedMatchCount, pattern );
             CheckContent();
         }
 
         void CheckContent()
         {
-            Helper.CheckToken( FirstOrLastOrSingleOrAllOrEachT, nameof( FirstOrLastOrSingleOrAllOrEachT ), SqlTokenType.First, SqlTokenType.Last, SqlTokenType.Single, SqlTokenType.All, SqlTokenType.Each );
-            if( FirstOrLastOrSingleOrAllOrEachT.TokenType == SqlTokenType.Single || FirstOrLastOrSingleOrAllOrEachT.TokenType == SqlTokenType.All )
+            Helper.CheckToken( FirstOrLastOrSingleT, nameof( FirstOrLastOrSingleT ), SqlTokenType.First, SqlTokenType.Last, SqlTokenType.Single );
+            if( FirstOrLastOrSingleT.TokenType == SqlTokenType.Single )
             {
-                if( PlusOrMinusT != null || Offset != null ) throw new ArgumentException( "Invalid offset after 'single' or 'all'." );
+                if( PlusOrMinusT != null || Offset != null ) throw new ArgumentException( "Invalid offset after 'single'." );
             }
             else if( Offset != null )
             {
-                if( FirstOrLastOrSingleOrAllOrEachT.TokenType == SqlTokenType.Last )
+                if( FirstOrLastOrSingleT.TokenType == SqlTokenType.Last )
                 {
                     if( PlusOrMinusT == null || PlusOrMinusT.TokenType == SqlTokenType.Plus )
                     {
@@ -68,19 +67,11 @@ namespace CK.SqlServer.Parser
             }
             Helper.CheckNullableToken( OutT, nameof( OutT ), SqlTokenType.Out );
             Helper.CheckNullableToken( OfT, nameof( OfT ), SqlTokenType.Of );
-            if( FirstOrLastOrSingleOrAllOrEachT.TokenType == SqlTokenType.All
-                || FirstOrLastOrSingleOrAllOrEachT.TokenType == SqlTokenType.Each )
-            {
-                Helper.CheckBothNullOrNot( OutT, nameof( OutT ), OfT, nameof( OfT ) );
-            }
-            else
-            {
-                Helper.CheckAllNullOrNot( OutT, nameof( OutT ), OfT, nameof( OfT ), ExpectedMatchCount, nameof( ExpectedMatchCount ) );
-            }
+            Helper.CheckAllNullOrNot( OutT, nameof( OutT ), OfT, nameof( OfT ), ExpectedMatchCount, nameof( ExpectedMatchCount ) );
             Helper.CheckNotNull<ISqlHasStringValue,SqlTNodeSimplePattern>( Pattern, nameof( Pattern ) );
         }
 
-        SqlTLocationFinder( SqlTLocationFinder o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
+        SqlTOneLocationFinder( SqlTOneLocationFinder o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
             : base( leading, trailing )
         {
             if( items == null ) _content = o._content;
@@ -93,14 +84,14 @@ namespace CK.SqlServer.Parser
 
         protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IList<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
         {
-            return new SqlTLocationFinder( this, leading, content, trailing );
+            return new SqlTOneLocationFinder( this, leading, content, trailing );
         }
 
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
 
         public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
 
-        public SqlTokenIdentifier FirstOrLastOrSingleOrAllOrEachT => _content.V1;
+        public SqlTokenIdentifier FirstOrLastOrSingleT => _content.V1;
 
         public SqlTokenTerminal PlusOrMinusT => _content.V2;
 
@@ -116,6 +107,11 @@ namespace CK.SqlServer.Parser
         /// Gets a <see cref="ISqlHasStringValue"/> or a <see cref="SqlTNodeSimplePattern"/>.
         /// </summary>
         public ISqlNode Pattern => _content.V7;
+
+        /// <summary>
+        /// Gets the normalized cardinality.
+        /// </summary>
+        public LocationCardinalityInfo GetCardinality() => new LocationCardinalityInfo( this );
 
         [DebuggerStepThrough]
         internal protected override ISqlNode Accept( SqlNodeVisitor visitor ) => visitor.Visit( this );

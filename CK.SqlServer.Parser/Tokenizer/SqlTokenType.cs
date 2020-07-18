@@ -13,7 +13,7 @@ namespace CK.SqlServer.Parser
     ///
     /// 15       (                                                          Expression grouping & function parameters.
     /// 14       .                                                          Dotted names & method calls.
-    /// 13       ~                                                          Bitwise NOT.
+    /// 13       ~                                                          Bitwise NOT and collate.
     /// 12       * /  %                                                     Multiplication, division, modulo division.
     /// 11       + - &amp; ^ |                                              + (for "Positive", "Add" and "Concatenate"), - (for "Negative" and "Subtract"), Bitwise AND, Bitwise Exclusive OR, and Bitwise OR.
     /// 
@@ -547,6 +547,7 @@ namespace CK.SqlServer.Parser
         Server,
         Last,
         XmlNamespaces,
+        Zone,
 
         // This is not sql :)
         // These identifiers support SqlTXXX (transformer) nodes.

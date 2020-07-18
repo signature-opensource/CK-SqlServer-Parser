@@ -1,4 +1,4 @@
-﻿using CK.Core;
+using CK.Core;
 using CK.SqlServer.Parser;
 using System;
 using System.Collections.Generic;
@@ -11,7 +11,17 @@ namespace CK.SqlServer.Transform
 {
     public static class SqlTNodeExtension
     {
-        internal static LocationInfo GetFinderInfo( this SqlTLocationFinder @this ) => new LocationInfo( @this );
+        /// <summary>
+        /// Creates a new <see cref="LocationInfo"/>.
+        /// </summary>
+        /// <param name="this">This finder.</param>
+        /// <param name="isAfterContext">
+        /// Whether we are in an "after" context (as opposed to "before").
+        /// This is when <see cref="ISqlTLocationFinder.Pattern"/> is a <see cref="ISqlHasStringValue"/> (a comment pattern)
+        /// to be able to configure <see cref="SqlNodeScopeFromTriviaMatcher"/>.
+        /// </param>
+        /// <returns>A LocationInfo.</returns>
+        internal static LocationInfo GetFinderInfo( this ISqlTLocationFinder @this, bool isAfterContext ) => new LocationInfo( @this, isAfterContext );
 
         public static bool MatchPartOrStatement( this SqlTNodeSimplePattern @this, ISqlNode n )
         {
@@ -31,17 +41,6 @@ namespace CK.SqlServer.Transform
             {
                 tokens.Dispose();
             }
-        }
-
-
-        public static IEnumerable<SqlNodeLocationRange> ToRanges( this IEnumerable<SqlToken> @this, SqlTCurlyPattern pattern, int offset = 0 )
-        {
-            if( pattern == null ) throw new ArgumentNullException( nameof(pattern) );
-            yield break;
-            //List<PTokenList> list = AnalyzePattern( pattern );
-            //if( list.Count == 0 ) yield break;
-            //foreach( )
-            //return null;
         }
 
     }

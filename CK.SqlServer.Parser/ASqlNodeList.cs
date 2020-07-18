@@ -1,4 +1,4 @@
-﻿using CK.Core;
+using CK.Core;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -13,7 +13,7 @@ namespace CK.SqlServer.Parser
     /// <summary>
     /// Simple abstract wrapper around an array of T.
     /// </summary>
-    public abstract class ASqlNodeList<T> : SqlNonTokenAutoWidth, IReadOnlyList<T> where T : class, ISqlNode 
+    public abstract class ASqlNodeList<T> : SqlNonTokenAutoWidth, ISqlNodeList<T> where T : class, ISqlNode 
     {
         readonly IReadOnlyList<T> _items;
 

@@ -93,9 +93,9 @@ namespace CK.SqlServer.Transform.Tests.XmlTests
             static SqlTransformer ParseTransformer( string text )
             {
                 var r = new SqlServerParser().Parse( text );
-                Assert.That( r.IsError, Is.False, r.ErrorMessage );
-                Assert.That( r.Result, Is.Not.Null );
-                Assert.That( r.Result, Is.InstanceOf<SqlTransformer>() );
+                r.IsError.Should().BeFalse( r.ErrorMessage );
+                r.Result.Should().NotBeNull();
+                r.Result.Should().BeAssignableTo<SqlTransformer>();
                 return (SqlTransformer)r.Result;
             }
         }

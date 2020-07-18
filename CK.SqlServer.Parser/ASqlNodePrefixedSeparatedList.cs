@@ -1,4 +1,4 @@
-﻿using CK.Core;
+using CK.Core;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -13,7 +13,7 @@ namespace CK.SqlServer.Parser
     /// <summary>
     /// Generic list of T separated by TSep and prefixed by a TPrefix.
     /// </summary>
-    public abstract class ASqlNodePrefixedSeparatedList<TPrefix,T, TSep> : SqlNonTokenAutoWidth, IReadOnlyList<T>
+    public abstract class ASqlNodePrefixedSeparatedList<TPrefix,T, TSep> : SqlNonTokenAutoWidth, ISqlNodeList<T>
         where TPrefix : class, ISqlNode
         where T : class, ISqlNode
         where TSep : class, ISqlNode

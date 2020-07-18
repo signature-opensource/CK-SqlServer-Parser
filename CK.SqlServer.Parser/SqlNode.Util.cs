@@ -222,12 +222,25 @@ namespace CK.SqlServer.Parser
                 if( e == null ) throw new ArgumentNullException( name );
             }
 
+            /// <summary>
+            /// Checks whether a node is not null and from a type.
+            /// </summary>
+            /// <typeparam name="T">The expected type of the node.</typeparam>
+            /// <param name="e">The node.</param>
+            /// <param name="name">The node name.</param>
             public static void CheckNotNull<T>( ISqlNode e, string name )
             {
                 if( e == null ) throw new ArgumentNullException( name );
                 if( !(e is T) ) throw new ArgumentException( $"Must be a '{typeof( T ).Name}'.", name );
             }
 
+            /// <summary>
+            /// Checks whether a node is not null and from one or another type.
+            /// </summary>
+            /// <typeparam name="T1">The first type.</typeparam>
+            /// <typeparam name="T2">The second possible type.</typeparam>
+            /// <param name="e">The node.</param>
+            /// <param name="name">The node name.</param>
             public static void CheckNotNull<T1,T2>( ISqlNode e, string name )
             {
                 if( e == null ) throw new ArgumentNullException( name );

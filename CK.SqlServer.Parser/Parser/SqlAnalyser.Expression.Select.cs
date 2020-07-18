@@ -80,6 +80,7 @@ namespace CK.SqlServer.Parser
                 return null;
             }
             using( R.SetAssignmentContext( true ) )
+            using( R.SetNoTypeContextContext( true ) )
             {
                 ISqlNode e = IsOneExpression( true );
                 if( e == null ) return null;

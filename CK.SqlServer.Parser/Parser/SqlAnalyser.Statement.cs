@@ -1230,7 +1230,7 @@ namespace CK.SqlServer.Parser
         {
             SqlTokenIdentifier id;
             if( R.IsToken( out id, t => t.TokenType != SqlTokenType.TableDbType && t.TokenType.IsDbType(), false )
-                || (id = R.IsQuotedDbTypeWithUselessComments( false )) != null )
+                || (id = R.IsQuotedDbTypeWithUselessComments()) != null )
             {
                 Debug.Assert( SqlKeyword.FromSqlTokenTypeToSqlDbType( id.TokenType ).HasValue, "TokenType has been mapped to a SqlDbType." );
 

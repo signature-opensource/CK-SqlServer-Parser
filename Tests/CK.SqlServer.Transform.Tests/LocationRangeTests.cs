@@ -1,6 +1,7 @@
 using CK.Core;
 using CK.SqlServer.Parser;
 using CK.SqlServer.UtilTests;
+using FluentAssertions;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -144,6 +145,7 @@ namespace CK.SqlServer.Transform.Tests
             Assert.That( t.BuildRange( pI ).ToString(), Is.EqualTo( result ) );
         }
 
+        [Test]
         public void depth_versus_breadth_node_predicate()
         {
             string text = @"select * from (select * from (select * from sys.tables) t) t";
@@ -184,6 +186,136 @@ namespace CK.SqlServer.Transform.Tests
 
             Assert.That( t.Visit( new TriviaInjecter(), rA ) );
             Assert.That( t.Node.ToString( true, true ), Is.EqualTo( result ) );
+        }
+
+        [Test]
+        public void extrema_in_action_on_selects()
+        {
+            string text = @"select * from (select * from (select * from sys.tables) t) t";
+            ISqlNode node = new SqlAnalyser( text ).Parse();
+            var t = new SqlTransformHost( node, TestHelper.ConsoleMonitor );
+
+            var selects = new SqlNodeScopeDepthPredicate( n => n.AllTokens.FirstOrDefault()?.TokenType == SqlTokenType.Select, false );
+
+            var extrema = new SqlNodeScopeExtrema( selects, SqlNodeScopeExtrema.Option.None );
+            t.BuildRange( extrema ).ToString().Should().Be( "[0,9[" );
+
+            var after = new SqlNodeScopeExtrema( selects, SqlNodeScopeExtrema.Option.After );
+            t.BuildRange( after ).ToString().Should().Be( "[9,18[" );
+
+            var afterIncluded = new SqlNodeScopeExtrema( selects, SqlNodeScopeExtrema.Option.AfterIncluded );
+            t.BuildRange( afterIncluded ).ToString().Should().Be( "[0,18[" );
+
+            var before = new SqlNodeScopeExtrema( selects, SqlNodeScopeExtrema.Option.Before );
+            t.BuildRange( before ).ToString().Should().Be( "∅" );
+
+            var beforeIncluded = new SqlNodeScopeExtrema( selects, SqlNodeScopeExtrema.Option.BeforeIncluded );
+            t.BuildRange( beforeIncluded ).ToString().Should().Be( "[0,9[" );
+        }
+
+        [Test]
+        public void extrema_in_action_on_from()
+        {
+            string text = @"select * from (select * from (select * from sys.tables) t) t";
+            ISqlNode node = new SqlAnalyser( text ).Parse();
+            var t = new SqlTransformHost( node, TestHelper.ConsoleMonitor );
+
+            var froms = new SqlNodeScopeDepthPredicate( n => n.AllTokens.FirstOrDefault()?.TokenType == SqlTokenType.From, false );
+
+            var extrema = new SqlNodeScopeExtrema( froms, SqlNodeScopeExtrema.Option.None );
+            t.BuildRange( extrema ).ToString().Should().Be( "[2,11[" );
+
+            var after = new SqlNodeScopeExtrema( froms, SqlNodeScopeExtrema.Option.After );
+            t.BuildRange( after ).ToString().Should().Be( "[11,18[" );
+
+            var afterIncluded = new SqlNodeScopeExtrema( froms, SqlNodeScopeExtrema.Option.AfterIncluded );
+            t.BuildRange( afterIncluded ).ToString().Should().Be( "[2,18[" );
+
+            var before = new SqlNodeScopeExtrema( froms, SqlNodeScopeExtrema.Option.Before );
+            t.BuildRange( before ).ToString().Should().Be( "[0,2[" );
+
+            var beforeIncluded = new SqlNodeScopeExtrema( froms, SqlNodeScopeExtrema.Option.BeforeIncluded );
+            t.BuildRange( beforeIncluded ).ToString().Should().Be( "[0,11[" );
+        }
+
+        [Test]
+        public void extrema_in_action_on_t()
+        {
+            string text = @"select * from (select * from (select * from sys.tables) t) t";
+            ISqlNode node = new SqlAnalyser( text ).Parse();
+            var t = new SqlTransformHost( node, TestHelper.ConsoleMonitor );
+
+            var ts = new SqlNodeScopeDepthPredicate( n => n.IsToken(SqlTokenType.IdentifierStandard) && n.ToStringHyperCompact() == "t", false );
+
+            var extrema = new SqlNodeScopeExtrema( ts, SqlNodeScopeExtrema.Option.None );
+            t.BuildRange( extrema ).ToString().Should().Be( "[15,18[" );
+
+            var after = new SqlNodeScopeExtrema( ts, SqlNodeScopeExtrema.Option.After );
+            t.BuildRange( after ).ToString().Should().Be( "∅" );
+
+            var afterIncluded = new SqlNodeScopeExtrema( ts, SqlNodeScopeExtrema.Option.AfterIncluded );
+            t.BuildRange( afterIncluded ).ToString().Should().Be( "[15,18[" );
+
+            var before = new SqlNodeScopeExtrema( ts, SqlNodeScopeExtrema.Option.Before );
+            t.BuildRange( before ).ToString().Should().Be( "[0,15[" );
+
+            var beforeIncluded = new SqlNodeScopeExtrema( ts, SqlNodeScopeExtrema.Option.BeforeIncluded );
+            t.BuildRange( beforeIncluded ).ToString().Should().Be( "[0,18[" );
+        }
+
+
+        [Test]
+        public void SqlNodeScopeFromTriviaMatcher_on_flat_tokens()
+        {
+            string text = @"/*0*/A/*1*/B/*2*/C/*3*/";
+            var input = new SqlAnalyser( text ).Parse();
+            var h = new SqlTransformHost( input, TestHelper.ConsoleMonitor );
+
+            var after0 = new SqlNodeScopeFromTriviaMatcher( true, t => t.Text == "0", "After 0" );
+            h.BuildRange( after0 ).ToString().Should().Be( "[0,1[" );
+
+            var before0 = new SqlNodeScopeFromTriviaMatcher( false, t => t.Text == "0", "Before 0" );
+            h.BuildRange( before0 ).ToString().Should().Be( "]0[" );
+
+            var bothAAndB = new SqlNodeScopeFromTriviaMatcher( true, t => t.Text == "0" || t.Text == "1", "A and B." );
+            h.BuildRange( bothAAndB ).ToString().Should().Be( "[0,1[-[1,2[" );
+
+            var allAfter = new SqlNodeScopeFromTriviaMatcher( true, t => true, "AllAfter." );
+            h.BuildRange( allAfter ).ToString().Should().Be( "[0,1[-[1,2[-[2,3[" );
+
+            var allBefore = new SqlNodeScopeFromTriviaMatcher( false, t => true, "AllBefore." );
+            h.BuildRange( allBefore ).ToString().Should().Be( "]0[-[0,1[-[1,2[-[2,3[" );
+
+        }
+
+        [Test]
+        public void SqlNodeScopeFromTriviaMatcher_on_structure()
+        {
+            string text = @"/*0*/
+                            ( /*1*/
+                               A, /*2*/
+                               ( /*3*/
+                                 B /*4*/
+                               ) /*5*/
+                            )/*6*/";
+            var input = new SqlAnalyser( text ).Parse();
+            var h = new SqlTransformHost( input, TestHelper.ConsoleMonitor );
+
+            var after0 = new SqlNodeScopeFromTriviaMatcher( true, t => t.Text == "0", "After 0" );
+            h.BuildRange( after0 ).ToString().Should().Be( "[0,1[" );
+
+            var before6 = new SqlNodeScopeFromTriviaMatcher( false, t => t.Text == "6", "Before 6" );
+            h.BuildRange( before6 ).ToString().Should().Be( "[6,7[" );
+
+            var after6 = new SqlNodeScopeFromTriviaMatcher( true, t => t.Text == "6", "After 6" );
+            h.BuildRange( after6 ).ToString().Should().Be( "∅" );
+
+            var allAfter = new SqlNodeScopeFromTriviaMatcher( true, t => true, "AllAfter." );
+            h.BuildRange( allAfter ).ToString().Should().Be( "[0,1[-[1,2[-[3,4[-[4,5[-[5,6[-[6,7[" );
+
+            var allBefore = new SqlNodeScopeFromTriviaMatcher( false, t => true, "AllBefore." );
+            h.BuildRange( allBefore ).ToString().Should().Be( "]0[-[0,1[-[2,3[-[3,4[-[4,5[-[5,6[-[6,7[" );
+
         }
 
     }

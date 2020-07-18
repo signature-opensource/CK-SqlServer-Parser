@@ -15,9 +15,7 @@ namespace CK.SqlServer.Parser
             SqlTokenIdentifier,
             ISqlIdentifier,
             SqlTokenIdentifier,
-            SqlTokenIdentifier,
             SqlTStatementList,
-            SqlTokenIdentifier,
             SqlTokenTerminal>;
 
     public sealed class SqlTransformer : SqlNonTokenAutoWidth, ISqlNamedStatement, ISqlServerTransformer, ISqlFullNameHolder
@@ -31,9 +29,7 @@ namespace CK.SqlServer.Parser
             SqlTokenIdentifier onT,
             ISqlIdentifier targetName,
             SqlTokenIdentifier asT,
-            SqlTokenIdentifier beginT,
             SqlTStatementList body,
-            SqlTokenIdentifier endT, 
             SqlTokenTerminal term )
             : base( null, null )
         {
@@ -44,9 +40,7 @@ namespace CK.SqlServer.Parser
                 onT,
                 targetName,
                 asT,
-                beginT,
                 body,
-                endT,
                 term );
             CheckContent();
         }
@@ -69,9 +63,7 @@ namespace CK.SqlServer.Parser
             Helper.CheckNullableToken( OnT, nameof( OnT ), SqlTokenType.On );
             Helper.CheckBothNullOrNot( OnT, nameof( OnT ), TargetFullName, nameof( TargetFullName ) );
             Helper.CheckToken( AsT, nameof( AsT ), SqlTokenType.As );
-            Helper.CheckToken( BeginT, nameof( BeginT ), SqlTokenType.Begin );
             Helper.CheckNotNull( Body, nameof( Body ) );
-            Helper.CheckToken( EndT, nameof( EndT ), SqlTokenType.End );
         }
 
         protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IList<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
@@ -104,13 +96,9 @@ namespace CK.SqlServer.Parser
 
         public SqlTokenIdentifier AsT => _content.V6;
 
-        public SqlTokenIdentifier BeginT => _content.V7;
+        public SqlTStatementList Body => _content.V7;
 
-        public SqlTStatementList Body => _content.V8;
-
-        public SqlTokenIdentifier EndT => _content.V9;
-
-        public SqlTokenTerminal StatementTerminator => _content.V10;
+        public SqlTokenTerminal StatementTerminator => _content.V8;
 
         [DebuggerStepThrough]
         internal protected override ISqlNode Accept( SqlNodeVisitor visitor ) => visitor.Visit( this );

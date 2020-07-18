@@ -10,7 +10,8 @@ namespace CK.SqlServer.Transform
 {
 
     /// <summary>
-    /// Builds scopes based on a node predicate.
+    /// Builds scopes based on a node predicate. This is a breadth-first matcher: as soon as a node match,
+    /// none of its children will match.
     /// </summary>
     public sealed class SqlNodeScopeBreadthPredicate : SqlNodeScopeBuilder
     {

@@ -1,4 +1,4 @@
-﻿using CK.SqlServer.Parser;
+using CK.SqlServer.Parser;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +10,7 @@ namespace CK.SqlServer.Transform
     class DepthFirstNodeMatcherHelper
     {
         /// <summary>
-        /// This is used to promote a SelectSpec match to its containing SelectDecorator (if it exists).
+        /// This _selectDecorator is used to promote a SelectSpec match to its containing SelectDecorator (if it exists).
         /// When descending, we capture the top level decorator at its position so that
         /// we know that matching at this exact position is useless: only a SelectSpec (or
         /// another decorator) may match and if it is the case, we do not want the subordinated select to match.
@@ -21,7 +21,7 @@ namespace CK.SqlServer.Transform
 
         public DepthFirstNodeMatcherHelper( bool isPartMatch, Func<ISqlNode, bool> matcher )
         {
-            _matcher = matcher;
+            _matcher = matcher ?? throw new ArgumentNullException( nameof( matcher ) );
             if( isPartMatch ) _selectDecorator = new Stack<KeyValuePair<SelectDecorator, int>>();
         }
 
@@ -43,8 +43,7 @@ namespace CK.SqlServer.Transform
         {
             if( _selectDecorator != null )
             {
-                var d = c.VisitedNode as SelectDecorator;
-                if( d != null
+                if( c.VisitedNode is SelectDecorator d
                     && (_selectDecorator.Count == 0 || _selectDecorator.Peek().Value != c.Position) )
                 {
                     _selectDecorator.Push( new KeyValuePair<SelectDecorator, int>( d, c.Position ) );
@@ -60,7 +59,7 @@ namespace CK.SqlServer.Transform
         /// <returns>True if this node matches, false otherwise.</returns>
         public bool Match( IVisitContext c, ISqlNode e )
         {
-            if( IsCovered( c )
+            if( IsSelectCovered( c )
                 || c.Position < _previousMatchPos
                 || !c.RangeFilterStatus.IsIncludedInFilteredRange()
                 || !_matcher( e ) )
@@ -71,7 +70,7 @@ namespace CK.SqlServer.Transform
             return true;
         }
 
-        bool IsCovered( IVisitContext c )
+        bool IsSelectCovered( IVisitContext c )
         {
             if( _selectDecorator == null || _selectDecorator.Count == 0 ) return false;
             var h = _selectDecorator.Peek();

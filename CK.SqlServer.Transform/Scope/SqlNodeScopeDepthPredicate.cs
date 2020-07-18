@@ -9,7 +9,8 @@ namespace CK.SqlServer.Transform
 {
 
     /// <summary>
-    /// Builds scopes based on a node predicate.
+    /// Builds scopes based on a node predicate. This is a depth-first matcher: nodes match regardless
+    /// of whether any of its parents have matched.
     /// </summary>
     public sealed class SqlNodeScopeDepthPredicate : SqlNodeScopeBuilder
     {

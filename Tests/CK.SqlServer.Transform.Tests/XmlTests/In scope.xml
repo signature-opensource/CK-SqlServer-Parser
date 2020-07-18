@@ -5,16 +5,22 @@
     <Text>
       <![CDATA[
     begin
-    --<PreRead revert />
+      --<PreRead revert />
 
-    --!Header: Always returns the DynObjId (and may be more fields if code is injected here).
-    select DynObjId
-        from CK.tDynObj
-        where DynObjId = @DynObjId;
+      -- Here is another select... that has been added by extra package. We MUST target the select below!
+      select 1;
 
-    --<ReadMembers />
+      --!Header: Always returns the DynObjId (and may be more fields if code is injected here).
+      select DynObjId
+          from CK.tDynObj
+          where DynObjId = @DynObjId;
 
-    --<PostRead />
+      -- Here is another select... that has been added by extra package. We MUST target the select above!
+      select 1;
+
+      --<ReadMembers />
+
+      --<PostRead />
     end
     ]]>
     </Text>
@@ -23,37 +29,114 @@
       create transformer
       as
       begin
-		  -- Prepends the @PartDepth as the first column.
-		  -- If another package prepends another column, this will fail (this would need to be rewritten).
-		  -- TQL should enhance its InScope feature with after/before/between ... and ... suffixes.
-		  -- The code below should be: in first statement {select} after "--!Header:"
-		  -- This way, the injection will always "prepend" even if other transformations prepended stuff...
-		  in first statement {select DynObjId}
-		  begin
-		    inject " @PartDepth, " after first {select};
-		  end
+		    -- Prepends the @PartDepth as the first column:
+        --
+		    --          in first statement {select DynObjId,}
+		    --          begin
+		    --            inject " @PartDepth, " after first {select};
+		    --          end
+        --
+		    -- If another package prepends another column, this will fail (this would need to be rewritten).
+		    --        TQL could enhance its InScope feature with after/before/between ... and ... suffixes.
+		    --        The code would be: in first statement {select} after "--!Header:"
+		    -- This way, the injection will always "prepend" even if other transformations prepended stuff...
+        --
+        -- But a suffix is less "composable" than using InScope composition. So as of November 2019, the
+        -- InScope syntax supports a after/before/between range location.
+        -- 
+		    in after single "--!Header:"
+		      in first statement {select}
+		      begin
+		        inject " @PartDepth, " after first {select};
+		      end
       end
     </Description>
     <ResultText>
       <![CDATA[
     begin
-    --<PreRead revert />
+      --<PreRead revert />
 
-    --!Header: Always returns the DynObjId (and may be more fields if code is injected here).
-    select @PartDepth, DynObjId
-        from CK.tDynObj
-        where DynObjId = @DynObjId;
+      -- Here is another select... that has been added by extra package. We MUST target the select below!
+      select 1;
 
-    --<ReadMembers />
+      --!Header: Always returns the DynObjId (and may be more fields if code is injected here).
+      select @PartDepth, DynObjId
+          from CK.tDynObj
+          where DynObjId = @DynObjId;
 
-    --<PostRead />
+      -- Here is another select... that has been added by extra package. We MUST target the select above!
+      select 1;
+
+      --<ReadMembers />
+
+      --<PostRead />
     end
       ]]>
     </ResultText>
   </Test>
 
-  
   <Test>
+    <Text>
+      <![CDATA[
+    begin
+      --<PreRead revert />
+
+      -- Here is another select... that has been added by extra package. We MUST target the select below!
+      select 1;
+
+      --!Header: Always returns the DynObjId (and here, fields have been injected in front of the existing ones!).
+      select @SomethingAddedInFront, DynObjId
+          from CK.tDynObj
+          where DynObjId = @DynObjId;
+
+      -- Here is another select... that has been added by extra package. We MUST target the select above!
+      select 1;
+
+      --<ReadMembers />
+
+      --<PostRead />
+    end
+    ]]>
+    </Text>
+    <Description>
+      -- SetupConfig: {}
+      create transformer
+      as
+      begin
+		    -- See the test above. This one handles the case where another transformation
+        -- has injected columns in front of the existing ones...
+		    in after single "--!Header:"
+		      in first statement {select}
+		      begin
+		        inject " @PartDepth, " after first {select};
+		      end
+      end
+    </Description>
+    <ResultText>
+      <![CDATA[
+    begin
+      --<PreRead revert />
+
+      -- Here is another select... that has been added by extra package. We MUST target the select below!
+      select 1;
+
+      --!Header: Always returns the DynObjId (and here, fields have been injected in front of the existing ones!).
+      select @PartDepth, @SomethingAddedInFront, DynObjId
+          from CK.tDynObj
+          where DynObjId = @DynObjId;
+
+      -- Here is another select... that has been added by extra package. We MUST target the select above!
+      select 1;
+
+      --<ReadMembers />
+
+      --<PostRead />
+    end
+      ]]>
+    </ResultText>
+  </Test>
+
+    <Test>
     <Text>
       <![CDATA[
       create procedure CK.sGroupUserAdd
