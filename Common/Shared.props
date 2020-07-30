@@ -33,7 +33,7 @@
 
   <!--<StandardProperties>-->
   <PropertyGroup>
-    <RepositoryUrl>https://gitlab.com/Signature-Code/CK-SqlServer-Parser.git</RepositoryUrl>
+    <RepositoryUrl>https://gitlab.com/Signature-Code/CK-SqlServer-Parser</RepositoryUrl>
     <ProductName>CK</ProductName>
     <Company>Signature Code</Company>
     <Authors>Signature Code</Authors>
