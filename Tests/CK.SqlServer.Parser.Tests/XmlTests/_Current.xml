@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Tests>
+    <Test>
+        <Text>
+            create view AM.vMeasureValues as
+              select
+                MeasureId,
+                ValueIndex,
+                MeasureValue = convert( float, MeasureValue )/10,
+                MeasureValueUncumulated =
+                  convert( float,
+                    first_value(MeasureValue)
+                    over (
+                      partition by MeasureId order by ValueIndex
+                      ROWS BETWEEN 1 PRECEDING AND CURRENT ROW
+                    )
+                  )/10
+              from AM.tMeasureValues;
+        </Text>
+        <Description>A view with schemabinding.</Description>
+        <Xml ToStringCompact="Select">
+            <Sql>
+            </Sql>
+        </Xml>
+    </Test>
+</Tests>
