@@ -779,6 +779,9 @@ namespace CK.SqlServer.Parser
         SecurityAudit = StartIdentifierReservedNonOperator + 122,
         SessionUser = StartIdentifierReservedNonOperator + 123,
         Within = StartIdentifierReservedNonOperator + 124,
+        Preceding = StartIdentifierReservedNonOperator + 125,
+        Unbounded = StartIdentifierReservedNonOperator + 126,
+        Following = StartIdentifierReservedNonOperator + 127,
 
         #endregion
 
