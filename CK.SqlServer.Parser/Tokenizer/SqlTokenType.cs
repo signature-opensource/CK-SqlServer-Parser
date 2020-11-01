@@ -511,7 +511,8 @@ namespace CK.SqlServer.Parser
         Out,
         Output,
         /// <summary>
-        /// Rows is the official ISO identifier. Sql Server also accepts Row.
+        /// Rows is the official ISO identifier.
+        /// Sql Server also accepts Row: Row is registered as an alias of Rows.
         /// </summary>
         Rows,            
         Offset,
@@ -782,6 +783,7 @@ namespace CK.SqlServer.Parser
         Preceding = StartIdentifierReservedNonOperator + 125,
         Unbounded = StartIdentifierReservedNonOperator + 126,
         Following = StartIdentifierReservedNonOperator + 127,
+        Partition = StartIdentifierReservedNonOperator + 128,
 
         #endregion
 

@@ -126,7 +126,9 @@ namespace CK.SqlServer.Parser
                         if( !R.IsToken( out forT, SqlTokenType.For, true ) ) return null;
                         ISqlIdentifier seqName = IsIdentifier( true );
                         if( seqName == null ) return null;
-                        return new SqlNextValueFor( id, valueT, forT, seqName );
+                        SqlOverClause over = IsSqlOverClause( false );
+                        if( R.IsError ) return null;
+                        return new SqlNextValueFor( id, valueT, forT, seqName, over );
                     }
                 }
                 if( id.TokenType == SqlTokenType.Values )
@@ -137,6 +139,10 @@ namespace CK.SqlServer.Parser
                         if( values == null ) return null;
                         if( values.Count > 0 ) return new SqlTableValues( id, values );
                     }
+                }
+                if( id.TokenType == SqlTokenType.Over )
+                {
+                    return IsSqlOverClause( id );
                 }
                 // This shortcuts the nud/led mechanism by directly handling 
                 // the . or the :: as a top precedence level operator.
@@ -215,7 +221,7 @@ namespace CK.SqlServer.Parser
                 }
                 SqlWithinGroup withinGroup = IsWithinGroup( false );
                 if( R.IsError ) return false;
-                SqlOverClause over = IsOverClause( false );
+                SqlOverClause over = IsSqlOverClause( false );
                 if( R.IsError ) return false;
                 left = new SqlKoCall( left, parameters, withinGroup, over );
                 return true;
@@ -426,7 +432,7 @@ namespace CK.SqlServer.Parser
         /// <returns>One expression, a <see cref="SqlNodeList"/> or null.</returns>
         public ISqlNode IsExtendedExpression( bool expected, bool allowLeadingStatement )
         {
-            bool stopOnStatement = !allowLeadingStatement;  //!expected && R.ParenthesisDepth == 0;
+            bool stopOnStatement = !allowLeadingStatement; 
             List<ISqlNode> items = new List<ISqlNode>();
             while( !R.IsErrorOrEndOfInput 
                 && !SqlToken.IsEndOfExtendedExpression( R.Current )

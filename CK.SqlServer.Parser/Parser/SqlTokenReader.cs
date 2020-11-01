@@ -33,12 +33,23 @@ namespace CK.SqlServer.Parser
 
         public int ParenthesisDepth => _parenthesisDepth;
 
+        /// <summary>
+        /// Increments the <see cref="ParenthesisDepth"/> count and returns a disposable that decrements it.
+        /// </summary>
+        /// <returns></returns>
         public IDisposable OpenParenthesis()
         {
             ++_parenthesisDepth;
             return Util.CreateDisposableAction( () => --_parenthesisDepth );
         }
 
+        /// <summary>
+        /// Creates a predicate that will return true whenever <see cref="ParenthesisDepth"/>'s value is the current one
+        /// and the token is <see cref="SqlTokenType.ClosePar"/>.
+        /// Note that <see cref="SqlTokenType.EndOfInput"/> always returns true and, when the current ParenthesisDepth
+        /// is 0, <see cref="IsTerminatorOrEndOfInput"/> returns true.
+        /// </summary>
+        /// <returns>The predicate.</returns>
         public Predicate<SqlToken> GetDepthBasedStopper()
         {
             int curDepth = _parenthesisDepth;
@@ -282,7 +293,7 @@ namespace CK.SqlServer.Parser
         /// </summary>
         /// <typeparam name="T">Type of stopper.</typeparam>
         /// <param name="items">List of collected nodes.</param>
-        /// <param name="matcher">IsXXX function (trasforms the current token - and its following ones - into any kind of node).</param>
+        /// <param name="matcher">IsXXX function (transforms the current token - and its following ones - into any kind of node).</param>
         /// <param name="stopperDefinition">Lambda that defines what the stopper should be. When null, the type of token is used.</param>
         /// <returns>True if no error occurred.</returns>
         internal bool CollectUntil<T>( List<ISqlNode> items, Func<bool, ISqlNode> matcher = null, Predicate<T> stopperDefinition = null ) where T : SqlToken
@@ -316,7 +327,7 @@ namespace CK.SqlServer.Parser
         /// Collects a list of comma separated typed nodes with or without optional enclosing parenthesis.
         /// </summary>
         /// <typeparam name="T">Type of the expressions to match.</typeparam>
-        /// <param name="items">Collector for itemsthat will be filled with <typeparamref name="T"/> and comma tokens. Can be empty if no expression have been matched.</param>
+        /// <param name="items">Collector for items that will be filled with <typeparamref name="T"/> and comma tokens. Can be empty if no expression have been matched.</param>
         /// <param name="openPar">Optional opening parenthesis.</param>
         /// <param name="closePar">Closing parenthesis. Not null if and only if an opening parenthesis exists.</param>
         /// <param name="matcher">Function that knows how to match an item.</param>
@@ -370,7 +381,7 @@ namespace CK.SqlServer.Parser
         {
             SqlTokenOpenPar openPar;
             SqlTokenClosePar closePar;
-            return CollectCommaList( items, out openPar, out closePar, matcher, minCount, null );
+            return CollectCommaList( items, out openPar, out closePar, matcher, minCount, parenthesis: null );
         }
 
         /// <summary>

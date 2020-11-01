@@ -8,27 +8,32 @@ using System.Threading.Tasks;
 
 namespace CK.SqlServer.Parser
 {
+    using CNode = SNode<SqlTokenIdentifier,
+                        SqlTokenIdentifier,
+                        SqlOrderByList,
+                        SqlTokenIdentifier,
+                        ISqlNode,
+                        SqlTokenIdentifier,
+                        SqlTokenIdentifier,
+                        SqlTokenIdentifier,
+                        ISqlNode,
+                        SqlTokenIdentifier,
+                        SqlTokenIdentifier>;
+
+    /// <summary>
+    /// See https://docs.microsoft.com/en-us/sql/t-sql/queries/select-order-by-clause-transact-sql#syntax
+    /// This is a child of the <see cref="SelectDecorator"/> that handles order by clauses and "offset_fetch" extension.
+    /// </summary>
     public sealed class SelectOrderBy : SqlNonTokenAutoWidth
     {
-        readonly SNode<
-                    SqlTokenIdentifier,
-                    SqlTokenIdentifier,
-                    SqlOrderByList,
-                    SqlTokenIdentifier,
-                    ISqlNode,
-                    SqlTokenIdentifier,
-                    SqlTokenIdentifier,
-                    SqlTokenIdentifier,
-                    ISqlNode,
-                    SqlTokenIdentifier,
-                    SqlTokenIdentifier> _content;
+        readonly CNode _content;
 
         public SelectOrderBy(
             SqlTokenIdentifier orderT, SqlTokenIdentifier byT, SqlOrderByList orderByList,
             SqlTokenIdentifier offsetToken, ISqlNode offsetExpr, SqlTokenIdentifier rowsToken )
             : base( null, null )
         {
-            _content = new SNode<SqlTokenIdentifier, SqlTokenIdentifier, SqlOrderByList, SqlTokenIdentifier, ISqlNode, SqlTokenIdentifier, SqlTokenIdentifier, SqlTokenIdentifier, ISqlNode, SqlTokenIdentifier, SqlTokenIdentifier>(
+            _content = new CNode(
                 orderT, byT, orderByList,
                 offsetToken,
                 offsetExpr,
@@ -43,11 +48,11 @@ namespace CK.SqlServer.Parser
         }
 
         public SelectOrderBy( SqlTokenIdentifier orderT, SqlTokenIdentifier byT, SqlOrderByList orderByList, 
-                                    SqlTokenIdentifier offsetToken, ISqlNode offsetExpr, SqlTokenIdentifier rowsToken,
-                                    SqlTokenIdentifier fetchToken, SqlTokenIdentifier firstOrNextToken, ISqlNode fetchExpr, SqlTokenIdentifier fetchRowsToken, SqlTokenIdentifier onlyToken )
+                              SqlTokenIdentifier offsetToken, ISqlNode offsetExpr, SqlTokenIdentifier rowsToken,
+                              SqlTokenIdentifier fetchToken, SqlTokenIdentifier firstOrNextToken, ISqlNode fetchExpr, SqlTokenIdentifier fetchRowsToken, SqlTokenIdentifier onlyToken )
             : base( null, null )
         {
-            _content = new SNode<SqlTokenIdentifier, SqlTokenIdentifier, SqlOrderByList, SqlTokenIdentifier, ISqlNode, SqlTokenIdentifier, SqlTokenIdentifier, SqlTokenIdentifier, ISqlNode, SqlTokenIdentifier, SqlTokenIdentifier>(
+            _content = new CNode(
                 orderT, byT, orderByList,
                 offsetToken, 
                 offsetExpr, 

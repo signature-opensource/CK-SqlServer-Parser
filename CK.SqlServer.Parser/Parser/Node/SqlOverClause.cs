@@ -8,19 +8,24 @@ using System.Text;
 
 namespace CK.SqlServer.Parser
 {
-    using CNode = SNode<SqlTokenIdentifier, SqlTokenOpenPar, ISqlNode, SqlTokenClosePar>;
+    using CNode = SNode<SqlTokenIdentifier, SqlTokenOpenPar, SqlOverClausePartition, SqlOrderByClause, SqlOverClauseRowOrRange, SqlTokenClosePar>;
 
     /// <summary>
-    /// Captures a OVER ( [ partition_by_clause ] ). 
+    /// See https://docs.microsoft.com/en-us/sql/t-sql/queries/select-over-clause-transact-sql#syntax
+    /// OVER (   
+    ///    [ PARTITION BY clause ] ==> SqlOverClausePartition  
+    ///    [ ORDER BY clause ]     ==> SqlOrderByClause.
+    ///    [ ROW or RANGE clause ] ==> SqlOverClauseRowOrRange
+    ///   )  
     /// </summary>
     public sealed class SqlOverClause : SqlNonTokenAutoWidth
     {
         readonly CNode _content;
 
-        public SqlOverClause( SqlTokenIdentifier overT, SqlTokenOpenPar opener, ISqlNode overExpression, SqlTokenClosePar closer )
+        public SqlOverClause( SqlTokenIdentifier overT, SqlTokenOpenPar opener, SqlOverClausePartition partition, SqlOrderByClause orderBy, SqlOverClauseRowOrRange rowOrRange, SqlTokenClosePar closer )
             : base( null, null )
         {
-            _content = new CNode( overT, opener, overExpression, closer );
+            _content = new CNode( overT, opener, partition, orderBy, rowOrRange, closer );
             CheckContent();
         }
 
@@ -56,11 +61,21 @@ namespace CK.SqlServer.Parser
         public SqlTokenOpenPar Opener => _content.V2;
 
         /// <summary>
-        /// Gets the over clause content. May be null. 
+        /// Gets the over partition by clause. May be null. 
         /// </summary>
-        public ISqlNode OverContent => _content.V3;
+        public SqlOverClausePartition Partition => _content.V3;
 
-        public SqlTokenClosePar Closer => _content.V4;
+        /// <summary>
+        /// Gets the over order by clause. May be null. 
+        /// </summary>
+        public SqlOrderByClause OrderBy => _content.V4;
+
+        /// <summary>
+        /// Gets the over row or range clause. May be null. 
+        /// </summary>
+        public SqlOverClauseRowOrRange RowOrRange => _content.V5;
+
+        public SqlTokenClosePar Closer => _content.V6;
 
         [DebuggerStepThrough]
         internal protected override ISqlNode Accept( SqlNodeVisitor visitor ) => visitor.Visit( this );
