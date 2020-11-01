@@ -163,7 +163,7 @@ namespace CK.SqlServer.UtilTests
         protected override ISqlNode Visit( SelectOrderBy e )
         {
             StartNode( e, x => x.Add(
-                    ToXml( nameof( e.OrderByColumns ), e.OrderByColumns ),
+                    ToXml( nameof( e.OrderByClause ), e.OrderByClause.OrderByColumns ),
                     e.HasOffset ? ToXml( nameof( e.OffsetExpression ), e.OffsetExpression ) : null,
                     e.HasFetch ? ToXml( nameof( e.FetchExpression ), e.FetchExpression ) : null )
                     );

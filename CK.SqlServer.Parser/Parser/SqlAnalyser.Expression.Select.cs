@@ -296,11 +296,8 @@ namespace CK.SqlServer.Parser
 
         SelectOrderBy IsSelectOrderBy( bool expected )
         {
-            SqlTokenIdentifier orderT, byT = null;
-            if( !R.IsToken( out orderT, SqlTokenType.Order, expected ) 
-                || !R.IsToken( out byT, SqlTokenType.By, true ) ) return null;
-            SqlOrderByList orderByList = IsCommaList( 1, IsOrderByItem, i => new SqlOrderByList( i ) );
-            if( orderByList == null ) return null;
+            SqlOrderByClause orderBy = IsSqlOrderByClause( expected );
+            if( orderBy == null ) return null;
 
             SqlTokenIdentifier offsetToken;
             ISqlNode offsetExpr = null;
@@ -323,10 +320,10 @@ namespace CK.SqlServer.Parser
                     if( !R.IsToken( out fetchRowsToken, SqlTokenType.Rows, true ) ) return null;
                     SqlTokenIdentifier onlyToken;
                     if( !R.IsToken( out onlyToken, SqlTokenType.Only, true ) ) return null;
-                    return new SelectOrderBy( orderT, byT, orderByList, offsetToken, offsetExpr, rowsToken, fetchToken, firstOrNextToken, fetchExpr, fetchRowsToken, onlyToken );
+                    return new SelectOrderBy( orderBy, offsetToken, offsetExpr, rowsToken, fetchToken, firstOrNextToken, fetchExpr, fetchRowsToken, onlyToken );
                 }
             }
-            return new SelectOrderBy( orderT, byT, orderByList, offsetToken, offsetExpr, rowsToken );
+            return new SelectOrderBy( orderBy, offsetToken, offsetExpr, rowsToken );
         }
 
         SelectFor IsSelectFor( bool expected )
