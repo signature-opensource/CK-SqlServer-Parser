@@ -230,6 +230,10 @@ namespace CK.SqlServer.Parser
         public static readonly SqlTokenIdentifier Constraint;
         public static readonly SqlTokenIdentifier SessionUser;
         public static readonly SqlTokenIdentifier Within;
+        public static readonly SqlTokenIdentifier Preceding;
+        public static readonly SqlTokenIdentifier Unbounded;
+        public static readonly SqlTokenIdentifier Following;
+        public static readonly SqlTokenIdentifier Partition;
         public static readonly SqlTokenIdentifier SetUser;
         public static readonly SqlTokenIdentifier Join;
         public static readonly SqlTokenIdentifier Shutdown;
@@ -621,6 +625,10 @@ namespace CK.SqlServer.Parser
             Constraint		= RegKeyword( "constraint", SqlTokenType.Constraint );
             SessionUser     = RegKeyword( "session_user", SqlTokenType.SessionUser );
             Within          = RegKeyword( "within", SqlTokenType.Within );
+            Preceding       = RegKeyword( "preceding", SqlTokenType.Preceding );
+            Unbounded       = RegKeyword( "unbounded", SqlTokenType.Unbounded );
+            Following       = RegKeyword( "following", SqlTokenType.Following );
+            Partition       = RegKeyword( "partition", SqlTokenType.Partition );
             SetUser         = RegKeyword( "setuser", SqlTokenType.SetUser );
             Join			= RegKeyword( "join", SqlTokenType.Join );
             Shutdown		= RegKeyword( "shutdown", SqlTokenType.Shutdown );

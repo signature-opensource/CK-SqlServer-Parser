@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="utf-8" ?>
 <Tests>
 
   <Test Mode="OneExpression">
@@ -51,7 +50,7 @@
       </Sql>
     </Xml>
   </Test>
-
+  
   <Test Mode="OneExpression">
     <Text>
       SELECT TOP 1 PERCENT * FROM ttt
@@ -134,7 +133,7 @@
             </Columns>
           </SelectSpec>
         </Select>
-        <OrderByColumns>
+        <OrderByClause>
           <OrderByList>
             <Item>
               <OrderByItem Desc="true">
@@ -144,7 +143,7 @@
               </OrderByItem>
             </Item>
           </OrderByList>
-        </OrderByColumns>
+        </OrderByClause>
       </SelectDecorator>
     </Xml>
   </Test>
@@ -367,7 +366,7 @@
             </Select>
             <OrderBy>
               <SelectOrderBy>
-                <OrderByColumns>
+                <OrderByClause>
                   <OrderByList>
                     <Item>
                       <OrderByItem Desc="true">
@@ -384,7 +383,7 @@
                       </OrderByItem>
                     </Item>
                   </OrderByList>
-                </OrderByColumns>
+                </OrderByClause>
                 <OffsetExpression>
                   <BinaryOperator>
                     <Left>
@@ -517,7 +516,7 @@
                              <Item>
                                <NodeList>
                                  <Item>
-                                   <!-- 
+                                  <!-- 
                                    This is a shame. Without context, Date is a TypeDecl.
                                    This is the price to pay to avoid KoCall for char(30).
                                    -->
@@ -574,7 +573,7 @@
       SELECT ROW_NUMBER() OVER(PARTITION BY PostalCode ORDER BY SalesYTD DESC) AS RowNumber from table
     </Text>
     <Description>Select in parenthesis.</Description>
-    <Xml ToStringCompact="From">
+    <Xml ToStringCompact="From, OverClause">
       <Sql>
         <SelectSpec>
           <Columns>
@@ -586,35 +585,7 @@
                       <Parameters>
                         <EnclosedCommaList />
                       </Parameters>
-                      <OverClause>
-                        <OverClause>
-                          <OverContent>
-                            <NodeList>
-                              <Item>
-                                <Identifier>PARTITION</Identifier>
-                              </Item>
-                              <Item>
-                                <Identifier IsReservedKeyword="true">BY</Identifier>
-                              </Item>
-                              <Item>
-                                <Identifier>PostalCode</Identifier>
-                              </Item>
-                              <Item>
-                                <Identifier IsReservedKeyword="true">ORDER</Identifier>
-                              </Item>
-                              <Item>
-                                <Identifier IsReservedKeyword="true">BY</Identifier>
-                              </Item>
-                              <Item>
-                                <Identifier>SalesYTD</Identifier>
-                              </Item>
-                              <Item>
-                                <Identifier IsReservedKeyword="true">DESC</Identifier>
-                              </Item>
-                            </NodeList>
-                          </OverContent>
-                        </OverClause>
-                      </OverClause>
+                      <OverClause>OVER(PARTITION BY PostalCode ORDER BY SalesYTD DESC)</OverClause>
                     </KoCall>
                   </Definition>
                 </SelectColumn>
@@ -626,6 +597,43 @@
       </Sql>
     </Xml>
   </Test>
+
+  <Test>
+    <Text>
+      select max(GroupName) over( partition by ZoneId) collate greek_ci_as from CK.vGroup
+    </Text>
+    <Description>Select with over and collate.</Description>
+    <Xml ToStringCompact="Parameters,OverClause,From">
+        <Sql>
+          <SelectStatement>
+            <Select>
+              <SelectSpec>
+                <Columns>
+                  <SelectColumnList>
+                    <Item>
+                      <SelectColumn>
+                        <Definition>
+                          <Collate CollationName="greek_ci_as">
+                            <Left>
+                              <KoCall FunName="max">
+                                <Parameters>(GroupName)</Parameters>
+                                <OverClause>over(partition by ZoneId)</OverClause>
+                              </KoCall>
+                            </Left>
+                          </Collate>
+                        </Definition>
+                      </SelectColumn>
+                    </Item>
+                  </SelectColumnList>
+                </Columns>
+                <From>from CK.vGroup</From>
+              </SelectSpec>
+            </Select>
+          </SelectStatement>
+        </Sql>
+    </Xml>
+  </Test>
+  
 
   <Test Mode="OneExpression">
     <Text>
@@ -1123,7 +1131,5 @@
       </Sql>
     </Xml>
   </Test>
-   
-  
-  
+
 </Tests>

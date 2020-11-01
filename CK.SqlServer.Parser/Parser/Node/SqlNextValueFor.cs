@@ -9,17 +9,19 @@ using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
+    using CNode = SNode<SqlTokenIdentifier, SqlTokenIdentifier, SqlTokenIdentifier, ISqlIdentifier, SqlOverClause>;
+
     /// <summary>
     /// Defines "next value for {sequence}>" expression.
     /// </summary>
     public sealed class SqlNextValueFor : SqlNonTokenAutoWidth
     {
-        readonly SNode<SqlTokenIdentifier, SqlTokenIdentifier, SqlTokenIdentifier, ISqlIdentifier> _content;
+        readonly CNode _content;
 
-        public SqlNextValueFor( SqlTokenIdentifier nextT, SqlTokenIdentifier valueT, SqlTokenIdentifier forT, ISqlIdentifier seqName )
+        public SqlNextValueFor( SqlTokenIdentifier nextT, SqlTokenIdentifier valueT, SqlTokenIdentifier forT, ISqlIdentifier seqName, SqlOverClause overClause )
             : base( null, null )
         {
-            _content = new SNode<SqlTokenIdentifier, SqlTokenIdentifier, SqlTokenIdentifier, ISqlIdentifier>( nextT, valueT, forT, seqName );
+            _content = new CNode( nextT, valueT, forT, seqName, overClause );
             CheckContent();
         }
 
@@ -37,7 +39,7 @@ namespace CK.SqlServer.Parser
             if( items == null ) _content = o._content;
             else
             {
-                _content = new SNode<SqlTokenIdentifier, SqlTokenIdentifier, SqlTokenIdentifier, ISqlIdentifier>( items );
+                _content = new CNode( items );
                 CheckContent();
             }
         }
@@ -58,6 +60,8 @@ namespace CK.SqlServer.Parser
         public SqlTokenIdentifier ForT => _content.V3;
 
         public ISqlIdentifier SequenceName=> _content.V4;
+
+        public SqlOverClause OverClause => _content.V5;
 
         [DebuggerStepThrough]
         internal protected override ISqlNode Accept( SqlNodeVisitor visitor ) => visitor.Visit( this );

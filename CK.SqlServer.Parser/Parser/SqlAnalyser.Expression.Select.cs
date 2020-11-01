@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using CK.SqlServer;
 
@@ -118,20 +119,73 @@ namespace CK.SqlServer.Parser
             }
         }
 
-        SqlOverClause IsOverClause( bool expected )
+        SqlOrderByClause IsSqlOrderByClause( bool expected )
         {
-            SqlTokenIdentifier overToken;
-            if( !R.IsToken( out overToken, SqlTokenType.Over, expected ) ) return null;
+            SqlTokenIdentifier orderT, byT = null;
+            if( !R.IsToken( out orderT, SqlTokenType.Order, expected )
+                || !R.IsToken( out byT, SqlTokenType.By, true ) ) return null;
+            SqlOrderByList orderByList = IsCommaList( 1, IsOrderByItem, i => new SqlOrderByList( i ) );
+            if( orderByList == null ) return null;
+            return new SqlOrderByClause( orderT, byT, orderByList );
+        }
+
+        SqlOrderByItem IsOrderByItem( bool expected )
+        {
+            ISqlNode definition = IsOneExpression( true );
+            if( definition == null ) return null;
+            SqlTokenIdentifier ascOrDesc;
+            if( !R.IsToken( out ascOrDesc, SqlTokenType.Asc, false ) ) R.IsToken( out ascOrDesc, SqlTokenType.Desc, false );
+            return new SqlOrderByItem( definition, ascOrDesc );
+        }
+
+        SqlOverClause IsSqlOverClause( SqlTokenIdentifier overT )
+        {
+            Debug.Assert( overT.TokenType == SqlTokenType.Over );
             using( R.SetAssignmentContext( false ) )
             {
                 SqlTokenOpenPar openPar;
                 if( !R.IsToken( out openPar, true ) ) return null;
-                ISqlNode overContent = IsAnyExpression( false );
+
+                SqlOverClausePartition partition = IsSqlOverClausePartition();
                 if( R.IsError ) return null;
+
+                SqlOrderByClause orderBy = IsSqlOrderByClause( false );
+                if( R.IsError ) return null;
+
+                SqlOverClauseRowOrRange rowOrRange = IsSqlOverClauseRowOrRange();
+                if( R.IsError ) return null;
+
                 SqlTokenClosePar closePar;
                 if( !R.IsToken( out closePar, true ) ) return null;
-                return new SqlOverClause( overToken, openPar, overContent, closePar );
+                return new SqlOverClause( overT, openPar, partition, orderBy, rowOrRange, closePar );
             }
+        }
+
+        SqlOverClause IsSqlOverClause( bool expected )
+        {
+            SqlTokenIdentifier overToken;
+            if( !R.IsToken( out overToken, SqlTokenType.Over, expected ) ) return null;
+            return IsSqlOverClause( overToken );
+        }
+
+        SqlOverClausePartition IsSqlOverClausePartition()
+        {
+            SqlTokenIdentifier partitionT;
+            SqlTokenIdentifier byT;
+            if( !R.IsToken( out partitionT, SqlTokenType.Partition, false ) ) return null;
+            if( !R.IsToken( out byT, SqlTokenType.By, true ) ) return null;
+            SqlCommaList expressions = IsCommaList( 1, expected => IsExpression( 0, expected ) );
+            return expressions != null ? new SqlOverClausePartition( partitionT, byT, expressions ) : null;
+        }
+
+        SqlOverClauseRowOrRange IsSqlOverClauseRowOrRange()
+        {
+            SqlTokenIdentifier rowOrRangeT;
+            if( !R.IsToken( out rowOrRangeT, SqlTokenType.Rows, false )
+                && !R.IsToken( out rowOrRangeT, SqlTokenType.Range, false ) ) return null;
+            SqlNodeList windowFrame = IsSqlNodeList<SqlToken>( R.GetDepthBasedStopper() );
+            if( R.IsError ) return null;
+            return new SqlOverClauseRowOrRange( rowOrRangeT, windowFrame );
         }
 
         SqlWithinGroup IsWithinGroup( bool expected )
@@ -240,22 +294,10 @@ namespace CK.SqlServer.Parser
             return true;
         }
 
-        SqlOrderByItem IsOrderByItem( bool expected )
-        {
-            ISqlNode definition = IsOneExpression( true );
-            if( definition == null ) return null;
-            SqlTokenIdentifier ascOrDesc;
-            if( !R.IsToken( out ascOrDesc, SqlTokenType.Asc, false ) ) R.IsToken( out ascOrDesc, SqlTokenType.Desc, false );
-            return new SqlOrderByItem( definition, ascOrDesc );
-        }
-
         SelectOrderBy IsSelectOrderBy( bool expected )
         {
-            SqlTokenIdentifier orderT, byT = null;
-            if( !R.IsToken( out orderT, SqlTokenType.Order, expected ) 
-                || !R.IsToken( out byT, SqlTokenType.By, true ) ) return null;
-            SqlOrderByList orderByList = IsCommaList( 1, IsOrderByItem, i => new SqlOrderByList( i ) );
-            if( orderByList == null ) return null;
+            SqlOrderByClause orderBy = IsSqlOrderByClause( expected );
+            if( orderBy == null ) return null;
 
             SqlTokenIdentifier offsetToken;
             ISqlNode offsetExpr = null;
@@ -278,10 +320,10 @@ namespace CK.SqlServer.Parser
                     if( !R.IsToken( out fetchRowsToken, SqlTokenType.Rows, true ) ) return null;
                     SqlTokenIdentifier onlyToken;
                     if( !R.IsToken( out onlyToken, SqlTokenType.Only, true ) ) return null;
-                    return new SelectOrderBy( orderT, byT, orderByList, offsetToken, offsetExpr, rowsToken, fetchToken, firstOrNextToken, fetchExpr, fetchRowsToken, onlyToken );
+                    return new SelectOrderBy( orderBy, offsetToken, offsetExpr, rowsToken, fetchToken, firstOrNextToken, fetchExpr, fetchRowsToken, onlyToken );
                 }
             }
-            return new SelectOrderBy( orderT, byT, orderByList, offsetToken, offsetExpr, rowsToken );
+            return new SelectOrderBy( orderBy, offsetToken, offsetExpr, rowsToken );
         }
 
         SelectFor IsSelectFor( bool expected )
@@ -293,7 +335,7 @@ namespace CK.SqlServer.Parser
             }
             SqlTokenIdentifier forT = R.Read<SqlTokenIdentifier>();
             SqlTokenIdentifier targetType = R.Read<SqlTokenIdentifier>();
-            ISqlNode forExpression = IsSqlNodeList<SqlToken>( SelectPartStopper, IsOneExpression, 1 );
+            SqlNodeList forExpression = IsSqlNodeList<SqlToken>( SelectPartStopper, IsOneExpression, 1 );
             if( forExpression == null ) return null;
             return new SelectFor( forT, targetType, forExpression );
         }
