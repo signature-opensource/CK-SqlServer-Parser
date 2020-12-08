@@ -2,6 +2,26 @@
 
   <Test Mode="OneExpression">
     <Text>
+      SELECT GroupName, STRING_AGG(Name, ', ') WITHIN GROUP (ORDER BY Name ASC) AS Departments
+      FROM HumanResources.Department
+      GROUP BY GroupName
+    </Text>
+    <Description>
+      STRING_AGG WITHIN GROUP
+    </Description>
+    <Xml ToStringCompact="Columns, From, GroupBy">
+      <Sql>
+        <SelectSpec>
+          <Columns>GroupName, STRING_AGG(Name, ', ') WITHIN GROUP(ORDER BY Name ASC) AS Departments</Columns>
+          <From>FROM HumanResources.Department</From>
+          <GroupBy>GROUP BY GroupName</GroupBy>
+        </SelectSpec>
+      </Sql>
+    </Xml>
+  </Test>
+  
+  <Test Mode="OneExpression">
+    <Text>
       select 'T' collate c, ODate AT TIME ZONE 'Pacific Standard Time' AS ODate_TimeZonePST
     </Text>
     <Description>
