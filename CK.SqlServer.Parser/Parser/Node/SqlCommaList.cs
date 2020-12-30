@@ -10,7 +10,7 @@ using System.Collections.Immutable;
 namespace CK.SqlServer.Parser
 {
     /// <summary>
-    /// Non-enclosable, possibly empty, comma separated list of ony kind of node.
+    /// Non-enclosable, possibly empty, comma separated list of any kind of node.
     /// </summary>
     public sealed class SqlCommaList : ASqlNodeSeparatedList<ISqlNode,SqlTokenComma>
     {

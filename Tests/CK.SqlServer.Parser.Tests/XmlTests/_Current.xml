@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Tests>
+
+
+
+    <Test>
+        <Text>
+            select
+              MeasureId,
+              ValueIndex,
+              MeasureValue = convert( float, MeasureValue )/10,
+              MeasureValueUncumulated =
+                convert( float,
+                  first_value(MeasureValue)
+                  over (
+                    partition by MeasureId order by ValueIndex
+                    ROWS BETWEEN 1 PRECEDING AND CURRENT ROW
+                  )
+                )/10
+            from AM.tMeasureValues;
+        </Text>
+        <Description>Select with over in column function.</Description>
+        <Xml ToStringCompact="Select">
+            <Sql>
+              <SelectStatement HasTerminator="true">
+                <Select>select MeasureId, ValueIndex, MeasureValue=convert(float, MeasureValue)/10, MeasureValueUncumulated=convert(float, first_value(MeasureValue) over(partition by MeasureId order by ValueIndex ROWS BETWEEN 1 PRECEDING AND CURRENT ROW))/10 from AM.tMeasureValues</Select>
+              </SelectStatement>
+            </Sql>
+        </Xml>
+    </Test>
+</Tests>

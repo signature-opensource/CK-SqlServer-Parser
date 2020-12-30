@@ -9,17 +9,19 @@ using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
+    using CNode = SNode<SqlTokenIdentifier, SqlTokenIdentifier, SqlNodeList>;
+
     /// <summary>
     /// Captures the optional "For xml, browse, json or system_time" select part.
     /// </summary>
     public sealed class SelectFor : SqlNonTokenAutoWidth
     {
-        readonly SNode<SqlTokenIdentifier, SqlTokenIdentifier, ISqlNode> _content;
+        readonly CNode _content;
 
-        public SelectFor( SqlTokenIdentifier forT, SqlTokenIdentifier targetType, ISqlNode content )
+        public SelectFor( SqlTokenIdentifier forT, SqlTokenIdentifier targetType, SqlNodeList content )
             : base( null, null )
         {
-            _content = new SNode<SqlTokenIdentifier, SqlTokenIdentifier, ISqlNode>( forT, targetType, content );
+            _content = new CNode( forT, targetType, content );
             CheckContent();
         }
 
@@ -41,7 +43,7 @@ namespace CK.SqlServer.Parser
             if( items == null ) _content = o._content;
             else
             {
-                _content = new SNode<SqlTokenIdentifier, SqlTokenIdentifier, ISqlNode>( items );
+                _content = new CNode( items );
                 CheckContent();
             }
         }
@@ -59,7 +61,7 @@ namespace CK.SqlServer.Parser
 
         public SqlTokenIdentifier TargetType => _content.V2;
 
-        public ISqlNode Format => _content.V3;
+        public SqlNodeList Format => _content.V3;
 
         [DebuggerStepThrough]
         internal protected override ISqlNode Accept( SqlNodeVisitor visitor ) => visitor.Visit( this );

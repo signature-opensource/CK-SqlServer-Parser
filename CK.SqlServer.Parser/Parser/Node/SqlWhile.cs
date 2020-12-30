@@ -9,17 +9,19 @@ using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser
 {
+    using CNode = SNode<SqlTokenIdentifier, ISqlNode, ISqlStatement, SqlTokenTerminal>;
+
     /// <summary>
     /// 
     /// </summary>
     public sealed class SqlWhile : SqlNonTokenAutoWidth, ISqlNamedStatement
     {
-        readonly SNode<SqlTokenIdentifier, ISqlNode, ISqlStatement, SqlTokenTerminal> _content;
+        readonly CNode _content;
 
         public SqlWhile( SqlTokenIdentifier whileT, ISqlNode condition, ISqlStatement statement, SqlTokenTerminal terminator )
             : base( null, null )
         {
-            _content = new SNode<SqlTokenIdentifier, ISqlNode, ISqlStatement, SqlTokenTerminal>( whileT, condition, statement, terminator );
+            _content = new CNode( whileT, condition, statement, terminator );
             CheckContent();
         }
 
@@ -36,7 +38,7 @@ namespace CK.SqlServer.Parser
             if( items == null ) _content = o._content;
             else
             {
-                _content = new SNode<SqlTokenIdentifier, ISqlNode, ISqlStatement, SqlTokenTerminal>( items );
+                _content = new CNode( items );
                 CheckContent();
             }
         }

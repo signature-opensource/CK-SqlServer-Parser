@@ -15,6 +15,7 @@ namespace CK.SqlServer.Parser.Tests.XmlTests
     [TestFixture]
     public class XmlTests
     {
+        [TestCase( "_Current.xml" )]
         [TestCase( "Apply.xml" )]
         [TestCase( "Between expressions.xml" )]
         [TestCase( "Big Procedures.xml" )]
