@@ -11,8 +11,8 @@ namespace CK.SqlServer.Parser
     /// 
     /// Operator                                                            Description
     ///
-    /// 15       (                                                          Expression grouping & function parameters.
-    /// 14       .                                                          Dotted names & method calls.
+    /// 15       (                                                          Expression grouping &amp; function parameters.
+    /// 14       .                                                          Dotted names &amp; method calls.
     /// 13       ~                                                          Bitwise NOT and collate.
     /// 12       * /  %                                                     Multiplication, division, modulo division.
     /// 11       + - &amp; ^ |                                              + (for "Positive", "Add" and "Concatenate"), - (for "Negative" and "Subtract"), Bitwise AND, Bitwise Exclusive OR, and Bitwise OR.

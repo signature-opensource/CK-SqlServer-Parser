@@ -22,7 +22,7 @@ namespace CK.SqlServer.Parser
         public SqlEmptyStatement( SqlTokenTerminal statementTerminator, ImmutableList<SqlTrivia> leading = null, ImmutableList<SqlTrivia> trailing = null )
             : base( leading, trailing )
         {
-            _content = statementTerminator != null ? new[] { statementTerminator } : Util.Array.Empty<SqlTokenTerminal>();
+            _content = statementTerminator != null ? new[] { statementTerminator } : Array.Empty<SqlTokenTerminal>();
             Helper.CheckNullableToken( StatementTerminator, nameof( StatementTerminator ), SqlTokenType.SemiColon );
         }
 

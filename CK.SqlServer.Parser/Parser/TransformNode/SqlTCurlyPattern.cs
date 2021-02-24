@@ -11,7 +11,7 @@ using CK.Text;
 namespace CK.SqlServer.Parser
 {
     /// <summary>
-    /// List of one or more <see cref="SqlToken"> enclosed in curly braces: {...}. 
+    /// List of one or more <see cref="SqlToken" /> enclosed in curly braces: {...}.
     /// </summary>
     public sealed class SqlTCurlyPattern : ASqlNodeEnclosableList<SqlTokenTerminal,SqlToken,SqlTokenTerminal>, ISqlStructurallyEnclosed
     {

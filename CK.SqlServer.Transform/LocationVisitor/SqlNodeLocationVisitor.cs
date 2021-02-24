@@ -159,7 +159,7 @@ namespace CK.SqlServer.Transform
         /// Overridden to adapt this public inherited method to the internals of this implementation.
         /// This enables a location aware visitor to be used independently of <see cref="SqlTransformHost.Visit(SqlNodeLocationVisitor, ISqlNodeLocationRange)"/>.
         /// </summary>
-        /// <param name="root">The root node to vissit.</param>
+        /// <param name="root">The root node to visit.</param>
         /// <returns>The visited result.</returns>
         public override sealed ISqlNode VisitRoot( ISqlNode root )
         {
@@ -178,7 +178,7 @@ namespace CK.SqlServer.Transform
         }
 
         /// <summary>
-        /// Overridden to use <see cref="VisitStandard"/> otherwise type declaration would be skipped by the visit.
+        /// Overridden to use <see cref="SqlNodeVisitor.VisitStandard"/> otherwise type declaration would be skipped by the visit.
         /// </summary>
         /// <param name="e">The type declaration to process.</param>
         /// <returns>Result of the visit.</returns>

@@ -32,7 +32,7 @@ namespace CK.SqlServer.Transform.Transformers
         }
 
         /// <summary>
-        /// Gets the name of the extension point (ie. "PreDestroy", "OnNameChanged", etc.).
+        /// Gets the name of the extension point (for instance "PreDestroy", "OnNameChanged", etc.).
         /// </summary>
         public string ExtensionName { get; }
 
@@ -55,7 +55,7 @@ namespace CK.SqlServer.Transform.Transformers
         public SqlTrivia[] TextReplace { get; private set; }
 
         /// <summary>
-        /// Tests whether the given trivia matches. This is called mutiple times and the internal state is updated.
+        /// Tests whether the given trivia matches. This is called multiple times and the internal state is updated.
         /// On final call and success, true is returned and <see cref="TextBefore"/>, <see cref="TextAfter"/>
         /// and <see cref="Random=TextReplace"/> are updated to reflect the action that should be applied.
         /// </summary>

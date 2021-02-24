@@ -32,7 +32,7 @@ namespace CK.SqlServer.Parser
         /// </summary>
         /// <param name="item">Optional item.</param>
         public SqlEnclosedCommaList( ISqlNode item = null )
-            : base( 0, SqlKeyword.OpenPar, item == null ? Util.Array.Empty<ISqlNode>() : new[] { item }, SqlKeyword.ClosePar )
+            : base( 0, SqlKeyword.OpenPar, item == null ? Array.Empty<ISqlNode>() : new[] { item }, SqlKeyword.ClosePar )
         {
         }
 
