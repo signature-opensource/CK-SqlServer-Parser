@@ -17,15 +17,6 @@ namespace CK.SqlServer.Parser
     public abstract class SqlToken : SqlNode, IEnumerable<SqlToken>
     {
         /// <summary>
-        /// Private empty ctor for the EmptyToken.
-        /// </summary>
-        SqlToken( ImmutableList<SqlTrivia> leading, ImmutableList<SqlTrivia> trailing )
-            : base( leading, trailing )
-        {
-            Debug.Assert( TokenType == SqlTokenType.None );
-        }
-
-        /// <summary>
         /// Initializes a new <see cref="SqlToken"/>. <paramref name="tokenType"/> must be strictly positive (not an error) and not <see cref="SqlTokenType.IsComment"/>.
         /// When null, trivias are safely sets to an empty readonly list of <see cref="SqlTrivia"/>.
         /// </summary>
@@ -41,7 +32,7 @@ namespace CK.SqlServer.Parser
         }
 
         /// <summary>
-        /// Token type. It is necessarily positive (not an error). Only <see cref="Empty"/> has <see cref="SqlTokenType.None"/> type.
+        /// The token type. It is necessarily positive (not an error).
         /// </summary>
         public readonly SqlTokenType TokenType;
 
@@ -49,9 +40,9 @@ namespace CK.SqlServer.Parser
 
         public override sealed IEnumerable<SqlTrivia> FullTrailingTrivias => TrailingTrivias;
 
-        public override sealed IEnumerable<ISqlNode> LeadingNodes => Util.Array.Empty<ISqlNode>();
+        public override sealed IEnumerable<ISqlNode> LeadingNodes => Array.Empty<ISqlNode>();
 
-        public override sealed IEnumerable<ISqlNode> TrailingNodes => Util.Array.Empty<ISqlNode>();
+        public override sealed IEnumerable<ISqlNode> TrailingNodes => Array.Empty<ISqlNode>();
 
         /// <summary>
         /// Gets always 1: the width of a token.
@@ -68,9 +59,9 @@ namespace CK.SqlServer.Parser
         /// <summary>
         /// Gets an empty node list.
         /// </summary>
-        public override sealed IReadOnlyList<ISqlNode> ChildrenNodes => Util.Array.Empty<ISqlNode>();
+        public override sealed IReadOnlyList<ISqlNode> ChildrenNodes => Array.Empty<ISqlNode>();
 
-        public override sealed IList<ISqlNode> GetRawContent() => Util.Array.Empty<ISqlNode>();
+        public override sealed IList<ISqlNode> GetRawContent() => Array.Empty<ISqlNode>();
 
         public override sealed bool IsToken( SqlTokenType t ) => TokenType == t;
 
@@ -217,7 +208,7 @@ namespace CK.SqlServer.Parser
                 //  select 2from[CK].tUser;
                 return right == SqlTokenType.IsNumber;
             }
-            // left is a non quoted identifer, if right is a number, an identifier or a N'unicode' string, a separator
+            // left is a non quoted identifier, if right is a number, an identifier or a N'unicode' string, a separator
             // is required. Only if right is a 'ansi' string can we remove it.
             return right != SqlTokenType.String;
         }

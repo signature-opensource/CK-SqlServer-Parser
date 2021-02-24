@@ -50,7 +50,7 @@ namespace CK.SqlServer.UtilTests
                 }
                 var s = (string)xmlTestElement.Attribute( "ToStringCompact" );
                 if( s != null ) ToStringCompactForms = s.Split( ',' ).Select( f => f.Trim() ).ToArray();
-                else ToStringCompactForms = Util.Array.Empty<string>();
+                else ToStringCompactForms = Array.Empty<string>();
 
                 ExpectedStatementsXml = xmlTestElement.Element( "Statements" );
                 if( ExpectedStatementsXml != null )

@@ -73,7 +73,7 @@ namespace CK.SqlServer.Parser
 
         public override int GetHashCode()
         {
-            return Util.Hash.Combine( (long)TokenType, Text.GetHashCode() ).GetHashCode();
+            return HashCode.Combine( (long)TokenType, Text );
         }
 
         public override bool Equals( object obj )

@@ -127,7 +127,7 @@ namespace CK.SqlServer.Parser
 
         /// <summary>
         /// True if this <see cref="SqlTokenType"/> denotes a reserved keyword (select, create, declare, etc.)
-        /// or a standard identifer that starts a statement (throw, get, move, etc.).
+        /// or a standard identifier that starts a statement (throw, get, move, etc.).
         /// </summary>
         /// <param name="type">Token type to test.</param>
         /// <returns>True for a start statement.</returns>

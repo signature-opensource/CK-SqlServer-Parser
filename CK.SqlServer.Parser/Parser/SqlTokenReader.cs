@@ -47,7 +47,7 @@ namespace CK.SqlServer.Parser
         /// Creates a predicate that will return true whenever <see cref="ParenthesisDepth"/>'s value is the current one
         /// and the token is <see cref="SqlTokenType.ClosePar"/>.
         /// Note that <see cref="SqlTokenType.EndOfInput"/> always returns true and, when the current ParenthesisDepth
-        /// is 0, <see cref="IsTerminatorOrEndOfInput"/> returns true.
+        /// is 0, <see cref="SqlToken.IsTerminatorOrEndOfInput"/> returns true.
         /// </summary>
         /// <returns>The predicate.</returns>
         public Predicate<SqlToken> GetDepthBasedStopper()
@@ -97,7 +97,7 @@ namespace CK.SqlServer.Parser
         }
 
         /// <summary>
-        /// True if an error or the end of the stream is reached (<see cref="TokenType"/> is negative).
+        /// True if an error or the end of the stream is reached (<see cref="Current"/>'s <see cref="SqlToken.TokenType"/> is negative).
         /// </summary>
         /// <returns>True on error or end of input.</returns>
         public bool IsErrorOrEndOfInput
@@ -110,7 +110,7 @@ namespace CK.SqlServer.Parser
         }
 
         /// <summary>
-        /// True if the end of the stream is reached (<see cref="TokenType"/> == <see cref="SqlTokenType.EndOfInput"/>).
+        /// True if the end of the stream is reached (<see cref="Current"/>'s <see cref="SqlToken.TokenType"/> is <see cref="SqlTokenType.EndOfInput"/>).
         /// </summary>
         /// <returns>True on end of input.</returns>
         public bool IsEndOfInput

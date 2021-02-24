@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -105,7 +105,7 @@ namespace CK.SqlServer.Parser
                 {
                     string s = ((SqlTokenLiteralBinary)Value).Value;
                     Debug.Assert( s.StartsWith( "0x" ) );
-                    if( s.Length == 2 ) return Util.Array.Empty<byte>();
+                    if( s.Length == 2 ) return Array.Empty<byte>();
                     byte[] val = new byte[(s.Length - 3) / 2 + 1];
                     int iB = val.Length-1;
                     for( int i = s.Length-1; i > 1;)
