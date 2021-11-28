@@ -24,7 +24,7 @@ namespace CK.SqlServer.Parser.Tests
             {
                 _tokenLike = SqlTokenType.IdentifierStandard;
                 _name = name;
-                _content = content != null ? content.ToArray() : Util.Array.Empty<ISqlNode>();
+                _content = content != null ? content.ToArray() : Array.Empty<ISqlNode>();
             }
 
             public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;

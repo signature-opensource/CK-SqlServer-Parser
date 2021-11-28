@@ -239,7 +239,7 @@ namespace CK.SqlServer.Parser
 
         internal ISqlNode DoSetRawContent( IList<ISqlNode> childrenNodes )
         {
-            if( childrenNodes == null ) childrenNodes = Util.Array.Empty<ISqlNode>();
+            if( childrenNodes == null ) childrenNodes = Array.Empty<ISqlNode>();
             return DoClone( LeadingTrivias, childrenNodes, TrailingTrivias );
         }
 

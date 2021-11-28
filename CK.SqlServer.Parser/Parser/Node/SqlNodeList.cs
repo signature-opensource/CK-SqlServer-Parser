@@ -14,7 +14,7 @@ namespace CK.SqlServer.Parser
     /// </summary>
     public sealed class SqlNodeList : ASqlNodeList<ISqlNode>
     {
-        static public readonly SqlNodeList Empty = new SqlNodeList( Util.Array.Empty<ISqlNode>() );
+        static public readonly SqlNodeList Empty = new SqlNodeList( Array.Empty<ISqlNode>() );
 
         public SqlNodeList( IEnumerable<ISqlNode> items )
             : base( 0, items )

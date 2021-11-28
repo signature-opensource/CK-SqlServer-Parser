@@ -8,7 +8,7 @@
           from T 
      </Text>
     <Description>Sylvain...</Description>
-    <Xml ToStringCompact="NodeList, From">
+    <Xml ToStringCompact="NodeList, OverClause, From">
       <Sql>
         <SelectStatement>
           <Select>
@@ -39,13 +39,7 @@
                               </Content>
                             </WithinGroup>
                           </WithinGroup>
-                          <OverClause>
-                            <OverClause>
-                              <OverContent>
-                                <NodeList>PARTITION BY KeywordId</NodeList>
-                              </OverContent>
-                            </OverClause>
-                          </OverClause>
+                          <OverClause>OVER(PARTITION BY KeywordId)</OverClause>
                         </KoCall>
                       </Definition>
                     </SelectColumn>

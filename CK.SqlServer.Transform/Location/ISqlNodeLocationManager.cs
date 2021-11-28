@@ -1,4 +1,4 @@
-﻿using CK.SqlServer.Parser;
+using CK.SqlServer.Parser;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,14 +18,14 @@ namespace CK.SqlServer.Transform
         SqlNodeLocation Root { get; }
 
         /// <summary>
-        /// The location before this root. Its <see cref="Node"/> is <see cref="SqlKeyword.BegOfInput"/>
-        /// and its <see cref="Position"/> is -1.
+        /// The location before this root. Its <see cref="SqlNodeLocation.Node"/> is <see cref="SqlKeyword.BegOfInput"/>
+        /// and its <see cref="SqlNodeLocation.Position"/> is -1.
         /// </summary>
         SqlNodeLocation BegMarker { get; }
 
         /// <summary>
-        /// The location after this root: its <see cref="Node"/> is <see cref="SqlKeyword.EndOfInput"/> and 
-        /// its <see cref="Position"/> is equal to the root node's width.
+        /// The location after this root: its <see cref="SqlNodeLocation.Node"/> is <see cref="SqlKeyword.EndOfInput"/> and 
+        /// its <see cref="SqlNodeLocation.Position"/> is equal to the root node's width.
         /// </summary>
         SqlNodeLocation EndMarker { get; }
 

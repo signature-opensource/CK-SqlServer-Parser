@@ -11,8 +11,8 @@ namespace CK.SqlServer.Parser
     /// 
     /// Operator                                                            Description
     ///
-    /// 15       (                                                          Expression grouping & function parameters.
-    /// 14       .                                                          Dotted names & method calls.
+    /// 15       (                                                          Expression grouping &amp; function parameters.
+    /// 14       .                                                          Dotted names &amp; method calls.
     /// 13       ~                                                          Bitwise NOT and collate.
     /// 12       * /  %                                                     Multiplication, division, modulo division.
     /// 11       + - &amp; ^ |                                              + (for "Positive", "Add" and "Concatenate"), - (for "Negative" and "Subtract"), Bitwise AND, Bitwise Exclusive OR, and Bitwise OR.
@@ -511,7 +511,8 @@ namespace CK.SqlServer.Parser
         Out,
         Output,
         /// <summary>
-        /// Rows is the official ISO identifier. Sql Server also accepts Row.
+        /// Rows is the official ISO identifier.
+        /// Sql Server also accepts Row: Row is registered as an alias of Rows.
         /// </summary>
         Rows,            
         Offset,
@@ -779,6 +780,10 @@ namespace CK.SqlServer.Parser
         SecurityAudit = StartIdentifierReservedNonOperator + 122,
         SessionUser = StartIdentifierReservedNonOperator + 123,
         Within = StartIdentifierReservedNonOperator + 124,
+        Preceding = StartIdentifierReservedNonOperator + 125,
+        Unbounded = StartIdentifierReservedNonOperator + 126,
+        Following = StartIdentifierReservedNonOperator + 127,
+        Partition = StartIdentifierReservedNonOperator + 128,
 
         #endregion
 
