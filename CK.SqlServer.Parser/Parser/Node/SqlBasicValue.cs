@@ -5,7 +5,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using CK.Core;
-using CK.Text;
+
 using System.Collections.Immutable;
 
 namespace CK.SqlServer.Parser

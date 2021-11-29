@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using CK.Core;
 using System.Collections.Immutable;
-using CK.Text;
+
 
 namespace CK.SqlServer.Parser
 {

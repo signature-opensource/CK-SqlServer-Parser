@@ -10,7 +10,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using CK.SqlServer.Transform.Transformers;
-using CK.Text;
+
 using System.Reflection;
 using FluentAssertions;
 

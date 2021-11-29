@@ -1,12 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using CK.Core;
 using NUnit.Framework;
-using CK.SqlServer;
 using System.Text.RegularExpressions;
-using CK.SqlServer.UtilTests;
-using CK.Text;
+
 
 namespace CK.SqlServer.Parser.Tests
 {
