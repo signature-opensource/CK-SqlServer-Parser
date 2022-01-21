@@ -1,4 +1,4 @@
-﻿using CK.Core;
+using CK.Core;
 using CK.SqlServer.Parser;
 using System;
 using System.Collections.Generic;
@@ -21,18 +21,18 @@ namespace CK.SqlServer.Transform.Transformers
             _scope = scope;
         }
 
-        public bool Apply( SqlTransformHost t )
+        public bool Apply( IActivityMonitor monitor, SqlTransformHost t )
         {
-            if( _info.Location.IsNodeMatchRange ) return ApplyNodeMatchRange( t );
-            return t.Apply( new UnParsedTextInjectVisitor( _info ), _scope );
+            if( _info.Location.IsNodeMatchRange ) return ApplyNodeMatchRange( monitor, t );
+            return t.Apply( new UnParsedTextInjectVisitor( monitor, _info ), _scope );
         }
 
-        bool ApplyNodeMatchRange( SqlTransformHost t )
+        bool ApplyNodeMatchRange( IActivityMonitor monitor, SqlTransformHost t )
         {
             SqlNodeScopeBuilder pattern = new SqlNodeScopePatternRange( _info.Location.PatternRange );
             if( _scope != null ) pattern = new SqlNodeScopeIntersect( _scope, pattern );
             var final = new SqlNodeScopeCardinalityFilter( pattern, _info.Location.Card );
-            ISqlNodeLocationRange r = t.BuildRange( final );
+            ISqlNodeLocationRange r = t.BuildRange( monitor, final );
 
             //SqlNodeScopeBuilder restriction = new SqlNodeScopePatternRange( _info.Location.PatternRange );
             //restriction = new SqlNodeScopeCardinalityFilter( restriction, _info.Location.Card );
@@ -41,15 +41,15 @@ namespace CK.SqlServer.Transform.Transformers
 
             if( r == null || r == SqlNodeLocationRange.EmptySet )
             {
-                t.Monitor.Error( $"Range not found." );
+                monitor.Error( $"Range not found." );
                 return false;
             }
             if( _info.ClearStarComments )
             {
-                // Since cleanig trivias does not change anything to positions and 
+                // Since cleaning trivias does not change anything to positions and 
                 // and we only use the position, there is no need to 
                 // recompute the ranges.
-                t.Visit( new TriviaCleaner( false, true, true ), r );
+                t.Visit( new TriviaCleaner( monitor, false, true, true ), r );
             }
             if( r.Count != 1 )
             {

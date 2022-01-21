@@ -19,6 +19,11 @@ namespace CK.SqlServer.Transform.Tests
             public readonly List<SqlNodeLocation> Collector = new List<SqlNodeLocation>();
             public readonly List<SqlNodeLocation> AfterCollector = new List<SqlNodeLocation>();
 
+            public AllLocations( IActivityMonitor monitor )
+                : base( monitor )
+            {
+            }
+
             protected override ISqlNode VisitStandard( ISqlNode e ) => VisitStandardReadOnly( e );
 
             protected override bool BeforeVisitItem()
@@ -33,15 +38,14 @@ namespace CK.SqlServer.Transform.Tests
                 return visitResult;
             }
 
-            static public List<SqlNodeLocation> GetAllLocations( 
-                string text, 
-                ParseMode mode = ParseMode.OneOrMoreStatements )
+            static public List<SqlNodeLocation> GetAllLocations( string text, 
+                                                                 ParseMode mode = ParseMode.OneOrMoreStatements )
             {
                 List<SqlNodeLocation> locs;
                 ISqlNode n = new SqlAnalyser( text ).Parse( mode );
                 using( TestHelper.ConsoleMonitor.OpenInfo( "GetAllLocations " + text ) )
                 {
-                    var c = new AllLocations();
+                    var c = new AllLocations( TestHelper.ConsoleMonitor );
                     c.VisitRoot( n );
                     locs = c.Collector;
                     var afterLocs = c.AfterCollector;

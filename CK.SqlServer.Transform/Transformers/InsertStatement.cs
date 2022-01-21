@@ -1,4 +1,4 @@
-﻿using CK.Core;
+using CK.Core;
 using CK.SqlServer.Parser;
 using System;
 using System.Collections.Generic;
@@ -8,22 +8,37 @@ using System.Threading.Tasks;
 
 namespace CK.SqlServer.Transform.Transformers
 {
+    /// <summary>
+    /// Transformer that inserts a <see cref="SqlStatement"/> in a <see cref="SqlStatementList"/>.
+    /// </summary>
     public class InsertStatement : SqlNodeLocationVisitor
     {
         readonly SqlNodeLocation _loc;
         readonly ISqlStatement _statement;
         readonly SqlNodeLocation _fatherLoc;
 
-        public InsertStatement( SqlNodeLocation loc, ISqlStatement statement )
+        /// <summary>
+        /// Initializes a new <see cref="InsertStatement"/>.
+        /// </summary>
+        /// <param name="monitor">The monitor to use.</param>
+        /// <param name="loc">The location where the statement must be inserted. Must be in a <see cref="SqlStatementList"/>.</param>
+        /// <param name="statement">The statement to insert.</param>
+        public InsertStatement( IActivityMonitor monitor, SqlNodeLocation loc, ISqlStatement statement )
+            : base( monitor )
         {
-            if( loc == null ) throw new ArgumentNullException( nameof(loc) );
-            if( statement == null ) throw new ArgumentNullException( nameof(statement) );
+            Throw.CheckNotNullArgument( loc );
+            Throw.CheckNotNullArgument( statement );
             _loc = loc.ToFullLocation();
             _fatherLoc = _loc.ReversePath.FirstOrDefault( l => l.Node is SqlStatementList );
-            if( _fatherLoc == null ) throw new ArgumentNullException( nameof(loc), "Location is not in a SqlStatementList." );
+            Throw.CheckNotNullArgument( "Location is not in a SqlStatementList.", _fatherLoc );
             _statement = statement;
         }
 
+        /// <summary>
+        /// Inserts the statement if it's in the location provided and stops the visit.
+        /// </summary>
+        /// <param name="e">The candidate statement list.</param>
+        /// <returns>The resulting node.</returns>
         protected override ISqlNode Visit( SqlStatementList e )
         {
             if( e == _fatherLoc.Node )

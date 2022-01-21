@@ -1,11 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace CK.SqlServer.Parser
 {
-
+    /// <summary>
+    /// Abstraction of a select specification: a <see cref="SelectOperator"/> and a list of <see cref="Columns"/>.
+    /// </summary>
     public interface ISelectSpecification : ISqlNode
     {
         /// <summary>

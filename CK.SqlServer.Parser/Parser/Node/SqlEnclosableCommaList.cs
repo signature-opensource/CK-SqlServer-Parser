@@ -1,11 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Globalization;
-using System.Linq;
-using System.Text;
 using CK.Core;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
 namespace CK.SqlServer.Parser
 {
@@ -20,7 +17,7 @@ namespace CK.SqlServer.Parser
         /// </summary>
         /// <param name="openPar">Opening parenthesis.</param>
         /// <param name="content">Items and comma tokens.</param>
-        /// <param name="closePar">Closing parnthesis.</param>
+        /// <param name="closePar">Closing parenthesis.</param>
         /// <param name="leading">Optional leading trivias.</param>
         /// <param name="trailing">Optional trailing trivias.</param>
         public SqlEnclosableCommaList( SqlTokenOpenPar openPar, IEnumerable<ISqlNode> content, SqlTokenClosePar closePar, ImmutableList<SqlTrivia> leading = null, ImmutableList<SqlTrivia> trailing = null )
@@ -40,8 +37,8 @@ namespace CK.SqlServer.Parser
 
         public ISqlNode Enclose( SqlTokenOpenPar opener, SqlTokenClosePar closer )
         {
-            if( opener == null ) throw new ArgumentNullException( nameof( opener ) );
-            if( closer == null ) throw new ArgumentNullException( nameof( closer ) );
+            Throw.CheckNotNullArgument( opener );
+            Throw.CheckNotNullArgument( closer );
             if( IsEnclosed ) return new SqlPar( opener, this, closer, LeadingTrivias, TrailingTrivias );
             return new SqlEnclosableCommaList( opener, ChildrenNodes, closer, LeadingTrivias, TrailingTrivias );
         }

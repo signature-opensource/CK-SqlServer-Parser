@@ -1,11 +1,7 @@
-using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Globalization;
-using System.Linq;
-using System.Text;
-using CK.Core;
 using System.Collections.Immutable;
+using System.Diagnostics;
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
 namespace CK.SqlServer.Parser
 {
@@ -18,11 +14,10 @@ namespace CK.SqlServer.Parser
     {
         readonly SNode<ISqlNode, SelectOrderBy, SelectFor, SqlOptionParOptions> _content;
 
-        public SelectDecorator( 
-            ISqlNode selectNode, 
-            SelectOrderBy orderBy,
-            SelectFor forClause,
-            SqlOptionParOptions option )
+        public SelectDecorator( ISqlNode selectNode,
+                                SelectOrderBy orderBy,
+                                SelectFor forClause,
+                                SqlOptionParOptions option )
             : base( null, null )
         {
             _content = new SNode<ISqlNode, SelectOrderBy, SelectFor, SqlOptionParOptions>(

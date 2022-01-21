@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -15,12 +15,15 @@ namespace CK.SqlServer.Parser
     {
         int _width;
 
-        protected SqlNonTokenAutoWidth( ImmutableList<SqlTrivia> leading = null, ImmutableList<SqlTrivia> trailing = null )
+        private protected SqlNonTokenAutoWidth( ImmutableList<SqlTrivia> leading = null, ImmutableList<SqlTrivia> trailing = null )
             : base( leading, trailing )
         {
             _width = -1;
         }
 
+        /// <summary>
+        /// Gets the total number of token that this element contains.
+        /// </summary>
         public override sealed int Width => _width == -1 ? (_width = ChildrenNodes.Select( c => c.Width ).Sum()) : _width;
 
     }

@@ -21,6 +21,9 @@ namespace CK.SqlServer.Transform
         SqlNodeLocation _beg;
         SqlNodeLocation _end;
 
+        /// <summary>
+        /// Empty set.
+        /// </summary>
         public static readonly SqlNodeLocationRange EmptySet = new SqlNodeLocationRange();
 
         /// <summary>
@@ -43,15 +46,22 @@ namespace CK.SqlServer.Transform
             _beg = _end = null;
         }
 
+        /// <summary>
+        /// Initializes a new <see cref="SqlNodeLocationRange"/>.
+        /// </summary>
+        /// <param name="beg">The start of the range.</param>
+        /// <param name="end">The excluded end of the range.</param>
+        /// <param name="eachNumber">Optional number that identifies this range in a set of range.</param>
         public SqlNodeLocationRange( SqlNodeLocation beg, SqlNodeLocation end, int eachNumber = 0 )
         {
-            if( beg == null ) throw new ArgumentNullException( nameof( beg ) );
-            if( beg.IsBegMarker ) throw new ArgumentException( "Range can not include the BegMarker.", nameof( beg ) );
-            if( end == null ) throw new ArgumentNullException( nameof( end ) );
+            Throw.CheckNotNullArgument( beg );
+            Throw.CheckArgument( "Range can not include the BegMarker.", !beg.IsBegMarker );
+            Throw.CheckNotNullArgument( end );
             int w = end.Position - beg.Position;
-            if( w < 0 ) throw new ArgumentException( "Range: beg position is after end." );
+            Throw.CheckOutOfRangeArgument( "Range: beg position is after end.", w >= 0 );
             _beg = beg;
             _end = w == 0 ? beg : end;
+            // Using an ever increasing range number when none is provided.
             EachNumber = eachNumber >= 0 ? eachNumber : Interlocked.Increment( ref _eachNumberAuto );
         }
 
@@ -134,6 +144,11 @@ namespace CK.SqlServer.Transform
             return value == EachNumber ? this : new SqlNodeLocationRange( _beg, _end, value );
         }
 
+        /// <summary>
+        /// Overridden to return the range: "∅" for the empty set, "]location[" for a point, and "[beg,end["
+        /// for a regular range.
+        /// </summary>
+        /// <returns>A readable string.</returns>
         public override string ToString()
         {
             Debug.Assert( Beg != null || this == EmptySet );
@@ -155,7 +170,9 @@ namespace CK.SqlServer.Transform
             Swapped = 32
         }
 
-        static internal ISqlNodeLocationRange Unified( SqlNodeLocationRange r1, SqlNodeLocationRange r2, Func<Kind,SqlNodeLocationRange,SqlNodeLocationRange,ISqlNodeLocationRange> on )
+        static internal ISqlNodeLocationRange Unified( SqlNodeLocationRange r1,
+                                                       SqlNodeLocationRange r2,
+                                                       Func<Kind,SqlNodeLocationRange,SqlNodeLocationRange,ISqlNodeLocationRange> on )
         {
             Debug.Assert( r1 != null && r1 != EmptySet && r2 != null && r2 != EmptySet );
             if( r1.Beg.Position == r2.Beg.Position )
@@ -253,17 +270,27 @@ namespace CK.SqlServer.Transform
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Returns the intersection between this range and the other one.
+        /// </summary>
+        /// <param name="other">The other range.</param>
+        /// <returns>The intersection (can be the <see cref="EmptySet"/>).</returns>
         public SqlNodeLocationRange Intersect( SqlNodeLocationRange other )
         {
-            if( other == null ) throw new ArgumentNullException( nameof( other ) );
+            Throw.CheckNotNullArgument( other );
             return this == EmptySet || IsLocation || other == EmptySet || other.IsLocation 
                         ? EmptySet 
                         : (SqlNodeLocationRange)Unified( this, other, DoIntersect );
         }
 
+        /// <summary>
+        /// Returns the union between this range and the other one.
+        /// </summary>
+        /// <param name="other">The other range.</param>
+        /// <returns>The union (can be composed of multiple ranges).</returns>
         public ISqlNodeLocationRange Union( SqlNodeLocationRange other )
         {
-            if( other == null ) throw new ArgumentNullException( nameof( other ) );
+            Throw.CheckNotNullArgument( other );
             return this == EmptySet || IsLocation 
                         ? other 
                         : (other == EmptySet || other.IsLocation 
@@ -271,6 +298,11 @@ namespace CK.SqlServer.Transform
                                 : Unified( this, other, DoUnion ));
         }
 
+        /// <summary>
+        /// Returns a range that is this one excepts the other one.
+        /// </summary>
+        /// <param name="other">The other range.</param>
+        /// <returns>The result that can be composed of multiple ranges.</returns>
         public ISqlNodeLocationRange Except( SqlNodeLocationRange other )
         {
             if( other == null ) throw new ArgumentNullException( nameof( other ) );
@@ -279,6 +311,10 @@ namespace CK.SqlServer.Transform
                         : Unified( this, other, DoExcept );
         }
 
+        /// <summary>
+        /// Always this range since this is not a multiple range.
+        /// </summary>
+        /// <returns>The enumerator.</returns>
         public IEnumerator<SqlNodeLocationRange> GetEnumerator() => new CKEnumeratorMono<SqlNodeLocationRange>( this );
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();

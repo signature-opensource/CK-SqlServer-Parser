@@ -1,31 +1,25 @@
-using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Globalization;
-using System.Linq;
-using System.Text;
-using CK.Core;
 using System.Collections.Immutable;
+using System.Diagnostics;
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
 namespace CK.SqlServer.Parser
 {
     public sealed class SqlIf : SqlNonTokenAutoWidth, ISqlNamedStatement
     {
-        readonly SNode<
-            SqlTokenIdentifier, 
-            ISqlNode, 
-            ISqlStatement, 
-            SqlTokenIdentifier, 
-            ISqlStatement, 
-            SqlTokenTerminal> _content;
+        readonly SNode<SqlTokenIdentifier, 
+                       ISqlNode, 
+                       ISqlStatement, 
+                       SqlTokenIdentifier, 
+                       ISqlStatement, 
+                       SqlTokenTerminal> _content;
 
-        public SqlIf( 
-                SqlTokenIdentifier ifToken, 
-                ISqlNode condition, 
-                ISqlStatement thenStatement, 
-                SqlTokenIdentifier elseToken, 
-                ISqlStatement elseStatement, 
-                SqlTokenTerminal terminator )
+        public SqlIf( SqlTokenIdentifier ifToken,
+                      ISqlNode condition,
+                      ISqlStatement thenStatement,
+                      SqlTokenIdentifier elseToken,
+                      ISqlStatement elseStatement,
+                      SqlTokenTerminal terminator )
             : base( null, null )
         {
             _content = new SNode<SqlTokenIdentifier, ISqlNode, ISqlStatement, SqlTokenIdentifier, ISqlStatement, SqlTokenTerminal>(

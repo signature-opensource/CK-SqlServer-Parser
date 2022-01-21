@@ -6,6 +6,9 @@ using System.Diagnostics;
 
 namespace CK.SqlServer.Parser
 {
+    /// <summary>
+    /// Base class of all <see cref="ISqlNode"/> visitors.
+    /// </summary>
     public partial class SqlNodeVisitor
     {
         /// <summary>
@@ -16,6 +19,11 @@ namespace CK.SqlServer.Parser
         /// <returns>The root node or a transformed one.</returns>
         public virtual ISqlNode VisitRoot( ISqlNode root ) => VisitItem( root );
 
+        /// <summary>
+        /// Protected entry point that can be overridden.
+        /// </summary>
+        /// <param name="e">The node to visit.</param>
+        /// <returns>The resulting node.</returns>
         protected virtual ISqlNode VisitItem( ISqlNode e )
         {
             return ((SqlNode)e).Accept( this );
@@ -81,28 +89,55 @@ namespace CK.SqlServer.Parser
             return isModified;
         }
 
+        /// <summary>
+        /// Visits a mere token. Returns the unchanged token at this level.
+        /// </summary>
+        /// <param name="e">The token.</param>
+        /// <returns>The unchanged token.</returns>
         protected virtual ISqlNode VisitTokenStandard( SqlToken e ) => e;
 
+        /// <summary>
+        /// Visits any kind of <see cref="ISqlUnifiedTypeDecl"/> and returns it unchanged at this level.
+        /// </summary>
+        /// <param name="e">The type to visit.</param>
+        /// <returns>The unchanged type.</returns>
         protected virtual ISqlNode VisitTypeDeclStandard( ISqlUnifiedTypeDecl e ) => e;
 
+        /// <summary>
+        /// Visits an error token and returns it unchanged at this level.
+        /// </summary>
+        /// <param name="e">The error.</param>
+        /// <returns>The unchanged error token.</returns>
         internal protected virtual ISqlNode Visit( SqlTokenError e ) => e;
 
         #region All concrete SqlTokenXXX call VisitTokenStandard by default.
 
+        /// <summary>
+        /// Calls <see cref="VisitTokenStandard(SqlToken)"/>.
+        /// </summary>
+        /// <param name="e">The token to visit.</param>
+        /// <returns>The resulting node.</returns>
         internal protected virtual ISqlNode Visit( SqlTokenLiteralInteger e ) => VisitTokenStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlTokenLiteralInteger)"/>
         internal protected virtual ISqlNode Visit( SqlTokenLiteralBinary e ) => VisitTokenStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlTokenLiteralInteger)"/>
         internal protected virtual ISqlNode Visit( SqlTokenLiteralFloat e ) => VisitTokenStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlTokenLiteralInteger)"/>
         internal protected virtual ISqlNode Visit( SqlTokenLiteralDecimal e ) => VisitTokenStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlTokenLiteralInteger)"/>
         internal protected virtual ISqlNode Visit( SqlTokenLiteralMoney e ) => VisitTokenStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlTokenLiteralInteger)"/>
         internal protected virtual ISqlNode Visit( SqlTokenLiteralString e ) => VisitTokenStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlTokenLiteralInteger)"/>
         internal protected virtual ISqlNode Visit( SqlTokenTerminal e ) => VisitTokenStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlTokenLiteralInteger)"/>
         internal protected virtual ISqlNode Visit( SqlTokenIdentifier e ) => VisitTokenStandard( e );
 
         #endregion
@@ -110,226 +145,343 @@ namespace CK.SqlServer.Parser
 
         #region All SqlTypeDeclXXX calls VisitTypeDeclStandard by default.
 
+        /// <summary>
+        /// Calls <see cref="VisitTypeDeclStandard(ISqlUnifiedTypeDecl)"/>.
+        /// </summary>
+        /// <param name="e">The node to visit.</param>
+        /// <returns>The resulting node.</returns>
         internal protected virtual ISqlNode Visit( SqlTypeDeclDecimal e ) => VisitTypeDeclStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlTypeDeclDecimal)"/>
         internal protected virtual ISqlNode Visit( SqlTypeDeclDateAndTime e ) => VisitTypeDeclStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlTypeDeclDecimal)"/>
         internal protected virtual ISqlNode Visit( SqlTypeDeclSimple e ) => VisitTypeDeclStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlTypeDeclDecimal)"/>
         internal protected virtual ISqlNode Visit( SqlTypeDeclWithSize e ) => VisitTypeDeclStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlTypeDeclDecimal)"/>
         internal protected virtual ISqlNode Visit( SqlTypeDeclUserDefined e ) => VisitTypeDeclStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlTypeDeclDecimal)"/>
         internal protected virtual ISqlNode Visit( SqlTypeDeclTable e ) => VisitTypeDeclStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlTypeDeclDecimal)"/>
         internal protected virtual ISqlNode Visit( SqlTypeDeclCursorParameter e ) => VisitTypeDeclStandard( e );
 
         #endregion
 
+        /// <summary>
+        /// Calls <see cref="VisitStandard(ISqlNode)"/>.
+        /// </summary>
+        /// <param name="e">The node to visit.</param>
+        /// <returns>The resulting node.</returns>
         internal protected virtual ISqlNode Visit( SqlNodeExternal e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlGrant e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlOpenXml e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlOpenJSON e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlCallParameter e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlCallParameterList e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlUnnamedStatement e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlNodeList e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlEnclosableCommaList e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlEnclosedCommaList e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlPar e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlBasicValue e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlKoCall e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlOverClause e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlOverClausePartition e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlOverClauseRowOrRange e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlOrderByClause e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlWithinGroup e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlCollate e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlAtTimeZone e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlIf e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlCursorDefinition e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlIdentifierCommaList e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlCursorDefinition92 e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlDeclareCursor e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlBeginTransaction e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlStatementList e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlBeginEndBlock e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlTryCatch e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlTryBlock e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlCatchBlock e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlStatement e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlEmptyStatement e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlReturnStatement e ) => VisitStandard( e );
-        
+
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlExecuteStatement e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlExecuteStringStatement e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlSetVariable e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlInsertStatement e ) => VisitStandard( e );
-        
+
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlUpdateStatement e ) => VisitStandard( e );
-        
+
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlDeleteStatement e ) => VisitStandard( e );
-        
+
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlMergeStatement e ) => VisitStandard( e );
-        
+
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlTableValues e ) => VisitStandard( e );
-        
+
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlMultiCommaList e ) => VisitStandard( e );
-        
+
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlWithParOptions e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlOptionParOptions e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlWithOptions e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( MIUDHeader e ) => VisitStandard( e );
-        
+
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( IUDTarget e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlOutputClause e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlSetOption e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlGoto e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlWhile e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlRaiserror e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlLabelDefinition e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlView e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlFunctionScalar e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlFunctionInlineTable e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlFunctionTable e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlStoredProcedure e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlTrigger e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlEnclosedIdentifierCommaList e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlDeclareVariable e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlVariableDeclarationList e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlVariableDeclaration e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlCast e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlCaseWhenList e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlMultiIdentifier e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlOpenDataSource e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlUnaryOperator e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlTypedIdentifier e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlParameter e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlParameterList e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlAssign e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlCommaList e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlBinaryOperator e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlIsNull e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlLike e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlBetween e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlInValues e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlCase e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlCaseWhenSelector e ) => VisitStandard( e );
 
         #region Select
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlSelectStatement e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SelectSpec e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SelectColumn e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SelectColumnList e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SelectHeader e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SelectInto e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SelectFrom e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SelectGroupBy e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SelectCombine e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SelectDecorator e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SelectFor e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlOrderByList e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlOrderByItem e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SelectOrderBy e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlNextValueFor e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlCTEStatement e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlCTEXmlNamespace e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlWithForXml e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlCTENameList e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlCreateOrAlter e ) => VisitStandard( e );
 
+        /// <inheritdoc cref="Visit(SqlNodeExternal)"/>
         internal protected virtual ISqlNode Visit( SqlCTEName e ) => VisitStandard( e );
 
         #endregion

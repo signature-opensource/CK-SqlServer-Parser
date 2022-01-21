@@ -1,10 +1,5 @@
-using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
 namespace CK.SqlServer.Parser
 {
@@ -12,7 +7,7 @@ namespace CK.SqlServer.Parser
     {
 
         /// <summary>
-        /// True True if this <see cref="SqlTokenType"/> is xml, browse, json or system_time.
+        /// True if this <see cref="SqlTokenType"/> is xml, browse, json or system_time.
         /// </summary>
         /// <param name="token">Token type.</param>
         /// <returns>Whether the token is a valid target for 'select for'.</returns>

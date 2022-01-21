@@ -18,7 +18,7 @@ namespace CK.SqlServer.Transform.Tests
         [Test]
         public void Basic_range_intersect_union_except_operations()
         {
-            SqlTransformHost t = new SqlTransformHost( new SqlAnalyser( "select A, B from T where 1 = 0;" ).Parse(), TestHelper.ConsoleMonitor );
+            SqlTransformHost t = new SqlTransformHost( new SqlAnalyser( "select A, B from T where 1 = 0;" ).Parse() );
 
             List<SqlNodeLocationRange> all = new List<SqlNodeLocationRange>();
             Dictionary<string, SqlNodeLocationRange> s = new Dictionary<string, SqlNodeLocationRange>();
@@ -32,23 +32,23 @@ namespace CK.SqlServer.Transform.Tests
                 return (SqlNodeLocationRange)range;
             };
 
-            var r0 = add( "∅", t.BuildRange( new SqlNodeScopeBreadthPredicate( n => false ) ) );
-            var r = add( "[0,11[", t.BuildRange( new SqlNodeScopeBreadthPredicate( n => true ) ) );
-            var r1 = add( "[0,10[", t.BuildRange( new SqlNodeScopeBreadthPredicate( n => n is SelectSpec ) ) );
-            var r2 = add( "[10,11[", t.BuildRange( new SqlNodeScopeBreadthPredicate( n => n.IsToken( SqlTokenType.SemiColon ) ) ) );
-            var r11 = add( "[0,1[", t.BuildRange( new SqlNodeScopeBreadthPredicate( n => n.IsToken( SqlTokenType.Select ) ) ) );
-            var r12 = add( "[1,4[", t.BuildRange( new SqlNodeScopeBreadthPredicate( n => n is SelectColumnList ) ) );
-            var r121 = add( "[1,2[", t.BuildRange( new SqlNodeScopeBreadthPredicate( n => n.ToString() == "A" ) ) );
-            var r122 = add( "[2,3[", t.BuildRange( new SqlNodeScopeBreadthPredicate( n => n.IsToken( SqlTokenType.Comma ) ) ) );
-            var r123 = add( "[3,4[", t.BuildRange( new SqlNodeScopeBreadthPredicate( n => n.ToString() == "B" ) ) );
-            var r13 = add( "[4,6[", t.BuildRange( new SqlNodeScopeBreadthPredicate( n => n is SelectFrom ) ) );
-            var r131 = add( "[4,5[", t.BuildRange( new SqlNodeScopeBreadthPredicate( n => n.IsToken( SqlTokenType.From ) ) ) );
-            var r132 = add( "[5,6[", t.BuildRange( new SqlNodeScopeBreadthPredicate( n => n.ToString() == "T" ) ) );
-            var r14 = add( "[6,7[", t.BuildRange( new SqlNodeScopeBreadthPredicate( n => n.ToString() == "where" ) ) );
-            var r15 = add( "[7,10[", t.BuildRange( new SqlNodeScopeBreadthPredicate( n => n is SqlBinaryOperator ) ) );
-            var r151 = add( "[7,8[", t.BuildRange( new SqlNodeScopeBreadthPredicate( n => n.ToString() == "1" ) ) );
-            var r152 = add( "[8,9[", t.BuildRange( new SqlNodeScopeBreadthPredicate( n => n.IsToken( SqlTokenType.Equal ) ) ) );
-            var r153 = add( "[9,10[", t.BuildRange( new SqlNodeScopeBreadthPredicate( n => n.ToString() == "0" ) ) );
+            var r0 = add( "∅", t.BuildRange( TestHelper.ConsoleMonitor, new SqlNodeScopeBreadthPredicate( n => false ) ) );
+            var r = add( "[0,11[", t.BuildRange( TestHelper.ConsoleMonitor, new SqlNodeScopeBreadthPredicate( n => true ) ) );
+            var r1 = add( "[0,10[", t.BuildRange( TestHelper.ConsoleMonitor, new SqlNodeScopeBreadthPredicate( n => n is SelectSpec ) ) );
+            var r2 = add( "[10,11[", t.BuildRange( TestHelper.ConsoleMonitor, new SqlNodeScopeBreadthPredicate( n => n.IsToken( SqlTokenType.SemiColon ) ) ) );
+            var r11 = add( "[0,1[", t.BuildRange( TestHelper.ConsoleMonitor, new SqlNodeScopeBreadthPredicate( n => n.IsToken( SqlTokenType.Select ) ) ) );
+            var r12 = add( "[1,4[", t.BuildRange( TestHelper.ConsoleMonitor, new SqlNodeScopeBreadthPredicate( n => n is SelectColumnList ) ) );
+            var r121 = add( "[1,2[", t.BuildRange( TestHelper.ConsoleMonitor, new SqlNodeScopeBreadthPredicate( n => n.ToString() == "A" ) ) );
+            var r122 = add( "[2,3[", t.BuildRange( TestHelper.ConsoleMonitor, new SqlNodeScopeBreadthPredicate( n => n.IsToken( SqlTokenType.Comma ) ) ) );
+            var r123 = add( "[3,4[", t.BuildRange( TestHelper.ConsoleMonitor, new SqlNodeScopeBreadthPredicate( n => n.ToString() == "B" ) ) );
+            var r13 = add( "[4,6[", t.BuildRange( TestHelper.ConsoleMonitor, new SqlNodeScopeBreadthPredicate( n => n is SelectFrom ) ) );
+            var r131 = add( "[4,5[", t.BuildRange( TestHelper.ConsoleMonitor, new SqlNodeScopeBreadthPredicate( n => n.IsToken( SqlTokenType.From ) ) ) );
+            var r132 = add( "[5,6[", t.BuildRange( TestHelper.ConsoleMonitor, new SqlNodeScopeBreadthPredicate( n => n.ToString() == "T" ) ) );
+            var r14 = add( "[6,7[", t.BuildRange( TestHelper.ConsoleMonitor, new SqlNodeScopeBreadthPredicate( n => n.ToString() == "where" ) ) );
+            var r15 = add( "[7,10[", t.BuildRange( TestHelper.ConsoleMonitor, new SqlNodeScopeBreadthPredicate( n => n is SqlBinaryOperator ) ) );
+            var r151 = add( "[7,8[", t.BuildRange( TestHelper.ConsoleMonitor, new SqlNodeScopeBreadthPredicate( n => n.ToString() == "1" ) ) );
+            var r152 = add( "[8,9[", t.BuildRange( TestHelper.ConsoleMonitor, new SqlNodeScopeBreadthPredicate( n => n.IsToken( SqlTokenType.Equal ) ) ) );
+            var r153 = add( "[9,10[", t.BuildRange( TestHelper.ConsoleMonitor, new SqlNodeScopeBreadthPredicate( n => n.ToString() == "0" ) ) );
             var rEnd = add( "[7,11[", r15.Union( r2 ) );
             var rFront = add( "[0,9[", r1.Except( r153 ) );
             var rMid1 = add( "[1,9[", rFront.Except( r11 ) );
@@ -104,8 +104,8 @@ namespace CK.SqlServer.Transform.Tests
         public void simple_ScopePredicate_on_select_specification( string text, string result )
         {
             var p = new SqlNodeScopeBreadthPredicate( n => n is SelectSpec );
-            var t = new SqlTransformHost( new SqlAnalyser( text ).Parse(), TestHelper.ConsoleMonitor );
-            Assert.That( t.BuildRange( p ).ToString(), Is.EqualTo( result ) );
+            var t = new SqlTransformHost( new SqlAnalyser( text ).Parse() );
+            Assert.That( t.BuildRange( TestHelper.ConsoleMonitor, p ).ToString(), Is.EqualTo( result ) );
         }
 
         [TestCase( "select 1; yo;", "∅" )]
@@ -116,13 +116,13 @@ namespace CK.SqlServer.Transform.Tests
             var pS = new SqlNodeScopeBreadthPredicate( n => n is SelectSpec );
             var pY = new SqlNodeScopeBreadthPredicate( n => n.IsToken( SqlTokenType.IdentifierStandard ) && n.ToString() == "yo" );
             ISqlNode node = new SqlAnalyser( text ).Parse();
-            var t = new SqlTransformHost( node, TestHelper.ConsoleMonitor );
+            var t = new SqlTransformHost( node );
 
             var p = new SqlNodeScopeIntersect( pS, pY );
-            Assert.That( t.BuildRange( p ).ToString(), Is.EqualTo( result ) );
+            Assert.That( t.BuildRange( TestHelper.ConsoleMonitor, p ).ToString(), Is.EqualTo( result ) );
 
             var pI = new SqlNodeScopeIntersect( pY, pS );
-            Assert.That( t.BuildRange( pI ).ToString(), Is.EqualTo( result ) );
+            Assert.That( t.BuildRange( TestHelper.ConsoleMonitor, pI ).ToString(), Is.EqualTo( result ) );
         }
 
 
@@ -136,13 +136,13 @@ namespace CK.SqlServer.Transform.Tests
             var pS = new SqlNodeScopeBreadthPredicate( n => n is SelectSpec );
             var pY = new SqlNodeScopeBreadthPredicate( n => n.IsToken( SqlTokenType.IdentifierStandard ) && n.ToString() == "yo" );
             ISqlNode node = new SqlAnalyser( text ).Parse();
-            var t = new SqlTransformHost( node, TestHelper.ConsoleMonitor );
+            var t = new SqlTransformHost( node );
 
             SqlNodeScopeUnion p = new SqlNodeScopeUnion( pS, pY );
-            Assert.That( t.BuildRange( p ).ToString(), Is.EqualTo( result ) );
+            Assert.That( t.BuildRange( TestHelper.ConsoleMonitor, p ).ToString(), Is.EqualTo( result ) );
 
             SqlNodeScopeUnion pI = new SqlNodeScopeUnion( pY, pS );
-            Assert.That( t.BuildRange( pI ).ToString(), Is.EqualTo( result ) );
+            Assert.That( t.BuildRange( TestHelper.ConsoleMonitor, pI ).ToString(), Is.EqualTo( result ) );
         }
 
         [Test]
@@ -150,19 +150,24 @@ namespace CK.SqlServer.Transform.Tests
         {
             string text = @"select * from (select * from (select * from sys.tables) t) t";
             ISqlNode node = new SqlAnalyser( text ).Parse();
-            var t = new SqlTransformHost( node, TestHelper.ConsoleMonitor );
+            var t = new SqlTransformHost( node );
 
             var pD = new SqlNodeScopeDepthPredicate( n => n.AllTokens.FirstOrDefault()?.TokenType == SqlTokenType.Select, false );
-            var rD = t.BuildRange( pD );
+            var rD = t.BuildRange( TestHelper.ConsoleMonitor, pD );
             Assert.That( rD.ToString(), Is.EqualTo( "[0,1[-[4,5[-[8,9[" ) );
 
             var pB = new SqlNodeScopeBreadthPredicate( n => n.AllTokens.FirstOrDefault()?.TokenType == SqlTokenType.Select );
-            var rB = t.BuildRange( pB );
+            var rB = t.BuildRange( TestHelper.ConsoleMonitor, pB );
             Assert.That( rB.ToString(), Is.EqualTo( "[0,18[" ) );
         }
 
         class TriviaInjecter : SqlNodeLocationVisitor
         {
+            public TriviaInjecter( IActivityMonitor monitor )
+                : base( monitor )
+            {
+            }
+
             protected override ISqlNode AfterVisitItem( ISqlNode e )
             {
                 if( VisitContext.RangeFilterStatus.IsIncludedInFilteredRange() )
@@ -178,13 +183,13 @@ namespace CK.SqlServer.Transform.Tests
         {
             string text = @"A B C";
             ISqlNode node = new SqlAnalyser( text ).Parse();
-            var t = new SqlTransformHost( node, TestHelper.ConsoleMonitor );
+            var t = new SqlTransformHost( node );
 
             var pA = new SqlNodeScopeDepthPredicate( n => n.ToString() == item );
-            var rA = t.BuildRange( pA );
+            var rA = t.BuildRange( TestHelper.ConsoleMonitor, pA );
             Assert.That( rA.ToString(), Is.EqualTo( range ) );
 
-            Assert.That( t.Visit( new TriviaInjecter(), rA ) );
+            Assert.That( t.Visit( new TriviaInjecter( TestHelper.ConsoleMonitor ), rA ) );
             Assert.That( t.Node.ToString( true, true ), Is.EqualTo( result ) );
         }
 
@@ -193,24 +198,24 @@ namespace CK.SqlServer.Transform.Tests
         {
             string text = @"select * from (select * from (select * from sys.tables) t) t";
             ISqlNode node = new SqlAnalyser( text ).Parse();
-            var t = new SqlTransformHost( node, TestHelper.ConsoleMonitor );
+            var t = new SqlTransformHost( node );
 
             var selects = new SqlNodeScopeDepthPredicate( n => n.AllTokens.FirstOrDefault()?.TokenType == SqlTokenType.Select, false );
 
             var extrema = new SqlNodeScopeExtrema( selects, SqlNodeScopeExtrema.Option.None );
-            t.BuildRange( extrema ).ToString().Should().Be( "[0,9[" );
+            t.BuildRange( TestHelper.ConsoleMonitor, extrema ).ToString().Should().Be( "[0,9[" );
 
             var after = new SqlNodeScopeExtrema( selects, SqlNodeScopeExtrema.Option.After );
-            t.BuildRange( after ).ToString().Should().Be( "[9,18[" );
+            t.BuildRange( TestHelper.ConsoleMonitor, after ).ToString().Should().Be( "[9,18[" );
 
             var afterIncluded = new SqlNodeScopeExtrema( selects, SqlNodeScopeExtrema.Option.AfterIncluded );
-            t.BuildRange( afterIncluded ).ToString().Should().Be( "[0,18[" );
+            t.BuildRange( TestHelper.ConsoleMonitor, afterIncluded ).ToString().Should().Be( "[0,18[" );
 
             var before = new SqlNodeScopeExtrema( selects, SqlNodeScopeExtrema.Option.Before );
-            t.BuildRange( before ).ToString().Should().Be( "∅" );
+            t.BuildRange( TestHelper.ConsoleMonitor, before ).ToString().Should().Be( "∅" );
 
             var beforeIncluded = new SqlNodeScopeExtrema( selects, SqlNodeScopeExtrema.Option.BeforeIncluded );
-            t.BuildRange( beforeIncluded ).ToString().Should().Be( "[0,9[" );
+            t.BuildRange( TestHelper.ConsoleMonitor, beforeIncluded ).ToString().Should().Be( "[0,9[" );
         }
 
         [Test]
@@ -218,24 +223,24 @@ namespace CK.SqlServer.Transform.Tests
         {
             string text = @"select * from (select * from (select * from sys.tables) t) t";
             ISqlNode node = new SqlAnalyser( text ).Parse();
-            var t = new SqlTransformHost( node, TestHelper.ConsoleMonitor );
+            var t = new SqlTransformHost( node );
 
             var froms = new SqlNodeScopeDepthPredicate( n => n.AllTokens.FirstOrDefault()?.TokenType == SqlTokenType.From, false );
 
             var extrema = new SqlNodeScopeExtrema( froms, SqlNodeScopeExtrema.Option.None );
-            t.BuildRange( extrema ).ToString().Should().Be( "[2,11[" );
+            t.BuildRange( TestHelper.ConsoleMonitor, extrema ).ToString().Should().Be( "[2,11[" );
 
             var after = new SqlNodeScopeExtrema( froms, SqlNodeScopeExtrema.Option.After );
-            t.BuildRange( after ).ToString().Should().Be( "[11,18[" );
+            t.BuildRange( TestHelper.ConsoleMonitor, after ).ToString().Should().Be( "[11,18[" );
 
             var afterIncluded = new SqlNodeScopeExtrema( froms, SqlNodeScopeExtrema.Option.AfterIncluded );
-            t.BuildRange( afterIncluded ).ToString().Should().Be( "[2,18[" );
+            t.BuildRange( TestHelper.ConsoleMonitor, afterIncluded ).ToString().Should().Be( "[2,18[" );
 
             var before = new SqlNodeScopeExtrema( froms, SqlNodeScopeExtrema.Option.Before );
-            t.BuildRange( before ).ToString().Should().Be( "[0,2[" );
+            t.BuildRange( TestHelper.ConsoleMonitor, before ).ToString().Should().Be( "[0,2[" );
 
             var beforeIncluded = new SqlNodeScopeExtrema( froms, SqlNodeScopeExtrema.Option.BeforeIncluded );
-            t.BuildRange( beforeIncluded ).ToString().Should().Be( "[0,11[" );
+            t.BuildRange( TestHelper.ConsoleMonitor, beforeIncluded ).ToString().Should().Be( "[0,11[" );
         }
 
         [Test]
@@ -243,24 +248,24 @@ namespace CK.SqlServer.Transform.Tests
         {
             string text = @"select * from (select * from (select * from sys.tables) t) t";
             ISqlNode node = new SqlAnalyser( text ).Parse();
-            var t = new SqlTransformHost( node, TestHelper.ConsoleMonitor );
+            var t = new SqlTransformHost( node );
 
             var ts = new SqlNodeScopeDepthPredicate( n => n.IsToken(SqlTokenType.IdentifierStandard) && n.ToStringHyperCompact() == "t", false );
 
             var extrema = new SqlNodeScopeExtrema( ts, SqlNodeScopeExtrema.Option.None );
-            t.BuildRange( extrema ).ToString().Should().Be( "[15,18[" );
+            t.BuildRange( TestHelper.ConsoleMonitor, extrema ).ToString().Should().Be( "[15,18[" );
 
             var after = new SqlNodeScopeExtrema( ts, SqlNodeScopeExtrema.Option.After );
-            t.BuildRange( after ).ToString().Should().Be( "∅" );
+            t.BuildRange( TestHelper.ConsoleMonitor, after ).ToString().Should().Be( "∅" );
 
             var afterIncluded = new SqlNodeScopeExtrema( ts, SqlNodeScopeExtrema.Option.AfterIncluded );
-            t.BuildRange( afterIncluded ).ToString().Should().Be( "[15,18[" );
+            t.BuildRange( TestHelper.ConsoleMonitor, afterIncluded ).ToString().Should().Be( "[15,18[" );
 
             var before = new SqlNodeScopeExtrema( ts, SqlNodeScopeExtrema.Option.Before );
-            t.BuildRange( before ).ToString().Should().Be( "[0,15[" );
+            t.BuildRange( TestHelper.ConsoleMonitor, before ).ToString().Should().Be( "[0,15[" );
 
             var beforeIncluded = new SqlNodeScopeExtrema( ts, SqlNodeScopeExtrema.Option.BeforeIncluded );
-            t.BuildRange( beforeIncluded ).ToString().Should().Be( "[0,18[" );
+            t.BuildRange( TestHelper.ConsoleMonitor, beforeIncluded ).ToString().Should().Be( "[0,18[" );
         }
 
 
@@ -269,22 +274,22 @@ namespace CK.SqlServer.Transform.Tests
         {
             string text = @"/*0*/A/*1*/B/*2*/C/*3*/";
             var input = new SqlAnalyser( text ).Parse();
-            var h = new SqlTransformHost( input, TestHelper.ConsoleMonitor );
+            var h = new SqlTransformHost( input );
 
             var after0 = new SqlNodeScopeFromTriviaMatcher( true, t => t.Text == "0", "After 0" );
-            h.BuildRange( after0 ).ToString().Should().Be( "[0,1[" );
+            h.BuildRange( TestHelper.ConsoleMonitor, after0 ).ToString().Should().Be( "[0,1[" );
 
             var before0 = new SqlNodeScopeFromTriviaMatcher( false, t => t.Text == "0", "Before 0" );
-            h.BuildRange( before0 ).ToString().Should().Be( "]0[" );
+            h.BuildRange( TestHelper.ConsoleMonitor, before0 ).ToString().Should().Be( "]0[" );
 
             var bothAAndB = new SqlNodeScopeFromTriviaMatcher( true, t => t.Text == "0" || t.Text == "1", "A and B." );
-            h.BuildRange( bothAAndB ).ToString().Should().Be( "[0,1[-[1,2[" );
+            h.BuildRange( TestHelper.ConsoleMonitor, bothAAndB ).ToString().Should().Be( "[0,1[-[1,2[" );
 
             var allAfter = new SqlNodeScopeFromTriviaMatcher( true, t => true, "AllAfter." );
-            h.BuildRange( allAfter ).ToString().Should().Be( "[0,1[-[1,2[-[2,3[" );
+            h.BuildRange( TestHelper.ConsoleMonitor, allAfter ).ToString().Should().Be( "[0,1[-[1,2[-[2,3[" );
 
             var allBefore = new SqlNodeScopeFromTriviaMatcher( false, t => true, "AllBefore." );
-            h.BuildRange( allBefore ).ToString().Should().Be( "]0[-[0,1[-[1,2[-[2,3[" );
+            h.BuildRange( TestHelper.ConsoleMonitor, allBefore ).ToString().Should().Be( "]0[-[0,1[-[1,2[-[2,3[" );
 
         }
 
@@ -299,22 +304,22 @@ namespace CK.SqlServer.Transform.Tests
                                ) /*5*/
                             )/*6*/";
             var input = new SqlAnalyser( text ).Parse();
-            var h = new SqlTransformHost( input, TestHelper.ConsoleMonitor );
+            var h = new SqlTransformHost( input );
 
             var after0 = new SqlNodeScopeFromTriviaMatcher( true, t => t.Text == "0", "After 0" );
-            h.BuildRange( after0 ).ToString().Should().Be( "[0,1[" );
+            h.BuildRange( TestHelper.ConsoleMonitor, after0 ).ToString().Should().Be( "[0,1[" );
 
             var before6 = new SqlNodeScopeFromTriviaMatcher( false, t => t.Text == "6", "Before 6" );
-            h.BuildRange( before6 ).ToString().Should().Be( "[6,7[" );
+            h.BuildRange( TestHelper.ConsoleMonitor, before6 ).ToString().Should().Be( "[6,7[" );
 
             var after6 = new SqlNodeScopeFromTriviaMatcher( true, t => t.Text == "6", "After 6" );
-            h.BuildRange( after6 ).ToString().Should().Be( "∅" );
+            h.BuildRange( TestHelper.ConsoleMonitor, after6 ).ToString().Should().Be( "∅" );
 
             var allAfter = new SqlNodeScopeFromTriviaMatcher( true, t => true, "AllAfter." );
-            h.BuildRange( allAfter ).ToString().Should().Be( "[0,1[-[1,2[-[3,4[-[4,5[-[5,6[-[6,7[" );
+            h.BuildRange( TestHelper.ConsoleMonitor, allAfter ).ToString().Should().Be( "[0,1[-[1,2[-[3,4[-[4,5[-[5,6[-[6,7[" );
 
             var allBefore = new SqlNodeScopeFromTriviaMatcher( false, t => true, "AllBefore." );
-            h.BuildRange( allBefore ).ToString().Should().Be( "]0[-[0,1[-[2,3[-[3,4[-[4,5[-[5,6[-[6,7[" );
+            h.BuildRange( TestHelper.ConsoleMonitor, allBefore ).ToString().Should().Be( "]0[-[0,1[-[2,3[-[3,4[-[4,5[-[5,6[-[6,7[" );
 
         }
 

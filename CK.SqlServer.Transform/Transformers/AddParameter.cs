@@ -1,4 +1,4 @@
-﻿using CK.Core;
+using CK.Core;
 using CK.SqlServer.Parser;
 using System;
 using System.Collections.Generic;
@@ -8,6 +8,10 @@ using System.Threading.Tasks;
 
 namespace CK.SqlServer.Transform.Transformers
 {
+    /// <summary>
+    /// Transformers that can add one or more <see cref="SqlParameter"/> to a <see cref="SqlParameterList"/>
+    /// before or after an existing parameter.
+    /// </summary>
     public class AddParameter : SqlNodeLocationVisitor
     {
         readonly IEnumerable<SqlParameter> _param;
@@ -15,23 +19,30 @@ namespace CK.SqlServer.Transform.Transformers
         readonly string _paramNameAfter;
 
         /// <summary>
-        /// Initializes a new <see cref="AddParameter"/> visitor that can insert one or more parameters
+        /// Initializes a new <see cref="AddParameter"/> transformer visitor that can insert one or more parameters
         /// into any <see cref="SqlParameterList"/>.
         /// Note that <paramref name="paramNameBefore"/> is the parameter that WILL BE BEFORE the inserted parameters 
         /// (and <paramref name="paramNameAfter"/> WILL APPEAR AFTER the inserted parameters).
         /// When both <paramref name="paramNameBefore"/> and <paramref name="paramNameAfter"/> are defined,
         /// the latter is ignored.
         /// </summary>
+        /// <param name="monitor">The monitor to use.</param>
         /// <param name="param">The parameters to insert.</param>
         /// <param name="paramNameBefore">Optional name of the parameter that will be before the new ones.</param>
         /// <param name="paramNameAfter">Optional name of the parameter that will be after the new ones.</param>
-        public AddParameter( IEnumerable<SqlParameter> param, string paramNameBefore = null, string paramNameAfter = null )
+        public AddParameter( IActivityMonitor monitor, IEnumerable<SqlParameter> param, string paramNameBefore = null, string paramNameAfter = null )
+            : base( monitor )
         {
             _param = param;
             _paramNameBefore = paramNameBefore;
             _paramNameAfter = paramNameAfter;
         }
 
+        /// <summary>
+        /// Inserts the parameters into the parameter list.
+        /// </summary>
+        /// <param name="e">The parameter list.</param>
+        /// <returns>The new <see cref="SqlParameterList"/>.</returns>
         protected override ISqlNode Visit( SqlParameterList e )
         {
             int idx = _paramNameBefore != null 

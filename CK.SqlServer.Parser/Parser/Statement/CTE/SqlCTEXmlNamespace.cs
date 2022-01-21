@@ -1,17 +1,13 @@
-using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Globalization;
-using System.Linq;
-using System.Text;
-using CK.Core;
 using System.Collections.Immutable;
+using System.Diagnostics;
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
 namespace CK.SqlServer.Parser
 {
     using CNode = SNode<
             SqlTokenIdentifier,
-            SqlEnclosedCommaList, 
+            SqlEnclosedCommaList,
             SqlTokenComma>;
 
     /// <summary>
@@ -21,10 +17,9 @@ namespace CK.SqlServer.Parser
     {
         readonly CNode _content;
 
-        public SqlCTEXmlNamespace( 
-                SqlTokenIdentifier xmlNamespacesT,
-                SqlEnclosedCommaList ns,
-                SqlTokenComma commaT )
+        public SqlCTEXmlNamespace( SqlTokenIdentifier xmlNamespacesT,
+                                   SqlEnclosedCommaList ns,
+                                   SqlTokenComma commaT )
             : base( null, null )
         {
             _content = new CNode( xmlNamespacesT, ns, commaT );

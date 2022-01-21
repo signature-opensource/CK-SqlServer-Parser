@@ -1,11 +1,7 @@
-using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Globalization;
-using System.Linq;
-using System.Text;
-using CK.Core;
 using System.Collections.Immutable;
+using System.Diagnostics;
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
 namespace CK.SqlServer.Parser
 {
@@ -25,32 +21,30 @@ namespace CK.SqlServer.Parser
     {
         readonly CNode _content;
 
-        public SqlCursorDefinition92(
-            SqlTokenIdentifier insensitiveOrScrollToken,
-            SqlTokenIdentifier scrollOrInsensitiveToken,
-            SqlTokenIdentifier cursorToken,
-            SqlTokenIdentifier forToken,
-            ISqlNode selectNode,
-            SqlTokenIdentifier forOptionsToken,
-            SqlTokenIdentifier readToken,
-            SqlTokenIdentifier onlyToken,
-            SqlTokenIdentifier updateToken,
-            SqlTokenIdentifier ofToken,
-            SqlIdentifierCommaList updateColumns )
+        public SqlCursorDefinition92( SqlTokenIdentifier insensitiveOrScrollToken,
+                                      SqlTokenIdentifier scrollOrInsensitiveToken,
+                                      SqlTokenIdentifier cursorToken,
+                                      SqlTokenIdentifier forToken,
+                                      ISqlNode selectNode,
+                                      SqlTokenIdentifier forOptionsToken,
+                                      SqlTokenIdentifier readToken,
+                                      SqlTokenIdentifier onlyToken,
+                                      SqlTokenIdentifier updateToken,
+                                      SqlTokenIdentifier ofToken,
+                                      SqlIdentifierCommaList updateColumns )
             : base( null, null )
         {
-            _content = new CNode(
-                insensitiveOrScrollToken, 
-                scrollOrInsensitiveToken, 
-                cursorToken, 
-                forToken, 
-                selectNode, 
-                forOptionsToken, 
-                readToken, 
-                onlyToken, 
-                updateToken, 
-                ofToken, 
-                updateColumns );
+            _content = new CNode( insensitiveOrScrollToken,
+                                  scrollOrInsensitiveToken,
+                                  cursorToken,
+                                  forToken,
+                                  selectNode,
+                                  forOptionsToken,
+                                  readToken,
+                                  onlyToken,
+                                  updateToken,
+                                  ofToken,
+                                 updateColumns );
             CheckContent();
         }
 

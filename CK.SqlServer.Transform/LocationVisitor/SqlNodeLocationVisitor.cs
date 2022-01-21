@@ -25,12 +25,13 @@ namespace CK.SqlServer.Transform
             int _overridePos;
             VisitedNodeRangeFilterStatus _rangeFilterStatus;
 
-            public VContext()
+            public VContext( IActivityMonitor monitor )
             {
+                Monitor = monitor;
                 _builder = new QualifiedLocationBuilder();
             }
 
-            public IActivityMonitor Monitor { get; set; }
+            public IActivityMonitor Monitor { get; }
 
             public void Reset( LocationRoot root, ISqlNodeLocationRange rangeFilter )
             {
@@ -137,23 +138,20 @@ namespace CK.SqlServer.Transform
         bool _hasUnParsedText;
         bool _stop;
 
-
         /// <summary>
         /// Initializes a new location visitor.
         /// </summary>
-        protected SqlNodeLocationVisitor()
+        /// <param name="monitor">The monitor.</param>
+        protected SqlNodeLocationVisitor( IActivityMonitor monitor )
         {
-            _context = new VContext();
+            Throw.CheckNotNullArgument( monitor );
+            _context = new VContext( monitor );
         }
 
         /// <summary>
-        /// Gets or sets the monitor.
+        /// Gets the monitor associated to this visitor.
         /// </summary>
-        public IActivityMonitor Monitor
-        {
-            get { return _context.Monitor; }
-            set { _context.Monitor = value; }
-        }
+        public IActivityMonitor Monitor => _context.Monitor;
 
         /// <summary>
         /// Overridden to adapt this public inherited method to the internals of this implementation.
@@ -163,7 +161,7 @@ namespace CK.SqlServer.Transform
         /// <returns>The visited result.</returns>
         public override sealed ISqlNode VisitRoot( ISqlNode root )
         {
-            if( root == null ) throw new ArgumentNullException( nameof( root ) );
+            Throw.CheckNotNullArgument( root );
             _context.EnsureRootForNode( root );
             return VisitRoot( _context.Root, null );
         }
@@ -226,7 +224,6 @@ namespace CK.SqlServer.Transform
         /// Called by <see cref="VisitItem"/> before the visit. 
         /// The <see cref="VisitContext"/> is bound to the node that will be visited.
         /// </summary>
-        /// <param name="ctx">The current context visit.</param>
         /// <returns>
         /// True (the default) to visit the children. False to skip the visit of the current node. 
         /// </returns>

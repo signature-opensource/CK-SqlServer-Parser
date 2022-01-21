@@ -1,11 +1,7 @@
-using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Globalization;
-using System.Linq;
-using System.Text;
-using CK.Core;
 using System.Collections.Immutable;
+using System.Diagnostics;
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
 namespace CK.SqlServer.Parser
 {
@@ -25,7 +21,13 @@ namespace CK.SqlServer.Parser
     {
         readonly CNode _content;
 
-        public SqlTInject( SqlTokenIdentifier injecT, ISqlHasStringValue content, SqlTokenIdentifier andT, ISqlHasStringValue content2, SqlTokenIdentifier afterBeforeOrAroundT, ISqlTLocationFinder location, SqlTokenTerminal terminator )
+        public SqlTInject( SqlTokenIdentifier injecT,
+                           ISqlHasStringValue content,
+                           SqlTokenIdentifier andT,
+                           ISqlHasStringValue content2,
+                           SqlTokenIdentifier afterBeforeOrAroundT,
+                           ISqlTLocationFinder location,
+                           SqlTokenTerminal terminator )
             : base( null, null )
         {
             _content = new CNode( injecT, content, andT, content2, afterBeforeOrAroundT, location, terminator );

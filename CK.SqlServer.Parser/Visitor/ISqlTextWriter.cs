@@ -1,9 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 namespace CK.SqlServer.Parser
 {
     public interface ISqlTextWriter
@@ -18,11 +13,6 @@ namespace CK.SqlServer.Parser
         /// </summary>
         bool SkipLineComment { get; }
 
-        ///// <summary>
-        ///// Gets the white space options.
-        ///// </summary>
-        //SqlTextWriter.WhiteSpaceOption WhiteSpace { get; }
-
         /// <summary>
         /// Writes a trivia.
         /// </summary>
@@ -34,7 +24,7 @@ namespace CK.SqlServer.Parser
         /// </summary>
         /// <param name="type">
         /// Type of the token. This is used to secure the separators between tokens (for instance
-        /// a separator must appear between two identifers).
+        /// a separator must appear between two identifIers).
         /// </param>
         /// <param name="text">Text to write.</param>
         /// <param name="whiteSpaceBefore">

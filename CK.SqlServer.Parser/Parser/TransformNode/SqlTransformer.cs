@@ -1,10 +1,11 @@
+using CK.Core;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
-using CK.Core;
-using System.Collections.Immutable;
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
 namespace CK.SqlServer.Parser
 {
@@ -22,26 +23,24 @@ namespace CK.SqlServer.Parser
     {
         readonly CNode _content;
 
-        public SqlTransformer(
-            SqlCreateOrAlter createOrAlter, 
-            SqlTokenIdentifier transfomerT,
-            ISqlIdentifier name,
-            SqlTokenIdentifier onT,
-            ISqlIdentifier targetName,
-            SqlTokenIdentifier asT,
-            SqlTStatementList body,
-            SqlTokenTerminal term )
+        public SqlTransformer( SqlCreateOrAlter createOrAlter,
+                               SqlTokenIdentifier transfomerT,
+                               ISqlIdentifier name,
+                               SqlTokenIdentifier onT,
+                               ISqlIdentifier targetName,
+                               SqlTokenIdentifier asT,
+                               SqlTStatementList body,
+                               SqlTokenTerminal term )
             : base( null, null )
         {
-            _content = new CNode(
-                createOrAlter,
-                transfomerT,
-                name,
-                onT,
-                targetName,
-                asT,
-                body,
-                term );
+            _content = new CNode( createOrAlter,
+                                  transfomerT,
+                                  name,
+                                  onT,
+                                  targetName,
+                                  asT,
+                                  body,
+                                  term );
             CheckContent();
         }
 

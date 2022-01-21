@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace CK.SqlServer.Transform
 {
+    /// <summary>
+    /// Extends <see cref="VisitedNodeRangeFilterStatus"/> with (hopefully) easier to understand methods.
+    /// </summary>
     public static class VisitedNodeRangeFilterStatusExtension
     {
         /// <summary>

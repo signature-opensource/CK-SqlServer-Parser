@@ -1,17 +1,14 @@
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Globalization;
-using System.Linq;
-using System.Text;
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
 namespace CK.SqlServer.Parser
 {
     using CNode = SNode<SqlTokenIdentifier, SqlTokenIdentifier, SqlTokenOpenPar, ISqlNode, SqlTokenClosePar>;
 
     /// <summary>
-    /// Captures a select column definition. 
+    /// Captures a 'within group' and select column definition. 
     /// </summary>
     public sealed class SqlWithinGroup : SqlNonTokenAutoWidth
     {

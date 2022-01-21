@@ -20,10 +20,9 @@ namespace CK.SqlServer.Parser
     {
         readonly ISqlNode[] _items;
 
-        protected ASqlNodePrefixedSeparatedList(
-            int minCount,
-            TPrefix prefix,
-            IEnumerable<ISqlNode> items )
+        private protected ASqlNodePrefixedSeparatedList( int minCount,
+                                                         TPrefix prefix,
+                                                         IEnumerable<ISqlNode> items )
             : base( null, null )
         {
             List<ISqlNode> i = new List<ISqlNode>();
@@ -33,12 +32,11 @@ namespace CK.SqlServer.Parser
             CheckContent( _items, minCount );
         }
 
-        protected ASqlNodePrefixedSeparatedList(
-            ASqlNodePrefixedSeparatedList<TPrefix, T, TSep> o,
-            int minCount,
-            ImmutableList<SqlTrivia> leading,
-            IEnumerable<ISqlNode> items,
-            ImmutableList<SqlTrivia> trailing )
+        private protected ASqlNodePrefixedSeparatedList( ASqlNodePrefixedSeparatedList<TPrefix, T, TSep> o,
+                                                         int minCount,
+                                                         ImmutableList<SqlTrivia>? leading,
+                                                         IEnumerable<ISqlNode> items,
+                                                         ImmutableList<SqlTrivia>? trailing )
             : base( leading, trailing )
         {
             if( items == null ) _items = o._items;
@@ -68,19 +66,35 @@ namespace CK.SqlServer.Parser
             }
         }
 
+        /// <summary>
+        /// Gets the children at the given index, skipping prefix and separators.
+        /// </summary>
+        /// <param name="index">The index.</param>
+        /// <returns>The children.</returns>
         public T this[int index] => (T)_items[1+index*2];
 
         /// <summary>
-        /// Gets the direct children if any. Never null.
+        /// Gets all the direct children if any. Never null.
         /// </summary>
         public override IReadOnlyList<ISqlNode> ChildrenNodes => _items;
 
+        /// <inheritdoc />
         public override sealed IList<ISqlNode> GetRawContent() => _items.ToList();
 
+        /// <summary>
+        /// Gets the prefix of this list.
+        /// </summary>
         protected TPrefix Prefix => (TPrefix)_items[0];
 
+        /// <summary>
+        /// Gets the number of actual children, excluding prefix and separators.
+        /// </summary>
         public int Count => _items.Length / 2;
 
+        /// <summary>
+        /// Gets the actual children skipping prefix and separators.
+        /// </summary>
+        /// <returns>An enumerator of actual children.</returns>
         public IEnumerator<T> GetEnumerator()
         {
             return _items.Where( (x,i) => (i&1) == 1 ).Cast<T>().GetEnumerator();

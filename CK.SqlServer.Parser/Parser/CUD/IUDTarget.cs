@@ -1,11 +1,7 @@
-using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Globalization;
-using System.Linq;
-using System.Text;
-using CK.Core;
 using System.Collections.Immutable;
+using System.Diagnostics;
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
 namespace CK.SqlServer.Parser
 {
@@ -18,7 +14,7 @@ namespace CK.SqlServer.Parser
     {
         readonly SNode<ISqlNode, SqlWithParOptions> _content;
 
-        public IUDTarget( ISqlNode target, SqlWithParOptions withTableHints = null, ImmutableList<SqlTrivia> leading = null, ImmutableList<SqlTrivia> trailing = null )
+        public IUDTarget( ISqlNode target, SqlWithParOptions withTableHints = null, ImmutableList<SqlTrivia>? leading = null, ImmutableList<SqlTrivia>? trailing = null )
             : base( leading, trailing )
         {
             _content = new SNode<ISqlNode, SqlWithParOptions>( target, withTableHints );

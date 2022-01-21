@@ -10,14 +10,18 @@ using System.Threading.Tasks;
 
 namespace CK.SqlServer.Transform.Transformers
 {
-    public class UnParsedTextInjectVisitor : SqlNodeLocationVisitor
+    /// <summary>
+    /// Transformer that relies on <see cref="UnparsedInjectInfo"/>.
+    /// </summary>
+    internal class UnParsedTextInjectVisitor : SqlNodeLocationVisitor
     {
         readonly UnparsedInjectInfo _info;
         readonly LocationInserter _inserter;
         readonly DepthFirstNodeMatcherHelper _nodeMatcher;
 
 
-        internal UnParsedTextInjectVisitor( UnparsedInjectInfo injecter )
+        internal UnParsedTextInjectVisitor( IActivityMonitor monitor, UnparsedInjectInfo injecter )
+            : base( monitor )
         {
             _info = injecter;
             _inserter = new LocationInserter( _info.Location );

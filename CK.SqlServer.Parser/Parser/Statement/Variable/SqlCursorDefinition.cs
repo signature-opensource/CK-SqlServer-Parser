@@ -1,11 +1,7 @@
-using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Globalization;
-using System.Linq;
-using System.Text;
-using CK.Core;
 using System.Collections.Immutable;
+using System.Diagnostics;
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
 namespace CK.SqlServer.Parser
 {
@@ -23,26 +19,24 @@ namespace CK.SqlServer.Parser
     {
         readonly CNode _content;
 
-        public SqlCursorDefinition( 
-            SqlTokenIdentifier cursorT,
-            SqlNodeList options, 
-            SqlTokenIdentifier forT,
-            ISqlNode selectNode, 
-            SqlTokenIdentifier forOptionsT, 
-            SqlTokenIdentifier updateT, 
-            SqlTokenIdentifier ofT, 
-            SqlIdentifierCommaList updateColumns )
+        public SqlCursorDefinition( SqlTokenIdentifier cursorT,
+                                    SqlNodeList options,
+                                    SqlTokenIdentifier forT,
+                                    ISqlNode selectNode,
+                                    SqlTokenIdentifier forOptionsT,
+                                    SqlTokenIdentifier updateT,
+                                    SqlTokenIdentifier ofT,
+                                    SqlIdentifierCommaList updateColumns )
             : base( null, null )
         {
-            _content = new CNode(
-                cursorT, 
-                options, 
-                forT, 
-                selectNode, 
-                forOptionsT, 
-                updateT, 
-                ofT, 
-                updateColumns );
+            _content = new CNode( cursorT,
+                                  options,
+                                  forT,
+                                  selectNode,
+                                  forOptionsT,
+                                  updateT,
+                                  ofT,
+                                  updateColumns );
             CheckContent();
         }
 

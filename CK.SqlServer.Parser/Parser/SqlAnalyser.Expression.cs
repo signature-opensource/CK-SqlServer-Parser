@@ -412,12 +412,18 @@ namespace CK.SqlServer.Parser
         /// </summary>
         /// <param name="expected">True to set an error if no expression exist.</param>
         /// <returns>One expression or null.</returns>
-        public ISqlNode IsOneExpression( bool expected )
+        public ISqlNode? IsOneExpression( bool expected )
         {
             return IsExpression( SqlTokenizer.PrecedenceLevel( SqlTokenType.Comma ), expected );
         }
 
-        public ISqlNode IsExtendedExpression( bool expected )
+        /// <summary>
+        /// Reads an extended expression with a possible leading statement.
+        /// <see cref="IsExtendedExpression(bool, bool)"/>.
+        /// </summary>
+        /// <param name="expected">True to set an error if no expression exist.</param>
+        /// <returns>One expression or null.</returns>
+        public ISqlNode? IsExtendedExpression( bool expected )
         {
             return IsExtendedExpression( expected, true );
         }
@@ -430,7 +436,7 @@ namespace CK.SqlServer.Parser
         /// <param name="expected">True to set an error if no expression exist.</param>
         /// <param name="allowLeadingStatement">True to accept a first statement.</param>
         /// <returns>One expression, a <see cref="SqlNodeList"/> or null.</returns>
-        public ISqlNode IsExtendedExpression( bool expected, bool allowLeadingStatement )
+        public ISqlNode? IsExtendedExpression( bool expected, bool allowLeadingStatement )
         {
             bool stopOnStatement = !allowLeadingStatement; 
             List<ISqlNode> items = new List<ISqlNode>();

@@ -9,15 +9,25 @@ using CK.SqlServer;
 
 namespace CK.SqlServer.Parser
 {
-    public partial class SqlAnalyser
+    /// <summary>
+    /// Sql analyzer that parses strings into <see cref="ISqlNode"/> parse trees.
+    /// </summary>
+    public sealed partial class SqlAnalyser
     {
         readonly SqlTokenReader R;
 
+        /// <summary>
+        /// Captures any form of analysis error.
+        /// </summary>
         public class ErrorResult
         {
             readonly string _errorMessage;
             readonly string _headSource;
-            public bool IsError { get { return this != NoError; } }
+
+            /// <summary>
+            /// Implicitly converts this result into a boolean.
+            /// </summary>
+            /// <param name="r">A result.</param>
             public static implicit operator bool ( ErrorResult r ) { return r == NoError; }
 
             internal ErrorResult( string errorMessage, string headSource )
@@ -27,10 +37,32 @@ namespace CK.SqlServer.Parser
                 _headSource = headSource;
             }
 
-            public string ErrorMessage => _errorMessage;
+            /// <summary>
+            /// Gets whether the analysis failed.
+            /// </summary>
+            public bool IsError => this != NoError;
 
-            public string HeadSource => _headSource;
+            /// <summary>
+            /// Gets whether the analysis was successful.
+            /// </summary>
+            public bool Success => this == NoError;
 
+            /// <summary>
+            /// Gets the error message.
+            /// Null if no error occurred.
+            /// </summary>
+            public string? ErrorMessage => _errorMessage;
+
+            /// <summary>
+            /// Gets the text where the error occurred.
+            /// Null if no error occurred.
+            /// </summary>
+            public string? HeadSource => _headSource;
+
+            /// <summary>
+            /// Overridden to return the error and the <see cref="HeadSource"/>.
+            /// </summary>
+            /// <returns>A readable string.</returns>
             public override string ToString()
             {
                 return IsError ? string.Format( "Error: {0}\r\nText: {1}", _errorMessage, _headSource ) : "<success>";
@@ -45,7 +77,7 @@ namespace CK.SqlServer.Parser
             /// <param name="asWarning">True to log a warning instead of an error.</param>
             public void LogOnError( IActivityMonitor monitor, bool asWarning = false )
             {
-                if( monitor == null ) throw new ArgumentNullException( "monitor" );
+                Throw.CheckNotNullArgument( monitor );
                 if( IsError )
                 {
                     using( asWarning ? monitor.OpenWarn( _errorMessage ) : monitor.OpenError( _errorMessage ) )
@@ -58,16 +90,29 @@ namespace CK.SqlServer.Parser
             }
         }
 
+        /// <summary>
+        /// Parses a string that must be a sql statement.
+        /// </summary>
+        /// <param name="statement">The output statement. Null if an error occur.</param>
+        /// <param name="text">The text to parse.</param>
+        /// <returns>An error result.</returns>
         [DebuggerStepThrough]
-        public static ErrorResult ParseStatement( out ISqlStatement statement, string text )
+        public static ErrorResult ParseStatement( out ISqlStatement? statement, string text )
         {
             SqlAnalyser a = new SqlAnalyser( text );
             statement = a.IsExtendedStatement( true );
             return statement != null ? ErrorResult.NoError : a.CreateErrorResult();
         }
 
+        /// <summary>
+        /// Parses a piece of Sql according to the <see cref="ParseMode"/>.
+        /// </summary>
+        /// <param name="sql">The output statement. Null if an error occur.</param>
+        /// <param name="mode">How the text should be analyzed.</param>
+        /// <param name="text">The text to parse.</param>
+        /// <returns>An error result.</returns>
         [DebuggerStepThrough]
-        public static ErrorResult Parse( out ISqlNode sql, ParseMode mode, string text )
+        public static ErrorResult Parse( out ISqlNode? sql, ParseMode mode, string text )
         {
             sql = null;
             SqlAnalyser a = new SqlAnalyser( text );
@@ -84,7 +129,7 @@ namespace CK.SqlServer.Parser
         /// Initializes a new <see cref="SqlAnalyser"/> bound to a new <see cref="SqlTokenizer"/> instance 
         /// on a text (<see cref="Reset"/> is automatically called).
         /// </summary>
-        /// <param name="text">Text to analyse.</param>
+        /// <param name="text">Text to analyze.</param>
         public SqlAnalyser( string text )
         {
             R = new SqlTokenReader( new SqlTokenizer() );
@@ -122,7 +167,12 @@ namespace CK.SqlServer.Parser
             return R.MoveNext();
         }
 
-        public ISqlNode Parse( ParseMode mode = ParseMode.OneOrMoreStatements )
+        /// <summary>
+        /// Analyzes the current input text according to a <see cref="ParseMode"/>.
+        /// </summary>
+        /// <param name="mode">How to analyze the text.</param>
+        /// <returns>The resulting node or null if the text cannot be parsed.</returns>
+        public ISqlNode? Parse( ParseMode mode = ParseMode.OneOrMoreStatements )
         {
             switch( mode )
             {
@@ -144,8 +194,8 @@ namespace CK.SqlServer.Parser
         /// a <see cref="SqlStatementList"/> of ExtendedStatement.
         /// </summary>
         /// <param name="expected">True to set an error if no statements are parsed.</param>
-        /// <returns>The parsed node.</returns>
-        public ISqlNode IsOneOrMoreStatements( bool expected )
+        /// <returns>The parsed node or null.</returns>
+        public ISqlNode? IsOneOrMoreStatements( bool expected )
         {
             var statements = IsStatementList( expected );
             if( statements == null ) return null;
@@ -157,11 +207,15 @@ namespace CK.SqlServer.Parser
         /// </summary>
         /// <param name="expected">True to expect at least one statement.</param>
         /// <returns>Non null statement list on success, otherwise null.</returns>
-        public SqlStatementList IsStatementList( bool expected )
+        public SqlStatementList? IsStatementList( bool expected )
         {
             return IsList( expected, IsExtendedStatement, i => new SqlStatementList( i ) );
         }
 
+        /// <summary>
+        /// Overridden to return the state of this analyzer.
+        /// </summary>
+        /// <returns>A (unfortunately not so) readable string.</returns>
         public override string ToString()
         {
             return R.ToString();

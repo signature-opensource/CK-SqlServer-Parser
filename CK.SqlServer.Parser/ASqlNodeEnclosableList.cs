@@ -1,12 +1,10 @@
-using CK.Core;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Collections;
+
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
 namespace CK.SqlServer.Parser
 {
@@ -19,8 +17,9 @@ namespace CK.SqlServer.Parser
         where TCloser : class, ISqlNode
     {
         readonly ISqlNode[] _items;
+
         // 0 when no Opener/Closer, 1 otherwise.
-        int _enclosed;
+        readonly int _enclosed;
 
         /// <summary>
         /// Initializes a new enclosable list.
@@ -59,7 +58,7 @@ namespace CK.SqlServer.Parser
                     int count = a.Length - 2;
                     for( int i = 1; i < count; ++i )
                     {
-                        if( !(a[i] is T) ) ASqlNodeList<T>.RaiseItemTypeError( this, i, a[i] );
+                        if( a[i] is not T ) ASqlNodeList<T>.RaiseItemTypeError( this, i, a[i] );
                     }
                     if( count < minCount ) ASqlNodeList<T>.RaiseMinItemCountError( this, count, minCount );
                 }
@@ -98,7 +97,7 @@ namespace CK.SqlServer.Parser
 
         static internal void CheckEnclosed( ISqlNode o, ISqlNode[] items, int startIdx = 0 )
         {
-            if( items.Length < startIdx + 2 || !(items[startIdx] is TOpener) || !(items[items.Length - 1] is TCloser) )
+            if( items.Length < startIdx + 2 || items[startIdx] is not TOpener || items[items.Length - 1] is not TCloser )
             {
                 throw new ArgumentException( string.Format( "'{0}': Items must {3} a '{1}' and end with a '{2}'.",
                                                                 o.GetType().Name,

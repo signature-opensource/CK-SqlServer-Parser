@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 
@@ -85,7 +85,7 @@ namespace CK.SqlServer.Parser
         SqlToken LocateToken( int index, Action<ISqlNode, int> onPath );
 
         /// <summary>
-        /// Overriden to return the result of <see cref="WriteWithoutTrivias"/> with 
+        /// Overridden to return the result of <see cref="WriteWithoutTrivias"/> with 
         /// a one line, compact, writer (<see cref="SqlTextWriter.CreateOneLineCompact"/>).
         /// </summary>
         /// <returns>The mere node.</returns>
@@ -112,7 +112,7 @@ namespace CK.SqlServer.Parser
         void Write( ISqlTextWriter w );
         
         /// <summary>
-        /// Writes the token without this leading nor traling trivias.
+        /// Writes the token without this leading nor trailing trivias.
         /// </summary>
         /// <param name="w">The <see cref="ISqlTextWriter"/> to write to.</param>
         void WriteWithoutTrivias( ISqlTextWriter w );

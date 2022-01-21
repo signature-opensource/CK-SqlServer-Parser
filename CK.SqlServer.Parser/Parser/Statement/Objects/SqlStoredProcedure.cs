@@ -1,10 +1,9 @@
-using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
-using CK.Core;
-using System.Collections.Immutable;
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
 namespace CK.SqlServer.Parser
 {
@@ -20,38 +19,36 @@ namespace CK.SqlServer.Parser
                         SqlTokenTerminal>;
 
     public sealed class SqlStoredProcedure : SqlNonTokenAutoWidth, 
-                                                ISqlNamedStatement, 
-                                                ISqlFullNameHolder, 
-                                                ISqlParameterListHolder,
-                                                ISqlServerStoredProcedure,
-                                                ISqlServerObjectOptions
+                                             ISqlNamedStatement, 
+                                             ISqlFullNameHolder, 
+                                             ISqlParameterListHolder,
+                                             ISqlServerStoredProcedure,
+                                             ISqlServerObjectOptions
     {
         readonly CNode _content;
 
-        public SqlStoredProcedure( 
-            SqlCreateOrAlter createOrAlter, 
-            SqlTokenIdentifier type,
-            ISqlIdentifier name, 
-            SqlParameterList parameters,
-            SqlWithOptions options, 
-            SqlTokenIdentifier asToken, 
-            SqlTokenIdentifier begin, 
-            SqlStatementList bodyStatements, 
-            SqlTokenIdentifier end, 
-            SqlTokenTerminal term )
+        public SqlStoredProcedure( SqlCreateOrAlter createOrAlter,
+                                   SqlTokenIdentifier type,
+                                   ISqlIdentifier name,
+                                   SqlParameterList parameters,
+                                   SqlWithOptions options,
+                                   SqlTokenIdentifier asToken,
+                                   SqlTokenIdentifier begin,
+                                   SqlStatementList bodyStatements,
+                                   SqlTokenIdentifier end,
+                                   SqlTokenTerminal term )
             : base( null, null )
         {
-            _content = new CNode(
-                createOrAlter,
-                type,
-                name,
-                parameters,
-                options,
-                asToken,
-                begin,
-                bodyStatements,
-                end,
-                term );
+            _content = new CNode( createOrAlter,
+                                  type,
+                                  name,
+                                  parameters,
+                                  options,
+                                  asToken,
+                                  begin,
+                                  bodyStatements,
+                                  end,
+                                  term );
             CheckContent();
         }
 

@@ -7,6 +7,8 @@ using System.Text;
 using CK.Core;
 using System.Collections.Immutable;
 
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+
 namespace CK.SqlServer.Parser
 {
     /// <summary>

@@ -1,10 +1,7 @@
-using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using CK.Core;
 using System.Collections.Immutable;
+using System.Diagnostics;
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
 namespace CK.SqlServer.Parser
 {
@@ -23,30 +20,28 @@ namespace CK.SqlServer.Parser
     {
         readonly CNode _content;
 
-        public SqlTrigger( 
-            SqlCreateOrAlter createOrAlter, 
-            SqlTokenIdentifier type,
-            ISqlIdentifier name,
-            SqlTokenIdentifier onT,
-            ISqlNode target,
-            SqlWithOptions options, 
-            SqlNodeList configuration,
-            SqlTokenIdentifier asT, 
-            SqlStatementList bodyStatements, 
-            SqlTokenTerminal term )
+        public SqlTrigger( SqlCreateOrAlter createOrAlter,
+                           SqlTokenIdentifier type,
+                           ISqlIdentifier name,
+                           SqlTokenIdentifier onT,
+                           ISqlNode target,
+                           SqlWithOptions options,
+                           SqlNodeList configuration,
+                           SqlTokenIdentifier asT,
+                           SqlStatementList bodyStatements,
+                           SqlTokenTerminal term )
             : base( null, null )
         {
-            _content = new CNode(
-                createOrAlter,
-                type,
-                name,
-                onT,
-                target,
-                options,
-                configuration,
-                asT,
-                bodyStatements,
-                term );
+            _content = new CNode( createOrAlter,
+                                  type,
+                                  name,
+                                  onT,
+                                  target,
+                                  options,
+                                  configuration,
+                                  asT,
+                                  bodyStatements,
+                                  term );
             CheckContent();
         }
 

@@ -42,8 +42,8 @@ namespace CK.SqlServer.Transform.Tests.XmlTests
                         SqlTransformer t = ParseTransformer( Description );
                         Transformer = n =>
                         {
-                            SqlTransformHost host = new SqlTransformHost( n, TestHelper.ConsoleMonitor );
-                            return host.Apply( t )  ? host.Node : null;
+                            SqlTransformHost host = new SqlTransformHost( n );
+                            return host.Apply( TestHelper.ConsoleMonitor, t )  ? host.Node : null;
                         };
                     }
                 }
@@ -122,20 +122,20 @@ namespace CK.SqlServer.Transform.Tests.XmlTests
 
         public static ISqlNode GroupCreateToZone( ISqlNode e )
         {
-            SqlTransformHost t = new SqlTransformHost( e, TestHelper.ConsoleMonitor );
+            SqlTransformHost t = new SqlTransformHost( e );
             SqlAnalyser a = new SqlAnalyser( "@ZoneId int = 0" );
 
             SqlParameter pZoneId = a.IsParameter( true );
-            t.Visit( new AddParameter( new[] { pZoneId }, null, "@GroupIdResult" ) );
+            t.Visit( new AddParameter( TestHelper.ConsoleMonitor, new[] { pZoneId }, null, "@GroupIdResult" ) );
 
-            ISqlNodeLocationRange ifStatements = t.BuildRange( new SqlNodeScopeBreadthPredicate( n => n is SqlIf ) );
+            ISqlNodeLocationRange ifStatements = t.BuildRange( TestHelper.ConsoleMonitor, new SqlNodeScopeBreadthPredicate( n => n is SqlIf ) );
             SqlNodeLocation headLoc = ifStatements.First.End;
             a.Reset( "if @ZoneId = 1 throw 50000, 'Zone.SystemZoneHasNoGroup', 1;" );
             var newGuard = (ISqlStatement)a.Parse( ParseMode.Statement );
-            t.Visit( new InsertStatement( headLoc, newGuard ) );
+            t.Visit( new InsertStatement( TestHelper.ConsoleMonitor, headLoc, newGuard ) );
 
             var newC = new SelectColumn( SqlTokenIdentifier.Create( "ZoneId" ), SqlKeyword.Assign, pZoneId.Variable.Identifier );
-            t.Visit( new AddColumn( new[] { newC } ) );
+            t.Visit( new AddColumn( TestHelper.ConsoleMonitor, new[] { newC } ) );
 
             return t.Node;
         }

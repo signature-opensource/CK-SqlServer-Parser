@@ -36,12 +36,24 @@ namespace CK.SqlServer.Parser
         /// </summary>
         public readonly SqlTokenType TokenType;
 
+        /// <summary>
+        /// Gets this token's <see cref="SqlNode.LeadingTrivias"/>.
+        /// </summary>
         public override sealed IEnumerable<SqlTrivia> FullLeadingTrivias => LeadingTrivias;
 
+        /// <summary>
+        /// Gets this token's <see cref="SqlNode.TrailingTrivias"/>.
+        /// </summary>
         public override sealed IEnumerable<SqlTrivia> FullTrailingTrivias => TrailingTrivias;
 
+        /// <summary>
+        /// Always empty since a token has no children.
+        /// </summary>
         public override sealed IEnumerable<ISqlNode> LeadingNodes => Array.Empty<ISqlNode>();
 
+        /// <summary>
+        /// Always empty since a token has no children.
+        /// </summary>
         public override sealed IEnumerable<ISqlNode> TrailingNodes => Array.Empty<ISqlNode>();
 
         /// <summary>
@@ -57,15 +69,24 @@ namespace CK.SqlServer.Parser
         public abstract bool TokenEquals( SqlToken t );
 
         /// <summary>
-        /// Gets an empty node list.
+        /// Always empty since a token has no children.
         /// </summary>
         public override sealed IReadOnlyList<ISqlNode> ChildrenNodes => Array.Empty<ISqlNode>();
 
+        /// <summary>
+        /// Always empty since a token has no children.
+        /// </summary>
+        /// <returns>An empty read only list.</returns>
         public override sealed IList<ISqlNode> GetRawContent() => Array.Empty<ISqlNode>();
 
+        /// <inheritdoc />
         public override sealed bool IsToken( SqlTokenType t ) => TokenType == t;
 
         #region IEnumerable<SqlToken> AllTokens auto implementation
+
+        /// <summary>
+        /// Gets a enumerable with only this token inside.
+        /// </summary>
         public override sealed IEnumerable<SqlToken> AllTokens => this;
 
         IEnumerator<SqlToken> IEnumerable<SqlToken>.GetEnumerator() => new CKEnumeratorMono<SqlToken>( this );
