@@ -6,8 +6,8 @@
     <Nullable>annotations</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="CK.ActivityMonitor.SimpleSender" Version="15.0.0-r06-02-0012-develop" />
-    <PackageReference Include="CK.SqlServer.Parser.Model" Version="12.0.0-r06-02-0007-develop" />
+    <PackageReference Include="CK.ActivityMonitor.SimpleSender" Version="15.0.0-r06-02-0015-develop" />
+    <PackageReference Include="CK.SqlServer.Parser.Model" Version="12.0.0-r06-02-0008-develop" />
     <PackageReference Include="System.Collections.Immutable" Version="6.0.0" />
   </ItemGroup>
 </Project>
