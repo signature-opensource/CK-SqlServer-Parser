@@ -25,7 +25,7 @@ namespace CK.SqlServer.Parser.Tests
             ISqlNode e;
             SqlAnalyser.ErrorResult r = SqlAnalyser.Parse( out e, ParseMode.OneOrMoreStatements, text );
             Assert.That( r.IsError, Is.False, r.ToString() );
-            Assert.That( e.ToString( true, true ).NormalizeEOL(), Is.EqualTo( text ) );
+            Assert.That( e.ToString( true, true ).ReplaceLineEndings(), Is.EqualTo( text ) );
             Assert.That( e.ChildrenNodes.All( n => n is ISqlStatement) );
         }
 
@@ -37,7 +37,7 @@ namespace CK.SqlServer.Parser.Tests
             ISqlNode e;
             SqlAnalyser.ErrorResult r = SqlAnalyser.Parse( out e, ParseMode.Script, text );
             Assert.That( r.IsError, Is.False, r.ToString() );
-            Assert.That( e.ToString( true, true ).NormalizeEOL(), Is.EqualTo( text ) );
+            Assert.That( e.ToString( true, true ).ReplaceLineEndings(), Is.EqualTo( text ) );
 
             XElement visited = new SqlToXmlStatementVisitor().ToXml( "Statements", e );
             string visitedString = visited.ToString();

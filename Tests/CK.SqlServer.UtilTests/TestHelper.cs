@@ -31,7 +31,7 @@ namespace CK.SqlServer.UtilTests
 
         public static string LoadTextFromParsingScripts( string fileName )
         {
-            return File.ReadAllText( BuildPathInCurrentTestProject( "Parsing", "Scripts", fileName ) ).NormalizeEOL();
+            return File.ReadAllText( BuildPathInCurrentTestProject( "Parsing", "Scripts", fileName ) ).ReplaceLineEndings();
         }
 
         public static void AssertXmlStringEqual( string visitedString, XElement expected )
@@ -46,14 +46,14 @@ namespace CK.SqlServer.UtilTests
         [DebuggerStepThrough]
         public static T ParseOneStatementAndCheckString<T>( string text, bool addSemiColon = false ) where T : ISqlStatement
         {
-            text = text.NormalizeEOL();
+            text = text.ReplaceLineEndings();
             if( addSemiColon ) text += ';';
             ISqlStatement statement;
             SqlAnalyser.ErrorResult r = SqlAnalyser.ParseStatement( out statement, text );
             r.IsError.Should().BeFalse( r.ToString() );
             statement.Should().BeAssignableTo<T>();
             T s = (T)statement;
-            statement.ToString( true ).NormalizeEOL().Should().Be( text );
+            statement.ToString( true ).ReplaceLineEndings().Should().Be( text );
             if( MonitorTestHelper.TestHelper.LogToConsole ) Console.WriteLine( statement.ToXml() );
             return s;
         }
@@ -67,7 +67,7 @@ namespace CK.SqlServer.UtilTests
         [DebuggerStepThrough]
         public static T ParseOneStatement<T>( string text ) where T : ISqlStatement
         {
-            text = text.NormalizeEOL();
+            text = text.ReplaceLineEndings();
             ISqlStatement statement;
             SqlAnalyser.ErrorResult r = SqlAnalyser.ParseStatement( out statement, text );
             r.IsError.Should().BeFalse( r.ToString() );

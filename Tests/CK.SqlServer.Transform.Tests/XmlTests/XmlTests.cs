@@ -47,7 +47,7 @@ namespace CK.SqlServer.Transform.Tests.XmlTests
                         };
                     }
                 }
-                ResultText = ((string)TestElement.Element( "ResultText" ))?.TrimEnd().NormalizeEOL();
+                ResultText = ((string)TestElement.Element( "ResultText" ))?.TrimEnd().ReplaceLineEndings();
             }
 
             protected override ISqlNode OnParsed( ISqlNode e )
