@@ -16,9 +16,9 @@ namespace CK.SqlServer.Parser
         /// <summary>
         /// A named statement or any expression considered as a <see cref="SqlUnnamedStatement"/>.
         /// </summary>
-        /// <param name="expected"></param>
-        /// <returns></returns>
-        public ISqlStatement IsExtendedStatement( bool expected )
+        /// <param name="expected">True to set an error on failure.</param>
+        /// <returns>The statement or null.</returns>
+        public ISqlStatement? IsExtendedStatement( bool expected )
         {
             ISqlStatement e = IsNamedStatement( false );
             if( e != null || R.IsErrorOrEndOfInput ) return e;
@@ -31,7 +31,13 @@ namespace CK.SqlServer.Parser
                     ? (ISqlStatement)new SqlSelectStatement( n, GetOptionalTerminator() )
                     : new SqlUnnamedStatement( n, GetOptionalTerminator() );
         }
-         
+
+        /// <summary>
+        /// A named statement.
+        /// </summary>
+        /// <param name="expected">True to set an error on failure.</param>
+        /// <param name="withStatementTerminator">False to ignore the optional trailing ';' terminator.</param>
+        /// <returns>The statement or null.</returns>
         public ISqlNamedStatement IsNamedStatement( bool expected, bool withStatementTerminator = true )
         {
             if( R.Current.TokenType == SqlTokenType.SemiColon )
@@ -343,8 +349,14 @@ namespace CK.SqlServer.Parser
             return new SqlCTEStatement( withT, namespaces, names, s );
         }
 
+        /// <summary>
+        /// Attempts to parse a type statement.
+        /// </summary>
+        /// <typeparam name="T">The type to parse.</typeparam>
+        /// <param name="statement">The resulting statement or null.</param>
+        /// <returns>The error.</returns>
         [DebuggerStepThrough]
-        public ErrorResult ParseStatement<T>( out T statement ) where T : class
+        public ErrorResult ParseStatement<T>( out T? statement ) where T : class
         {
             statement = null;
             ISqlStatement st = IsExtendedStatement( true );
@@ -1100,7 +1112,12 @@ namespace CK.SqlServer.Parser
             return new SqlParameterList( openPar, items, closePar );
         }
 
-        public SqlParameter IsParameter( bool expected )
+        /// <summary>
+        /// Tries to parse a parameter declaration.
+        /// </summary>
+        /// <param name="expected">True to set on error on failure.</param>
+        /// <returns>The parameter or null.</returns>
+        public SqlParameter? IsParameter( bool expected )
         {
             SqlTypedIdentifier declVar;
             SqlTokenTerminal assign;

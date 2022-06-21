@@ -9,8 +9,8 @@ using NUnit.Framework;
 using System.Xml.Linq;
 using CK.Core;
 using CK.SqlServer.UtilTests;
-using System.Data.SqlClient;
-using CK.Text;
+using Microsoft.Data.SqlClient;
+
 
 namespace CK.SqlServer.Parser.Tests
 {

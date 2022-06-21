@@ -9,6 +9,9 @@ using System.Threading.Tasks;
 
 namespace CK.SqlServer.Transform
 {
+    /// <summary>
+    /// Extends <see cref="ISqlTLocationFinder"/>, <see cref="SqlTNodeSimplePattern"/> and <see cref="SqlTCurlyPattern"/>.
+    /// </summary> 
     public static class SqlTNodeExtension
     {
         /// <summary>
@@ -23,6 +26,12 @@ namespace CK.SqlServer.Transform
         /// <returns>A LocationInfo.</returns>
         internal static LocationInfo GetFinderInfo( this ISqlTLocationFinder @this, bool isAfterContext ) => new LocationInfo( @this, isAfterContext );
 
+        /// <summary>
+        /// Tries to match this pattern on a node.
+        /// </summary>
+        /// <param name="this">This pattern.</param>
+        /// <param name="n">The node to test.</param>
+        /// <returns>True if this matches the node.</returns>
         public static bool MatchPartOrStatement( this SqlTNodeSimplePattern @this, ISqlNode n )
         {
             if( @this.IsMatchPart && !(n is ISqlStatementPart)
@@ -30,6 +39,12 @@ namespace CK.SqlServer.Transform
             return @this.Pattern.Match( n ) > 0;
         }
 
+        /// <summary>
+        /// Tries to match this pattern on a node.
+        /// </summary>
+        /// <param name="this">This pattern.</param>
+        /// <param name="n">The node to test.</param>
+        /// <returns>True if this matches the node.</returns>
         public static int Match( this SqlTCurlyPattern @this, ISqlNode n )
         {
             var tokens = n.AllTokens.GetEnumerator();

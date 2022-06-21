@@ -1,11 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\Common\Shared.props" />
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp3.1</TargetFrameworks>
+    <TargetFramework>net6.0</TargetFramework>
     <Description>Adds TemporaryTransform on TestHelper.</Description>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\CK.SqlServer.Transform\CK.SqlServer.Transform.csproj" />
-    <PackageReference Include="CK.Testing.Monitoring" Version="2.2.1" />
+    <PackageReference Include="CK.Testing.Monitoring" Version="3.0.0" />
   </ItemGroup>
 </Project>

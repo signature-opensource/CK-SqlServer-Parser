@@ -1,11 +1,7 @@
-using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Globalization;
-using System.Linq;
-using System.Text;
-using CK.Core;
 using System.Collections.Immutable;
+using System.Diagnostics;
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
 namespace CK.SqlServer.Parser
 {
@@ -34,7 +30,7 @@ namespace CK.SqlServer.Parser
         /// </summary>
         /// <param name="idx">Insertion index.</param>
         /// <param name="item">Item to insert.</param>
-        /// <returns>The newx list.</returns>
+        /// <returns>The new list.</returns>
         public SqlCommaList InsertAt( int idx, ISqlNode item ) => (SqlCommaList)DoInsertAt( idx, item );
 
         [DebuggerStepThrough]

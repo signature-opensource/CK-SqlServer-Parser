@@ -280,6 +280,10 @@ namespace CK.SqlServer.Transform
         /// </summary>
         public IEnumerable<SqlNodeLocation> Path => ReversePath.Reverse();
 
+        /// <summary>
+        /// Overridden to return the path.
+        /// </summary>
+        /// <returns>A readable string.</returns>
         public override string ToString()
         {
             StringBuilder b = new StringBuilder();

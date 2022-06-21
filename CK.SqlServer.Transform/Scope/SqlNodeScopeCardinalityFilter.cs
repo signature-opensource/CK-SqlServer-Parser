@@ -8,6 +8,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Collections;
 
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+
 namespace CK.SqlServer.Transform
 {
     /// <summary>
@@ -264,7 +266,7 @@ namespace CK.SqlServer.Transform
                 && _info.ExpectedMatchCount > 0 
                 && _matchCount > _info.ExpectedMatchCount )
             {
-                monitor.Error( $"Too many matches found for '{_inner.Inner.ToString()}' (max is {_info.ExpectedMatchCount})." );
+                monitor.Error( $"Too many matches found for '{_inner.Inner}' (max is {_info.ExpectedMatchCount})." );
                 _hasError = true;
             }
             else if( _info.All || !_info.FromFirst || _matchCount >= _info.Offset + 1 )

@@ -1,11 +1,7 @@
-using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Globalization;
-using System.Linq;
-using System.Text;
-using CK.Core;
 using System.Collections.Immutable;
+using System.Diagnostics;
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
 namespace CK.SqlServer.Parser
 {
@@ -25,14 +21,13 @@ namespace CK.SqlServer.Parser
     {
         readonly CNode _content;
 
-        public SqlTCombineSelect( 
-            SqlTokenIdentifier combineT, 
-            SqlTokenIdentifier selectT,
-            SqlTokenIdentifier operatorT,
-            SqlTokenIdentifier allT,
-            SqlTokenIdentifier withT,
-            ISqlNamedStatement select,
-            SqlTokenTerminal terminator)
+        public SqlTCombineSelect( SqlTokenIdentifier combineT,
+                                  SqlTokenIdentifier selectT,
+                                  SqlTokenIdentifier operatorT,
+                                  SqlTokenIdentifier allT,
+                                  SqlTokenIdentifier withT,
+                                  ISqlNamedStatement select,
+                                  SqlTokenTerminal terminator )
             : base( null, null )
         {
             _content = new CNode( combineT, selectT, operatorT, allT, withT, select, terminator );

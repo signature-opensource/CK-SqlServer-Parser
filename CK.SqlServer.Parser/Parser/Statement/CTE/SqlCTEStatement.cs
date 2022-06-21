@@ -1,11 +1,7 @@
-using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Globalization;
-using System.Linq;
-using System.Text;
-using CK.Core;
 using System.Collections.Immutable;
+using System.Diagnostics;
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
 namespace CK.SqlServer.Parser
 {
@@ -16,11 +12,10 @@ namespace CK.SqlServer.Parser
     {
         readonly SNode<SqlTokenIdentifier, SqlCTEXmlNamespace,SqlCTENameList, ISqlStatement> _content;
 
-        public SqlCTEStatement( 
-                SqlTokenIdentifier withT,
-                SqlCTEXmlNamespace namespaces,
-                SqlCTENameList names,
-                ISqlStatement outerStatement )
+        public SqlCTEStatement( SqlTokenIdentifier withT,
+                                SqlCTEXmlNamespace namespaces,
+                                SqlCTENameList names,
+                                ISqlStatement outerStatement )
             : base( null, null )
         {
             _content = new SNode<SqlTokenIdentifier, SqlCTEXmlNamespace, SqlCTENameList, ISqlStatement>( withT, namespaces, names, outerStatement );

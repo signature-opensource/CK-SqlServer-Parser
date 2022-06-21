@@ -1,11 +1,12 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
 namespace CK.SqlServer.Parser
 {
-    using CNode = SNode<SqlTokenIdentifier, SqlTokenIdentifier,SqlStatementList,SqlTokenIdentifier, SqlTokenIdentifier>;
-    
+    using CNode = SNode<SqlTokenIdentifier, SqlTokenIdentifier, SqlStatementList, SqlTokenIdentifier, SqlTokenIdentifier>;
+
     /// <summary>
     /// The 'begin catch' ... 'end catch' block of <see cref="SqlTryCatch"/> statement.
     /// </summary>
@@ -14,8 +15,8 @@ namespace CK.SqlServer.Parser
         readonly CNode _content;
 
         public SqlCatchBlock( SqlTokenIdentifier beginT, SqlTokenIdentifier catchT,
-                                  SqlStatementList body, 
-                                  SqlTokenIdentifier endT, SqlTokenIdentifier endCatchT )
+                              SqlStatementList body, 
+                              SqlTokenIdentifier endT, SqlTokenIdentifier endCatchT )
             : base( null, null )
         {
             _content = new CNode( beginT, catchT, body, endT, endCatchT );

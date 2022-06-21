@@ -1,17 +1,12 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Globalization;
-using System.Linq;
-using System.Text;
 using CK.Core;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
+
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
 namespace CK.SqlServer.Parser
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public sealed class SqlUpdateStatement : SqlNonTokenAutoWidth, ISqlNamedStatement
     {
         readonly SNode<
@@ -98,7 +93,7 @@ namespace CK.SqlServer.Parser
             SqlCommaList assignments = _content.V4;
             foreach( var c in columns )
             {
-                if( c.ColumnName == null ) throw new ArgumentException( nameof( columns ), "Columns must have a name." );
+                Throw.CheckNotNullArgument( "Columns must have a name.", c.ColumnName );
                 var eqC = c.ToEqualSyntax();
                 assignments = assignments.InsertAt( assignments.Count, eqC );
             }

@@ -1,12 +1,8 @@
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Data;
-using System.Data.SqlClient;
 using System.Diagnostics;
-using System.Globalization;
-using System.Linq;
-using System.Text;
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
 namespace CK.SqlServer.Parser
 {

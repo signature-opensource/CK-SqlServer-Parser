@@ -1,15 +1,10 @@
-﻿using CK.Core;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using CK.Core;
 
 namespace CK.SqlServer.Transform
 {
     /// <summary>
-    /// Base context exposes the <see cref="LocationManager"/> and <see cref="AddError"/> method
-    /// and is avalaible when no nodes are being visited.
+    /// Base context exposes the <see cref="LocationManager"/>, the <see cref="Monitor"/>
+    /// and the <see cref="RangeFilter"/> and is available when no nodes are being visited.
     /// </summary>
     public interface IVisitContextBase
     {

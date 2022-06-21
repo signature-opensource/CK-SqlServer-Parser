@@ -1,10 +1,9 @@
-using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
-using CK.Core;
-using System.Collections.Immutable;
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
 namespace CK.SqlServer.Parser
 {
@@ -21,26 +20,25 @@ namespace CK.SqlServer.Parser
                         SqlTokenTerminal>;
 
     public sealed class SqlFunctionInlineTable : SqlNonTokenAutoWidth, 
-                                                    ISqlNamedStatement, 
-                                                    ISqlFullNameHolder,
-                                                    ISqlParameterListHolder, 
-                                                    ISqlServerFunctionInlineTable,
-                                                    ISqlServerObjectOptions
+                                                 ISqlNamedStatement, 
+                                                 ISqlFullNameHolder,
+                                                 ISqlParameterListHolder, 
+                                                 ISqlServerFunctionInlineTable,
+                                                 ISqlServerObjectOptions
     {
         readonly CNode _content;
 
-        public SqlFunctionInlineTable( 
-            SqlCreateOrAlter createOrAlter, 
-            SqlTokenIdentifier type,
-            ISqlIdentifier name, 
-            SqlParameterList parameters,
-            SqlTokenIdentifier returns,
-            SqlTokenIdentifier table,
-            SqlWithOptions options,
-            SqlTokenIdentifier asToken,
-            SqlTokenIdentifier returnToken,
-            ISqlNode select, 
-            SqlTokenTerminal term )
+        public SqlFunctionInlineTable( SqlCreateOrAlter createOrAlter,
+                                       SqlTokenIdentifier type,
+                                       ISqlIdentifier name,
+                                       SqlParameterList parameters,
+                                       SqlTokenIdentifier returns,
+                                       SqlTokenIdentifier table,
+                                       SqlWithOptions options,
+                                       SqlTokenIdentifier asToken,
+                                       SqlTokenIdentifier returnToken,
+                                       ISqlNode select,
+                                       SqlTokenTerminal term )
             : base( null, null ) 
         {
             _content = new CNode(

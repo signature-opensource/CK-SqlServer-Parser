@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,19 +6,28 @@ using System.Threading.Tasks;
 
 namespace CK.SqlServer.Parser
 {
+    /// <summary>
+    /// Abstraction of all named statements.
+    /// </summary>
     public interface ISqlNamedStatement : ISqlStatement
     {
+        /// <summary>
+        /// Gets the known name of this statement.
+        /// </summary>
         StatementKnownName StatementKnownName { get; }
 
     }
 
+    /// <summary>
+    /// Extends <see cref="ISqlNamedStatement"/>.
+    /// </summary>
     static public class SqlNamedStatementExtension
     {
 
         /// <summary>
         /// Gets either the <see cref="ISqlNamedStatement.StatementKnownName"/> or,
         /// when it is <see cref="StatementKnownName.Unknown"/>, the name of the 
-        /// first <see cref="ISqlIdentifier"/> token of the sttement.
+        /// first <see cref="ISqlIdentifier"/> token of the statement.
         /// </summary>
         /// <param name="this">This named statement.</param>
         /// <returns>The statement name.</returns>

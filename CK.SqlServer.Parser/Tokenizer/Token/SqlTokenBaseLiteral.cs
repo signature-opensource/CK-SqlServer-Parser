@@ -14,10 +14,16 @@ namespace CK.SqlServer.Parser
     /// </summary>
     public abstract class SqlTokenBaseLiteral : SqlToken
     {
-        public SqlTokenBaseLiteral( SqlTokenType t, ImmutableList<SqlTrivia> leadingTrivia = null, ImmutableList<SqlTrivia> trailingTrivia = null )
+        /// <summary>
+        /// Initializes a new <see cref="SqlTokenBaseLiteral"/>.
+        /// </summary>
+        /// <param name="t">The token type (must be <see cref="SqlTokenType.IsString"/> or <see cref="SqlTokenType.IsNumber"/>).</param>
+        /// <param name="leadingTrivia">The leading trivias.</param>
+        /// <param name="trailingTrivia">The trailing trivias.</param>
+        public SqlTokenBaseLiteral( SqlTokenType t, ImmutableList<SqlTrivia>? leadingTrivia = null, ImmutableList<SqlTrivia>? trailingTrivia = null )
             : base( t, leadingTrivia, trailingTrivia )
         {
-            if( (t & (SqlTokenType.IsString|SqlTokenType.IsNumber)) == 0 ) throw new ArgumentException( "Invalid literal token.", "t" );
+            Throw.CheckArgument( "Invalid literal token.", (t & (SqlTokenType.IsString|SqlTokenType.IsNumber)) != 0 );
         }
 
         /// <summary>
@@ -26,6 +32,7 @@ namespace CK.SqlServer.Parser
         /// </summary>
         public abstract string LiteralValue { get; }
 
+        /// <inheritdoc />
         public override bool TokenEquals( SqlToken t ) => t is SqlTokenBaseLiteral && LiteralValue == t.ToString();
 
         /// <summary>

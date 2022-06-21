@@ -1,12 +1,8 @@
 using CK.Core;
 using CK.SqlServer.Parser;
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+
 
 namespace CK.SqlServer.Transform.Transformers
 {
@@ -17,6 +13,7 @@ namespace CK.SqlServer.Transform.Transformers
         readonly LocationInserter _inserter;
 
         internal TriviaExtensionPointInjectVisitor( IActivityMonitor monitor, SqlTInjectInto injecter )
+            : base( monitor )
         {
             _injectInto = injecter;
             _matcher = new TriviaExtensionPointMatcher( monitor, injecter.Target.Value, injecter.Content.Value );

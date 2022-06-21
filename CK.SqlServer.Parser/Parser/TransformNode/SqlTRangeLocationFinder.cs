@@ -1,11 +1,7 @@
-using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Globalization;
-using System.Linq;
-using System.Text;
-using CK.Core;
 using System.Collections.Immutable;
+using System.Diagnostics;
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
 namespace CK.SqlServer.Parser
 {
@@ -25,11 +21,10 @@ namespace CK.SqlServer.Parser
     {
         readonly CNode _content;
 
-        public SqlTRangeLocationFinder( 
-            SqlTokenIdentifier afterOrBeforeOrBetween,
-            SqlTOneLocationFinder firstLoc, 
-            SqlTokenIdentifier andT,
-            SqlTOneLocationFinder secondLoc )
+        public SqlTRangeLocationFinder( SqlTokenIdentifier afterOrBeforeOrBetween,
+                                        SqlTOneLocationFinder firstLoc,
+                                        SqlTokenIdentifier andT,
+                                        SqlTOneLocationFinder secondLoc )
                : base( null, null )
         {
             _content = new CNode( afterOrBeforeOrBetween, firstLoc, andT, secondLoc );

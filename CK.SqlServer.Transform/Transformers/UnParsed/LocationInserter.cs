@@ -35,7 +35,7 @@ namespace CK.SqlServer.Transform.Transformers
                 var e = Node;
                 if( clearStarComments )
                 {
-                    var cleaner = new TriviaCleaner( false, true, true ) { Monitor = monitor };
+                    var cleaner = new TriviaCleaner( monitor, false, true, true );
                     e = cleaner.VisitRoot( e );
                 }
                 int deltaInsert = 0;

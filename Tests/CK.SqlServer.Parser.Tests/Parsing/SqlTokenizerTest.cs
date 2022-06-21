@@ -1,12 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using CK.Core;
 using NUnit.Framework;
-using CK.SqlServer;
 using System.Text.RegularExpressions;
-using CK.SqlServer.UtilTests;
-using CK.Text;
+
 
 namespace CK.SqlServer.Parser.Tests
 {
@@ -237,10 +235,10 @@ begin
   exec [a.b].sOther @p = @X, @v = $1235.12;
   declare @x1 decimal = .34;
   declare @x2 float = .45e12;
-end".NormalizeEOL();
+end".ReplaceLineEndings();
             ISqlTextWriter b = SqlTextWriter.CreateDefault();
             foreach( var t in p.ParseWithoutError( s ) ) t.Write( b );
-            string s2 = b.ToString().NormalizeEOL();
+            string s2 = b.ToString().ReplaceLineEndings();
 
             // Fix: .34 is changed as 0.34 (decimal), .45e12 becomes 0.45e12 (float).
             Assert.That( s2, Is.EqualTo( s.Replace( ".34", "0.34" ).Replace( ".45e12", "0.45e12" ) ) );

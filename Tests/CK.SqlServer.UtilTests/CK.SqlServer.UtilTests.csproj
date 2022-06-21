@@ -1,13 +1,12 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\..\Common\Shared.props" />
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <IsTestProject>False</IsTestProject>
     <IsPackable>False</IsPackable>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\CK.SqlServer.Parser\CK.SqlServer.Parser.csproj" />
     <ProjectReference Include="..\..\CK.Testing.SqlTransform\CK.Testing.SqlTransform.csproj" />
-    <PackageReference Include="NUnit" Version="3.12.0" />
+    <PackageReference Include="NUnit" Version="3.13.3" />
   </ItemGroup>
 </Project>

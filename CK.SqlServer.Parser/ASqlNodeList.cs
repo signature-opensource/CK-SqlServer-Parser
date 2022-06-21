@@ -17,17 +17,16 @@ namespace CK.SqlServer.Parser
     {
         readonly IReadOnlyList<T> _items;
 
-        protected ASqlNodeList( int minCount, IEnumerable<T> items )
+        private protected ASqlNodeList( int minCount, IEnumerable<T> items )
             : this( null, minCount, null, (IEnumerable<ISqlNode>)items, null )
         {
         }
 
-        protected ASqlNodeList( 
-                ASqlNodeList<T> o, 
-                int minCount,
-                ImmutableList<SqlTrivia> leading, 
-                IEnumerable<ISqlNode> items, 
-                ImmutableList<SqlTrivia> trailing )
+        private protected ASqlNodeList( ASqlNodeList<T> o,
+                                        int minCount,
+                                        ImmutableList<SqlTrivia> leading,
+                                        IEnumerable<ISqlNode> items,
+                                        ImmutableList<SqlTrivia> trailing )
             : base( leading, trailing )
         {
             if( items == null ) _items = o._items;
@@ -35,14 +34,12 @@ namespace CK.SqlServer.Parser
             {
                 int i = CheckItemsTypeAndCount( this, minCount, items );
                 T[] a = items as T[];
-                if( a == null )
+                if( i == 0 ) a = Array.Empty<T>();
+                else if( a == null )
                 {
-                    if( i == 0 ) a = Array.Empty<T>();
-                    {
-                        a = new T[i];
-                        i = 0;
-                        foreach( var e in items ) a[i++] = (T)e;
-                    }
+                    a = new T[i];
+                    i = 0;
+                    foreach( var e in items ) a[i++] = (T)e;
                 }
                 _items = a;
             }
@@ -53,7 +50,7 @@ namespace CK.SqlServer.Parser
             int i = 0;
             foreach( var e in items )
             {
-                if( !(e is T) ) RaiseItemTypeError( o, i, e );
+                if( e is not T ) RaiseItemTypeError( o, i, e );
                 ++i;
             }
             if( i < minCount ) RaiseMinItemCountError( o, i, minCount );
@@ -77,6 +74,11 @@ namespace CK.SqlServer.Parser
                     e != null ? e.GetType().Name : "null" ), "items" );
         }
 
+        /// <summary>
+        /// Gets the children at a given index.
+        /// </summary>
+        /// <param name="index">The children index.</param>
+        /// <returns>The children.</returns>
         public T this[int index] => _items[index];
 
         /// <summary>
@@ -84,12 +86,20 @@ namespace CK.SqlServer.Parser
         /// </summary>
         public override sealed IReadOnlyList<ISqlNode> ChildrenNodes => _items;
 
+        /// <inheritdoc />
         public override sealed IList<ISqlNode> GetRawContent() => _items.Cast<ISqlNode>().ToList();
 
+        /// <summary>
+        /// Gets the number of children.
+        /// </summary>
         public int Count => _items.Count;
 
+        /// <summary>
+        /// Gets whether this list is empty.
+        /// </summary>
         public bool IsEmpty => _items.Count == 0;
 
+        /// <inheritdoc />
         public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();

@@ -19,7 +19,7 @@ namespace CK.SqlServer.Parser
     {
         readonly ISqlNode[] _items;
 
-        protected ASqlNodeSeparatedList(
+        private protected ASqlNodeSeparatedList(
             ASqlNodeSeparatedList<T, TSep> o,
             int minCount, 
             ImmutableList<SqlTrivia> leading, 
@@ -68,15 +68,24 @@ namespace CK.SqlServer.Parser
             return items;
         }
 
+        /// <summary>
+        /// Gets the children at the given index skipping separators.
+        /// </summary>
+        /// <param name="index">The index.</param>
+        /// <returns>The children.</returns>
         public T this[int index] => (T)_items[index*2];
 
         /// <summary>
-        /// Gets the direct children if any. Never null.
+        /// Gets all the direct children if any. Never null.
         /// </summary>
         public override sealed IReadOnlyList<ISqlNode> ChildrenNodes => _items;
 
+        /// <inheritdoc />
         public override sealed IList<ISqlNode> GetRawContent() => _items.ToList();
 
+        /// <summary>
+        /// Gets the number of actual children, excluding separators.
+        /// </summary>
         public int Count => (_items.Length + 1) / 2;
 
         /// <summary>
@@ -182,6 +191,10 @@ namespace CK.SqlServer.Parser
             return SqlKeyword.CommaOneSpace as TSep;
         }
 
+        /// <summary>
+        /// Gets the actual children skipping separators.
+        /// </summary>
+        /// <returns>An enumerator of actual children.</returns>
         public IEnumerator<T> GetEnumerator()
         {
             return _items.Where( (x,i) => (i&1) == 0 ).Cast<T>().GetEnumerator();

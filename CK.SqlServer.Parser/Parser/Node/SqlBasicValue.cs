@@ -1,17 +1,14 @@
+using CK.Core;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Globalization;
-using System.Linq;
-using System.Text;
-using CK.Core;
-using CK.Text;
 using System.Collections.Immutable;
+using System.Diagnostics;
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
 namespace CK.SqlServer.Parser
 {
     /// <summary>
-    /// 
+    /// An optional <see cref="SqlTokenType.Minus"/> token followed by a <see cref="SqlToken"/>.
     /// </summary>
     public sealed class SqlBasicValue : SqlNonTokenAutoWidth, ISqlServerParameterDefaultValue
     {
@@ -22,6 +19,12 @@ namespace CK.SqlServer.Parser
         {
             _content = new SNode<SqlTokenTerminal, SqlToken>( minusT, value );
             CheckContent();
+        }
+
+        void CheckContent()
+        {
+            Helper.CheckNullableToken( MinusT, nameof( MinusT ), SqlTokenType.Minus );
+            Helper.CheckNotNull( Value, nameof( Value ) );
         }
 
         SqlBasicValue( SqlBasicValue o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
@@ -38,12 +41,6 @@ namespace CK.SqlServer.Parser
         protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IList<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
         {
             return new SqlBasicValue( this, leading, content, trailing );
-        }
-
-        void CheckContent()
-        {
-            Helper.CheckNullableToken( MinusT, nameof( MinusT ), SqlTokenType.Minus );
-            Helper.CheckNotNull( Value, nameof( Value ) );
         }
 
         public StatementKnownName StatementKnownName => StatementKnownName.Return;

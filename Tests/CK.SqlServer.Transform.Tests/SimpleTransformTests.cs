@@ -62,7 +62,7 @@ namespace CK.SqlServer.Transform.Tests
             var a = new SqlAnalyser( s );
             SqlSelectStatement st;
             Assert.That( a.ParseStatement( out st ).IsError, Is.False );
-            ISqlNode transformed = new SetSelectColumnAsOrAssign( true ).VisitRoot( st );
+            ISqlNode transformed = new SetSelectColumnAsOrAssign( TestHelper.ConsoleMonitor, true ).VisitRoot( st );
             CheckRenderResult( result, a, transformed );
         }
 
@@ -73,7 +73,7 @@ namespace CK.SqlServer.Transform.Tests
             var a = new SqlAnalyser( s );
             SqlSelectStatement st;
             Assert.That( a.ParseStatement( out st ).IsError, Is.False );
-            SqlSelectStatement transformed = (SqlSelectStatement)new SetSelectColumnAsOrAssign( false ).VisitRoot( st );
+            SqlSelectStatement transformed = (SqlSelectStatement)new SetSelectColumnAsOrAssign( TestHelper.ConsoleMonitor, false ).VisitRoot( st );
             CheckRenderResult( result, a, transformed );
         }
 
@@ -124,8 +124,8 @@ namespace CK.SqlServer.Transform.Tests
             var matcher = new SqlNodeScopePatternRange( filterInfo.Pattern.AllTokens.Skip(1).Take(1).ToArray() );
             var filter = new SqlNodeScopeCardinalityFilter( matcher, info );
             ISqlNode nodes = new SqlNodeList( text.Split('|').Select( t => SqlTokenIdentifier.Create( t ) ) );
-            var host = new SqlTransformHost( nodes, TestHelper.ConsoleMonitor );
-            var ranges = host.BuildRange( filter );
+            var host = new SqlTransformHost( nodes );
+            var ranges = host.BuildRange( TestHelper.ConsoleMonitor, filter );
             if( resultIndex >= 0 )
             {
                 Assert.That( ranges.Count, Is.EqualTo( 1 ) );

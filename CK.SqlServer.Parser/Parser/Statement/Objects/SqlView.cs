@@ -1,19 +1,18 @@
-using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
-using CK.Core;
-using System.Collections.Immutable;
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
 namespace CK.SqlServer.Parser
 {
-    using CNode = SNode<SqlCreateOrAlter, 
-                        SqlTokenIdentifier, 
-                        ISqlIdentifier, 
-                        SqlEnclosedIdentifierCommaList, 
-                        SqlNodeList, 
-                        SqlTokenIdentifier, 
+    using CNode = SNode<SqlCreateOrAlter,
+                        SqlTokenIdentifier,
+                        ISqlIdentifier,
+                        SqlEnclosedIdentifierCommaList,
+                        SqlNodeList,
+                        SqlTokenIdentifier,
                         ISqlNode,
                         SqlNodeList,
                         SqlTokenTerminal>;
@@ -24,28 +23,26 @@ namespace CK.SqlServer.Parser
         // Cached formal columns.
         IReadOnlyList<string> _formalColumnList;
 
-        public SqlView(
-                SqlCreateOrAlter createOrAlter, 
-                SqlTokenIdentifier type, 
-                ISqlIdentifier name, 
-                SqlEnclosedIdentifierCommaList columns, 
-                SqlNodeList options, 
-                SqlTokenIdentifier asToken, 
-                ISqlNode select,
-                SqlNodeList withCheckOption,
-                SqlTokenTerminal term )
+        public SqlView( SqlCreateOrAlter createOrAlter,
+                        SqlTokenIdentifier type,
+                        ISqlIdentifier name,
+                        SqlEnclosedIdentifierCommaList columns,
+                        SqlNodeList options,
+                        SqlTokenIdentifier asToken,
+                        ISqlNode select,
+                        SqlNodeList withCheckOption,
+                        SqlTokenTerminal term )
             : base( null, null )
         {
-            _content = new CNode(
-                createOrAlter,
-                type,
-                name,
-                columns,
-                options,
-                asToken,
-                select,
-                withCheckOption,
-                term );
+            _content = new CNode( createOrAlter,
+                                  type,
+                                  name,
+                                  columns,
+                                  options,
+                                  asToken,
+                                  select,
+                                  withCheckOption,
+                                  term );
             CheckContent();
         }
 

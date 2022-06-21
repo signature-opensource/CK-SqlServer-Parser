@@ -1,6 +1,6 @@
 using CK.Core;
 using CK.SqlServer.Parser;
-using CK.Text;
+
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -34,9 +34,9 @@ namespace CK.SqlServer.UtilTests
             TestElement = t;
             Mode = t.AttributeEnum( "Mode", ParseMode.OneOrMoreStatements );
             // TrimEnd the text because the last trivia is skipped.
-            Text = ((string)t.Element( "Text" )).TrimEnd().NormalizeEOL();
-            AutoCorrectedText = ((string)t.Element( "AutoCorrectedText" ))?.TrimEnd().NormalizeEOL() ?? Text;
-            Description = t.Elements( "Description" ).Select( e => e.Value.NormalizeEOL() ).FirstOrDefault();
+            Text = ((string)t.Element( "Text" )).TrimEnd().ReplaceLineEndings();
+            AutoCorrectedText = ((string)t.Element( "AutoCorrectedText" ))?.TrimEnd().ReplaceLineEndings() ?? Text;
+            Description = t.Elements( "Description" ).Select( e => e.Value.ReplaceLineEndings() ).FirstOrDefault();
 
             XElement xmlTestElement = t.Element( "Xml" );
             if( xmlTestElement != null )

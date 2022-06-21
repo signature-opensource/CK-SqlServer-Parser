@@ -1,5 +1,6 @@
 using System;
 using System.Data;
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
 namespace CK.SqlServer.Parser
 {

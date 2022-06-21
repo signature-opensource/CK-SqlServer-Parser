@@ -1,23 +1,18 @@
-﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Globalization;
-using System.Linq;
-using System.Text;
-using CK.Core;
 using System.Collections.Immutable;
+using System.Diagnostics;
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
 namespace CK.SqlServer.Parser
 {
-    using CNode = SNode<
-        SqlTokenIdentifier, 
-        SqlTokenIdentifier, 
-        SqlTokenIdentifier,
-        SqlPar, 
-        SqlTokenIdentifier, 
-        SqlTokenIdentifier, 
-        SqlTokenIdentifier>;
-    
+    using CNode = SNode<SqlTokenIdentifier,
+                        SqlTokenIdentifier,
+                        SqlTokenIdentifier,
+                        SqlPar,
+                        SqlTokenIdentifier,
+                        SqlTokenIdentifier,
+                        SqlTokenIdentifier>;
+
     /// <summary>
     /// Captures SELECT [ ALL | DISTINCT ] [TOP ( expression ) [PERCENT] [ WITH TIES ] ] 
     /// </summary>
@@ -25,24 +20,22 @@ namespace CK.SqlServer.Parser
     {
         readonly CNode _content;
 
-        public SelectHeader( 
-            SqlTokenIdentifier select, 
-            SqlTokenIdentifier allOrDistinct = null, 
-            SqlTokenIdentifier top = null, 
-            SqlPar topExpression = null,
-            SqlTokenIdentifier percent = null, 
-            SqlTokenIdentifier with = null, 
-            SqlTokenIdentifier ties = null )
+        public SelectHeader( SqlTokenIdentifier select,
+                             SqlTokenIdentifier allOrDistinct = null,
+                             SqlTokenIdentifier top = null,
+                             SqlPar topExpression = null,
+                             SqlTokenIdentifier percent = null,
+                             SqlTokenIdentifier with = null,
+                             SqlTokenIdentifier ties = null )
             : base( null, null )
         {
-            _content = new CNode(
-                select, 
-                allOrDistinct, 
-                top, 
-                topExpression,
-                percent, 
-                with, 
-                ties );
+            _content = new CNode( select,
+                                  allOrDistinct,
+                                  top,
+                                  topExpression,
+                                  percent,
+                                  with,
+                                  ties );
             CheckContent();
         }
 

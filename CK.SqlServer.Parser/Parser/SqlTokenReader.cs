@@ -13,7 +13,7 @@ namespace CK.SqlServer.Parser
     /// It adds useful behavior such as one token lookup and '=' (Assign vs. Compare) operator
     /// adaptation based on a toggle <see cref="AssignmentContext"/> flag.
     /// </summary>
-    public class SqlTokenReader
+    public sealed class SqlTokenReader
     {
         readonly SqlTokenizer _tokenizer;
         SqlToken _c;
@@ -22,6 +22,10 @@ namespace CK.SqlServer.Parser
         bool _assignmentContext;
         bool _noTypeContextHint;
 
+        /// <summary>
+        /// Initializes a new <see cref="SqlTokenReader"/>.
+        /// </summary>
+        /// <param name="tokenizer">The tokenizer.</param>
         public SqlTokenReader( SqlTokenizer tokenizer )
         {
             Debug.Assert( tokenizer != null );
@@ -29,8 +33,15 @@ namespace CK.SqlServer.Parser
             _rawLookup = _tokenizer.Token;
         }
 
+        /// <summary>
+        /// Gets whether '=' must be considered as <see cref="SqlTokenType.Assign"/>
+        /// instead of <see cref="SqlTokenType.Equal"/>.
+        /// </summary>
         public bool AssignmentContext => _assignmentContext;
 
+        /// <summary>
+        /// Gets the current number of nested parentheses.
+        /// </summary>
         public int ParenthesisDepth => _parenthesisDepth;
 
         /// <summary>
@@ -436,6 +447,10 @@ namespace CK.SqlServer.Parser
             if( _c == null ) throw new InvalidOperationException( "MoveNext must be called." );
         }
 
+        /// <summary>
+        /// Overridden to return a with the current token and current head of the analysis.
+        /// </summary>
+        /// <returns>A readable string.</returns>
         public override string ToString()
         {
             string shortToken = Current.ToString();

@@ -1,12 +1,10 @@
-using CK.Core;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Collections;
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
 namespace CK.SqlServer.Parser
 {
@@ -23,12 +21,11 @@ namespace CK.SqlServer.Parser
         // 0 when no Opener/Closer, 1 otherwise.
         readonly int _enclosed;
 
-        protected ASqlNodeEnclosableSeparatedList(
-            ASqlNodeEnclosableSeparatedList<TOpener, T, TSep, TCloser> o,
-            int minCount,
-            ImmutableList<SqlTrivia> leading,
-            IEnumerable<ISqlNode> items,
-            ImmutableList<SqlTrivia> trailing )
+        protected ASqlNodeEnclosableSeparatedList( ASqlNodeEnclosableSeparatedList<TOpener, T, TSep, TCloser> o,
+                                                   int minCount,
+                                                   ImmutableList<SqlTrivia> leading,
+                                                   IEnumerable<ISqlNode> items,
+                                                   ImmutableList<SqlTrivia> trailing )
             : base( leading, trailing )
         {
             bool enclosed = this is ISqlStructurallyEnclosed;
@@ -61,13 +58,12 @@ namespace CK.SqlServer.Parser
             }
         }
 
-        protected ASqlNodeEnclosableSeparatedList( 
-            int minCount,
-            TOpener opener,
-            IEnumerable<ISqlNode> content, 
-            TCloser closer, 
-            ImmutableList<SqlTrivia> leading = null, 
-            ImmutableList<SqlTrivia> trailing = null )
+        protected ASqlNodeEnclosableSeparatedList( int minCount,
+                                                   TOpener opener,
+                                                   IEnumerable<ISqlNode> content,
+                                                   TCloser closer,
+                                                   ImmutableList<SqlTrivia> leading = null,
+                                                   ImmutableList<SqlTrivia> trailing = null )
             : this( null, 
                     minCount,
                     leading, 

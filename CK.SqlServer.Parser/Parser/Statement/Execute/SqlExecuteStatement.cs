@@ -1,45 +1,39 @@
-using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Globalization;
-using System.Linq;
-using System.Text;
-using CK.Core;
 using System.Collections.Immutable;
+using System.Diagnostics;
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
 namespace CK.SqlServer.Parser
 {
     using CNode = SNode<
-        SqlTokenIdentifier, 
-        ISqlIdentifier, 
-        SqlTokenTerminal, 
-        ISqlIdentifier, 
-        SqlCallParameterList, 
-        SqlWithOptions, 
+        SqlTokenIdentifier,
+        ISqlIdentifier,
+        SqlTokenTerminal,
+        ISqlIdentifier,
+        SqlCallParameterList,
+        SqlWithOptions,
         SqlTokenTerminal>;
 
     public sealed class SqlExecuteStatement : SqlNonTokenAutoWidth, ISqlExecuteStatement
     {
         readonly CNode _content;
 
-        public SqlExecuteStatement( 
-            SqlTokenIdentifier execT, 
-            ISqlIdentifier returnVar,
-            SqlTokenTerminal returnVarAssign, 
-            ISqlIdentifier  name, 
-            SqlCallParameterList parameters, 
-            SqlWithOptions options,
-            SqlTokenTerminal term )
+        public SqlExecuteStatement( SqlTokenIdentifier execT,
+                                    ISqlIdentifier returnVar,
+                                    SqlTokenTerminal returnVarAssign,
+                                    ISqlIdentifier name,
+                                    SqlCallParameterList parameters,
+                                    SqlWithOptions options,
+                                    SqlTokenTerminal term )
             : base( null, null )
         {
-            _content = new CNode(
-                execT,
-                returnVar,
-                returnVarAssign,
-                name,
-                parameters,
-                options,
-                term );
+            _content = new CNode( execT,
+                                  returnVar,
+                                  returnVarAssign,
+                                  name,
+                                  parameters,
+                                  options,
+                                  term );
             CheckContent();
         }
 
