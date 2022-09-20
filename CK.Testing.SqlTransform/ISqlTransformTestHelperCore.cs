@@ -1,6 +1,5 @@
 using CK.SqlServer.Parser;
 using System;
-using Microsoft.Data.SqlClient;
 
 namespace CK.Testing.SqlTransform
 {

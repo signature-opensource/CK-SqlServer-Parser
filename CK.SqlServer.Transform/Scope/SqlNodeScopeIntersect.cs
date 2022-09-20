@@ -1,3 +1,4 @@
+using CK.Core;
 using System;
 using System.Diagnostics;
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
@@ -55,33 +56,47 @@ namespace CK.SqlServer.Transform
 
         public SqlNodeScopeIntersect( SqlNodeScopeBuilder left, SqlNodeScopeBuilder right )
         {
-            if( left == null ) throw new ArgumentNullException( nameof( left ) );
-            if( right == null ) throw new ArgumentNullException( nameof( right ) );
-            _left = left;
-            _right = right;
+            Throw.CheckNotNullArgument( left );
+            Throw.CheckNotNullArgument( right );
+            _left = left.GetSafeBuilder();
+            _right = right.GetSafeBuilder();
             _state = new RangeIntersector( true );
         }
 
-        protected override void DoReset()
+        private protected override SqlNodeScopeBuilder Clone() => new SqlNodeScopeIntersect( _left, _right );
+
+        private protected override void DoReset()
         {
             _left.Reset();
             _right.Reset();
             _state.Reset();
         }
 
-        protected override ISqlNodeLocationRange DoEnter( IVisitContext context )
+        private protected override ISqlNodeLocationRange DoEnter( IVisitContext context )
         {
-            return StateIntersect( _left.Enter( context ), _right.Enter( context ) );
+            var l = _left.Enter( context );
+            var r = _right.Enter( context );
+            var f = StateIntersect( l, r ); 
+            ActivityMonitor.StaticLogger.Debug( $"Intersect Enter: {l}, {r} => {f}" );
+            return f;
         }
 
-        protected override ISqlNodeLocationRange DoLeave( IVisitContext context )
+        private protected override ISqlNodeLocationRange DoLeave( IVisitContext context )
         {
-            return StateIntersect( _left.Leave( context ), _right.Leave( context ) );
+            var l = _left.Leave( context );
+            var r = _right.Leave( context );
+            var f = StateIntersect( l, r );
+            ActivityMonitor.StaticLogger.Debug( $"Intersect Enter: {l}, {r} => {f}" );
+            return f;
         }
 
-        protected override ISqlNodeLocationRange DoConclude( IVisitContextBase context )
+        private protected override ISqlNodeLocationRange DoConclude( IVisitContextBase context )
         {
-            return StateIntersect( _left.Conclude( context ), _right.Conclude( context ) );
+            var l = _left.Conclude( context );
+            var r = _right.Conclude( context );
+            var f = StateIntersect( l, r );
+            ActivityMonitor.StaticLogger.Debug( $"Intersect Conclude: {l}, {r} => {f}" );
+            return f;
         }
 
         ISqlNodeLocationRange StateIntersect( ISqlNodeLocationRange left, ISqlNodeLocationRange right )
@@ -98,6 +113,10 @@ namespace CK.SqlServer.Transform
                     : new RangeIntersector( true ).DoIntersect( left, right ) ?? SqlNodeLocationRange.EmptySet;
         }
 
+        /// <summary>
+        /// Overridden to return a description of this builder.
+        /// </summary>
+        /// <returns>The intersect description.</returns>
         public override string ToString() => $"({_left} intersect {_right})";
     }
 

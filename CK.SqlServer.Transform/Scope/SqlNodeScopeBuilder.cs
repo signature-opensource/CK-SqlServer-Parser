@@ -1,8 +1,8 @@
+using CK.Core;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
-#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
 namespace CK.SqlServer.Transform
 {
@@ -14,6 +14,7 @@ namespace CK.SqlServer.Transform
     {
         readonly bool _autoMergeContiguous;
         ISqlNodeLocationRangeInternal _last;
+        bool _inUse;
 
         /// <summary>
         /// Initializes a new <see cref="SqlNodeScopeBuilder"/> that, by default, merges emitted 
@@ -58,31 +59,46 @@ namespace CK.SqlServer.Transform
             return r1;
         }
 
+        internal SqlNodeScopeBuilder GetSafeBuilder()
+        {
+            if( !_inUse )
+            {
+                _inUse = true;
+                return this;
+            }
+            return Clone();
+        }
+
         /// <summary>
         /// Must reset any internal state.
         /// </summary>
-        protected abstract void DoReset();
+        private protected abstract void DoReset();
+
+        /// <summary>
+        /// Must provide a clone of this builder.
+        /// </summary>
+        private protected abstract SqlNodeScopeBuilder Clone();
 
         /// <summary>
         /// Called for each node, before visiting its children. May return a range.
         /// </summary>
         /// <param name="context">The visited node and location manager to use.</param>
         /// <returns>Null or a range to consider.</returns>
-        protected abstract ISqlNodeLocationRange DoEnter( IVisitContext context );
+        private protected abstract ISqlNodeLocationRange DoEnter( IVisitContext context );
 
         /// <summary>
         /// Called for each node, before visiting its children. May return a range.
         /// </summary>
         /// <param name="context">The visited node and location manager to use.</param>
         /// <returns>Null or a range to consider.</returns>
-        protected abstract ISqlNodeLocationRange DoLeave( IVisitContext context );
+        private protected abstract ISqlNodeLocationRange DoLeave( IVisitContext context );
 
         /// <summary>
         /// Called at the end of the visit.
         /// </summary>
         /// <param name="context">Base context (offers location manager and error management).</param>
         /// <returns>Null or the final range to consider.</returns>
-        protected abstract ISqlNodeLocationRange DoConclude( IVisitContextBase context );
+        private protected abstract ISqlNodeLocationRange DoConclude( IVisitContextBase context );
 
         ISqlNodeLocationRange Handle( ISqlNodeLocationRangeInternal r )
         {
@@ -92,7 +108,7 @@ namespace CK.SqlServer.Transform
             if( result != null )
             {
                 var l = result.Last;
-                if( l.End.Position > r.First.Beg.Position ) throw new InvalidOperationException( "Newly built range intersects previous one." );
+                Throw.CheckState( "Newly built range intersects previous one.", l.End.Position <= r.First.Beg.Position );
 
                 if( _autoMergeContiguous && l.End.Position == r.First.Beg.Position )
                 {
@@ -104,7 +120,7 @@ namespace CK.SqlServer.Transform
             return result;
         }
 
-        protected class RangeEnumerator : IEnumerator<SqlNodeLocationRange>
+        private protected class RangeEnumerator : IEnumerator<SqlNodeLocationRange>
         {
             IEnumerator<SqlNodeLocationRange> _current;
             IEnumerable<SqlNodeLocationRange> _next;
@@ -204,7 +220,7 @@ namespace CK.SqlServer.Transform
 
         }
 
-        protected readonly struct RangeBuffer
+        private protected readonly struct RangeBuffer
         {
             readonly List<SqlNodeLocationRange> _buffer;
 
@@ -232,7 +248,7 @@ namespace CK.SqlServer.Transform
         /// <summary>
         /// Helper class that factorizes code between union and except implementations.
         /// </summary>
-        protected struct BiRangeState
+        private protected struct BiRangeState
         {
             readonly RangeBuffer _buffer;
             public RangeEnumerator LeftE { get; private set; }

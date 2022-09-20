@@ -1,8 +1,8 @@
 using CK.SqlServer.Parser;
-using CK.SqlServer.UtilTests;
+using FluentAssertions;
 using NUnit.Framework;
 using System;
-using FluentAssertions;
+using static CK.Testing.SqlTransformTestHelper;
 
 namespace CK.SqlServer.Transform.Tests.Transform
 {
@@ -101,7 +101,7 @@ namespace CK.SqlServer.Transform.Tests.Transform
             o.Should().NotBeNull();
             ISqlServerTransformer t = p.ParseTransformer( transform ).Result;
             t.Should().NotBeNull();
-            ISqlServerParsedText oT = t.SafeTransform( TestHelper.ConsoleMonitor, o );
+            ISqlServerParsedText oT = t.SafeTransform( TestHelper.Monitor, o );
             oT.Should().NotBeNull();
             oT.ToFullString().Should().Be( final );
         }

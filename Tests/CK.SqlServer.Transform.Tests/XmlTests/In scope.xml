@@ -4,6 +4,74 @@
   <Test>
     <Text>
       <![CDATA[
+-- SetupConfig: { }
+create procedure CK.sUserUnban (
+    @ActorId int,
+    @UserId int
+)
+as
+begin
+    if @ActorId <= 0 throw 50000, 'Security.AnonymousNotAllowed', 1;
+    if @UserId <= 0 throw 50000, 'Security.InvalidUserId', 1;
+
+    --[beginsp]
+
+    -- Preconditions
+    if not exists( select 1 from CK.tActorProfile where GroupId = 1 and ActorId = @ActorId )
+        throw 50000, 'Security.SystemLevelOnly', 1;
+
+    -- Actions
+    update CK.tUserBanned set BanEndDate = sysutcdatetime() where UserId = @UserId;
+    --[endsp]
+end
+]]>
+    </Text>
+    <Description>
+-- SetupConfig: {}
+create transformer on CK.sUserUnban
+as
+begin
+    in between single "-- Preconditions" and single "-- Actions"
+    begin
+      replace single statement {if not exists} 
+        with "
+      -- The actor must be 127 on the System Acl (1).
+      if not exists( select 1 from CK.vAclActor a where a.AclId = 1 and a.ActorId = @ActorId and a.GrantLevel = 127 )
+      throw 50000, 'Security.PlatformAdministratorLevelOnly', 1;";
+    end
+end
+    </Description>
+    <ResultText>
+      <![CDATA[
+-- SetupConfig: { }
+create procedure CK.sUserUnban (
+    @ActorId int,
+    @UserId int
+)
+as
+begin
+    if @ActorId <= 0 throw 50000, 'Security.AnonymousNotAllowed', 1;
+    if @UserId <= 0 throw 50000, 'Security.InvalidUserId', 1;
+
+    --[beginsp]
+
+    -- Preconditions
+    
+      -- The actor must be 127 on the System Acl (1).
+      if not exists( select 1 from CK.vAclActor a where a.AclId = 1 and a.ActorId = @ActorId and a.GrantLevel = 127 )
+      throw 50000, 'Security.PlatformAdministratorLevelOnly', 1;
+
+    -- Actions
+    update CK.tUserBanned set BanEndDate = sysutcdatetime() where UserId = @UserId;
+    --[endsp]
+end
+      ]]>
+    </ResultText>
+  </Test>
+
+  <Test>
+    <Text>
+      <![CDATA[
     begin
       --<PreRead revert />
 

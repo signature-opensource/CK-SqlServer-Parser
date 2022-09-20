@@ -1,3 +1,4 @@
+using CK.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,30 +20,32 @@ namespace CK.SqlServer.Transform
 
         public SqlNodeScopeIndex( SqlNodeScopeBuilder inner, int start = 0, int count = -1 )
         {
-            if( inner == null ) throw new ArgumentNullException( nameof( inner ) );
-            _inner = inner;
+            Throw.CheckNotNullArgument( inner );
+            _inner = inner.GetSafeBuilder();
             _start = start;
             _count = count;
             _stop = count < 0 ? int.MaxValue : _start + count;
-       }
+        }
 
-        protected override void DoReset()
+        private protected override SqlNodeScopeBuilder Clone() => new SqlNodeScopeIndex( _inner, _start, _count );
+
+        private protected override void DoReset()
         {
             _inner.Reset();
             _currentIdx = 0;
         }
 
-        protected override ISqlNodeLocationRange DoEnter( IVisitContext context )
+        private protected override ISqlNodeLocationRange DoEnter( IVisitContext context )
         {
             return Handle( _inner.Enter( context ), context );
         }
 
-        protected override ISqlNodeLocationRange DoLeave( IVisitContext context )
+        private protected override ISqlNodeLocationRange DoLeave( IVisitContext context )
         {
             return Handle( _inner.Leave( context ), context );
         }
 
-        protected override ISqlNodeLocationRange DoConclude( IVisitContextBase context )
+        private protected override ISqlNodeLocationRange DoConclude( IVisitContextBase context )
         {
             return Handle( _inner.Conclude( context ), context );
         }

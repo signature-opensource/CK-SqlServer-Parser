@@ -180,6 +180,7 @@ namespace CK.SqlServer.Parser
                 case ParseMode.ExtendedExpression: return IsExtendedExpression( true );
                 case ParseMode.AnyExpression: return IsAnyExpression( true );
                 case ParseMode.Statement: return IsExtendedStatement( true );
+                case ParseMode.TransformStatement: return IsTransformStatement( true );
                 case ParseMode.Script: return IsStatementList( true );
                 default:
                     {

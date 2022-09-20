@@ -1,15 +1,11 @@
 using CK.Core;
 using CK.SqlServer.Parser;
-using NUnit.Framework;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
-using CK.SqlServer.UtilTests;
 using CK.SqlServer.Transform.Transformers;
 using FluentAssertions;
+using NUnit.Framework;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using static CK.Testing.SqlTransformTestHelper;
 
 namespace CK.SqlServer.Transform.Tests
 {
@@ -62,7 +58,7 @@ namespace CK.SqlServer.Transform.Tests
             var a = new SqlAnalyser( s );
             SqlSelectStatement st;
             Assert.That( a.ParseStatement( out st ).IsError, Is.False );
-            ISqlNode transformed = new SetSelectColumnAsOrAssign( TestHelper.ConsoleMonitor, true ).VisitRoot( st );
+            ISqlNode transformed = new SetSelectColumnAsOrAssign( TestHelper.Monitor, true ).VisitRoot( st );
             CheckRenderResult( result, a, transformed );
         }
 
@@ -73,7 +69,7 @@ namespace CK.SqlServer.Transform.Tests
             var a = new SqlAnalyser( s );
             SqlSelectStatement st;
             Assert.That( a.ParseStatement( out st ).IsError, Is.False );
-            SqlSelectStatement transformed = (SqlSelectStatement)new SetSelectColumnAsOrAssign( TestHelper.ConsoleMonitor, false ).VisitRoot( st );
+            SqlSelectStatement transformed = (SqlSelectStatement)new SetSelectColumnAsOrAssign( TestHelper.Monitor, false ).VisitRoot( st );
             CheckRenderResult( result, a, transformed );
         }
 
@@ -125,7 +121,7 @@ namespace CK.SqlServer.Transform.Tests
             var filter = new SqlNodeScopeCardinalityFilter( matcher, info );
             ISqlNode nodes = new SqlNodeList( text.Split('|').Select( t => SqlTokenIdentifier.Create( t ) ) );
             var host = new SqlTransformHost( nodes );
-            var ranges = host.BuildRange( TestHelper.ConsoleMonitor, filter );
+            var ranges = host.BuildRange( TestHelper.Monitor, filter );
             if( resultIndex >= 0 )
             {
                 Assert.That( ranges.Count, Is.EqualTo( 1 ) );
@@ -145,15 +141,15 @@ namespace CK.SqlServer.Transform.Tests
 
             if( transformed.ToString( true ) != result )
             {
-                using( TestHelper.ConsoleMonitor.OpenWarn( caller ) )
+                using( TestHelper.Monitor.OpenWarn( caller ) )
                 {
-                    using( TestHelper.ConsoleMonitor.OpenInfo( "Expected" ) )
+                    using( TestHelper.Monitor.OpenInfo( "Expected" ) )
                     {
-                        TestHelper.ConsoleMonitor.Info( result );
+                        TestHelper.Monitor.Info( result );
                     }
-                    using( TestHelper.ConsoleMonitor.OpenInfo( "Actual" ) )
+                    using( TestHelper.Monitor.OpenInfo( "Actual" ) )
                     {
-                        TestHelper.ConsoleMonitor.Info( transformed.ToString( true ) );
+                        TestHelper.Monitor.Info( transformed.ToString( true ) );
                     }
                 }
                 Assume.That( false, "Rendering is not perfect..." );

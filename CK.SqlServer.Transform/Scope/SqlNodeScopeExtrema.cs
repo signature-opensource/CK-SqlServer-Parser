@@ -1,3 +1,4 @@
+using CK.Core;
 using System;
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
@@ -47,30 +48,41 @@ namespace CK.SqlServer.Transform
 
         public SqlNodeScopeExtrema( SqlNodeScopeBuilder inner, Option option )
         {
-            if( inner == null ) throw new ArgumentNullException( nameof( inner ) );
-            _inner = inner;
+            Throw.CheckNotNullArgument( inner );
+            _inner = inner.GetSafeBuilder();
             _option = option;
         }
 
-        protected override void DoReset()
+        private protected override SqlNodeScopeBuilder Clone() => new SqlNodeScopeExtrema( _inner, _option );
+
+        private protected override void DoReset()
         {
             _inner.Reset();
             _first = _last = null;
         }
 
-        protected override ISqlNodeLocationRange DoEnter( IVisitContext context )
+        private protected override ISqlNodeLocationRange DoEnter( IVisitContext context )
         {
-            return Handle( _inner.Enter( context ), null );
+            var r = _inner.Enter( context );
+            var f = Handle( r, null );
+            ActivityMonitor.StaticLogger.Debug( $"Extrema {_option} Enter: {r} => {f}" );
+            return f;
         }
 
-        protected override ISqlNodeLocationRange DoLeave( IVisitContext context )
+        private protected override ISqlNodeLocationRange DoLeave( IVisitContext context )
         {
-            return Handle( _inner.Leave( context ), null );
+            var r = _inner.Leave( context );
+            var f = Handle( r, null );
+            ActivityMonitor.StaticLogger.Debug( $"Extrema {_option} Leave: {r} => {f}" );
+            return f;
         }
 
-        protected override ISqlNodeLocationRange DoConclude( IVisitContextBase context )
+        private protected override ISqlNodeLocationRange DoConclude( IVisitContextBase context )
         {
-            return Handle( _inner.Conclude( context ), context.LocationManager );
+            var r = _inner.Conclude( context );
+            var f = Handle( r, context.LocationManager );
+            ActivityMonitor.StaticLogger.Debug( $"Extrema {_option} Conclude: {r} => {f}" );
+            return f;
         }
 
         ISqlNodeLocationRange Handle( ISqlNodeLocationRange r, ISqlNodeLocationManager locationManager )
@@ -116,6 +128,10 @@ namespace CK.SqlServer.Transform
             _ => $"(from the start to the end of {inner})"
         };
 
+        /// <summary>
+        /// Overridden to return the description of this builder.
+        /// </summary>
+        /// <returns>The description.</returns>
         public override string ToString() => ToString( _inner.ToString() );
 
     }

@@ -1,18 +1,14 @@
 using CK.Core;
 using CK.SqlServer.Parser;
+using CK.SqlServer.Transform.Transformers;
 using CK.SqlServer.UtilTests;
+using FluentAssertions;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Xml.Linq;
-using CK.SqlServer.Transform.Transformers;
-
-using System.Reflection;
-using FluentAssertions;
+using static CK.Testing.SqlTransformTestHelper;
 
 namespace CK.SqlServer.Transform.Tests.XmlTests
 {
@@ -43,7 +39,7 @@ namespace CK.SqlServer.Transform.Tests.XmlTests
                         Transformer = n =>
                         {
                             SqlTransformHost host = new SqlTransformHost( n );
-                            return host.Apply( TestHelper.ConsoleMonitor, t )  ? host.Node : null;
+                            return host.Apply( TestHelper.Monitor, t )  ? host.Node : null;
                         };
                     }
                 }
@@ -53,7 +49,7 @@ namespace CK.SqlServer.Transform.Tests.XmlTests
             protected override ISqlNode OnParsed( ISqlNode e )
             {
                 IReadOnlyList<ActivityMonitorSimpleCollector.Entry> errors = null;
-                using( TestHelper.ConsoleMonitor.CollectEntries( err => errors = err ) )
+                using( TestHelper.Monitor.CollectEntries( err => errors = err ) )
                 {
                     if( Transformer != null ) e = Transformer( e );
                 }
@@ -69,13 +65,13 @@ namespace CK.SqlServer.Transform.Tests.XmlTests
                     }
                     if( e == null ) Assert.Fail( "Transformer failed." );
                     string actualText = e.ToString( true, true );
-                    using( TestHelper.ConsoleMonitor.OpenInfo( "Expected Result" ) )
+                    using( TestHelper.Monitor.OpenInfo( "Expected Result" ) )
                     {
-                        TestHelper.ConsoleMonitor.Trace( ResultText );
+                        TestHelper.Monitor.Trace( ResultText );
                     }
-                    using( TestHelper.ConsoleMonitor.OpenInfo( "Actual Result" ) )
+                    using( TestHelper.Monitor.OpenInfo( "Actual Result" ) )
                     {
-                        TestHelper.ConsoleMonitor.Trace( actualText );
+                        TestHelper.Monitor.Trace( actualText );
                     }
 
                     ISqlNode resultNode = ParseAndCheckSqlText( ResultText, ResultText );
@@ -85,7 +81,7 @@ namespace CK.SqlServer.Transform.Tests.XmlTests
                     {
                         Assert.That( actual, Is.EqualTo( expected ) );
                     }
-                    if( actualText != ResultText ) TestHelper.ConsoleMonitor.Warn( "Rendering is not perfect..." );
+                    if( actualText != ResultText ) TestHelper.Monitor.Warn( "Rendering is not perfect..." );
                 }
                 return base.OnParsed( e );
             }
@@ -104,7 +100,7 @@ namespace CK.SqlServer.Transform.Tests.XmlTests
         [TestCase( "_Current.xml" )]
         [TestCase( "Add column.xml" )]
         [TestCase( "CK.DB.Basics.xml" )]
-        //[TestCase( "Combine Select.xml" )]
+        // [TestCase( "Combine Select.xml" )] Not yet implemented.
         [TestCase( "Each support.xml" )]
         [TestCase( "General.xml" )]
         [TestCase( "In scope.xml" )]
@@ -126,16 +122,16 @@ namespace CK.SqlServer.Transform.Tests.XmlTests
             SqlAnalyser a = new SqlAnalyser( "@ZoneId int = 0" );
 
             SqlParameter pZoneId = a.IsParameter( true );
-            t.Visit( new AddParameter( TestHelper.ConsoleMonitor, new[] { pZoneId }, null, "@GroupIdResult" ) );
+            t.Visit( new AddParameter( TestHelper.Monitor, new[] { pZoneId }, null, "@GroupIdResult" ) );
 
-            ISqlNodeLocationRange ifStatements = t.BuildRange( TestHelper.ConsoleMonitor, new SqlNodeScopeBreadthPredicate( n => n is SqlIf ) );
+            ISqlNodeLocationRange ifStatements = t.BuildRange( TestHelper.Monitor, new SqlNodeScopeBreadthPredicate( n => n is SqlIf ) );
             SqlNodeLocation headLoc = ifStatements.First.End;
             a.Reset( "if @ZoneId = 1 throw 50000, 'Zone.SystemZoneHasNoGroup', 1;" );
             var newGuard = (ISqlStatement)a.Parse( ParseMode.Statement );
-            t.Visit( new InsertStatement( TestHelper.ConsoleMonitor, headLoc, newGuard ) );
+            t.Visit( new InsertStatement( TestHelper.Monitor, headLoc, newGuard ) );
 
             var newC = new SelectColumn( SqlTokenIdentifier.Create( "ZoneId" ), SqlKeyword.Assign, pZoneId.Variable.Identifier );
-            t.Visit( new AddColumn( TestHelper.ConsoleMonitor, new[] { newC } ) );
+            t.Visit( new AddColumn( TestHelper.Monitor, new[] { newC } ) );
 
             return t.Node;
         }

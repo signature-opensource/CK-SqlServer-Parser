@@ -1,3 +1,4 @@
+using CK.Core;
 using System;
 using System.Diagnostics;
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
@@ -122,31 +123,33 @@ namespace CK.SqlServer.Transform
 
         public SqlNodeScopeExcept( SqlNodeScopeBuilder left, SqlNodeScopeBuilder right )
         {
-            if( left == null ) throw new ArgumentNullException( nameof( left ) );
-            if( right == null ) throw new ArgumentNullException( nameof( right ) );
-            _left = left;
-            _right = right;
+            Throw.CheckNotNullArgument( left );
+            Throw.CheckNotNullArgument( right );
+            _left = left.GetSafeBuilder();
+            _right = right.GetSafeBuilder();
             _exceptor = new RangeExceptor();
         }
 
-        protected override void DoReset()
+        private protected override void DoReset()
         {
             _left.Reset();
             _right.Reset();
             _exceptor.Reset();
         }
 
-        protected override ISqlNodeLocationRange DoEnter( IVisitContext context )
+        private protected override SqlNodeScopeBuilder Clone() => new SqlNodeScopeExcept( _left, _right );
+
+        private protected override ISqlNodeLocationRange DoEnter( IVisitContext context )
         {
             return Handle( _left.Enter( context ), _right.Enter( context ) );
         }
 
-        protected override ISqlNodeLocationRange DoLeave( IVisitContext context )
+        private protected override ISqlNodeLocationRange DoLeave( IVisitContext context )
         {
             return Handle( _left.Leave( context ), _right.Leave( context ) );
         }
 
-        protected override ISqlNodeLocationRange DoConclude( IVisitContextBase context )
+        private protected override ISqlNodeLocationRange DoConclude( IVisitContextBase context )
         {
             return Handle( _left.Conclude( context ), _right.Conclude( context ), true );
         }
@@ -165,6 +168,10 @@ namespace CK.SqlServer.Transform
             return new RangeExceptor().DoExcept( left, right, true ) ?? SqlNodeLocationRange.EmptySet;
         }
 
+        /// <summary>
+        /// Overridden to return a description of this builder.
+        /// </summary>
+        /// <returns>The except description.</returns>
         public override string ToString() => $"({_left} except {_right})";
 
     }

@@ -1,13 +1,12 @@
 using CK.Core;
 using CK.SqlServer.Parser;
-using CK.SqlServer.UtilTests;
 using CK.Testing;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
+using static CK.Testing.SqlTransformTestHelper;
 
 namespace CK.SqlServer.Transform.Tests
 {
@@ -43,18 +42,18 @@ namespace CK.SqlServer.Transform.Tests
             {
                 List<SqlNodeLocation> locs;
                 ISqlNode n = new SqlAnalyser( text ).Parse( mode );
-                using( TestHelper.ConsoleMonitor.OpenInfo( "GetAllLocations " + text ) )
+                using( TestHelper.Monitor.OpenInfo( "GetAllLocations " + text ) )
                 {
-                    var c = new AllLocations( TestHelper.ConsoleMonitor );
+                    var c = new AllLocations( TestHelper.Monitor );
                     c.VisitRoot( n );
                     locs = c.Collector;
                     var afterLocs = c.AfterCollector;
-                    if( MonitorTestHelper.TestHelper.LogToConsole )
+                    if( TestHelper.LogToConsole )
                     {
                         int i = 0;
                         foreach( var l in locs )
                         {
-                            MonitorTestHelper.TestHelper.Monitor.Trace( "[" + i++ + "] " + l.ToString() );
+                            TestHelper.Monitor.Trace( "[" + i++ + "] " + l.ToString() );
                         }
                     }
                     CollectionAssert.AreEquivalent( locs.Select( l => l.ToString() ), afterLocs.Select( l => l.ToString() ) );
