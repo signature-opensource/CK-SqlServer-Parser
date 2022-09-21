@@ -63,26 +63,21 @@ namespace CK.SqlServer.Transform
 
         private protected override ISqlNodeLocationRange DoEnter( IVisitContext context )
         {
-            var r = _inner.Enter( context );
-            var f = Handle( r, null );
-            ActivityMonitor.StaticLogger.Debug( $"Extrema {_option} Enter: {r} => {f}" );
-            return f;
+            return Handle( _inner.Enter( context ), null );
         }
 
         private protected override ISqlNodeLocationRange DoLeave( IVisitContext context )
         {
-            var r = _inner.Leave( context );
-            var f = Handle( r, null );
-            ActivityMonitor.StaticLogger.Debug( $"Extrema {_option} Leave: {r} => {f}" );
-            return f;
+            return Handle( _inner.Leave( context ), null );
         }
 
         private protected override ISqlNodeLocationRange DoConclude( IVisitContextBase context )
         {
-            var r = _inner.Conclude( context );
-            var f = Handle( r, context.LocationManager );
-            ActivityMonitor.StaticLogger.Debug( $"Extrema {_option} Conclude: {r} => {f}" );
-            return f;
+            return Handle( _inner.Conclude( context ), context.LocationManager );
+            //var r = _inner.Conclude( context );
+            //var f = Handle( r, context.LocationManager );
+            //ActivityMonitor.StaticLogger.Debug( $"Extrema {_option} Conclude: {r} => {f}" );
+            //return f;
         }
 
         ISqlNodeLocationRange Handle( ISqlNodeLocationRange r, ISqlNodeLocationManager locationManager )

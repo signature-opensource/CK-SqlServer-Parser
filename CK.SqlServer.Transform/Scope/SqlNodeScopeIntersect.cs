@@ -74,29 +74,22 @@ namespace CK.SqlServer.Transform
 
         private protected override ISqlNodeLocationRange DoEnter( IVisitContext context )
         {
-            var l = _left.Enter( context );
-            var r = _right.Enter( context );
-            var f = StateIntersect( l, r ); 
-            ActivityMonitor.StaticLogger.Debug( $"Intersect Enter: {l}, {r} => {f}" );
-            return f;
+            return StateIntersect( _left.Enter( context ), _right.Enter( context ) ); 
         }
 
         private protected override ISqlNodeLocationRange DoLeave( IVisitContext context )
         {
-            var l = _left.Leave( context );
-            var r = _right.Leave( context );
-            var f = StateIntersect( l, r );
-            ActivityMonitor.StaticLogger.Debug( $"Intersect Enter: {l}, {r} => {f}" );
-            return f;
+            return StateIntersect( _left.Leave( context ), _right.Leave( context ) );
         }
 
         private protected override ISqlNodeLocationRange DoConclude( IVisitContextBase context )
         {
-            var l = _left.Conclude( context );
-            var r = _right.Conclude( context );
-            var f = StateIntersect( l, r );
-            ActivityMonitor.StaticLogger.Debug( $"Intersect Conclude: {l}, {r} => {f}" );
-            return f;
+            return StateIntersect( _left.Conclude( context ), _right.Conclude( context ) );
+            //var l = _left.Conclude( context );
+            //var r = _right.Conclude( context );
+            //var f = StateIntersect( l, r );
+            //ActivityMonitor.StaticLogger.Debug( $"Intersect Conclude: {l}, {r} => {f}" );
+            //return f;
         }
 
         ISqlNodeLocationRange StateIntersect( ISqlNodeLocationRange left, ISqlNodeLocationRange right )

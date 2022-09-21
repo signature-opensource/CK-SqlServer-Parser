@@ -1,4 +1,4 @@
-﻿using CK.Core;
+using CK.Core;
 using CK.SqlServer.Parser;
 using System;
 using System.Collections.Generic;
@@ -48,7 +48,7 @@ namespace CK.SqlServer.Transform.Matcher
         }
 
         /// <summary>
-        /// Matches the pattern on the current token of the emnumerator. 
+        /// Matches the pattern on the current token of the enumerator. 
         /// On success, returns the positive number of tokens that have matched.
         /// A zero or negative returned value indicates a failed matched.
         /// </summary>
