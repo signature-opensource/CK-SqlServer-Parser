@@ -1,13 +1,12 @@
 using CK.Core;
 using CK.SqlServer.Parser;
-
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml.Linq;
+
+using static CK.Testing.SqlTransformTestHelper;
 
 namespace CK.SqlServer.UtilTests
 {
@@ -68,11 +67,11 @@ namespace CK.SqlServer.UtilTests
             {
                 if( ExpectedXml != null )
                 {
-                    using( TestHelper.ConsoleMonitor.OpenInfo( "Checking detailed Xml." ) )
+                    using( TestHelper.Monitor.OpenInfo( "Checking detailed Xml." ) )
                     {
                         XElement visited = new SqlToXmlVisitor( CombineElementType, ToStringCompactForms ).ToXml( "Sql", e );
                         string visitedString = visited.ToString();
-                        TestHelper.ConsoleMonitor.Trace( visitedString );
+                        TestHelper.Monitor.Trace( visitedString );
                         if( !XNode.DeepEquals( visited, ExpectedXml ) )
                         {
                             TestHelper.AssertXmlStringEqual( visitedString, ExpectedXml );
@@ -81,11 +80,11 @@ namespace CK.SqlServer.UtilTests
                 }
                 if( ExpectedStatementsXml != null )
                 {
-                    using( TestHelper.ConsoleMonitor.OpenInfo( "Checking statements only Xml." ) )
+                    using( TestHelper.Monitor.OpenInfo( "Checking statements only Xml." ) )
                     {
                         XElement visited = new SqlToXmlStatementVisitor().ToXml( "Statements", e );
                         string visitedString = visited.ToString();
-                        TestHelper.ConsoleMonitor.Trace( visitedString );
+                        TestHelper.Monitor.Trace( visitedString );
                         if( !XNode.DeepEquals( visited, ExpectedStatementsXml ) )
                         {
                             TestHelper.AssertXmlStringEqual( visitedString, ExpectedStatementsXml );
@@ -129,16 +128,16 @@ namespace CK.SqlServer.UtilTests
 
         public static void RunAllTests( string fileName, Func<XElement, XmlSqlTester> oneTestCreate, string folderName = "XmlTests" )
         {
-            using( TestHelper.ConsoleMonitor.OpenInfo( $"Running {fileName}." ) )
+            using( TestHelper.Monitor.OpenInfo( $"Running {fileName}." ) )
             {
                 XElement tests = XDocument.Load( TestHelper.BuildPathInCurrentTestProject( folderName, fileName ) ).Root;
                 int i = 0;
                 foreach( var t in tests.Elements( "Test" ) )
                 {
                     XmlSqlTester x = oneTestCreate( t );
-                    using( TestHelper.ConsoleMonitor.OpenInfo( $"n°{i}-{x.Description} ({x.Mode.ToString()})" ) )
+                    using( TestHelper.Monitor.OpenInfo( $"n°{i}-{x.Description} ({x.Mode.ToString()})" ) )
                     {
-                        TestHelper.ConsoleMonitor.Trace( x.Text );
+                        TestHelper.Monitor.Trace( x.Text );
                         x.ParseAndCheck();
                         ++i;
                     }

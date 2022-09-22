@@ -24,7 +24,7 @@ namespace CK.SqlServer.Transform
         /// to be able to configure <see cref="SqlNodeScopeFromTriviaMatcher"/>.
         /// </param>
         /// <returns>A LocationInfo.</returns>
-        internal static LocationInfo GetFinderInfo( this ISqlTLocationFinder @this, bool isAfterContext ) => new LocationInfo( @this, isAfterContext );
+        public static LocationInfo GetFinderInfo( this ISqlTLocationFinder @this, bool isAfterContext ) => new LocationInfo( @this, isAfterContext );
 
         /// <summary>
         /// Tries to match this pattern on a node.

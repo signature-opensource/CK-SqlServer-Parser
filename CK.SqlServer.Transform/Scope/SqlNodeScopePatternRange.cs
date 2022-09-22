@@ -1,3 +1,4 @@
+using CK.Core;
 using CK.SqlServer.Parser;
 using System;
 using System.Collections.Generic;
@@ -16,15 +17,17 @@ namespace CK.SqlServer.Transform
 
         public SqlNodeScopePatternRange( IReadOnlyList<SqlToken> pattern )
         {
-            if( pattern == null ) throw new ArgumentNullException( nameof( pattern ) );
+            Throw.CheckNotNullArgument( pattern );
             _pattern = pattern;
         }
 
-        protected override void DoReset()
+        private protected override SqlNodeScopeBuilder Clone() => this;
+
+        private protected override void DoReset()
         {
         }
 
-        protected override ISqlNodeLocationRange DoEnter( IVisitContext context )
+        private protected override ISqlNodeLocationRange DoEnter( IVisitContext context )
         {
             if( context.Depth != 0 || _pattern.Count == 0 ) return null;
             List<SqlNodeLocationRange> collector = null;
@@ -77,12 +80,12 @@ namespace CK.SqlServer.Transform
             while( w.Shift( width ) == _pattern.Count );
         }
 
-        protected override ISqlNodeLocationRange DoLeave( IVisitContext context )
+        private protected override ISqlNodeLocationRange DoLeave( IVisitContext context )
         {
             return null;
         }
 
-        protected override ISqlNodeLocationRange DoConclude( IVisitContextBase context )
+        private protected override ISqlNodeLocationRange DoConclude( IVisitContextBase context )
         {
             return null;
         }

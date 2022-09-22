@@ -1,8 +1,10 @@
+using CK.Core;
 using CK.SqlServer.Parser;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
 namespace CK.SqlServer.Transform
@@ -27,8 +29,8 @@ namespace CK.SqlServer.Transform
         /// <param name="triviaDescription">The description of the trivia predicate.</param>
         public SqlNodeScopeFromTriviaMatcher( bool nodeAfter, Func<SqlTrivia, bool> triviaMatcher, string triviaDescription )
         {
-            if( triviaMatcher == null ) throw new ArgumentException( nameof( triviaMatcher ) );
-            if( triviaDescription == null ) throw new ArgumentException( nameof( triviaDescription ) );
+            Throw.CheckNotNullArgument( triviaMatcher );
+            Throw.CheckNotNullArgument( triviaDescription );
             _triviaMatcher = triviaMatcher;
             _triviaDescription = triviaDescription;
             _nodeAfter = nodeAfter;
@@ -36,13 +38,15 @@ namespace CK.SqlServer.Transform
             _prev0 = _prev1 = -2;
         }
 
-        protected override void DoReset()
+        private protected override SqlNodeScopeBuilder Clone() => new SqlNodeScopeFromTriviaMatcher( _nodeAfter, _triviaMatcher, _triviaDescription );
+
+        private protected override void DoReset()
         {
             _posAhead.Clear();
             _prev0 = _prev1 = -2;
         }
 
-        protected override ISqlNodeLocationRange DoEnter( IVisitContext context )
+        private protected override ISqlNodeLocationRange DoEnter( IVisitContext context )
         {
             int pos = context.Position;
             Debug.Assert( _posAhead.Count == 0 || _posAhead[0] >= pos - 1 );
@@ -106,9 +110,9 @@ namespace CK.SqlServer.Transform
             if( idx < 0 ) _posAhead.Insert( ~idx, position );
         }
 
-        protected override ISqlNodeLocationRange DoLeave( IVisitContext context ) => null;
+        private protected override ISqlNodeLocationRange DoLeave( IVisitContext context ) => null;
 
-        protected override ISqlNodeLocationRange DoConclude( IVisitContextBase context )
+        private protected override ISqlNodeLocationRange DoConclude( IVisitContextBase context )
         {
             Debug.Assert( _posAhead.Count == 0 || _posAhead[0] == context.LocationManager.EndMarker.Position );
             return null;

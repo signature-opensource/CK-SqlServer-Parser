@@ -1,5 +1,6 @@
 using CK.SqlServer.Parser;
 using System;
+using System.Reflection;
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
 namespace CK.SqlServer.Transform
@@ -18,18 +19,20 @@ namespace CK.SqlServer.Transform
             _nodeMatcher = new DepthFirstNodeMatcherHelper( isPartMatch, predicate );
         }
 
-        protected override void DoReset()
+        private protected override SqlNodeScopeBuilder Clone() => new SqlNodeScopeDepthPredicate( _nodeMatcher.Matcher, _nodeMatcher.IsPartMatch );
+
+        private protected override void DoReset()
         {
             _nodeMatcher.Reset();
         }
 
-        protected override ISqlNodeLocationRange DoEnter( IVisitContext context )
+        private protected override ISqlNodeLocationRange DoEnter( IVisitContext context )
         {
             _nodeMatcher.OnBeforeVisitItem( context );
             return null;
         }
 
-        protected override ISqlNodeLocationRange DoLeave( IVisitContext context )
+        private protected override ISqlNodeLocationRange DoLeave( IVisitContext context )
         {
             if( _nodeMatcher.Match( context, context.VisitedNode ) )
             {
@@ -39,11 +42,15 @@ namespace CK.SqlServer.Transform
             return null;
         }
 
-        protected override ISqlNodeLocationRange DoConclude( IVisitContextBase context )
+        private protected override ISqlNodeLocationRange DoConclude( IVisitContextBase context )
         {
             return null;
         }
 
+        /// <summary>
+        /// Overridden to return the description of this predicate.
+        /// </summary>
+        /// <returns>A description.</returns>
         public override string ToString() => _nodeMatcher.IsPartMatch ? "(depth-first part match)" : "(depth-first node match)";
 
     }

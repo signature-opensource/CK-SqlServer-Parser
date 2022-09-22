@@ -24,7 +24,7 @@ namespace CK.SqlServer.Transform
         int _eachNumber;
         bool _hasError;
 
-        class SqlNodeLocationRangeSlice : ISqlNodeLocationRange
+        sealed class SqlNodeLocationRangeSlice : ISqlNodeLocationRange
         {
             readonly ISqlNodeLocationRange _r;
             readonly int _offset;
@@ -62,7 +62,7 @@ namespace CK.SqlServer.Transform
             IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         }
 
-        class EachSplitter
+        sealed class EachSplitter
         {
             public readonly SqlNodeScopeBuilder Inner;
             int _currentEachNumber;
@@ -131,38 +131,40 @@ namespace CK.SqlServer.Transform
 
         public SqlNodeScopeCardinalityFilter( SqlNodeScopeBuilder inner, in LocationCardinalityInfo info )
         {
-            if( inner == null ) throw new ArgumentNullException( nameof( inner ) );
-            _inner = new EachSplitter( inner );
+            Throw.CheckNotNullArgument( inner );
+            _inner = new EachSplitter( inner.GetSafeBuilder() );
             _info = info;
             _eachNumber = -1;
             if( !_info.FromFirst ) _lastBuffer = new FIFOBuffer<SqlNodeLocationRange>( _info.Offset + 1 );
-       }
+        }
 
-        protected override void DoReset()
+        private protected override SqlNodeScopeBuilder Clone() => new SqlNodeScopeCardinalityFilter( _inner.Inner, _info );
+
+        private protected override void DoReset()
         {
             _inner.Reset();
             _eachNumber = -1;
             LocalStateReset();
         }
 
-        void LocalStateReset()
+        private void LocalStateReset()
         {
             if( _lastBuffer != null ) _lastBuffer.Clear();
             _matchCount = 0;
             _hasError = false;
         }
 
-        protected override ISqlNodeLocationRange DoEnter( IVisitContext context )
+        private protected override ISqlNodeLocationRange DoEnter( IVisitContext context )
         {
             return Handle( _inner.Enter( context ), context );
         }
 
-        protected override ISqlNodeLocationRange DoLeave( IVisitContext context )
+        private protected override ISqlNodeLocationRange DoLeave( IVisitContext context )
         {
             return Handle( _inner.Leave( context ), context );
         }
 
-        protected override ISqlNodeLocationRange DoConclude( IVisitContextBase context )
+        private protected override ISqlNodeLocationRange DoConclude( IVisitContextBase context )
         {
             var r = Handle( _inner.Conclude( context ), context );
             if( !_hasError ) return LocalConclude( r, context );
@@ -207,7 +209,7 @@ namespace CK.SqlServer.Transform
             return result;
         }
 
-        private ISqlNodeLocationRange HandleSameEachNumber( ISqlNodeLocationRange mono, IVisitContextBase context )
+        ISqlNodeLocationRange HandleSameEachNumber( ISqlNodeLocationRange mono, IVisitContextBase context )
         {
             bool starting = _eachNumber == -1;
             if( starting || mono.First.EachNumber == _eachNumber )
@@ -276,7 +278,11 @@ namespace CK.SqlServer.Transform
             return false;
         }
 
-        public override string ToString() => $"(cardinality '{_info.ToString()}' on {_inner.Inner})";
+        /// <summary>
+        /// Overridden to return the description of the cardinality.
+        /// </summary>
+        /// <returns>The description.</returns>
+        public override string ToString() => $"(cardinality '{_info}' on {_inner.Inner})";
 
 
     }

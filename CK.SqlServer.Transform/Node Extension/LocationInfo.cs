@@ -15,7 +15,7 @@ namespace CK.SqlServer.Transform
     /// This handles the 5 kind of matches: part and statement, range match, trivia match 
     /// and fragment match.
     /// </summary>
-    internal readonly struct LocationInfo
+    public readonly struct LocationInfo
     {
         /// <summary>
         /// The cardinality specification.
@@ -60,12 +60,12 @@ namespace CK.SqlServer.Transform
 
         readonly string _commentDesc;
 
-        public LocationInfo( ISqlTLocationFinder loc, bool isAfterContext )
+        internal LocationInfo( ISqlTLocationFinder loc, bool isAfterContext )
         {
             IsAfterContext = isAfterContext;
             if( loc.Pattern is ISqlHasStringValue c )
             {
-                ( TriviaMatcher, _commentDesc) = c.CreateCommentTriviaMatcher();
+                (TriviaMatcher, _commentDesc) = c.CreateCommentTriviaMatcher();
                 NodeMatcher = null;
                 PatternRange = null;
                 IsNodeMatchPart = IsNodeMatchStatement = IsNodeMatchRange = false;
@@ -84,7 +84,7 @@ namespace CK.SqlServer.Transform
             Card = loc.GetCardinality();
         }
 
-        public LocationInfo( TriviaExtensionPointMatcher m )
+        internal LocationInfo( TriviaExtensionPointMatcher m )
         {
             IsAfterContext = false;
             Card = new LocationCardinalityInfo( single:true );
@@ -102,13 +102,13 @@ namespace CK.SqlServer.Transform
         /// </summary>
         /// <returns>A scope builder.</returns>
         public SqlNodeScopeBuilder CreateScopeBuilder() => IsNodeMatchRange
-                                                            ? (SqlNodeScopeBuilder)new SqlNodeScopePatternRange( PatternRange )
+                                                            ? new SqlNodeScopePatternRange( PatternRange )
                                                             : (NodeMatcher != null
                                                                 ? (SqlNodeScopeBuilder)new SqlNodeScopeDepthPredicate( NodeMatcher, IsNodeMatchPart )
                                                                 : new SqlNodeScopeFromTriviaMatcher( IsAfterContext, TriviaMatcher, _commentDesc ) );
 
 
-        public string GetDescription()
+        internal string GetDescription()
         {
             if( _commentDesc != null ) return _commentDesc;
             // This is no more cached (readonly struct) since this is used only

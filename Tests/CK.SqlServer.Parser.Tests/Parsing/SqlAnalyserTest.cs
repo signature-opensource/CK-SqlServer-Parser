@@ -1,16 +1,14 @@
-using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using NUnit.Framework;
-using System.Xml.Linq;
 using CK.Core;
 using CK.SqlServer.UtilTests;
 using Microsoft.Data.SqlClient;
-
+using NUnit.Framework;
+using System;
+using System.Data;
+using System.Diagnostics;
+using System.Linq;
+using System.Text.RegularExpressions;
+using System.Xml.Linq;
+using static CK.Testing.SqlTransformTestHelper;
 
 namespace CK.SqlServer.Parser.Tests
 {
@@ -41,7 +39,7 @@ namespace CK.SqlServer.Parser.Tests
 
             XElement visited = new SqlToXmlStatementVisitor().ToXml( "Statements", e );
             string visitedString = visited.ToString();
-            TestHelper.ConsoleMonitor.Trace( visitedString );
+            TestHelper.Monitor.Trace( visitedString );
             if( numberOfStatement != -1 )
             {
                 Assert.That( ((SqlStatementList)e).Count, Is.EqualTo( numberOfStatement ) );
@@ -68,19 +66,19 @@ namespace CK.SqlServer.Parser.Tests
                     var proc = p as ISqlServerStoredProcedure;
                     if( proc == null )
                     {
-                        using( TestHelper.ConsoleMonitor.OpenError( "Found a " + p.GetType().Name ) )
+                        using( TestHelper.Monitor.OpenError( "Found a " + p.GetType().Name ) )
                         {
-                            TestHelper.ConsoleMonitor.Trace( p.ToString() );
+                            TestHelper.Monitor.Trace( p.ToString() );
                             Assert.Fail( "Found a " + p.GetType().Name );
                         }
                     }
                     last = proc;
-                    TestHelper.ConsoleMonitor.Trace( "Success: " + proc.ToStringSignature( true ) );
+                    TestHelper.Monitor.Trace( "Success: " + proc.ToStringSignature( true ) );
                 }
                 var r = a.GetCurrentResult();
                 if( r.IsError )
                 {
-                    r.LogOnError( TestHelper.ConsoleMonitor );
+                    r.LogOnError( TestHelper.Monitor );
                     break;
                 }
             }
@@ -229,14 +227,14 @@ namespace CK.SqlServer.Parser.Tests
                                 var result = parser.ParseStoredProcedure( fullBody );
                                 if( result.IsError )
                                 {
-                                    result.LogOnError( TestHelper.ConsoleMonitor );
-                                    TestHelper.ConsoleMonitor.Trace( fullBody );
+                                    result.LogOnError( TestHelper.Monitor );
+                                    TestHelper.Monitor.Trace( fullBody );
                                 }
-                                else TestHelper.ConsoleMonitor.Trace( "Successfuly parsed: " + result.Result.ToStringSignature( true ) );
+                                else TestHelper.Monitor.Trace( "Successfuly parsed: " + result.Result.ToStringSignature( true ) );
                             }
                             catch( Exception ex )
                             {
-                                TestHelper.ConsoleMonitor.Fatal( ex );
+                                TestHelper.Monitor.Fatal( ex );
                             }
                         }
                     }

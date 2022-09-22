@@ -39,6 +39,11 @@ namespace CK.SqlServer.Parser
         Statement,
 
         /// <summary>
+        /// A transform statement (replace, inject, in, etc.).
+        /// </summary>
+        TransformStatement,
+
+        /// <summary>
         /// Parses one (the only <see cref="ISqlStatement"/> is returned) or 
         /// multiple statements (into a raw <see cref="SqlNodeList"/>).
         /// </summary>

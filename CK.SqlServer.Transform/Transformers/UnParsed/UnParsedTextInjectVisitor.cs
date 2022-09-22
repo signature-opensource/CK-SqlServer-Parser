@@ -27,7 +27,7 @@ namespace CK.SqlServer.Transform.Transformers
             _inserter = new LocationInserter( _info.Location );
             if( _info.Location.NodeMatcher != null )
             {
-                if( _info.Location.IsNodeMatchRange ) throw new ArgumentException();
+                Debug.Assert( !_info.Location.IsNodeMatchRange );
                 _nodeMatcher = new DepthFirstNodeMatcherHelper( _info.Location.IsNodeMatchPart, _info.Location.NodeMatcher );
             }
         }

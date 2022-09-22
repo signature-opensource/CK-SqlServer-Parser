@@ -1,27 +1,21 @@
-using System.IO;
-using NUnit.Framework;
 using CK.Core;
-using System;
-using System.Linq;
-using System.Diagnostics;
-using System.Xml.Linq;
-using System.Text.RegularExpressions;
 using CK.SqlServer.Parser;
-
-using System.Reflection;
-using NUnit.Framework.Constraints;
-using System.Collections.Generic;
 using CK.Testing;
 using FluentAssertions;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Text.RegularExpressions;
+using System.Xml.Linq;
+using static CK.Testing.SqlTransformTestHelper;
 
 namespace CK.SqlServer.UtilTests
 {
 
-    public static class TestHelper
+    public static class TestHelperExtensions
     {
-        public static IActivityMonitor ConsoleMonitor => MonitorTestHelper.TestHelper.Monitor;
-
-        public static string BuildPathInCurrentTestProject( params string[] subNames )
+        public static string BuildPathInCurrentTestProject( this IBasicTestHelper @this, params string[] subNames )
         {
             var all = new List<string>();
             all.Add( BasicTestHelper.TestHelper.TestProjectFolder.ToString().Replace(".NetCore", "" ) );
@@ -29,12 +23,12 @@ namespace CK.SqlServer.UtilTests
             return Path.Combine( all.ToArray() );
         }
 
-        public static string LoadTextFromParsingScripts( string fileName )
+        public static string LoadTextFromParsingScripts( this IBasicTestHelper @this, string fileName )
         {
-            return File.ReadAllText( BuildPathInCurrentTestProject( "Parsing", "Scripts", fileName ) ).ReplaceLineEndings();
+            return File.ReadAllText( BuildPathInCurrentTestProject( @this, "Parsing", "Scripts", fileName ) ).ReplaceLineEndings();
         }
 
-        public static void AssertXmlStringEqual( string visitedString, XElement expected )
+        public static void AssertXmlStringEqual( this IBasicTestHelper @this, string visitedString, XElement expected )
         {
             visitedString = Regex.Replace( visitedString, @"\s+", " ", RegexOptions.CultureInvariant );
             string es = expected.ToString();
@@ -44,7 +38,7 @@ namespace CK.SqlServer.UtilTests
 
 
         [DebuggerStepThrough]
-        public static T ParseOneStatementAndCheckString<T>( string text, bool addSemiColon = false ) where T : ISqlStatement
+        public static T ParseOneStatementAndCheckString<T>( this IBasicTestHelper @this, string text, bool addSemiColon = false ) where T : ISqlStatement
         {
             text = text.ReplaceLineEndings();
             if( addSemiColon ) text += ';';
@@ -65,7 +59,7 @@ namespace CK.SqlServer.UtilTests
         /// <param name="text">Text to parse.</param>
         /// <returns>Statement.</returns>
         [DebuggerStepThrough]
-        public static T ParseOneStatement<T>( string text ) where T : ISqlStatement
+        public static T ParseOneStatement<T>( this IBasicTestHelper @this, string text ) where T : ISqlStatement
         {
             text = text.ReplaceLineEndings();
             ISqlStatement statement;

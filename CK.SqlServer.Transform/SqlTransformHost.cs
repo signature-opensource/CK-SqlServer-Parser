@@ -91,8 +91,10 @@ namespace CK.SqlServer.Transform
             Throw.CheckNotNullArgument( transformer );
             if( transformer.TargetFullName != null )
             {
+                var targetFullName = transformer.TargetFullName.ToStringHyperCompact();
                 var target = new SqlNodeScopeBreadthPredicate( n => n is ISqlFullNameHolder h
-                                                                    && h.FullName.ToStringHyperCompact() == transformer.TargetFullName.ToStringHyperCompact() );
+                                                                    && h.FullName.ToStringHyperCompact() == targetFullName,
+                                                               $"have {targetFullName} full name");
                 if( scope == null ) scope = target;
                 else
                 {
@@ -371,7 +373,7 @@ namespace CK.SqlServer.Transform
         /// <returns>A result range or null on error.</returns>
         public ISqlNodeLocationRange BuildRange( IActivityMonitor monitor, SqlNodeScopeBuilder builder, ISqlNodeLocationRange rangeFilter = null )
         {
-            if( builder == null ) throw new ArgumentNullException( nameof( builder ) );
+            Throw.CheckNotNullArgument( builder );
             bool error = false;
             using( monitor.OnError( () => error = true ) )
             {

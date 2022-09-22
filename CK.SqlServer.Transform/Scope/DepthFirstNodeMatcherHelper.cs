@@ -1,13 +1,14 @@
 using CK.SqlServer.Parser;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace CK.SqlServer.Transform
 {
-    class DepthFirstNodeMatcherHelper
+    sealed class DepthFirstNodeMatcherHelper
     {
         /// <summary>
         /// This _selectDecorator is used to promote a SelectSpec match to its containing SelectDecorator (if it exists).
@@ -16,12 +17,13 @@ namespace CK.SqlServer.Transform
         /// another decorator) may match and if it is the case, we do not want the subordinated select to match.
         /// </summary>
         readonly Stack<KeyValuePair<SelectDecorator, int>> _selectDecorator;
-        readonly Func<ISqlNode, bool> _matcher;
+        public readonly Func<ISqlNode, bool> Matcher;
         int _previousMatchPos;
 
         public DepthFirstNodeMatcherHelper( bool isPartMatch, Func<ISqlNode, bool> matcher )
         {
-            _matcher = matcher ?? throw new ArgumentNullException( nameof( matcher ) );
+            Debug.Assert( matcher != null );
+            Matcher = matcher;
             if( isPartMatch ) _selectDecorator = new Stack<KeyValuePair<SelectDecorator, int>>();
         }
 
@@ -62,7 +64,7 @@ namespace CK.SqlServer.Transform
             if( IsSelectCovered( c )
                 || c.Position < _previousMatchPos
                 || !c.RangeFilterStatus.IsIncludedInFilteredRange()
-                || !_matcher( e ) )
+                || !Matcher( e ) )
             {
                 return false;
             }
