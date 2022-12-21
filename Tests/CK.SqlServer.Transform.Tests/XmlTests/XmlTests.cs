@@ -49,9 +49,10 @@ namespace CK.SqlServer.Transform.Tests.XmlTests
             protected override ISqlNode OnParsed( ISqlNode e )
             {
                 IReadOnlyList<ActivityMonitorSimpleCollector.Entry> errors = null;
-                using( TestHelper.Monitor.CollectEntries( err => errors = err ) )
+                using( TestHelper.Monitor.CollectEntries( out var err ) )
                 {
                     if( Transformer != null ) e = Transformer( e );
+                    errors = err;
                 }
                 if( ResultText != null )
                 {
