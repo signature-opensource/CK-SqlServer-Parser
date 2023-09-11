@@ -6,11 +6,11 @@ using System.Diagnostics;
 namespace CK.SqlServer.Parser
 {
     /// <summary>
-    /// Defines "next value for {sequence}>" expression.
+    /// CTE starts with "with" has a <see cref="SqlCTENameList"/> and an <see cref="OuterStatement"/>.
     /// </summary>
     public sealed class SqlCTEStatement : SqlNonTokenAutoWidth, ISqlNamedStatement
     {
-        readonly SNode<SqlTokenIdentifier, SqlCTEXmlNamespace,SqlCTENameList, ISqlStatement> _content;
+        readonly SNode<SqlTokenIdentifier, SqlCTEXmlNamespace, SqlCTENameList, ISqlStatement> _content;
 
         public SqlCTEStatement( SqlTokenIdentifier withT,
                                 SqlCTEXmlNamespace namespaces,
