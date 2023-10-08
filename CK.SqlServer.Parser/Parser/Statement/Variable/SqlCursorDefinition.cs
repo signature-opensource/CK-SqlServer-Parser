@@ -15,6 +15,13 @@ namespace CK.SqlServer.Parser
                     SqlTokenIdentifier,
                     SqlIdentifierCommaList>;
 
+    /// <summary>
+    /// Cursor can use a CTE but this is not currently implemented (TBI: check whether this applies to this syntax and/or to <see cref="SqlCursorDefinition92"/>).
+    /// <para>
+    /// This may be done by allowing to parse a <see cref="SqlCTEStatement"/> and check that its <see cref="SqlCTEStatement.OuterStatement"/>
+    /// is a (or can expose) a <see cref="SqlIdentifierCommaList"/> for the <see cref="UpdateColumns"/>.
+    /// </para>
+    /// </summary>
     public sealed class SqlCursorDefinition : SqlNonTokenAutoWidth, ISqlCursorDefinition
     {
         readonly CNode _content;
