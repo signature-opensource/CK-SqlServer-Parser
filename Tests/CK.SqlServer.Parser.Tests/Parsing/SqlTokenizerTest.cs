@@ -4,6 +4,7 @@ using System.Linq;
 using CK.Core;
 using NUnit.Framework;
 using System.Text.RegularExpressions;
+using FluentAssertions;
 
 
 namespace CK.SqlServer.Parser.Tests
@@ -99,16 +100,16 @@ namespace CK.SqlServer.Parser.Tests
 
             p.Reset( "\r\n\t " );
             IsEndOfInput( p );
-            CollectionAssert.AreEquivalent( p.Token.LeadingTrivias.Select( t => t.Text ), new[] { "\r\n\t " } );
-            CollectionAssert.IsEmpty( p.Token.TrailingTrivias );
+            p.Token.LeadingTrivias.Select( t => t.Text ).Should().BeEquivalentTo( new[] { "\r\n\t " }, o => o.WithStrictOrdering() );
+            p.Token.TrailingTrivias.Should().BeEmpty();
 
             p.Reset( "\r\n\t  --Comment\r\n \t\r\n /*Other\r\nComment...*/ \r\n" );
             IsEndOfInput( p );
-            CollectionAssert.AreEquivalent( p.Token.LeadingTrivias.Select( t => t.Text ), new[] { "\r\n\t  ", "Comment", " \t\r\n ", "Other\r\nComment...", " \r\n" } );
-            CollectionAssert.IsEmpty( p.Token.TrailingTrivias );
+            p.Token.LeadingTrivias.Select( t => t.Text ).Should().BeEquivalentTo( new[] { "\r\n\t  ", "Comment", " \t\r\n ", "Other\r\nComment...", " \r\n" } );
+            p.Token.TrailingTrivias.Should().BeEmpty();
         }
 
-        private static void IsEndOfInput( SqlTokenizer p )
+        static void IsEndOfInput( SqlTokenizer p )
         {
             Assert.That( p.Token is SqlTokenError );
             Assert.That( p.Token.TokenType, Is.EqualTo( SqlTokenType.EndOfInput ) );
@@ -445,9 +446,8 @@ identifer2";
             SqlTokenizer p = new SqlTokenizer();
             var t = p.Parse( text ).Single( x => x.TokenType != SqlTokenType.EndOfInput );
             Assert.That( t, Is.InstanceOf<SqlTokenIdentifier>().Or.InstanceOf<SqlTokenLiteralString>() );
-            if( t is SqlTokenIdentifier )
+            if( t is SqlTokenIdentifier id )
             {
-                var id = (SqlTokenIdentifier)t;
                 Assert.That( id.Name, Is.EqualTo( result ) );
             }
             else
