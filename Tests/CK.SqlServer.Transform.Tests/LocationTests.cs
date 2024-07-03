@@ -1,6 +1,7 @@
 using CK.Core;
 using CK.SqlServer.Parser;
 using CK.Testing;
+using FluentAssertions;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -56,12 +57,13 @@ namespace CK.SqlServer.Transform.Tests
                             TestHelper.Monitor.Trace( "[" + i++ + "] " + l.ToString() );
                         }
                     }
-                    CollectionAssert.AreEquivalent( locs.Select( l => l.ToString() ), afterLocs.Select( l => l.ToString() ) );
+                    locs.Select( l => l.ToString() ).Should().BeEquivalentTo( afterLocs.Select( l => l.ToString() ) );
                 }
                 return locs;
             }
         }
 
+        [Test]
         public void creating_all_locations()
         {
             List<SqlNodeLocation> locs = AllLocations.GetAllLocations( "select W as A, C = Z;", ParseMode.Statement );
@@ -71,6 +73,7 @@ namespace CK.SqlServer.Transform.Tests
             Assert.That( locs[10].Node.ToString(), Is.EqualTo( "C=Z" ) );
         }
 
+        [Test]
         public void multi_statements_locations()
         {
             List<SqlNodeLocation> locs = AllLocations.GetAllLocations( "break; select 1; continue; select 2;", ParseMode.OneOrMoreStatements );
