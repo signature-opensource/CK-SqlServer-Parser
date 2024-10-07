@@ -3,80 +3,78 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
-namespace CK.SqlServer.Parser
+namespace CK.SqlServer.Parser;
+
+using CNode = SNode<
+        SqlTokenIdentifier,
+        SqlTOneLocationFinder,
+        SqlTokenIdentifier,
+        SqlTOneLocationFinder>;
+
+/// <summary>
+/// <para>
+/// (after|before) <see cref="SqlTOneLocationFinder"/> | between <see cref="SqlTOneLocationFinder"/> and <see cref="SqlTOneLocationFinder"/>
+/// </para>
+/// This is used by <see cref="SqlTInScope"/>.
+/// </summary>
+public sealed class SqlTRangeLocationFinder : SqlNonTokenAutoWidth
 {
-    using CNode = SNode<
-            SqlTokenIdentifier,
-            SqlTOneLocationFinder,
-            SqlTokenIdentifier,
-            SqlTOneLocationFinder>;
+    readonly CNode _content;
 
-    /// <summary>
-    /// <para>
-    /// (after|before) <see cref="SqlTOneLocationFinder"/> | between <see cref="SqlTOneLocationFinder"/> and <see cref="SqlTOneLocationFinder"/>
-    /// </para>
-    /// This is used by <see cref="SqlTInScope"/>.
-    /// </summary>
-    public sealed class SqlTRangeLocationFinder : SqlNonTokenAutoWidth
+    public SqlTRangeLocationFinder( SqlTokenIdentifier afterOrBeforeOrBetween,
+                                    SqlTOneLocationFinder firstLoc,
+                                    SqlTokenIdentifier andT,
+                                    SqlTOneLocationFinder secondLoc )
+           : base( null, null )
     {
-        readonly CNode _content;
+        _content = new CNode( afterOrBeforeOrBetween, firstLoc, andT, secondLoc );
+        CheckContent();
+    }
 
-        public SqlTRangeLocationFinder( SqlTokenIdentifier afterOrBeforeOrBetween,
-                                        SqlTOneLocationFinder firstLoc,
-                                        SqlTokenIdentifier andT,
-                                        SqlTOneLocationFinder secondLoc )
-               : base( null, null )
+    void CheckContent()
+    {
+        Helper.CheckToken( AfterOrBeforeOrBetweenT, nameof( AfterOrBeforeOrBetweenT ), SqlTokenType.After, SqlTokenType.Before, SqlTokenType.Between );
+        if( AfterOrBeforeOrBetweenT.TokenType == SqlTokenType.Between )
         {
-            _content = new CNode( afterOrBeforeOrBetween, firstLoc, andT, secondLoc );
+            Helper.CheckToken( AndT, nameof( AndT ), SqlTokenType.And );
+            Helper.CheckNotNull( SecondLocation, nameof( SecondLocation ) );
+        }
+        else
+        {
+            Helper.CheckNull( AndT, nameof( AndT ) );
+            Helper.CheckNull( SecondLocation, nameof( SecondLocation ) );
+        }
+    }
+
+    SqlTRangeLocationFinder( SqlTRangeLocationFinder o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
+        : base( leading, trailing )
+    {
+        if( items == null ) _content = o._content;
+        else
+        {
+            _content = new CNode( items );
             CheckContent();
         }
-
-        void CheckContent()
-        {
-            Helper.CheckToken( AfterOrBeforeOrBetweenT, nameof( AfterOrBeforeOrBetweenT ), SqlTokenType.After, SqlTokenType.Before, SqlTokenType.Between );
-            if( AfterOrBeforeOrBetweenT.TokenType == SqlTokenType.Between )
-            {
-                Helper.CheckToken( AndT, nameof( AndT ), SqlTokenType.And );
-                Helper.CheckNotNull( SecondLocation, nameof( SecondLocation ) );
-            }
-            else 
-            {
-                Helper.CheckNull( AndT, nameof( AndT ) );
-                Helper.CheckNull( SecondLocation, nameof( SecondLocation ) );
-            }
-        }
-
-        SqlTRangeLocationFinder( SqlTRangeLocationFinder o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
-            : base( leading, trailing )
-        {
-            if( items == null ) _content = o._content;
-            else
-            {
-                _content = new CNode( items );
-                CheckContent();
-            }
-        }
-
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IList<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
-        {
-            return new SqlTRangeLocationFinder( this, leading, content, trailing );
-        }
-
-        public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
-
-        public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
-
-        public SqlTokenIdentifier AfterOrBeforeOrBetweenT => _content.V1;
-
-        public SqlTOneLocationFinder FirstLocation => _content.V2;
-
-        public SqlTokenIdentifier AndT => _content.V3;
-
-        public SqlTOneLocationFinder SecondLocation => _content.V4;
-
-        [DebuggerStepThrough]
-        internal protected override ISqlNode Accept( SqlNodeVisitor visitor ) => visitor.Visit( this );
-
     }
+
+    protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IList<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
+    {
+        return new SqlTRangeLocationFinder( this, leading, content, trailing );
+    }
+
+    public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
+
+    public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
+
+    public SqlTokenIdentifier AfterOrBeforeOrBetweenT => _content.V1;
+
+    public SqlTOneLocationFinder FirstLocation => _content.V2;
+
+    public SqlTokenIdentifier AndT => _content.V3;
+
+    public SqlTOneLocationFinder SecondLocation => _content.V4;
+
+    [DebuggerStepThrough]
+    internal protected override ISqlNode Accept( SqlNodeVisitor visitor ) => visitor.Visit( this );
 
 }

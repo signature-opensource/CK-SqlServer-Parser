@@ -54,12 +54,12 @@ namespace CK.SqlServer.Transform
             bool emitCurrent = false;
             if( _posAhead.Count > 0 && _posAhead[0] <= pos )
             {
-                if( _posAhead[0] == pos-1 ) 
+                if( _posAhead[0] == pos - 1 )
                 {
                     emitBefore = true;
                     _posAhead.RemoveAt( 0 );
                 }
-                if( _posAhead.Count > 0 && _posAhead[0] == pos ) 
+                if( _posAhead.Count > 0 && _posAhead[0] == pos )
                 {
                     emitCurrent = true;
                     _posAhead.RemoveAt( 0 );

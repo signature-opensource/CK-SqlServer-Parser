@@ -11,7 +11,7 @@ namespace CK.SqlServer.Transform
     /// <summary>
     /// Immutable capture of a node, its parent node and absolute position (in terms of tokens).
     /// </summary>
-    public class SqlNodeLocation: IComparable<SqlNodeLocation>
+    public class SqlNodeLocation : IComparable<SqlNodeLocation>
     {
         /// <summary>
         /// The node can be null (ie. unknown) when this location is returned by <see cref="Successor"/>
@@ -144,7 +144,7 @@ namespace CK.SqlServer.Transform
             if( pO != null && pO.Node != null ) pO = pO.Parent;
             var pT = Parent;
             if( pT != null && pT.Node != null ) pT = pT.Parent;
-            for( ;; )
+            for(; ; )
             {
                 if( pO == null ) return pT == null ? 0 : 1;
                 if( pT == null ) return -1;

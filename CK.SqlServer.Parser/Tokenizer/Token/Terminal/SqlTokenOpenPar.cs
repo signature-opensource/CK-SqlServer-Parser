@@ -3,31 +3,29 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
-namespace CK.SqlServer.Parser
+namespace CK.SqlServer.Parser;
+
+/// <summary>
+/// Specific <see cref="SqlTokenTerminal"/> for <see cref="SqlTokenType.OpenPar"/>.
+/// </summary>
+public sealed class SqlTokenOpenPar : SqlTokenTerminal
 {
-    /// <summary>
-    /// Specific <see cref="SqlTokenTerminal"/> for <see cref="SqlTokenType.OpenPar"/>.
-    /// </summary>
-    public sealed class SqlTokenOpenPar : SqlTokenTerminal 
+    public SqlTokenOpenPar( ImmutableList<SqlTrivia> leadingTrivia = null, ImmutableList<SqlTrivia> trailingTrivia = null )
+        : base( SqlTokenType.OpenPar, leadingTrivia, trailingTrivia )
     {
-        public SqlTokenOpenPar( ImmutableList<SqlTrivia> leadingTrivia = null, ImmutableList<SqlTrivia> trailingTrivia = null )
-            : base( SqlTokenType.OpenPar, leadingTrivia, trailingTrivia )
-        {
-        }
+    }
 
-        public override void WriteWithoutTrivias( ISqlTextWriter w )
-        {
-            Debug.Assert( SqlKeyword.ToString( SqlTokenType.OpenPar ) == "(" );
-            w.Write( SqlTokenType.OpenPar, "(", whiteSpaceBefore: false, whiteSpaceAfter: false );
-        }
+    public override void WriteWithoutTrivias( ISqlTextWriter w )
+    {
+        Debug.Assert( SqlKeyword.ToString( SqlTokenType.OpenPar ) == "(" );
+        w.Write( SqlTokenType.OpenPar, "(", whiteSpaceBefore: false, whiteSpaceAfter: false );
+    }
 
-        public override string ToString() => "(";
+    public override string ToString() => "(";
 
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IList<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
-        {
-            return new SqlTokenOpenPar( leading, trailing );
-        }
-
+    protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IList<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
+    {
+        return new SqlTokenOpenPar( leading, trailing );
     }
 
 }

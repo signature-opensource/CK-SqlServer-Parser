@@ -72,7 +72,7 @@ namespace CK.SqlServer.Transform.Transformers
             }
             if( _info.TextAfter != null )
             {
-                var loc = t.CurrentNamespace.GetFullLocation( range.End.Position-1 );
+                var loc = t.CurrentNamespace.GetFullLocation( range.End.Position - 1 );
                 n = loc.Node;
                 n = n.SetTrivias( n.LeadingTrivias, n.TrailingTrivias.Insert( 0, new SqlTrivia( SqlTokenType.None, _info.TextAfter ) ) );
                 t.Node = loc.ChangeNode( n );

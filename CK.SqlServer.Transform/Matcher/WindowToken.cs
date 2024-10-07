@@ -61,7 +61,7 @@ namespace CK.SqlServer.Transform.Matcher
             int maxPatternIndex = pattern.Count;
             if( maxPatternIndex == 0 ) return 0;
             int width = 0;
-            for( ;;)
+            for(; ; )
             {
                 var pat = pattern[width];
                 if( pat.TokenType == SqlTokenType.QuestionMark

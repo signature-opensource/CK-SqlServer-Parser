@@ -190,7 +190,7 @@ namespace CK.SqlServer.Transform
 
         ISqlNodeLocationRange Handle( IEnumerable<ISqlNodeLocationRange> inner, IVisitContextBase context )
         {
-            if( inner == null ) return null; 
+            if( inner == null ) return null;
             var multi = inner as List<ISqlNodeLocationRange>;
             if( multi == null )
             {
@@ -264,8 +264,8 @@ namespace CK.SqlServer.Transform
 
         bool ShouldHandleBasedOnMatchCount( IActivityMonitor monitor, int innerCount )
         {
-            if( (_matchCount = _matchCount+innerCount) > 1 
-                && _info.ExpectedMatchCount > 0 
+            if( (_matchCount = _matchCount + innerCount) > 1
+                && _info.ExpectedMatchCount > 0
                 && _matchCount > _info.ExpectedMatchCount )
             {
                 monitor.Error( $"Too many matches found for '{_inner.Inner}' (max is {_info.ExpectedMatchCount})." );

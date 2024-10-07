@@ -47,11 +47,11 @@ namespace CK.SqlServer.Transform.Transformers
         /// <returns>The resulting node.</returns>
         protected override ISqlNode AfterVisitItem( ISqlNode e )
         {
-            var leading = _innerTriviasOnly && VisitContext.RangeFilterStatus.IsBegAfter() 
-                            ? Remove( e.LeadingTrivias ) 
+            var leading = _innerTriviasOnly && VisitContext.RangeFilterStatus.IsBegAfter()
+                            ? Remove( e.LeadingTrivias )
                             : e.LeadingTrivias;
-            var trailing = _innerTriviasOnly && VisitContext.RangeFilterStatus.IsEndBefore() 
-                            ? Remove( e.TrailingTrivias ) 
+            var trailing = _innerTriviasOnly && VisitContext.RangeFilterStatus.IsEndBefore()
+                            ? Remove( e.TrailingTrivias )
                             : e.TrailingTrivias;
             return e.SetTrivias( leading, trailing );
         }

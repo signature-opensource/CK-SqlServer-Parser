@@ -56,7 +56,7 @@ namespace CK.SqlServer.Transform.Transformers
                 if( missingName == null ) return e.AddColumns( _columns );
                 Monitor.Error( $"'add column' in update expects column name to be specified: column '{missingName.Definition}'." );
             }
-            return base.Visit( e ); 
+            return base.Visit( e );
         }
 
         /// <summary>

@@ -5,36 +5,35 @@ using System.Text;
 using System.Threading.Tasks;
 using NUnit.Framework;
 
-namespace CK.SqlServer.Parser.Tests.Parsing
-{
-    [TestFixture]
-    public class SqlTokenReaderTests
-    {
-        static SqlTokenReader CreateReader( string s )
-        {
-            SqlTokenizer t = new SqlTokenizer();
-            var r = new SqlTokenReader( t );
-            r.Reset( s );
-            r.MoveNext();
-            return r;
-        }
+namespace CK.SqlServer.Parser.Tests.Parsing;
 
-        [Test]
-        public void TokenTypes()
+[TestFixture]
+public class SqlTokenReaderTests
+{
+    static SqlTokenReader CreateReader( string s )
+    {
+        SqlTokenizer t = new SqlTokenizer();
+        var r = new SqlTokenReader( t );
+        r.Reset( s );
+        r.MoveNext();
+        return r;
+    }
+
+    [Test]
+    public void TokenTypes()
+    {
         {
-            {
-                SqlTokenReader r = CreateReader( "as" );
-                Assert.That( r.Current.TokenType == SqlTokenType.As );
-                SqlTokenIdentifier asToken;
-                Assert.That( r.IsToken( out asToken, SqlTokenType.As, true ) );
-            }
-            {
-                SqlTokenReader r = CreateReader( "[as]" );
-                Assert.That( r.Current.TokenType == SqlTokenType.As, Is.False );
-                SqlTokenIdentifier asToken;
-                Assert.That( r.IsToken( out asToken, SqlTokenType.As, expected: true ), Is.False );
-                Assert.That( r.IsError );
-            }
+            SqlTokenReader r = CreateReader( "as" );
+            Assert.That( r.Current.TokenType == SqlTokenType.As );
+            SqlTokenIdentifier asToken;
+            Assert.That( r.IsToken( out asToken, SqlTokenType.As, true ) );
+        }
+        {
+            SqlTokenReader r = CreateReader( "[as]" );
+            Assert.That( r.Current.TokenType == SqlTokenType.As, Is.False );
+            SqlTokenIdentifier asToken;
+            Assert.That( r.IsToken( out asToken, SqlTokenType.As, expected: true ), Is.False );
+            Assert.That( r.IsError );
         }
     }
 }

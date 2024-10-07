@@ -69,9 +69,9 @@ namespace CK.SqlServer.Transform
 
                 if( _rangeFilter == null )
                 {
-                    _rangeFilterStatus = p == 0 
-                                            ? VisitedNodeRangeFilterStatus.FIntersecting 
-                                            : VisitedNodeRangeFilterStatus.FIntersecting|VisitedNodeRangeFilterStatus.FBegAfter;
+                    _rangeFilterStatus = p == 0
+                                            ? VisitedNodeRangeFilterStatus.FIntersecting
+                                            : VisitedNodeRangeFilterStatus.FIntersecting | VisitedNodeRangeFilterStatus.FBegAfter;
                     if( p < _builder.Root.Node.Width - 1 ) _rangeFilterStatus |= VisitedNodeRangeFilterStatus.FEndBefore;
                 }
                 else
@@ -130,7 +130,7 @@ namespace CK.SqlServer.Transform
                 _overridePos = pos;
             }
 
-            public SqlNodeLocation GetCurrentLocation() =>  _builder.GetCurrent();
+            public SqlNodeLocation GetCurrentLocation() => _builder.GetCurrent();
 
         }
 
