@@ -1,14 +1,13 @@
-﻿using NUnit.Framework;
+using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CK.SqlServer.Parser.Tests
+namespace CK.SqlServer.Parser.Tests;
+
+[TestFixture]
+public class ConsoleTests : CK.SqlServer.UtilTests.ConsoleTests
 {
-    [TestFixture]
-    public class ConsoleTests : CK.SqlServer.UtilTests.ConsoleTests
-    {
-    }
 }

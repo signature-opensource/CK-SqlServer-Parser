@@ -56,66 +56,66 @@ namespace CK.SqlServer.Transform
             ISqlNodeLocationRange ProcessCurrent( SqlNodeLocationRange.Kind k, SqlNodeLocationRange r1, SqlNodeLocationRange r2 )
             {
                 Debug.Assert( _current != null );
-                Debug.Assert( (_current == r1 && (k& SqlNodeLocationRange.Kind.Swapped) == 0) || (_current == r2 && (k & SqlNodeLocationRange.Kind.Swapped) != 0) );
+                Debug.Assert( (_current == r1 && (k & SqlNodeLocationRange.Kind.Swapped) == 0) || (_current == r2 && (k & SqlNodeLocationRange.Kind.Swapped) != 0) );
                 switch( k )
                 {
                     case SqlNodeLocationRange.Kind.Equal:
                     case SqlNodeLocationRange.Kind.Contained | SqlNodeLocationRange.Kind.Swapped:
                     case SqlNodeLocationRange.Kind.SameEnd | SqlNodeLocationRange.Kind.Swapped:
-                        {
-                            _state.RightE.MoveNext();
-                            _current = _state.LeftE.MoveNext() ? _state.LeftE.Current : null;
-                            return null;
-                        }
+                    {
+                        _state.RightE.MoveNext();
+                        _current = _state.LeftE.MoveNext() ? _state.LeftE.Current : null;
+                        return null;
+                    }
                     case SqlNodeLocationRange.Kind.Congruent:
                     case SqlNodeLocationRange.Kind.Independent:
-                        {
-                            _state.AddResult( _current );
-                            _state.ForwardLeftUntil( r2.Beg.Position );
-                            _current = _state.LeftE.HasMore ? _state.LeftE.Current : null; 
-                            return null;
-                        }
+                    {
+                        _state.AddResult( _current );
+                        _state.ForwardLeftUntil( r2.Beg.Position );
+                        _current = _state.LeftE.HasMore ? _state.LeftE.Current : null;
+                        return null;
+                    }
                     case SqlNodeLocationRange.Kind.Congruent | SqlNodeLocationRange.Kind.Swapped:
                     case SqlNodeLocationRange.Kind.Independent | SqlNodeLocationRange.Kind.Swapped:
-                        {
-                            _state.ForwardRightUntil( r2.Beg.Position );
-                            return null;
-                        }
+                    {
+                        _state.ForwardRightUntil( r2.Beg.Position );
+                        return null;
+                    }
                     case SqlNodeLocationRange.Kind.Contained:
-                        {
-                            _state.AddResult( new SqlNodeLocationRange( r1.Beg, r2.Beg ) );
-                            _current = _current.InternalSetBeg( r2.End );
-                            _state.RightE.MoveNext();
-                            return null;
-                        }
+                    {
+                        _state.AddResult( new SqlNodeLocationRange( r1.Beg, r2.Beg ) );
+                        _current = _current.InternalSetBeg( r2.End );
+                        _state.RightE.MoveNext();
+                        return null;
+                    }
 
                     case SqlNodeLocationRange.Kind.SameStart:
-                        {
-                            _state.ForwardLeftUntil( r2.End.Position );
-                            _current = _state.LeftE.HasMore ? _state.LeftE.Current : null;
-                            return null;
-                        }
+                    {
+                        _state.ForwardLeftUntil( r2.End.Position );
+                        _current = _state.LeftE.HasMore ? _state.LeftE.Current : null;
+                        return null;
+                    }
                     case SqlNodeLocationRange.Kind.SameStart | SqlNodeLocationRange.Kind.Swapped:
-                        {
-                            _current = _current.InternalSetBeg( r1.End );
-                            _state.ForwardRightUntil( r2.End.Position );
-                            return null;
-                        }
+                    {
+                        _current = _current.InternalSetBeg( r1.End );
+                        _state.ForwardRightUntil( r2.End.Position );
+                        return null;
+                    }
                     case SqlNodeLocationRange.Kind.Overlapped:
                     case SqlNodeLocationRange.Kind.SameEnd:
-                        {
-                            _current = _current.InternalSetEnd( r2.Beg );
-                            _state.AddResult( _current );
-                            _state.ForwardLeftUntil( r2.End.Position );
-                            _current = _state.LeftE.HasMore ? _state.LeftE.Current : null;
-                            return null;
-                        }
+                    {
+                        _current = _current.InternalSetEnd( r2.Beg );
+                        _state.AddResult( _current );
+                        _state.ForwardLeftUntil( r2.End.Position );
+                        _current = _state.LeftE.HasMore ? _state.LeftE.Current : null;
+                        return null;
+                    }
                     case SqlNodeLocationRange.Kind.Overlapped | SqlNodeLocationRange.Kind.Swapped:
-                        {
-                            _current = _current.InternalSetBeg( r1.End );
-                            _state.RightE.MoveNext();
-                            return null;
-                        }
+                    {
+                        _current = _current.InternalSetBeg( r1.End );
+                        _state.RightE.MoveNext();
+                        return null;
+                    }
                 }
                 throw new NotImplementedException();
             }

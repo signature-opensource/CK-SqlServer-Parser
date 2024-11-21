@@ -99,7 +99,7 @@ namespace CK.SqlServer.Transform
         public SqlNodeLocation GetExactCoveringLocation()
         {
             SqlNodeLocation c = GetCoveringLocation();
-            return c.Node.Width == End.Position -_beg.Position ? c : null;
+            return c.Node.Width == End.Position - _beg.Position ? c : null;
         }
 
         /// <summary>
@@ -154,8 +154,8 @@ namespace CK.SqlServer.Transform
             Debug.Assert( Beg != null || this == EmptySet );
             Debug.Assert( (Beg == null) == (End == null) );
             if( this == EmptySet ) return "∅";
-            if( IsLocation ) return string.Format( "]{0}[",Beg.Position );
-            return string.Format( "[{0},{1}[", Beg.Position, End.Position );   
+            if( IsLocation ) return string.Format( "]{0}[", Beg.Position );
+            return string.Format( "[{0},{1}[", Beg.Position, End.Position );
         }
 
         internal enum Kind
@@ -172,14 +172,14 @@ namespace CK.SqlServer.Transform
 
         static internal ISqlNodeLocationRange Unified( SqlNodeLocationRange r1,
                                                        SqlNodeLocationRange r2,
-                                                       Func<Kind,SqlNodeLocationRange,SqlNodeLocationRange,ISqlNodeLocationRange> on )
+                                                       Func<Kind, SqlNodeLocationRange, SqlNodeLocationRange, ISqlNodeLocationRange> on )
         {
             Debug.Assert( r1 != null && r1 != EmptySet && r2 != null && r2 != EmptySet );
             if( r1.Beg.Position == r2.Beg.Position )
             {
                 if( r1.End.Position == r2.End.Position ) return on( Kind.Equal, r1, r2 );
                 if( r1.End.Position < r2.End.Position ) return on( Kind.SameStart, r1, r2 );
-                return on( Kind.SameStart|Kind.Swapped, r2, r1 );
+                return on( Kind.SameStart | Kind.Swapped, r2, r1 );
             }
             Kind swap = 0;
             if( r1.Beg.Position > r2.Beg.Position )
@@ -244,23 +244,23 @@ namespace CK.SqlServer.Transform
             switch( k )
             {
                 case Kind.Equal:
-                case Kind.Contained|Kind.Swapped: return EmptySet;
+                case Kind.Contained | Kind.Swapped: return EmptySet;
 
                 case Kind.Congruent:
                 case Kind.Independent: return r1;
 
-                case Kind.Congruent|Kind.Swapped:
-                case Kind.Independent|Kind.Swapped: return r2;
+                case Kind.Congruent | Kind.Swapped:
+                case Kind.Independent | Kind.Swapped: return r2;
 
                 case Kind.Contained:
-                    {
-                        var first = new SqlNodeLocationRange( r1.Beg, r2.Beg );
-                        var last = new SqlNodeLocationRange( r2.End, r1.End );
-                        return new LocationRangeCombined( first, last );
-                    }
+                {
+                    var first = new SqlNodeLocationRange( r1.Beg, r2.Beg );
+                    var last = new SqlNodeLocationRange( r2.End, r1.End );
+                    return new LocationRangeCombined( first, last );
+                }
 
                 case Kind.SameStart: return EmptySet;
-                case Kind.SameStart|Kind.Swapped: return new SqlNodeLocationRange( r1.End, r2.End );
+                case Kind.SameStart | Kind.Swapped: return new SqlNodeLocationRange( r1.End, r2.End );
 
                 case Kind.Overlapped:
                 case Kind.SameEnd: return new SqlNodeLocationRange( r1.Beg, r2.Beg );
@@ -278,8 +278,8 @@ namespace CK.SqlServer.Transform
         public SqlNodeLocationRange Intersect( SqlNodeLocationRange other )
         {
             Throw.CheckNotNullArgument( other );
-            return this == EmptySet || IsLocation || other == EmptySet || other.IsLocation 
-                        ? EmptySet 
+            return this == EmptySet || IsLocation || other == EmptySet || other.IsLocation
+                        ? EmptySet
                         : (SqlNodeLocationRange)Unified( this, other, DoIntersect );
         }
 
@@ -291,10 +291,10 @@ namespace CK.SqlServer.Transform
         public ISqlNodeLocationRange Union( SqlNodeLocationRange other )
         {
             Throw.CheckNotNullArgument( other );
-            return this == EmptySet || IsLocation 
-                        ? other 
-                        : (other == EmptySet || other.IsLocation 
-                                ? this 
+            return this == EmptySet || IsLocation
+                        ? other
+                        : (other == EmptySet || other.IsLocation
+                                ? this
                                 : Unified( this, other, DoUnion ));
         }
 
@@ -306,8 +306,8 @@ namespace CK.SqlServer.Transform
         public ISqlNodeLocationRange Except( SqlNodeLocationRange other )
         {
             if( other == null ) throw new ArgumentNullException( nameof( other ) );
-            return this == EmptySet || IsLocation || other == EmptySet || other.IsLocation 
-                        ? this 
+            return this == EmptySet || IsLocation || other == EmptySet || other.IsLocation
+                        ? this
                         : Unified( this, other, DoExcept );
         }
 

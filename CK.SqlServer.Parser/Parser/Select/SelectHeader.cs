@@ -3,91 +3,90 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
-namespace CK.SqlServer.Parser
+namespace CK.SqlServer.Parser;
+
+using CNode = SNode<SqlTokenIdentifier,
+                    SqlTokenIdentifier,
+                    SqlTokenIdentifier,
+                    SqlPar,
+                    SqlTokenIdentifier,
+                    SqlTokenIdentifier,
+                    SqlTokenIdentifier>;
+
+/// <summary>
+/// Captures SELECT [ ALL | DISTINCT ] [TOP ( expression ) [PERCENT] [ WITH TIES ] ] 
+/// </summary>
+public sealed class SelectHeader : SqlNonTokenAutoWidth
 {
-    using CNode = SNode<SqlTokenIdentifier,
-                        SqlTokenIdentifier,
-                        SqlTokenIdentifier,
-                        SqlPar,
-                        SqlTokenIdentifier,
-                        SqlTokenIdentifier,
-                        SqlTokenIdentifier>;
+    readonly CNode _content;
 
-    /// <summary>
-    /// Captures SELECT [ ALL | DISTINCT ] [TOP ( expression ) [PERCENT] [ WITH TIES ] ] 
-    /// </summary>
-    public sealed class SelectHeader : SqlNonTokenAutoWidth
+    public SelectHeader( SqlTokenIdentifier select,
+                         SqlTokenIdentifier allOrDistinct = null,
+                         SqlTokenIdentifier top = null,
+                         SqlPar topExpression = null,
+                         SqlTokenIdentifier percent = null,
+                         SqlTokenIdentifier with = null,
+                         SqlTokenIdentifier ties = null )
+        : base( null, null )
     {
-        readonly CNode _content;
+        _content = new CNode( select,
+                              allOrDistinct,
+                              top,
+                              topExpression,
+                              percent,
+                              with,
+                              ties );
+        CheckContent();
+    }
 
-        public SelectHeader( SqlTokenIdentifier select,
-                             SqlTokenIdentifier allOrDistinct = null,
-                             SqlTokenIdentifier top = null,
-                             SqlPar topExpression = null,
-                             SqlTokenIdentifier percent = null,
-                             SqlTokenIdentifier with = null,
-                             SqlTokenIdentifier ties = null )
-            : base( null, null )
+    SelectHeader( SelectHeader o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
+        : base( leading, trailing )
+    {
+        if( items == null ) _content = o._content;
+        else
         {
-            _content = new CNode( select,
-                                  allOrDistinct,
-                                  top,
-                                  topExpression,
-                                  percent,
-                                  with,
-                                  ties );
+            _content = new CNode( items );
             CheckContent();
         }
-
-        SelectHeader( SelectHeader o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
-            : base( leading, trailing )
-        {
-            if( items == null ) _content = o._content;
-            else
-            {
-                _content = new CNode( items );
-                CheckContent();
-            }
-        }
-
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IList<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
-        {
-            return new SelectHeader( this, leading, content, trailing );
-        }
-
-        void CheckContent()
-        {
-            Helper.CheckToken( SelectT, nameof( SelectT ), SqlTokenType.Select );
-            Helper.CheckNullableToken( AllOrDistinctT, nameof( AllOrDistinctT ), SqlTokenType.All, SqlTokenType.Distinct );
-            Helper.CheckNullableToken( TopT, nameof( TopT ), SqlTokenType.Top );
-            Helper.CheckBothNullOrNot( TopT, nameof( TopT ), TopExpression, nameof( TopExpression ) );
-
-            Helper.CheckNullableToken( PercentT, nameof( PercentT ), SqlTokenType.Percent );
-            Helper.CheckNullableToken( WithT, nameof( WithT ), SqlTokenType.With );
-            Helper.CheckNullableToken( TiesT, nameof( TiesT ), SqlTokenType.Ties );
-            Helper.CheckBothNullOrNot( WithT, nameof( WithT ), TiesT, nameof( TiesT ) );
-        }
-
-        public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
-
-        public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
-
-        public SqlTokenIdentifier SelectT => _content.V1;
-
-        public SqlTokenIdentifier AllOrDistinctT => _content.V2;
-
-        public SqlTokenIdentifier TopT => _content.V3;
-
-        public SqlPar TopExpression => _content.V4;
-
-        public SqlTokenIdentifier PercentT => _content.V5;
-
-        public SqlTokenIdentifier WithT => _content.V6;
-
-        public SqlTokenIdentifier TiesT => _content.V7;
-
-        [DebuggerStepThrough]
-        internal protected override ISqlNode Accept( SqlNodeVisitor visitor ) => visitor.Visit( this );
-
     }
+
+    protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IList<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
+    {
+        return new SelectHeader( this, leading, content, trailing );
+    }
+
+    void CheckContent()
+    {
+        Helper.CheckToken( SelectT, nameof( SelectT ), SqlTokenType.Select );
+        Helper.CheckNullableToken( AllOrDistinctT, nameof( AllOrDistinctT ), SqlTokenType.All, SqlTokenType.Distinct );
+        Helper.CheckNullableToken( TopT, nameof( TopT ), SqlTokenType.Top );
+        Helper.CheckBothNullOrNot( TopT, nameof( TopT ), TopExpression, nameof( TopExpression ) );
+
+        Helper.CheckNullableToken( PercentT, nameof( PercentT ), SqlTokenType.Percent );
+        Helper.CheckNullableToken( WithT, nameof( WithT ), SqlTokenType.With );
+        Helper.CheckNullableToken( TiesT, nameof( TiesT ), SqlTokenType.Ties );
+        Helper.CheckBothNullOrNot( WithT, nameof( WithT ), TiesT, nameof( TiesT ) );
+    }
+
+    public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
+
+    public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
+
+    public SqlTokenIdentifier SelectT => _content.V1;
+
+    public SqlTokenIdentifier AllOrDistinctT => _content.V2;
+
+    public SqlTokenIdentifier TopT => _content.V3;
+
+    public SqlPar TopExpression => _content.V4;
+
+    public SqlTokenIdentifier PercentT => _content.V5;
+
+    public SqlTokenIdentifier WithT => _content.V6;
+
+    public SqlTokenIdentifier TiesT => _content.V7;
+
+    [DebuggerStepThrough]
+    internal protected override ISqlNode Accept( SqlNodeVisitor visitor ) => visitor.Visit( this );
+
 }

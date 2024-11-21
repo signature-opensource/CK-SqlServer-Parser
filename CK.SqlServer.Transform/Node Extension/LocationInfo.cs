@@ -87,7 +87,7 @@ namespace CK.SqlServer.Transform
         internal LocationInfo( TriviaExtensionPointMatcher m )
         {
             IsAfterContext = false;
-            Card = new LocationCardinalityInfo( single:true );
+            Card = new LocationCardinalityInfo( single: true );
             TriviaMatcher = m.Match;
             _commentDesc = null;
             NodeMatcher = null;
@@ -105,7 +105,7 @@ namespace CK.SqlServer.Transform
                                                             ? new SqlNodeScopePatternRange( PatternRange )
                                                             : (NodeMatcher != null
                                                                 ? (SqlNodeScopeBuilder)new SqlNodeScopeDepthPredicate( NodeMatcher, IsNodeMatchPart )
-                                                                : new SqlNodeScopeFromTriviaMatcher( IsAfterContext, TriviaMatcher, _commentDesc ) );
+                                                                : new SqlNodeScopeFromTriviaMatcher( IsAfterContext, TriviaMatcher, _commentDesc ));
 
 
         internal string GetDescription()

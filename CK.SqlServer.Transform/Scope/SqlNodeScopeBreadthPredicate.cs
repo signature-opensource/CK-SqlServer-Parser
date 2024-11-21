@@ -13,7 +13,7 @@ namespace CK.SqlServer.Transform
     /// </summary>
     public sealed class SqlNodeScopeBreadthPredicate : SqlNodeScopeBuilder
     {
-        readonly Func<ISqlNode,bool> _predicate;
+        readonly Func<ISqlNode, bool> _predicate;
         readonly string _description;
         SqlNodeLocationRange _current;
 
@@ -22,7 +22,7 @@ namespace CK.SqlServer.Transform
         /// </summary>
         /// <param name="predicate">The predicate.</param>
         /// <param name="predicateDescription">Should start with a verb like "have CK.sUserCreate full name" or "contain a select".</param>
-        public SqlNodeScopeBreadthPredicate( Func<ISqlNode,bool> predicate, string predicateDescription = "match a predicate" )
+        public SqlNodeScopeBreadthPredicate( Func<ISqlNode, bool> predicate, string predicateDescription = "match a predicate" )
         {
             Throw.CheckNotNullArgument( predicate );
             _predicate = predicate;
@@ -44,8 +44,8 @@ namespace CK.SqlServer.Transform
 
         private protected override ISqlNodeLocationRange DoEnter( IVisitContext context )
         {
-            if( _current == null 
-                && context.RangeFilterStatus.IsIncludedInFilteredRange() 
+            if( _current == null
+                && context.RangeFilterStatus.IsIncludedInFilteredRange()
                 && _predicate( context.VisitedNode ) )
             {
                 var beg = context.GetCurrentLocation();

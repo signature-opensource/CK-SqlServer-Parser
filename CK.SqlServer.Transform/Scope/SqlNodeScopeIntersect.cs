@@ -74,7 +74,7 @@ namespace CK.SqlServer.Transform
 
         private protected override ISqlNodeLocationRange DoEnter( IVisitContext context )
         {
-            return StateIntersect( _left.Enter( context ), _right.Enter( context ) ); 
+            return StateIntersect( _left.Enter( context ), _right.Enter( context ) );
         }
 
         private protected override ISqlNodeLocationRange DoLeave( IVisitContext context )

@@ -56,10 +56,10 @@ namespace CK.SqlServer.Transform.Transformers
                     }
                     else
                     {
-                        leading = before != null 
-                                    ? e.LeadingTrivias.Insert( 0, new SqlTrivia( SqlTokenType.None, before ) ) 
+                        leading = before != null
+                                    ? e.LeadingTrivias.Insert( 0, new SqlTrivia( SqlTokenType.None, before ) )
                                     : e.LeadingTrivias;
-                        trailing = after != null 
+                        trailing = after != null
                                     ? e.TrailingTrivias.Add( new SqlTrivia( SqlTokenType.None, after ) )
                                     : e.TrailingTrivias;
                     }
@@ -73,7 +73,7 @@ namespace CK.SqlServer.Transform.Transformers
                     {
                         trivias = e.LeadingTrivias;
                         actualIdx = idx + deltaInsert;
-                     }
+                    }
                     else
                     {
                         if( !inTrailing )
@@ -130,10 +130,10 @@ namespace CK.SqlServer.Transform.Transformers
         /// </summary>
         public int ExpectedMatchCount => _finderInfo.Card.ExpectedMatchCount;
 
-        public bool CanStop => _hasError 
-                                || (_finderInfo.Card.FromFirst 
-                                    && _finderInfo.Card.ExpectedMatchCount == 0 
-                                    && !_finderInfo.Card.All 
+        public bool CanStop => _hasError
+                                || (_finderInfo.Card.FromFirst
+                                    && _finderInfo.Card.ExpectedMatchCount == 0
+                                    && !_finderInfo.Card.All
                                     && _matchCount == _finderInfo.Card.Offset + 1);
 
         public bool RequiresConclude => !_finderInfo.Card.FromFirst && !_hasError;
@@ -148,7 +148,7 @@ namespace CK.SqlServer.Transform.Transformers
             else
             {
                 int idx = 0;
-                foreach( var t in n.LeadingTrivias ) 
+                foreach( var t in n.LeadingTrivias )
                 {
                     if( _finderInfo.TriviaMatcher( t ) && !HandleMatchCount( monitor, ref matchPos, idx ) && _hasError ) return null;
                     ++idx;

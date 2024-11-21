@@ -45,10 +45,10 @@ namespace CK.SqlServer.Transform.Transformers
         /// <returns>The new <see cref="SqlParameterList"/>.</returns>
         protected override ISqlNode Visit( SqlParameterList e )
         {
-            int idx = _paramNameBefore != null 
-                        ? e.IndexOf( p => p.Name == _paramNameBefore ) + 1 
-                        : (_paramNameAfter != null 
-                            ? e.IndexOf( p => p.Name == _paramNameAfter ) 
+            int idx = _paramNameBefore != null
+                        ? e.IndexOf( p => p.Name == _paramNameBefore ) + 1
+                        : (_paramNameAfter != null
+                            ? e.IndexOf( p => p.Name == _paramNameAfter )
                             : e.Count);
             StopVisit();
             foreach( var p in _param )

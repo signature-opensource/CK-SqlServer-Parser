@@ -3,113 +3,110 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
-namespace CK.SqlServer.Parser
+namespace CK.SqlServer.Parser;
+
+using CNode = SNode<
+                SqlTokenIdentifier,
+                SqlNodeList,
+                SqlTokenIdentifier,
+                ISqlNode,
+                SqlTokenIdentifier,
+                SqlTokenIdentifier,
+                SqlTokenIdentifier,
+                SqlIdentifierCommaList>;
+
+/// <summary>
+/// Cursor can use a CTE but this is not currently implemented (TBI: check whether this applies to this syntax and/or to <see cref="SqlCursorDefinition92"/>).
+/// <para>
+/// This may be done by allowing to parse a <see cref="SqlCTEStatement"/> and check that its <see cref="SqlCTEStatement.OuterStatement"/>
+/// is a (or can expose) a <see cref="SqlIdentifierCommaList"/> for the <see cref="UpdateColumns"/>.
+/// </para>
+/// </summary>
+public sealed class SqlCursorDefinition : SqlNonTokenAutoWidth, ISqlCursorDefinition
 {
-    using CNode = SNode<
-                    SqlTokenIdentifier,
-                    SqlNodeList,
-                    SqlTokenIdentifier,
-                    ISqlNode,
-                    SqlTokenIdentifier,
-                    SqlTokenIdentifier,
-                    SqlTokenIdentifier,
-                    SqlIdentifierCommaList>;
+    readonly CNode _content;
 
-    /// <summary>
-    /// Cursor can use a CTE but this is not currently implemented (TBI: check whether this applies to this syntax and/or to <see cref="SqlCursorDefinition92"/>).
-    /// <para>
-    /// This may be done by allowing to parse a <see cref="SqlCTEStatement"/> and check that its <see cref="SqlCTEStatement.OuterStatement"/>
-    /// is a (or can expose) a <see cref="SqlIdentifierCommaList"/> for the <see cref="UpdateColumns"/>.
-    /// </para>
-    /// </summary>
-    public sealed class SqlCursorDefinition : SqlNonTokenAutoWidth, ISqlCursorDefinition
+    public SqlCursorDefinition( SqlTokenIdentifier cursorT,
+                                SqlNodeList options,
+                                SqlTokenIdentifier forT,
+                                ISqlNode selectNode,
+                                SqlTokenIdentifier forOptionsT,
+                                SqlTokenIdentifier updateT,
+                                SqlTokenIdentifier ofT,
+                                SqlIdentifierCommaList updateColumns )
+        : base( null, null )
     {
-        readonly CNode _content;
-
-        public SqlCursorDefinition( SqlTokenIdentifier cursorT,
-                                    SqlNodeList options,
-                                    SqlTokenIdentifier forT,
-                                    ISqlNode selectNode,
-                                    SqlTokenIdentifier forOptionsT,
-                                    SqlTokenIdentifier updateT,
-                                    SqlTokenIdentifier ofT,
-                                    SqlIdentifierCommaList updateColumns )
-            : base( null, null )
-        {
-            _content = new CNode( cursorT,
-                                  options,
-                                  forT,
-                                  selectNode,
-                                  forOptionsT,
-                                  updateT,
-                                  ofT,
-                                  updateColumns );
-            CheckContent();
-        }
-
-        void CheckContent()
-        {
-            Helper.CheckToken( CursorT, nameof( CursorT ), SqlTokenType.Cursor );
-            Helper.CheckToken( ForT, nameof( ForT ), SqlTokenType.For );
-            Helper.CheckUnPar<ISelectSpecification>( SelectNode, nameof( Select ) );
-            Helper.CheckNullableToken( ForOptionsT, nameof( ForOptionsT ), SqlTokenType.For );
-            Helper.CheckNullableToken( UpdateT, nameof( UpdateT ), SqlTokenType.Update );
-            Helper.CheckBothNullOrNot( ForOptionsT, nameof( ForOptionsT ), UpdateT, nameof( UpdateT ) );
-            Helper.CheckNullableToken( OfT, nameof( OfT ), SqlTokenType.Of );
-            Helper.CheckBothNullOrNot( OfT, nameof( OfT ), UpdateColumns, nameof( UpdateColumns ) );
-        }
-
-        SqlCursorDefinition( SqlCursorDefinition o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
-            : base( leading, trailing )
-        {
-            if( items == null ) _content = o._content;
-            else
-            {
-                _content = new CNode( items );
-                CheckContent();
-            }
-        }
-
-        protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IList<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
-        {
-            return new SqlCursorDefinition( this, leading, content, trailing );
-        }
-
-        public bool IsSql92Syntax => false;
-
-        public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
-
-        public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
-
-        public SqlTokenIdentifier CursorT => _content.V1;
-
-        /// <summary>
-        /// Gets the options (null if none). 
-        /// Can be [LOCAL|GLOBAL][FORWARD_ONLY|SCROLL][STATIC|KEYSET|DYNAMIC|FAST_FORWARD][READ_ONLY|SCROLL_LOCKS|OPTIMISTIC][TYPE_WARNING]. 
-        /// </summary>
-        public SqlNodeList Options => _content.V2;
-
-        public SqlTokenIdentifier ForT => _content.V3;
-
-        /// <summary>
-        /// Gets the select specification for this cursor.
-        /// </summary>
-        public ISqlNode SelectNode => _content.V4;
-
-        public ISelectSpecification Select => (ISelectSpecification)_content.V4.UnPar;
-
-        public SqlTokenIdentifier ForOptionsT => _content.V5;
-
-        public SqlTokenIdentifier UpdateT => _content.V6;
-
-        public SqlTokenIdentifier OfT => _content.V7;
-
-        public SqlIdentifierCommaList UpdateColumns => _content.V8;
-
-        [DebuggerStepThrough]
-        internal protected override ISqlNode Accept( SqlNodeVisitor visitor ) => visitor.Visit( this );
-
+        _content = new CNode( cursorT,
+                              options,
+                              forT,
+                              selectNode,
+                              forOptionsT,
+                              updateT,
+                              ofT,
+                              updateColumns );
+        CheckContent();
     }
 
+    void CheckContent()
+    {
+        Helper.CheckToken( CursorT, nameof( CursorT ), SqlTokenType.Cursor );
+        Helper.CheckToken( ForT, nameof( ForT ), SqlTokenType.For );
+        Helper.CheckUnPar<ISelectSpecification>( SelectNode, nameof( Select ) );
+        Helper.CheckNullableToken( ForOptionsT, nameof( ForOptionsT ), SqlTokenType.For );
+        Helper.CheckNullableToken( UpdateT, nameof( UpdateT ), SqlTokenType.Update );
+        Helper.CheckBothNullOrNot( ForOptionsT, nameof( ForOptionsT ), UpdateT, nameof( UpdateT ) );
+        Helper.CheckNullableToken( OfT, nameof( OfT ), SqlTokenType.Of );
+        Helper.CheckBothNullOrNot( OfT, nameof( OfT ), UpdateColumns, nameof( UpdateColumns ) );
+    }
+
+    SqlCursorDefinition( SqlCursorDefinition o, ImmutableList<SqlTrivia> leading, IEnumerable<ISqlNode> items, ImmutableList<SqlTrivia> trailing )
+        : base( leading, trailing )
+    {
+        if( items == null ) _content = o._content;
+        else
+        {
+            _content = new CNode( items );
+            CheckContent();
+        }
+    }
+
+    protected override SqlNode DoClone( ImmutableList<SqlTrivia> leading, IList<ISqlNode> content, ImmutableList<SqlTrivia> trailing )
+    {
+        return new SqlCursorDefinition( this, leading, content, trailing );
+    }
+
+    public bool IsSql92Syntax => false;
+
+    public override IReadOnlyList<ISqlNode> ChildrenNodes => _content;
+
+    public override IList<ISqlNode> GetRawContent() => _content.GetRawContent();
+
+    public SqlTokenIdentifier CursorT => _content.V1;
+
+    /// <summary>
+    /// Gets the options (null if none). 
+    /// Can be [LOCAL|GLOBAL][FORWARD_ONLY|SCROLL][STATIC|KEYSET|DYNAMIC|FAST_FORWARD][READ_ONLY|SCROLL_LOCKS|OPTIMISTIC][TYPE_WARNING]. 
+    /// </summary>
+    public SqlNodeList Options => _content.V2;
+
+    public SqlTokenIdentifier ForT => _content.V3;
+
+    /// <summary>
+    /// Gets the select specification for this cursor.
+    /// </summary>
+    public ISqlNode SelectNode => _content.V4;
+
+    public ISelectSpecification Select => (ISelectSpecification)_content.V4.UnPar;
+
+    public SqlTokenIdentifier ForOptionsT => _content.V5;
+
+    public SqlTokenIdentifier UpdateT => _content.V6;
+
+    public SqlTokenIdentifier OfT => _content.V7;
+
+    public SqlIdentifierCommaList UpdateColumns => _content.V8;
+
+    [DebuggerStepThrough]
+    internal protected override ISqlNode Accept( SqlNodeVisitor visitor ) => visitor.Visit( this );
 
 }

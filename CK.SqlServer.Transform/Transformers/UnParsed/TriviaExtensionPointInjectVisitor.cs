@@ -33,7 +33,7 @@ namespace CK.SqlServer.Transform.Transformers
                 Debug.Assert( !_inserter.CanStop );
                 SetHasUnParsedText();
             }
-            if( VisitContext.Depth == 0  && _inserter.MatchCount == 0 )
+            if( VisitContext.Depth == 0 && _inserter.MatchCount == 0 )
             {
                 Monitor.Error( $"Unable to find extension '{_injectInto.Target.Value}'." );
             }

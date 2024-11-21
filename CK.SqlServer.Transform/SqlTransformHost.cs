@@ -69,7 +69,7 @@ namespace CK.SqlServer.Transform
         /// Gets the name space of the current root <see cref="Node"/>.
         /// </summary>
         public ISqlNodeLocationManager CurrentNamespace => _root;
-        
+
         /// <summary>
         /// Gets or sets whether the root <see cref="Node"/> should be reparsed.
         /// This is automatically set to true by some visitors that plays with unparsed texts.
@@ -94,7 +94,7 @@ namespace CK.SqlServer.Transform
                 var targetFullName = transformer.TargetFullName.ToStringHyperCompact();
                 var target = new SqlNodeScopeBreadthPredicate( n => n is ISqlFullNameHolder h
                                                                     && h.FullName.ToStringHyperCompact() == targetFullName,
-                                                               $"have {targetFullName} full name");
+                                                               $"have {targetFullName} full name" );
                 if( scope == null ) scope = target;
                 else
                 {
@@ -158,7 +158,7 @@ namespace CK.SqlServer.Transform
                     return s;
                 }
 
-                for( ; ; )
+                for(; ; )
                 {
                     SqlNodeScopeBuilder newScope;
                     if( inScope.Location is ISqlTLocationFinder oneOrMultiFinder )
@@ -289,7 +289,7 @@ namespace CK.SqlServer.Transform
             return Visit( transformer, filter );
         }
 
-       /// <summary>
+        /// <summary>
         /// Visits the root node with a simple, non location-aware, visitor. No range filtering is supported.
         /// If the visitor alters the structure, the <see cref="Node"/> is updated.
         /// </summary>
@@ -345,7 +345,7 @@ namespace CK.SqlServer.Transform
                 ISqlNodeLocationRange r = _builder.Enter( VisitContext );
                 if( r != null )
                 {
-                   _ranges.AddRange( r );
+                    _ranges.AddRange( r );
                     if( r.Last.End.Position >= VisitContext.Position + VisitContext.VisitedNode.Width ) return false;
                 }
                 return true;

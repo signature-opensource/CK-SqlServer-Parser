@@ -63,38 +63,38 @@ namespace CK.SqlServer.Transform
                 switch( k & ~SqlNodeLocationRange.Kind.Swapped )
                 {
                     case SqlNodeLocationRange.Kind.Equal:
-                        {
-                            _state.MoveBoth();
-                            return HandleUnioned( r1.MostPrecise( r2 ) );
-                        }
+                    {
+                        _state.MoveBoth();
+                        return HandleUnioned( r1.MostPrecise( r2 ) );
+                    }
                     case SqlNodeLocationRange.Kind.Independent:
-                        {
-                            _state.MoveLeft( (k & SqlNodeLocationRange.Kind.Swapped) != 0 );
-                            return HandleUnioned( r1 );
-                        }
+                    {
+                        _state.MoveLeft( (k & SqlNodeLocationRange.Kind.Swapped) != 0 );
+                        return HandleUnioned( r1 );
+                    }
                     case SqlNodeLocationRange.Kind.Contained:
-                        {
-                            _state.MoveLeftOnceAndRightUntil( r1.End.Position, (k & SqlNodeLocationRange.Kind.Swapped) != 0 );
-                            return HandleUnioned( r1 );
-                        }
+                    {
+                        _state.MoveLeftOnceAndRightUntil( r1.End.Position, (k & SqlNodeLocationRange.Kind.Swapped) != 0 );
+                        return HandleUnioned( r1 );
+                    }
                     case SqlNodeLocationRange.Kind.SameStart:
-                        {
-                            // Inverts left and right here.
-                            _state.MoveLeftOnceAndRightUntil( r2.End.Position, (k & SqlNodeLocationRange.Kind.Swapped) == 0 );
-                            return HandleUnioned( new SqlNodeLocationRange( r1.Beg.MostPrecise( r2.Beg ), r2.End ) );
-                        }
+                    {
+                        // Inverts left and right here.
+                        _state.MoveLeftOnceAndRightUntil( r2.End.Position, (k & SqlNodeLocationRange.Kind.Swapped) == 0 );
+                        return HandleUnioned( new SqlNodeLocationRange( r1.Beg.MostPrecise( r2.Beg ), r2.End ) );
+                    }
                     case SqlNodeLocationRange.Kind.SameEnd:
-                        {
-                            _state.MoveBoth();
-                            return HandleUnioned( new SqlNodeLocationRange( r1.Beg, r1.End.MostPrecise( r2.End ) ) );
-                        }
+                    {
+                        _state.MoveBoth();
+                        return HandleUnioned( new SqlNodeLocationRange( r1.Beg, r1.End.MostPrecise( r2.End ) ) );
+                    }
                     case SqlNodeLocationRange.Kind.Overlapped:
                     case SqlNodeLocationRange.Kind.Congruent:
-                        {
-                            // Inverts left and right here.
-                            _state.MoveLeftOnceAndRightUntil( r2.End.Position, (k & SqlNodeLocationRange.Kind.Swapped) == 0 );
-                            return HandleUnioned( new SqlNodeLocationRange( r1.Beg, r2.End ) );
-                        }
+                    {
+                        // Inverts left and right here.
+                        _state.MoveLeftOnceAndRightUntil( r2.End.Position, (k & SqlNodeLocationRange.Kind.Swapped) == 0 );
+                        return HandleUnioned( new SqlNodeLocationRange( r1.Beg, r2.End ) );
+                    }
                 }
                 throw new NotImplementedException();
             }
@@ -173,7 +173,7 @@ namespace CK.SqlServer.Transform
         /// </summary>
         /// <returns>The union description.</returns>
         public override string ToString() => $"({_left} union {_right})";
-    
+
     }
 
 }

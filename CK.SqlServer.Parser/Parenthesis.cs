@@ -4,26 +4,25 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CK.SqlServer.Parser
+namespace CK.SqlServer.Parser;
+
+/// <summary>
+/// Defines requirement for parentheses.
+/// </summary>
+public enum Parenthesis
 {
     /// <summary>
-    /// Defines requirement for parentheses.
+    /// Parentheses are optional.
     /// </summary>
-    public enum Parenthesis
-    {
-        /// <summary>
-        /// Parentheses are optional.
-        /// </summary>
-        Optional,
+    Optional,
 
-        /// <summary>
-        /// Parentheses are required.
-        /// </summary>
-        Required,
+    /// <summary>
+    /// Parentheses are required.
+    /// </summary>
+    Required,
 
-        /// <summary>
-        /// Parentheses must not appear.
-        /// </summary>
-        Rejected
-    }
+    /// <summary>
+    /// Parentheses must not appear.
+    /// </summary>
+    Rejected
 }
