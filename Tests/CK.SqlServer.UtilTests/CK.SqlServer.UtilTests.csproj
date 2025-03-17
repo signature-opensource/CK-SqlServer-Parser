@@ -7,6 +7,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\CK.SqlServer.Parser\CK.SqlServer.Parser.csproj" />
     <ProjectReference Include="..\..\CK.Testing.SqlTransform\CK.Testing.SqlTransform.csproj" />
+    <PackageReference Include="AwesomeAssertions" Version="8.0.2" />
     <PackageReference Include="NUnit" Version="4.2.2" />
   </ItemGroup>
 </Project>
