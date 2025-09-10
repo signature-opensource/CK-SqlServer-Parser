@@ -4,7 +4,7 @@ using System.Linq;
 using CK.Core;
 using NUnit.Framework;
 using System.Text.RegularExpressions;
-using FluentAssertions;
+using AwesomeAssertions;
 
 
 namespace CK.SqlServer.Parser.Tests;

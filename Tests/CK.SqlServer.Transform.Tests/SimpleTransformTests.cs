@@ -1,7 +1,7 @@
 using CK.Core;
 using CK.SqlServer.Parser;
 using CK.SqlServer.Transform.Transformers;
-using FluentAssertions;
+using AwesomeAssertions;
 using NUnit.Framework;
 using System.Linq;
 using System.Runtime.CompilerServices;

@@ -1,5 +1,5 @@
 using CK.SqlServer.Parser;
-using FluentAssertions;
+using AwesomeAssertions;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;

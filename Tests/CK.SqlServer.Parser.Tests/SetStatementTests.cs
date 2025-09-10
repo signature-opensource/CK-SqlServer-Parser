@@ -1,5 +1,5 @@
 using CK.SqlServer.UtilTests;
-using FluentAssertions;
+using AwesomeAssertions;
 using NUnit.Framework;
 using static CK.Testing.SqlTransformTestHelper;
 

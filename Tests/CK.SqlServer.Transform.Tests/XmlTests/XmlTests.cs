@@ -2,7 +2,7 @@ using CK.Core;
 using CK.SqlServer.Parser;
 using CK.SqlServer.Transform.Transformers;
 using CK.SqlServer.UtilTests;
-using FluentAssertions;
+using AwesomeAssertions;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;

@@ -1,7 +1,7 @@
 using CK.Core;
 using CK.SqlServer.Parser;
 using CK.Testing;
-using FluentAssertions;
+using AwesomeAssertions;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
