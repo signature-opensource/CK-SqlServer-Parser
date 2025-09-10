@@ -6,6 +6,6 @@
   <ItemGroup>
     <PackageReference Include="CK.ActivityMonitor.SimpleSender" Version="24.0.1--0013-develop" />
     <PackageReference Include="CK.SqlServer.Parser.Model" Version="21.0.1--0012-develop" />
-    <PackageReference Include="System.Collections.Immutable" Version="9.0.0" />
+    <PackageReference Include="System.Collections.Immutable" Version="9.0.9" />
   </ItemGroup>
 </Project>
