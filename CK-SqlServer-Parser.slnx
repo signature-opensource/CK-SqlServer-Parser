@@ -1,0 +1,18 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".gitignore" />
+    <File Path="appveyor.yml" />
+    <File Path="CK.SqlServer.Transform/Data Definition Manipulation Language.docx" />
+    <File Path="Directory.Build.props" />
+    <File Path="NuGet.config" />
+  </Folder>
+  <Folder Name="/Tests/">
+    <File Path="Tests/TestHelper.config" />
+    <Project Path="Tests/CK.SqlServer.Parser.Tests/CK.SqlServer.Parser.Tests.csproj" />
+    <Project Path="Tests/CK.SqlServer.Transform.Tests/CK.SqlServer.Transform.Tests.csproj" />
+    <Project Path="Tests/CK.SqlServer.UtilTests/CK.SqlServer.UtilTests.csproj" />
+  </Folder>
+  <Project Path="CK.SqlServer.Parser/CK.SqlServer.Parser.csproj" />
+  <Project Path="CK.SqlServer.Transform/CK.SqlServer.Transform.csproj" />
+  <Project Path="CK.Testing.SqlTransform/CK.Testing.SqlTransform.csproj" />
+</Solution>
