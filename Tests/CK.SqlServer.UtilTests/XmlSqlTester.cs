@@ -1,6 +1,6 @@
 using CK.Core;
 using CK.SqlServer.Parser;
-using NUnit.Framework;
+using Shouldly;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -98,7 +98,7 @@ public class XmlSqlTester
     {
         ISqlNode e;
         SqlAnalyser.ErrorResult r = SqlAnalyser.Parse( out e, Mode, text );
-        Assert.That( r.IsError, Is.False, r.ToString() );
+        r.IsError.ShouldBeFalse( r.ToString() );
         string backFromTree = e.ToString( true, true );
         if( backFromTree != rewrittenText )
         {
@@ -109,9 +109,9 @@ public class XmlSqlTester
             string backFromTokens = string.Join( "", tokens.Select( t => t.ToString( true, true ) ) );
             if( backFromTokens != rewrittenText )
             {
-                Assert.That( backFromTokens, Is.EqualTo( rewrittenText ), "Bug in tokenizer." );
+                backFromTokens.ShouldBe( rewrittenText, "Bug in tokenizer." );
             }
-            Assert.That( backFromTree, Is.EqualTo( rewrittenText ), "Bug in parser." );
+            backFromTree.ShouldBe( rewrittenText, "Bug in parser." );
         }
         return e;
     }

@@ -1,4 +1,5 @@
 using NUnit.Framework;
+using Shouldly;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -62,27 +63,27 @@ public sealed class SqlNodeTests
                     .AddTrailingTrivia( new SqlTrivia( SqlTokenType.None, "]b2]" ) );
         n = n.StuffRawContent( 0, 0, new[] { n1, n2 } );
 
-        Assert.That( n.ToString( false ), Is.EqualTo( "N[b1[[a1[N1]a1]]b1][b2[[a2[N2]a2]]b2]" ) );
-        Assert.That( n.ToString( true ), Is.EqualTo( "/*<<*/N[b1[[a1[N1]a1]]b1][b2[[a2[N2]a2]]b2]/*>>*/" ) );
+        n.ToString( false ).ShouldBe( "N[b1[[a1[N1]a1]]b1][b2[[a2[N2]a2]]b2]" );
+        n.ToString( true ).ShouldBe( "/*<<*/N[b1[[a1[N1]a1]]b1][b2[[a2[N2]a2]]b2]/*>>*/" );
 
         ISqlNode nLeftLift = n.LiftLeadingTrivias();
-        Assert.That( nLeftLift.LeadingTrivias.Count, Is.EqualTo( 3 ) );
-        Assert.That( nLeftLift.ChildrenNodes[0].LeadingTrivias, Is.Empty );
-        Assert.That( nLeftLift.ToString( true ), Is.EqualTo( "/*<<*/[b1[[a1[N N1]a1]]b1][b2[[a2[N2]a2]]b2]/*>>*/" ) );
+        nLeftLift.LeadingTrivias.Count.ShouldBe( 3 );
+        nLeftLift.ChildrenNodes[0].LeadingTrivias.ShouldBeEmpty();
+        nLeftLift.ToString( true ).ShouldBe( "/*<<*/[b1[[a1[N N1]a1]]b1][b2[[a2[N2]a2]]b2]/*>>*/" );
 
         ISqlNode nRightLift = n.LiftTrailingTrivias();
-        Assert.That( nRightLift.TrailingTrivias.Count, Is.EqualTo( 3 ) );
-        Assert.That( nRightLift.ChildrenNodes[1].TrailingTrivias, Is.Empty );
-        Assert.That( nRightLift.ToString( true ), Is.EqualTo( "/*<<*/N[b1[[a1[N1]a1]]b1][b2[[a2[N2]a2]]b2]/*>>*/" ) );
-        Assert.That( nRightLift.ToString( false ), Is.EqualTo( "N[b1[[a1[N1]a1]]b1][b2[[a2[N2" ) );
+        nRightLift.TrailingTrivias.Count.ShouldBe( 3 );
+        nRightLift.ChildrenNodes[1].TrailingTrivias.ShouldBeEmpty();
+        nRightLift.ToString( true ).ShouldBe( "/*<<*/N[b1[[a1[N1]a1]]b1][b2[[a2[N2]a2]]b2]/*>>*/" );
+        nRightLift.ToString( false ).ShouldBe( "N[b1[[a1[N1]a1]]b1][b2[[a2[N2" );
 
         ISqlNode nLift = n.LiftBothTrivias();
-        Assert.That( nLift.LeadingTrivias.Count, Is.EqualTo( 3 ) );
-        Assert.That( nLift.TrailingTrivias.Count, Is.EqualTo( 3 ) );
-        Assert.That( nLift.ChildrenNodes[0].LeadingTrivias, Is.Empty );
-        Assert.That( nLift.ChildrenNodes[1].TrailingTrivias, Is.Empty );
-        Assert.That( nLift.ToString( true ), Is.EqualTo( "/*<<*/[b1[[a1[N N1]a1]]b1][b2[[a2[N2]a2]]b2]/*>>*/" ) );
-        Assert.That( nLift.ToString( false ), Is.EqualTo( "N N1]a1]]b1][b2[[a2[N2" ) );
+        nLift.LeadingTrivias.Count.ShouldBe( 3 );
+        nLift.TrailingTrivias.Count.ShouldBe( 3 );
+        nLift.ChildrenNodes[0].LeadingTrivias.ShouldBeEmpty();
+        nLift.ChildrenNodes[1].TrailingTrivias.ShouldBeEmpty();
+        nLift.ToString( true ).ShouldBe( "/*<<*/[b1[[a1[N N1]a1]]b1][b2[[a2[N2]a2]]b2]/*>>*/" );
+        nLift.ToString( false ).ShouldBe( "N N1]a1]]b1][b2[[a2[N2" );
     }
 
     [Test]
@@ -96,28 +97,27 @@ public sealed class SqlNodeTests
                         .AddTrailingTrivia( new SqlTrivia( SqlTokenType.None, Environment.NewLine + " 4 " + Environment.NewLine ) );
         n = n2.StuffRawContent( 0, 0, new[] { n } );
 
-        Assert.That( n.ToString( true ), Is.EqualTo(
-            Environment.NewLine + " 3 " + Environment.NewLine
+        n.ToString( true ).ShouldBe( Environment.NewLine + " 3 " + Environment.NewLine
                 + "Y"
                     + Environment.NewLine + " 1 " + Environment.NewLine
                     + "X"
                     + Environment.NewLine + " 2 " + Environment.NewLine
-            + Environment.NewLine + " 4 " + Environment.NewLine ) );
+            + Environment.NewLine + " 4 " + Environment.NewLine );
 
-        Assert.That( n.ToString(), Is.EqualTo( "Y X" ) );
+        n.ToString().ShouldBe( "Y X" );
     }
 
     [TestCase( "A /*1*/ \t |B /*2*/ |C /*3*/ ", "A /*1*/| \t B /*2*/ |C /*3*/ " )]
     public void moving_white_space_between_tokens( string before, string after )
     {
         ISqlNode list;
-        Assert.That( SqlAnalyser.Parse( out list, ParseMode.AnyExpression, before.Replace( "|", "" ) ).IsError, Is.False );
+        SqlAnalyser.Parse( out list, ParseMode.AnyExpression, before.Replace( "|", "" ) ).IsError.ShouldBeFalse();
         SqlToken[] all = list.ChildrenNodes.Cast<SqlToken>().ToArray();
-        Assert.That( string.Join( "|", all.Select( t => t.ToString( true ) ) ), Is.EqualTo( before ) );
+        string.Join( "|", all.Select( t => t.ToString( true ) ) ).ShouldBe( before );
 
         var allOnB = SqlTrivia.WhiteSpaceToMiddle( all[0], all[1], all[2] );
         SqlToken[] all2 = new SqlToken[] { allOnB.Item1, allOnB.Item2, allOnB.Item3 };
-        Assert.That( string.Join( "|", all2.Select( t => t.ToString( true ) ) ), Is.EqualTo( after ) );
+        string.Join( "|", all2.Select( t => t.ToString( true ) ) ).ShouldBe( after );
     }
 
 }

@@ -1,7 +1,7 @@
 using CK.Core;
 using CK.SqlServer.Parser;
 using CK.SqlServer.Transform.Transformers;
-using AwesomeAssertions;
+using Shouldly;
 using NUnit.Framework;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -38,10 +38,10 @@ public class SimpleTransformTests
         SqlAnalyser a = new SqlAnalyser();
         a.Reset( parameter );
         SqlParameter pS = a.IsParameter( true );
-        Assert.That( pS != null );
+        pS.ShouldNotBeNull();
         a.Reset( "create procedure t" + paramList + " as begin select 0; end" );
         ISqlParameterListHolder p;
-        Assert.That( a.ParseStatement( out p ).IsError, Is.False );
+        a.ParseStatement( out p ).IsError.ShouldBeFalse();
         ISqlParameterListHolder p2 = p.InsertParameter( pS, beforeName, afterName );
         result = "create procedure t" + result + " as begin select 0; end";
         CheckRenderResult( result, a, p2 );
@@ -57,7 +57,7 @@ public class SimpleTransformTests
     {
         var a = new SqlAnalyser( s );
         SqlSelectStatement st;
-        Assert.That( a.ParseStatement( out st ).IsError, Is.False );
+        a.ParseStatement( out st ).IsError.ShouldBeFalse();
         ISqlNode transformed = new SetSelectColumnAsOrAssign( TestHelper.Monitor, true ).VisitRoot( st );
         CheckRenderResult( result, a, transformed );
     }
@@ -68,7 +68,7 @@ public class SimpleTransformTests
     {
         var a = new SqlAnalyser( s );
         SqlSelectStatement st;
-        Assert.That( a.ParseStatement( out st ).IsError, Is.False );
+        a.ParseStatement( out st ).IsError.ShouldBeFalse();
         SqlSelectStatement transformed = (SqlSelectStatement)new SetSelectColumnAsOrAssign( TestHelper.Monitor, false ).VisitRoot( st );
         CheckRenderResult( result, a, transformed );
     }
@@ -89,7 +89,7 @@ public class SimpleTransformTests
     {
         var a = new SqlAnalyser( s );
         SqlInsertStatement st;
-        Assert.That( a.ParseStatement( out st ).IsError, Is.False );
+        a.ParseStatement( out st ).IsError.ShouldBeFalse();
         SqlTokenIdentifier colName = new SqlTokenIdentifier( SqlTokenType.IdentifierStandard, "NewCol" );
         ISqlNode newVal = new SqlTokenIdentifier( SqlTokenType.IdentifierStandard, "NewVal" );
         SqlInsertStatement transformed = st.AddSimpleColumn( colName, newVal );
@@ -124,12 +124,12 @@ public class SimpleTransformTests
         var ranges = host.BuildRange( TestHelper.Monitor, filter );
         if( resultIndex >= 0 )
         {
-            Assert.That( ranges.Count, Is.EqualTo( 1 ) );
-            Assert.That( ranges.First.Beg.Position, Is.EqualTo( resultIndex ) );
+            ranges.Count.ShouldBe( 1 );
+            ranges.First.Beg.Position.ShouldBe( resultIndex );
         }
         else
         {
-            Assert.That( ranges, Is.SameAs( SqlNodeLocationRange.EmptySet ) );
+            ranges.ShouldBeSameAs( SqlNodeLocationRange.EmptySet );
         }
     }
 
@@ -137,7 +137,7 @@ public class SimpleTransformTests
     {
         a.Reset( result );
         string compactResult = a.IsExtendedStatement( true ).ToStringHyperCompact();
-        Assert.That( transformed.ToStringHyperCompact(), Is.EqualTo( compactResult ) );
+        transformed.ToStringHyperCompact().ShouldBe( compactResult );
 
         if( transformed.ToString( true ) != result )
         {
@@ -169,7 +169,7 @@ public class SimpleTransformTests
     {
         var src = (ISqlServerAlterOrCreateStatement)new SqlAnalyser( source ).IsNamedStatement( true );
         src = src.WithStatementPrefix( target );
-        src.ToFullString().Should().Be( result );
+        src.ToFullString().ShouldBe( result );
     }
 
     [Test]
@@ -177,13 +177,13 @@ public class SimpleTransformTests
     {
         const string source = "/*1*/create/*this will be lost*/or alter/*2*/procedure p as begin select 0; end";
         var src = (ISqlServerAlterOrCreateStatement)new SqlAnalyser( source ).IsNamedStatement( true );
-        src.StatementPrefix.Should().Be( CreateOrAlterStatementPrefix.CreateOrAlter );
+        src.StatementPrefix.ShouldBe( CreateOrAlterStatementPrefix.CreateOrAlter );
         var create = src.WithStatementPrefix( CreateOrAlterStatementPrefix.Create );
-        create.StatementPrefix.Should().Be( CreateOrAlterStatementPrefix.Create );
-        create.ToFullString().Should().StartWith( "/*1*/create/*2*/procedure" );
+        create.StatementPrefix.ShouldBe( CreateOrAlterStatementPrefix.Create );
+        create.ToFullString().ShouldStartWith( "/*1*/create/*2*/procedure" );
         var alter = src.WithStatementPrefix( CreateOrAlterStatementPrefix.Alter );
-        alter.StatementPrefix.Should().Be( CreateOrAlterStatementPrefix.Alter );
-        alter.ToFullString().Should().StartWith( "/*1*/alter/*2*/procedure" );
+        alter.StatementPrefix.ShouldBe( CreateOrAlterStatementPrefix.Alter );
+        alter.ToFullString().ShouldStartWith( "/*1*/alter/*2*/procedure" );
     }
 
 }

@@ -2,7 +2,7 @@ using CK.Core;
 using CK.SqlServer.Parser;
 using CK.SqlServer.Transform.Transformers;
 using CK.SqlServer.UtilTests;
-using AwesomeAssertions;
+using Shouldly;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -59,12 +59,12 @@ public class XmlTests
                 if( ResultText.StartsWith( "ERROR:" ) )
                 {
                     string errContains = ResultText.Substring( 6 ).Trim();
-                    Assert.That( errors != null, $"Error expected '{errContains}'." );
+                    errors.ShouldNotBeNull( $"Error expected '{errContains}'." );
                     var all = errors.Select( err => err.Text ).Concatenate( Environment.NewLine );
-                    all.Should().Contain( errContains, "Expected error not found." );
+                    all.ShouldContain( errContains, "Expected error not found." );
                     return null;
                 }
-                if( e == null ) Assert.Fail( "Transformer failed." );
+                e.ShouldNotBeNull( "Transformer failed." );
                 string actualText = e.ToString( true, true );
                 using( TestHelper.Monitor.OpenInfo( "Expected Result" ) )
                 {
@@ -80,7 +80,7 @@ public class XmlTests
                 string expected = resultNode.ToStringHyperCompact();
                 if( actual != expected )
                 {
-                    Assert.That( actual, Is.EqualTo( expected ) );
+                    actual.ShouldBe( expected );
                 }
                 if( actualText != ResultText ) TestHelper.Monitor.Warn( "Rendering is not perfect..." );
             }
@@ -90,9 +90,9 @@ public class XmlTests
         static SqlTransformer ParseTransformer( string text )
         {
             var r = new SqlServerParser().Parse( text );
-            r.IsError.Should().BeFalse( r.ErrorMessage );
-            r.Result.Should().NotBeNull();
-            r.Result.Should().BeAssignableTo<SqlTransformer>();
+            r.IsError.ShouldBeFalse( r.ErrorMessage );
+            r.Result.ShouldNotBeNull();
+            r.Result.ShouldBeAssignableTo<SqlTransformer>();
             return (SqlTransformer)r.Result;
         }
     }

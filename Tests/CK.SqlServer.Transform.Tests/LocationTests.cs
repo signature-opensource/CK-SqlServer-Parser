@@ -1,7 +1,7 @@
 using CK.Core;
 using CK.SqlServer.Parser;
 using CK.Testing;
-using AwesomeAssertions;
+using Shouldly;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -57,7 +57,7 @@ public class LocationTests
                         TestHelper.Monitor.Trace( "[" + i++ + "] " + l.ToString() );
                     }
                 }
-                locs.Select( l => l.ToString() ).Should().BeEquivalentTo( afterLocs.Select( l => l.ToString() ) );
+                locs.Select( l => l.ToString() ).ShouldBe( afterLocs.Select( l => l.ToString() ), ignoreOrder: true );
             }
             return locs;
         }
@@ -67,69 +67,69 @@ public class LocationTests
     public void creating_all_locations()
     {
         List<SqlNodeLocation> locs = AllLocations.GetAllLocations( "select W as A, C = Z;", ParseMode.Statement );
-        Assert.That( locs.Count, Is.EqualTo( 15 ) );
-        Assert.That( locs[8].Node.ToString(), Is.EqualTo( "A" ) );
-        Assert.That( locs[9].Node.IsToken( SqlTokenType.Comma ) );
-        Assert.That( locs[10].Node.ToString(), Is.EqualTo( "C=Z" ) );
+        locs.Count.ShouldBe( 15 );
+        locs[8].Node.ToString().ShouldBe( "A" );
+        locs[9].Node.IsToken( SqlTokenType.Comma ).ShouldBeTrue();
+        locs[10].Node.ToString().ShouldBe( "C=Z" );
     }
 
     [Test]
     public void multi_statements_locations()
     {
         List<SqlNodeLocation> locs = AllLocations.GetAllLocations( "break; select 1; continue; select 2;", ParseMode.OneOrMoreStatements );
-        Assert.That( locs.Count, Is.EqualTo( 25 ) );
-        Assert.That( locs[5].Node.ToString(), Is.EqualTo( "select 1;" ) );
-        Assert.That( locs[6].Node.ToString(), Is.EqualTo( "select 1" ) );
-        Assert.That( locs[7].Node.ToString(), Is.EqualTo( "select" ) );
-        Assert.That( locs[8].Node.ToString(), Is.EqualTo( "select" ) );
-        Assert.That( locs[9].Node, Is.InstanceOf<SelectColumnList>() );
-        Assert.That( locs[10].Node, Is.InstanceOf<SelectColumn>() );
-        Assert.That( locs[11].Node, Is.InstanceOf<SqlTokenLiteralInteger>() );
-        Assert.That( locs[12].Node.IsToken( SqlTokenType.SemiColon ) );
+        locs.Count.ShouldBe( 25 );
+        locs[5].Node.ToString().ShouldBe( "select 1;" );
+        locs[6].Node.ToString().ShouldBe( "select 1" );
+        locs[7].Node.ToString().ShouldBe( "select" );
+        locs[8].Node.ToString().ShouldBe( "select" );
+        locs[9].Node.ShouldBeAssignableTo<SelectColumnList>().ShouldNotBeNull();
+        locs[10].Node.ShouldBeAssignableTo<SelectColumn>().ShouldNotBeNull();
+        locs[11].Node.ShouldBeAssignableTo<SqlTokenLiteralInteger>().ShouldNotBeNull();
+        locs[12].Node.IsToken( SqlTokenType.SemiColon ).ShouldBeTrue();
     }
 
     [Test]
     public void mono_token_with_beg_and_end_markers()
     {
         List<SqlNodeLocation> locs = AllLocations.GetAllLocations( "A", ParseMode.OneExpression );
-        Assert.That( locs.Count, Is.EqualTo( 1 ) );
+        locs.Count.ShouldBe( 1 );
 
-        Assert.That( locs[0].IsBegMarker, Is.False );
-        Assert.That( locs[0].IsEndMarker, Is.False );
-        Assert.That( locs[0].Node.IsToken( SqlTokenType.IdentifierStandard ) );
-        Assert.That( locs[0].Position, Is.EqualTo( 0 ) );
-        Assert.That( locs[0].Root, Is.SameAs( locs[0] ) );
+        locs[0].IsBegMarker.ShouldBeFalse();
+        locs[0].IsEndMarker.ShouldBeFalse();
+        locs[0].Node.IsToken( SqlTokenType.IdentifierStandard ).ShouldBeTrue();
+        locs[0].Position.ShouldBe( 0 );
+        locs[0].Root.ShouldBeSameAs( locs[0] );
 
         var beg = locs[0].Predecessor();
-        Assert.That( beg.IsBegMarker );
-        Assert.That( beg.IsEndMarker, Is.False );
-        Assert.That( beg.Position, Is.EqualTo( -1 ) );
-        Assert.That( beg.Node, Is.SameAs( SqlKeyword.BegOfInput ) );
-        Assert.That( beg.Predecessor(), Is.Null );
-        Assert.That( beg.Successor(), Is.SameAs( locs[0] ) );
+        beg.IsBegMarker.ShouldBeTrue();
+        beg.IsEndMarker.ShouldBeFalse();
+        beg.Position.ShouldBe( -1 );
+        beg.Node.ShouldBeSameAs( SqlKeyword.BegOfInput );
+        beg.Predecessor().ShouldBeNull();
+        beg.Successor().ShouldBeSameAs( locs[0] );
 
         var end = locs[0].Successor();
-        Assert.That( end.IsBegMarker, Is.False );
-        Assert.That( end.IsEndMarker );
-        Assert.That( end.Position, Is.EqualTo( 1 ) );
-        Assert.That( end.Node, Is.SameAs( SqlKeyword.EndOfInput ) );
-        Assert.That( end.Successor(), Is.Null );
-        Assert.That( end.Predecessor().Position, Is.EqualTo( 0 ) );
+        end.IsBegMarker.ShouldBeFalse();
+        end.IsEndMarker.ShouldBeTrue();
+        end.Position.ShouldBe( 1 );
+        end.Node.ShouldBeSameAs( SqlKeyword.EndOfInput );
+        end.Successor().ShouldBeNull();
+        end.Predecessor().Position.ShouldBe( 0 );
     }
 
     [Test]
     public void flat_successors_and_predecessors()
     {
         List<SqlNodeLocation> locs = AllLocations.GetAllLocations( "A B C D E F", ParseMode.ExtendedExpression );
-        Assert.That( locs.Count, Is.EqualTo( 7 ) );
-        Assert.That( locs.Select( l => l.Position ).SequenceEqual( new[] { 0, 0, 1, 2, 3, 4, 5 } ) );
+        locs.Count.ShouldBe( 7 );
+        locs.Select( l => l.Position ).SequenceEqual( new[] { 0, 0, 1, 2, 3, 4, 5 } ).ShouldBeTrue();
         var prec = locs.Select( l => l.Predecessor() ).ToArray();
-        Assert.That( prec[0].IsBegMarker );
-        Assert.That( prec[1].IsBegMarker );
-        Assert.That( prec.Select( l => l.Position ).SequenceEqual( new[] { -1, -1, 0, 1, 2, 3, 4 } ) );
+        prec[0].IsBegMarker.ShouldBeTrue();
+        prec[1].IsBegMarker.ShouldBeTrue();
+        prec.Select( l => l.Position ).SequenceEqual( new[] { -1, -1, 0, 1, 2, 3, 4 } ).ShouldBeTrue();
 
         var succ = locs.Select( l => l.Successor() ).ToArray();
-        Assert.That( succ.Select( l => l.Position ).SequenceEqual( new[] { 1, 1, 2, 3, 4, 5, 6 } ) );
+        succ.Select( l => l.Position ).SequenceEqual( new[] { 1, 1, 2, 3, 4, 5, 6 } ).ShouldBeTrue();
     }
 
 

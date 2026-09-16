@@ -1,5 +1,5 @@
 using CK.SqlServer.Parser;
-using AwesomeAssertions;
+using Shouldly;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -17,17 +17,17 @@ public class LocationFinderSyntaxtTests
 
         // Naked.
         a.Reset( "each {token}" );
-        a.IsISqlTLocationFinder( true ).Should().NotBeNull();
+        a.IsISqlTLocationFinder( true ).ShouldNotBeNull();
 
         a.Reset( "all {token}" );
-        a.IsISqlTLocationFinder( true ).Should().NotBeNull();
+        a.IsISqlTLocationFinder( true ).ShouldNotBeNull();
 
         // With 'N'.
         a.Reset( "all 4 {token}" );
-        a.IsISqlTLocationFinder( true ).Should().NotBeNull();
+        a.IsISqlTLocationFinder( true ).ShouldNotBeNull();
 
         a.Reset( "each 90 {token}" );
-        a.IsISqlTLocationFinder( true ).Should().NotBeNull();
+        a.IsISqlTLocationFinder( true ).ShouldNotBeNull();
 
     }
 }

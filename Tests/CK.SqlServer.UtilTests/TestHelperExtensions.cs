@@ -1,7 +1,7 @@
 using CK.Core;
 using CK.SqlServer.Parser;
 using CK.Testing;
-using AwesomeAssertions;
+using Shouldly;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -33,22 +33,21 @@ public static class TestHelperExtensions
         visitedString = Regex.Replace( visitedString, @"\s+", " ", RegexOptions.CultureInvariant );
         string es = expected.ToString();
         es = Regex.Replace( es, @"\s+", " ", RegexOptions.CultureInvariant );
-        visitedString.Should().Be( es );
+        visitedString.ShouldBe( es );
     }
 
 
     [DebuggerStepThrough]
-    public static T ParseOneStatementAndCheckString<T>( this IBasicTestHelper @this, string text, bool addSemiColon = false ) where T : ISqlStatement
+    public static T ParseOneStatementAndCheckString<T>( this IBasicTestHelper @this, string text, bool addSemiColon = false ) where T : class, ISqlStatement
     {
         text = text.ReplaceLineEndings();
         if( addSemiColon ) text += ';';
         ISqlStatement statement;
         SqlAnalyser.ErrorResult r = SqlAnalyser.ParseStatement( out statement, text );
-        r.IsError.Should().BeFalse( r.ToString() );
-        statement.Should().BeAssignableTo<T>();
-        T s = (T)statement;
-        statement.ToString( true ).ReplaceLineEndings().Should().Be( text );
-        if( MonitorTestHelper.TestHelper.LogToConsole ) Console.WriteLine( statement.ToXml() );
+        r.IsError.ShouldBeFalse( r.ToString() );
+        T s = statement.ShouldBeAssignableTo<T>().ShouldNotBeNull();
+        s.ToString( true ).ReplaceLineEndings().ShouldBe( text );
+        if( MonitorTestHelper.TestHelper.LogToConsole ) Console.WriteLine( s.ToXml() );
         return s;
     }
 
@@ -59,14 +58,13 @@ public static class TestHelperExtensions
     /// <param name="text">Text to parse.</param>
     /// <returns>Statement.</returns>
     [DebuggerStepThrough]
-    public static T ParseOneStatement<T>( this IBasicTestHelper @this, string text ) where T : ISqlStatement
+    public static T ParseOneStatement<T>( this IBasicTestHelper @this, string text ) where T : class, ISqlStatement
     {
         text = text.ReplaceLineEndings();
         ISqlStatement statement;
         SqlAnalyser.ErrorResult r = SqlAnalyser.ParseStatement( out statement, text );
-        r.IsError.Should().BeFalse( r.ToString() );
-        statement.Should().BeAssignableTo<T>();
-        return (T)statement;
+        r.IsError.ShouldBeFalse( r.ToString() );
+        return statement.ShouldBeAssignableTo<T>().ShouldNotBeNull();
     }
 
 }

@@ -1,5 +1,6 @@
 using CK.SqlServer.Parser;
 using NUnit.Framework;
+using Shouldly;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -19,13 +20,13 @@ public class SimpleTransformerParseTests
     public void empty_transformer_are_valid( string text, string name, string targetFullName )
     {
         var r = new SqlServerParser().Parse( text );
-        Assert.That( r.IsError, Is.False );
-        Assert.That( r.Result, Is.Not.Null );
-        Assert.That( r.Result, Is.InstanceOf<SqlTransformer>() );
+        r.IsError.ShouldBeFalse();
+        r.Result.ShouldNotBeNull();
+        r.Result.ShouldBeAssignableTo<SqlTransformer>();
         var t = (SqlTransformer)r.Result;
-        Assert.That( t.FullName?.ToStringHyperCompact(), Is.EqualTo( name ) );
-        Assert.That( t.TargetSchemaName, Is.EqualTo( targetFullName ) );
-        Assert.That( t.Body.Count, Is.EqualTo( 0 ) );
+        (t.FullName?.ToStringHyperCompact()).ShouldBe( name );
+        t.TargetSchemaName.ShouldBe( targetFullName );
+        t.Body.Count.ShouldBe( 0 );
     }
 
     [TestCase( "create transformer as begin add parameter @Added int = null output after @First; end;", null, "@First" )]
@@ -33,21 +34,21 @@ public class SimpleTransformerParseTests
     public void transformer_with_add_parameter( string text, string beforeName, string afterName )
     {
         var t = (SqlTransformer)new SqlServerParser().Parse( text ).Result;
-        Assert.That( t.Body.Count, Is.EqualTo( 1 ) );
+        t.Body.Count.ShouldBe( 1 );
         SqlTAddParameter a = (SqlTAddParameter)t.Body[0];
-        Assert.That( a.Parameters.Count, Is.EqualTo( 1 ) );
-        Assert.That( a.Parameters[0].Name, Is.EqualTo( "@Added" ) );
-        Assert.That( a.Parameters[0].Variable.TypeDecl.DbType, Is.EqualTo( SqlDbType.Int ) );
+        a.Parameters.Count.ShouldBe( 1 );
+        a.Parameters[0].Name.ShouldBe( "@Added" );
+        a.Parameters[0].Variable.TypeDecl.DbType.ShouldBe( SqlDbType.Int );
 
         if( afterName != null )
         {
-            Assert.That( a.AfterOrBeforeT.TokenType, Is.EqualTo( SqlTokenType.After ) );
-            Assert.That( a.ParameterName.Name, Is.EqualTo( afterName ) );
+            a.AfterOrBeforeT.TokenType.ShouldBe( SqlTokenType.After );
+            a.ParameterName.Name.ShouldBe( afterName );
         }
         if( beforeName != null )
         {
-            Assert.That( a.AfterOrBeforeT.TokenType, Is.EqualTo( SqlTokenType.Before ) );
-            Assert.That( a.ParameterName.Name, Is.EqualTo( beforeName ) );
+            a.AfterOrBeforeT.TokenType.ShouldBe( SqlTokenType.Before );
+            a.ParameterName.Name.ShouldBe( beforeName );
         }
     }
 

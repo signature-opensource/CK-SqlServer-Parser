@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using NUnit.Framework;
+using Shouldly;
 
 namespace CK.SqlServer.Parser.Tests.Parsing;
 
@@ -24,16 +25,16 @@ public class SqlTokenReaderTests
     {
         {
             SqlTokenReader r = CreateReader( "as" );
-            Assert.That( r.Current.TokenType == SqlTokenType.As );
+            r.Current.TokenType.ShouldBe( SqlTokenType.As );
             SqlTokenIdentifier asToken;
-            Assert.That( r.IsToken( out asToken, SqlTokenType.As, true ) );
+            r.IsToken( out asToken, SqlTokenType.As, true ).ShouldBeTrue();
         }
         {
             SqlTokenReader r = CreateReader( "[as]" );
-            Assert.That( r.Current.TokenType == SqlTokenType.As, Is.False );
+            r.Current.TokenType.ShouldNotBe( SqlTokenType.As );
             SqlTokenIdentifier asToken;
-            Assert.That( r.IsToken( out asToken, SqlTokenType.As, expected: true ), Is.False );
-            Assert.That( r.IsError );
+            r.IsToken( out asToken, SqlTokenType.As, expected: true ).ShouldBeFalse();
+            r.IsError.ShouldBeTrue();
         }
     }
 }

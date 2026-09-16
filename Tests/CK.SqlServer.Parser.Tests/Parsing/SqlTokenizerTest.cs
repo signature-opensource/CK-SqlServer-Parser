@@ -1,10 +1,10 @@
+using CK.Core;
+using NUnit.Framework;
+using Shouldly;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using CK.Core;
-using NUnit.Framework;
 using System.Text.RegularExpressions;
-using AwesomeAssertions;
 
 
 namespace CK.SqlServer.Parser.Tests;
@@ -16,17 +16,17 @@ public class SqlTokenizerTest
     [Test]
     public void column_alias_names()
     {
-        Assert.That( SqlTokenType.TableDbType.IsValidColumnAliasName(), Is.False );
-        Assert.That( SqlTokenType.IdentifierStar.IsValidColumnAliasName(), Is.False );
-        Assert.That( SqlTokenType.Create.IsValidColumnAliasName(), Is.False );
-        Assert.That( SqlTokenType.Cursor.IsValidColumnAliasName(), Is.False );
+        SqlTokenType.TableDbType.IsValidColumnAliasName().ShouldBeFalse();
+        SqlTokenType.IdentifierStar.IsValidColumnAliasName().ShouldBeFalse();
+        SqlTokenType.Create.IsValidColumnAliasName().ShouldBeFalse();
+        SqlTokenType.Cursor.IsValidColumnAliasName().ShouldBeFalse();
 
-        Assert.That( SqlTokenType.Throw.IsValidColumnAliasName(), Is.True );
-        Assert.That( SqlTokenType.IdentifierQuoted.IsValidColumnAliasName(), Is.True );
-        Assert.That( SqlTokenType.String.IsValidColumnAliasName(), Is.True );
-        Assert.That( SqlTokenType.UnicodeString.IsValidColumnAliasName(), Is.True );
-        Assert.That( SqlTokenType.IdentifierQuotedBracket.IsValidColumnAliasName(), Is.True );
-        Assert.That( SqlTokenType.IdentifierStandard.IsValidColumnAliasName(), Is.True );
+        SqlTokenType.Throw.IsValidColumnAliasName().ShouldBeTrue();
+        SqlTokenType.IdentifierQuoted.IsValidColumnAliasName().ShouldBeTrue();
+        SqlTokenType.String.IsValidColumnAliasName().ShouldBeTrue();
+        SqlTokenType.UnicodeString.IsValidColumnAliasName().ShouldBeTrue();
+        SqlTokenType.IdentifierQuotedBracket.IsValidColumnAliasName().ShouldBeTrue();
+        SqlTokenType.IdentifierStandard.IsValidColumnAliasName().ShouldBeTrue();
 
     }
 
@@ -36,58 +36,58 @@ public class SqlTokenizerTest
         var s = "1 = 1 and 0 = 0 and 2 = 2";
         SqlTokenizer t = new SqlTokenizer();
         var e = t.Parse( s ).GetEnumerator();
-        Assert.That( e.MoveNext() && (e.Current.TokenType & SqlTokenType.IsNumber) != 0 && e.Current.ToString() == "1" );
-        Assert.That( e.MoveNext() && e.Current.TokenType == SqlTokenType.Equal && e.Current.ToString() == "=" );
-        Assert.That( e.MoveNext() && (e.Current.TokenType & SqlTokenType.IsNumber) != 0 && e.Current.ToString() == "1" );
-        Assert.That( e.MoveNext() && e.Current.TokenType == SqlTokenType.And && e.Current.ToString() == "and" );
-        Assert.That( e.MoveNext() && (e.Current.TokenType & SqlTokenType.IsNumber) != 0 && e.Current.ToString() == "0" );
-        Assert.That( e.MoveNext() && e.Current.TokenType == SqlTokenType.Equal && e.Current.ToString() == "=" );
-        Assert.That( e.MoveNext() && (e.Current.TokenType & SqlTokenType.IsNumber) != 0 && e.Current.ToString() == "0" );
-        Assert.That( e.MoveNext() && e.Current.TokenType == SqlTokenType.And && e.Current.ToString() == "and" );
-        Assert.That( e.MoveNext() && (e.Current.TokenType & SqlTokenType.IsNumber) != 0 && e.Current.ToString() == "2" );
-        Assert.That( e.MoveNext() && e.Current.TokenType == SqlTokenType.Equal && e.Current.ToString() == "=" );
-        Assert.That( e.MoveNext() && (e.Current.TokenType & SqlTokenType.IsNumber) != 0 && e.Current.ToString() == "2" );
-        Assert.That( e.MoveNext() && e.Current.TokenType == SqlTokenType.EndOfInput );
-        Assert.That( !e.MoveNext() );
+        (e.MoveNext() && (e.Current.TokenType & SqlTokenType.IsNumber) != 0 && e.Current.ToString() == "1").ShouldBeTrue();
+        (e.MoveNext() && e.Current.TokenType == SqlTokenType.Equal && e.Current.ToString() == "=").ShouldBeTrue();
+        (e.MoveNext() && (e.Current.TokenType & SqlTokenType.IsNumber) != 0 && e.Current.ToString() == "1").ShouldBeTrue();
+        (e.MoveNext() && e.Current.TokenType == SqlTokenType.And && e.Current.ToString() == "and").ShouldBeTrue();
+        (e.MoveNext() && (e.Current.TokenType & SqlTokenType.IsNumber) != 0 && e.Current.ToString() == "0").ShouldBeTrue();
+        (e.MoveNext() && e.Current.TokenType == SqlTokenType.Equal && e.Current.ToString() == "=").ShouldBeTrue();
+        (e.MoveNext() && (e.Current.TokenType & SqlTokenType.IsNumber) != 0 && e.Current.ToString() == "0").ShouldBeTrue();
+        (e.MoveNext() && e.Current.TokenType == SqlTokenType.And && e.Current.ToString() == "and").ShouldBeTrue();
+        (e.MoveNext() && (e.Current.TokenType & SqlTokenType.IsNumber) != 0 && e.Current.ToString() == "2").ShouldBeTrue();
+        (e.MoveNext() && e.Current.TokenType == SqlTokenType.Equal && e.Current.ToString() == "=").ShouldBeTrue();
+        (e.MoveNext() && (e.Current.TokenType & SqlTokenType.IsNumber) != 0 && e.Current.ToString() == "2").ShouldBeTrue();
+        (e.MoveNext() && e.Current.TokenType == SqlTokenType.EndOfInput).ShouldBeTrue();
+        e.MoveNext().ShouldBeFalse();
     }
 
     [Test]
     public void ToStringHelper()
     {
         SqlTokenizer p = new SqlTokenizer();
-        Assert.That( p.ToString(), Is.EqualTo( "<no input>" ) );
+        p.ToString().ShouldBe( "<no input>" );
 
         p.Reset( "a" );
-        Assert.That( p.ToString( 1 ), Is.EqualTo( "a[[HEAD]]" ) );
+        p.ToString( 1 ).ShouldBe( "a[[HEAD]]" );
         p.Forward();
-        Assert.That( p.ToString( 20 ), Is.EqualTo( "a[[HEAD]]" ) );
+        p.ToString( 20 ).ShouldBe( "a[[HEAD]]" );
 
         p.Reset( "aa bb cc dd" );
-        Assert.That( p.ToString( 1 ), Is.EqualTo( "... [[HEAD]]..." ) );
-        Assert.That( p.ToString( 2 ), Is.EqualTo( "...a [[HEAD]]..." ) );
-        Assert.That( p.ToString( 3 ), Is.EqualTo( "aa [[HEAD]]..." ) );
-        Assert.That( p.ToString( 4 ), Is.EqualTo( "aa [[HEAD]]b..." ) );
+        p.ToString( 1 ).ShouldBe( "... [[HEAD]]..." );
+        p.ToString( 2 ).ShouldBe( "...a [[HEAD]]..." );
+        p.ToString( 3 ).ShouldBe( "aa [[HEAD]]..." );
+        p.ToString( 4 ).ShouldBe( "aa [[HEAD]]b..." );
         p.Forward();
-        Assert.That( p.ToString( 1 ), Is.EqualTo( "... [[HEAD]]..." ) );
-        Assert.That( p.ToString( 2 ), Is.EqualTo( "...b [[HEAD]]..." ) );
-        Assert.That( p.ToString( 3 ), Is.EqualTo( "...bb [[HEAD]]..." ) );
-        Assert.That( p.ToString( 4 ), Is.EqualTo( "... bb [[HEAD]]..." ) );
-        Assert.That( p.ToString( 5 ), Is.EqualTo( "...a bb [[HEAD]]..." ) );
-        Assert.That( p.ToString( 6 ), Is.EqualTo( "aa bb [[HEAD]]..." ) );
-        Assert.That( p.ToString( 7 ), Is.EqualTo( "aa bb [[HEAD]]c..." ) );
-        Assert.That( p.ToString( 8 ), Is.EqualTo( "aa bb [[HEAD]]cc..." ) );
-        Assert.That( p.ToString( 9 ), Is.EqualTo( "aa bb [[HEAD]]cc ..." ) );
-        Assert.That( p.ToString( 10 ), Is.EqualTo( "aa bb [[HEAD]]cc d..." ) );
-        Assert.That( p.ToString( 11 ), Is.EqualTo( "aa bb [[HEAD]]cc dd" ) );
-        Assert.That( p.ToString( 1000 ), Is.EqualTo( "aa bb [[HEAD]]cc dd" ) );
+        p.ToString( 1 ).ShouldBe( "... [[HEAD]]..." );
+        p.ToString( 2 ).ShouldBe( "...b [[HEAD]]..." );
+        p.ToString( 3 ).ShouldBe( "...bb [[HEAD]]..." );
+        p.ToString( 4 ).ShouldBe( "... bb [[HEAD]]..." );
+        p.ToString( 5 ).ShouldBe( "...a bb [[HEAD]]..." );
+        p.ToString( 6 ).ShouldBe( "aa bb [[HEAD]]..." );
+        p.ToString( 7 ).ShouldBe( "aa bb [[HEAD]]c..." );
+        p.ToString( 8 ).ShouldBe( "aa bb [[HEAD]]cc..." );
+        p.ToString( 9 ).ShouldBe( "aa bb [[HEAD]]cc ..." );
+        p.ToString( 10 ).ShouldBe( "aa bb [[HEAD]]cc d..." );
+        p.ToString( 11 ).ShouldBe( "aa bb [[HEAD]]cc dd" );
+        p.ToString( 1000 ).ShouldBe( "aa bb [[HEAD]]cc dd" );
         p.Forward();
         p.Forward();
-        Assert.That( p.ToString( 1 ), Is.EqualTo( "...d[[HEAD]]" ) );
-        Assert.That( p.ToString( 2 ), Is.EqualTo( "...dd[[HEAD]]" ) );
+        p.ToString( 1 ).ShouldBe( "...d[[HEAD]]" );
+        p.ToString( 2 ).ShouldBe( "...dd[[HEAD]]" );
         p.Forward();
-        Assert.That( p.ToString( 3 ), Is.EqualTo( "... dd[[HEAD]]" ) );
-        Assert.That( p.ToString( 4 ), Is.EqualTo( "...c dd[[HEAD]]" ) );
-        Assert.That( p.ToString( 11 ), Is.EqualTo( "aa bb cc dd[[HEAD]]" ) );
+        p.ToString( 3 ).ShouldBe( "... dd[[HEAD]]" );
+        p.ToString( 4 ).ShouldBe( "...c dd[[HEAD]]" );
+        p.ToString( 11 ).ShouldBe( "aa bb cc dd[[HEAD]]" );
     }
 
     [Test]
@@ -100,69 +100,67 @@ public class SqlTokenizerTest
 
         p.Reset( "\r\n\t " );
         IsEndOfInput( p );
-        p.Token.LeadingTrivias.Select( t => t.Text ).Should().BeEquivalentTo( new[] { "\r\n\t " }, o => o.WithStrictOrdering() );
-        p.Token.TrailingTrivias.Should().BeEmpty();
+        p.Token.LeadingTrivias.Select( t => t.Text ).ShouldBe( new[] { "\r\n\t " } );
+        p.Token.TrailingTrivias.ShouldBeEmpty();
 
         p.Reset( "\r\n\t  --Comment\r\n \t\r\n /*Other\r\nComment...*/ \r\n" );
         IsEndOfInput( p );
-        p.Token.LeadingTrivias.Select( t => t.Text ).Should().BeEquivalentTo( new[] { "\r\n\t  ", "Comment", " \t\r\n ", "Other\r\nComment...", " \r\n" } );
-        p.Token.TrailingTrivias.Should().BeEmpty();
+        p.Token.LeadingTrivias.Select( t => t.Text ).ShouldBe( new[] { "\r\n\t  ", "Comment", " \t\r\n ", "Other\r\nComment...", " \r\n" } );
+        p.Token.TrailingTrivias.ShouldBeEmpty();
     }
 
     static void IsEndOfInput( SqlTokenizer p )
     {
-        Assert.That( p.Token is SqlTokenError );
-        Assert.That( p.Token.TokenType, Is.EqualTo( SqlTokenType.EndOfInput ) );
-        Assert.That( ((SqlTokenError)p.Token).IsEndOfInput );
-        Assert.That( !p.Forward() );
-        Assert.That( p.Token is SqlTokenError );
-        Assert.That( p.Token.TokenType, Is.EqualTo( SqlTokenType.EndOfInput ) );
-        Assert.That( ((SqlTokenError)p.Token).IsEndOfInput );
+        p.Token.ShouldBeAssignableTo<SqlTokenError>().ShouldNotBeNull().IsEndOfInput.ShouldBeTrue();
+        p.Token.TokenType.ShouldBe( SqlTokenType.EndOfInput );
+        p.Forward().ShouldBeFalse();
+        p.Token.ShouldBeAssignableTo<SqlTokenError>().ShouldNotBeNull().IsEndOfInput.ShouldBeTrue();
+        p.Token.TokenType.ShouldBe( SqlTokenType.EndOfInput );
     }
 
     [Test]
     public void SqlTokenType_are_mapped_to_explicit_strings()
     {
-        Assert.That( SqlKeyword.ToString( SqlTokenType.IdentifierStandard ), Is.EqualTo( "¤IdentifierStandard" ) );
-        Assert.That( SqlKeyword.ToString( SqlTokenType.IdentifierQuoted ), Is.EqualTo( "¤IdentifierQuoted" ) );
-        Assert.That( SqlKeyword.ToString( SqlTokenType.IdentifierQuotedBracket ), Is.EqualTo( "¤IdentifierQuotedBracket" ) );
-        Assert.That( SqlKeyword.ToString( SqlTokenType.IdentifierVariable ), Is.EqualTo( "¤IdentifierVariable" ) );
-        Assert.That( SqlKeyword.ToString( SqlTokenType.IdentifierSpecial ), Is.EqualTo( "¤IdentifierSpecial" ) );
+        SqlKeyword.ToString( SqlTokenType.IdentifierStandard ).ShouldBe( "¤IdentifierStandard" );
+        SqlKeyword.ToString( SqlTokenType.IdentifierQuoted ).ShouldBe( "¤IdentifierQuoted" );
+        SqlKeyword.ToString( SqlTokenType.IdentifierQuotedBracket ).ShouldBe( "¤IdentifierQuotedBracket" );
+        SqlKeyword.ToString( SqlTokenType.IdentifierVariable ).ShouldBe( "¤IdentifierVariable" );
+        SqlKeyword.ToString( SqlTokenType.IdentifierSpecial ).ShouldBe( "¤IdentifierSpecial" );
 
-        Assert.Throws<KeyNotFoundException>( () => SqlKeyword.ToString( SqlTokenType.IdentifierReserved ) );
-        Assert.Throws<KeyNotFoundException>( () => SqlKeyword.ToString( SqlTokenType.IdentifierReservedStatement ) );
-        Assert.Throws<KeyNotFoundException>( () => SqlKeyword.ToString( SqlTokenType.IdentifierStandardStatement ) );
+        Should.Throw<KeyNotFoundException>( () => SqlKeyword.ToString( SqlTokenType.IdentifierReserved ) );
+        Should.Throw<KeyNotFoundException>( () => SqlKeyword.ToString( SqlTokenType.IdentifierReservedStatement ) );
+        Should.Throw<KeyNotFoundException>( () => SqlKeyword.ToString( SqlTokenType.IdentifierStandardStatement ) );
 
-        Assert.That( SqlKeyword.ToString( SqlTokenType.IdentifierStar ), Is.EqualTo( "*" ) );
+        SqlKeyword.ToString( SqlTokenType.IdentifierStar ).ShouldBe( "*" );
 
-        Assert.That( SqlKeyword.ToString( SqlTokenType.XmlDbType ), Is.EqualTo( "xml" ) );
-        Assert.That( SqlKeyword.ToString( SqlTokenType.IntDbType ), Is.EqualTo( "int" ) );
-        Assert.That( SqlKeyword.ToString( SqlTokenType.VarCharDbType ), Is.EqualTo( "varchar" ) );
-        Assert.That( SqlKeyword.ToString( SqlTokenType.NVarCharDbType ), Is.EqualTo( "nvarchar" ) );
-        Assert.That( SqlKeyword.ToString( SqlTokenType.DateTimeDbType ), Is.EqualTo( "datetime" ) );
-        Assert.That( SqlKeyword.ToString( SqlTokenType.DateTime2DbType ), Is.EqualTo( "datetime2" ) );
+        SqlKeyword.ToString( SqlTokenType.XmlDbType ).ShouldBe( "xml" );
+        SqlKeyword.ToString( SqlTokenType.IntDbType ).ShouldBe( "int" );
+        SqlKeyword.ToString( SqlTokenType.VarCharDbType ).ShouldBe( "varchar" );
+        SqlKeyword.ToString( SqlTokenType.NVarCharDbType ).ShouldBe( "nvarchar" );
+        SqlKeyword.ToString( SqlTokenType.DateTimeDbType ).ShouldBe( "datetime" );
+        SqlKeyword.ToString( SqlTokenType.DateTime2DbType ).ShouldBe( "datetime2" );
 
-        Assert.That( SqlKeyword.ToString( SqlTokenType.All ), Is.EqualTo( "all" ) );
-        Assert.That( SqlKeyword.ToString( SqlTokenType.Authorization ), Is.EqualTo( "authorization" ) );
-        Assert.That( SqlKeyword.ToString( SqlTokenType.Rows ), Is.EqualTo( "rows" ) );
-        Assert.That( SqlKeyword.ToString( SqlTokenType.Insert ), Is.EqualTo( "insert" ) );
-        Assert.That( SqlKeyword.ToString( SqlTokenType.IdentityInsert ), Is.EqualTo( "identity_insert" ) );
+        SqlKeyword.ToString( SqlTokenType.All ).ShouldBe( "all" );
+        SqlKeyword.ToString( SqlTokenType.Authorization ).ShouldBe( "authorization" );
+        SqlKeyword.ToString( SqlTokenType.Rows ).ShouldBe( "rows" );
+        SqlKeyword.ToString( SqlTokenType.Insert ).ShouldBe( "insert" );
+        SqlKeyword.ToString( SqlTokenType.IdentityInsert ).ShouldBe( "identity_insert" );
 
-        Assert.That( SqlKeyword.ToString( SqlTokenType.String ), Is.EqualTo( "¤String" ) );
-        Assert.That( SqlKeyword.ToString( SqlTokenType.UnicodeString ), Is.EqualTo( "¤UnicodeString" ) );
-        Assert.That( SqlKeyword.ToString( SqlTokenType.StarComment ), Is.EqualTo( "¤StarComment" ) );
-        Assert.That( SqlKeyword.ToString( SqlTokenType.LineComment ), Is.EqualTo( "¤LineComment" ) );
+        SqlKeyword.ToString( SqlTokenType.String ).ShouldBe( "¤String" );
+        SqlKeyword.ToString( SqlTokenType.UnicodeString ).ShouldBe( "¤UnicodeString" );
+        SqlKeyword.ToString( SqlTokenType.StarComment ).ShouldBe( "¤StarComment" );
+        SqlKeyword.ToString( SqlTokenType.LineComment ).ShouldBe( "¤LineComment" );
 
-        Assert.That( SqlKeyword.ToString( SqlTokenType.Integer ), Is.EqualTo( "¤Integer" ) );
-        Assert.That( SqlKeyword.ToString( SqlTokenType.Float ), Is.EqualTo( "¤Float" ) );
-        Assert.That( SqlKeyword.ToString( SqlTokenType.Binary ), Is.EqualTo( "¤Binary" ) );
-        Assert.That( SqlKeyword.ToString( SqlTokenType.Decimal ), Is.EqualTo( "¤Decimal" ) );
-        Assert.That( SqlKeyword.ToString( SqlTokenType.Money ), Is.EqualTo( "¤Money" ) );
+        SqlKeyword.ToString( SqlTokenType.Integer ).ShouldBe( "¤Integer" );
+        SqlKeyword.ToString( SqlTokenType.Float ).ShouldBe( "¤Float" );
+        SqlKeyword.ToString( SqlTokenType.Binary ).ShouldBe( "¤Binary" );
+        SqlKeyword.ToString( SqlTokenType.Decimal ).ShouldBe( "¤Decimal" );
+        SqlKeyword.ToString( SqlTokenType.Money ).ShouldBe( "¤Money" );
 
-        Assert.That( SqlKeyword.ToString( SqlTokenType.GreaterOrEqual ), Is.EqualTo( ">=" ) );
-        Assert.That( SqlKeyword.ToString( SqlTokenType.Different ), Is.EqualTo( "!=" ) );
-        Assert.That( SqlKeyword.ToString( SqlTokenType.Assign ), Is.EqualTo( "=" ) );
-        Assert.That( SqlKeyword.ToString( SqlTokenType.Equal ), Is.EqualTo( "=" ) );
+        SqlKeyword.ToString( SqlTokenType.GreaterOrEqual ).ShouldBe( ">=" );
+        SqlKeyword.ToString( SqlTokenType.Different ).ShouldBe( "!=" );
+        SqlKeyword.ToString( SqlTokenType.Assign ).ShouldBe( "=" );
+        SqlKeyword.ToString( SqlTokenType.Equal ).ShouldBe( "=" );
     }
 
     [Test]
@@ -202,7 +200,7 @@ end
 ¤EndOfInput".Trim();
 
         var tokenTypes = string.Join( " ", new SqlTokenizer().Parse( s ).Select( t => SqlKeyword.ToString( t.TokenType ) ) );
-        Assert.That( Regex.Replace( tokenTypes, @"\s+", string.Empty ), Is.EqualTo( Regex.Replace( sT, @"\s+", string.Empty ) ) );
+        Regex.Replace( tokenTypes, @"\s+", string.Empty ).ShouldBe( Regex.Replace( sT, @"\s+", string.Empty ) );
     }
 
     [TestCase( "A.B.C", 1, "C" )]
@@ -218,7 +216,7 @@ end
     public void getting_identifier_part_name( string id, int idxPart, string part )
     {
         ISqlIdentifier t = (ISqlIdentifier)new SqlAnalyser( id ).IsOneExpression( true );
-        Assert.That( t.GetPartName( idxPart ), Is.EqualTo( part ) );
+        t.GetPartName( idxPart ).ShouldBe( part );
     }
 
 
@@ -242,7 +240,7 @@ end".ReplaceLineEndings();
         string s2 = b.ToString().ReplaceLineEndings();
 
         // Fix: .34 is changed as 0.34 (decimal), .45e12 becomes 0.45e12 (float).
-        Assert.That( s2, Is.EqualTo( s.Replace( ".34", "0.34" ).Replace( ".45e12", "0.45e12" ) ) );
+        s2.ShouldBe( s.Replace( ".34", "0.34" ).Replace( ".45e12", "0.45e12" ) );
     }
 
     [Test]
@@ -252,87 +250,87 @@ end".ReplaceLineEndings();
         SqlToken t;
         SqlTokenIdentifier tU;
         t = p.ParseWithoutError( "IdentifierStandard" ).ElementAt( 0 );
-        Assert.That( t.TokenType == SqlTokenType.IdentifierStandard );
-        Assert.That( t is SqlTokenIdentifier );
-        Assert.That( ((SqlTokenIdentifier)t).RemoveQuoteIfPossible( false ), Is.SameAs( t ) );
-        Assert.That( t.ToString(), Is.EqualTo( "IdentifierStandard" ) );
+        t.TokenType.ShouldBe( SqlTokenType.IdentifierStandard );
+        t.ShouldBeAssignableTo<SqlTokenIdentifier>().ShouldNotBeNull();
+        ((SqlTokenIdentifier)t).RemoveQuoteIfPossible( false ).ShouldBeSameAs( t );
+        t.ToString().ShouldBe( "IdentifierStandard" );
 
         t = p.ParseWithoutError( "[IdentifierQuotedBracket]" ).ElementAt( 0 );
-        Assert.That( t.TokenType == SqlTokenType.IdentifierQuotedBracket );
-        Assert.That( t is SqlTokenIdentifier );
+        t.TokenType.ShouldBe( SqlTokenType.IdentifierQuotedBracket );
+        t.ShouldBeAssignableTo<SqlTokenIdentifier>().ShouldNotBeNull();
         tU = ((SqlTokenIdentifier)t).RemoveQuoteIfPossible( true );
-        Assert.That( tU, Is.Not.SameAs( t ) );
-        Assert.That( t.ToString(), Is.EqualTo( "[IdentifierQuotedBracket]" ) );
-        Assert.That( tU.ToString(), Is.EqualTo( "IdentifierQuotedBracket" ) );
+        tU.ShouldNotBeSameAs( t );
+        t.ToString().ShouldBe( "[IdentifierQuotedBracket]" );
+        tU.ToString().ShouldBe( "IdentifierQuotedBracket" );
 
         t = p.ParseWithoutError( "[Identifier Quoted Bracket]" ).ElementAt( 0 );
-        Assert.That( t.TokenType == SqlTokenType.IdentifierQuotedBracket );
-        Assert.That( t is SqlTokenIdentifier );
-        Assert.That( t.ToString(), Is.EqualTo( "[Identifier Quoted Bracket]" ) );
+        t.TokenType.ShouldBe( SqlTokenType.IdentifierQuotedBracket );
+        t.ShouldBeAssignableTo<SqlTokenIdentifier>().ShouldNotBeNull();
+        t.ToString().ShouldBe( "[Identifier Quoted Bracket]" );
         tU = ((SqlTokenIdentifier)t).RemoveQuoteIfPossible( true );
-        Assert.That( tU, Is.SameAs( t ) );
+        tU.ShouldBeSameAs( t );
 
         t = p.ParseWithoutError( "LiKE" ).ElementAt( 0 );
-        Assert.That( t is SqlTokenIdentifier );
-        Assert.That( t.ToString(), Is.EqualTo( "LiKE" ) );
-        Assert.That( t.TokenType == SqlTokenType.Like );
+        t.ShouldBeAssignableTo<SqlTokenIdentifier>().ShouldNotBeNull();
+        t.ToString().ShouldBe( "LiKE" );
+        t.TokenType.ShouldBe( SqlTokenType.Like );
 
         t = p.ParseWithoutError( "[LiKE]" ).ElementAt( 0 );
-        Assert.That( t.TokenType == SqlTokenType.IdentifierQuotedBracket );
-        Assert.That( t is SqlTokenIdentifier );
-        Assert.That( t.ToString(), Is.EqualTo( "[LiKE]" ) );
+        t.TokenType.ShouldBe( SqlTokenType.IdentifierQuotedBracket );
+        t.ShouldBeAssignableTo<SqlTokenIdentifier>().ShouldNotBeNull();
+        t.ToString().ShouldBe( "[LiKE]" );
         tU = ((SqlTokenIdentifier)t).RemoveQuoteIfPossible( true );
-        Assert.That( tU, Is.SameAs( t ) );
+        tU.ShouldBeSameAs( t );
         tU = ((SqlTokenIdentifier)t).RemoveQuoteIfPossible( false );
-        Assert.That( tU, Is.Not.SameAs( t ) );
-        Assert.That( tU.ToString(), Is.EqualTo( "LiKE" ) );
-        Assert.That( tU.TokenType, Is.EqualTo( SqlTokenType.Like ) );
+        tU.ShouldNotBeSameAs( t );
+        tU.ToString().ShouldBe( "LiKE" );
+        tU.TokenType.ShouldBe( SqlTokenType.Like );
 
         t = p.ParseWithoutError( "IN" ).ElementAt( 0 );
-        Assert.That( t.TokenType == SqlTokenType.In );
-        Assert.That( t is SqlTokenIdentifier );
-        Assert.That( t.ToString(), Is.EqualTo( "IN" ) );
+        t.TokenType.ShouldBe( SqlTokenType.In );
+        t.ShouldBeAssignableTo<SqlTokenIdentifier>().ShouldNotBeNull();
+        t.ToString().ShouldBe( "IN" );
 
         t = p.ParseWithoutError( "[IN]" ).ElementAt( 0 );
-        Assert.That( t.TokenType == SqlTokenType.IdentifierQuotedBracket );
-        Assert.That( t is SqlTokenIdentifier );
-        Assert.That( t.ToString(), Is.EqualTo( "[IN]" ) );
+        t.TokenType.ShouldBe( SqlTokenType.IdentifierQuotedBracket );
+        t.ShouldBeAssignableTo<SqlTokenIdentifier>().ShouldNotBeNull();
+        t.ToString().ShouldBe( "[IN]" );
         tU = ((SqlTokenIdentifier)t).RemoveQuoteIfPossible( true );
-        Assert.That( tU, Is.SameAs( t ) );
+        tU.ShouldBeSameAs( t );
         tU = ((SqlTokenIdentifier)t).RemoveQuoteIfPossible( false );
-        Assert.That( tU, Is.Not.SameAs( t ) );
-        Assert.That( tU.ToString(), Is.EqualTo( "IN" ) );
-        Assert.That( tU.TokenType, Is.EqualTo( SqlTokenType.In ) );
+        tU.ShouldNotBeSameAs( t );
+        tU.ToString().ShouldBe( "IN" );
+        tU.TokenType.ShouldBe( SqlTokenType.In );
 
         t = p.ParseWithoutError( "int" ).ElementAt( 0 );
-        Assert.That( t.TokenType == SqlTokenType.IntDbType );
+        t.TokenType.ShouldBe( SqlTokenType.IntDbType );
         tU = ((SqlTokenIdentifier)t).RemoveQuoteIfPossible( true );
-        Assert.That( tU, Is.SameAs( t ) );
+        tU.ShouldBeSameAs( t );
 
         t = p.ParseWithoutError( "[int]" ).ElementAt( 0 );
-        Assert.That( t.TokenType == SqlTokenType.IdentifierQuotedBracket );
-        Assert.That( t is SqlTokenIdentifier );
+        t.TokenType.ShouldBe( SqlTokenType.IdentifierQuotedBracket );
+        t.ShouldBeAssignableTo<SqlTokenIdentifier>().ShouldNotBeNull();
         tU = ((SqlTokenIdentifier)t).RemoveQuoteIfPossible( true );
-        Assert.That( tU, Is.Not.SameAs( t ) );
-        Assert.That( tU.ToString(), Is.EqualTo( "int" ) );
-        Assert.That( tU.TokenType == SqlTokenType.IntDbType );
+        tU.ShouldNotBeSameAs( t );
+        tU.ToString().ShouldBe( "int" );
+        tU.TokenType.ShouldBe( SqlTokenType.IntDbType );
         tU = ((SqlTokenIdentifier)t).RemoveQuoteIfPossible( false );
-        Assert.That( tU, Is.Not.SameAs( t ) );
-        Assert.That( tU.ToString(), Is.EqualTo( "int" ) );
-        Assert.That( tU.TokenType == SqlTokenType.IntDbType );
+        tU.ShouldNotBeSameAs( t );
+        tU.ToString().ShouldBe( "int" );
+        tU.TokenType.ShouldBe( SqlTokenType.IntDbType );
 
         t = p.ParseWithoutError( @"""smalliNt""" ).ElementAt( 0 );
-        Assert.That( t.TokenType == SqlTokenType.IdentifierQuoted );
-        Assert.That( t is SqlTokenIdentifier );
-        Assert.That( t.ToString(), Is.EqualTo( @"""smalliNt""" ) );
+        t.TokenType.ShouldBe( SqlTokenType.IdentifierQuoted );
+        t.ShouldBeAssignableTo<SqlTokenIdentifier>().ShouldNotBeNull();
+        t.ToString().ShouldBe( @"""smalliNt""" );
         tU = ((SqlTokenIdentifier)t).RemoveQuoteIfPossible( true );
-        Assert.That( tU, Is.Not.SameAs( t ) );
-        Assert.That( tU.ToString(), Is.EqualTo( "smalliNt" ) );
-        Assert.That( tU.TokenType == SqlTokenType.SmallIntDbType );
+        tU.ShouldNotBeSameAs( t );
+        tU.ToString().ShouldBe( "smalliNt" );
+        tU.TokenType.ShouldBe( SqlTokenType.SmallIntDbType );
         tU = ((SqlTokenIdentifier)t).RemoveQuoteIfPossible( false );
-        Assert.That( tU, Is.Not.SameAs( t ) );
-        Assert.That( tU.ToString(), Is.EqualTo( "smalliNt" ) );
-        Assert.That( tU.TokenType == SqlTokenType.SmallIntDbType );
+        tU.ShouldNotBeSameAs( t );
+        tU.ToString().ShouldBe( "smalliNt" );
+        tU.TokenType.ShouldBe( SqlTokenType.SmallIntDbType );
 
     }
 
@@ -362,7 +360,7 @@ end".ReplaceLineEndings();
         ISqlTextWriter b = SqlTextWriter.CreateDefault();
         foreach( var t in p.ParseWithoutError( toParse ) ) t.Write( b );
         string r = b.ToString();
-        Assert.That( r, Is.EqualTo( rewritten ) );
+        r.ShouldBe( rewritten );
     }
 
     [Test]
@@ -371,14 +369,14 @@ end".ReplaceLineEndings();
         string s = @"'' -- CancelDate";
         SqlTokenizer p = new SqlTokenizer();
         var tokens = p.Parse( s ).ToArray();
-        Assert.That( tokens.Length == 2 );
-        Assert.That( tokens[0].TokenType == SqlTokenType.String );
-        Assert.That( tokens[0].TrailingTrivias.Count == 2 );
-        Assert.That( tokens[0].TrailingTrivias[0].TokenType == SqlTokenType.None );
-        Assert.That( tokens[0].TrailingTrivias[0].Text == " " );
-        Assert.That( tokens[0].TrailingTrivias[1].TokenType == SqlTokenType.LineComment );
-        Assert.That( tokens[0].TrailingTrivias[1].Text == " CancelDate" );
-        Assert.That( tokens[1].TokenType == SqlTokenType.EndOfInput );
+        tokens.Length.ShouldBe( 2 );
+        tokens[0].TokenType.ShouldBe( SqlTokenType.String );
+        tokens[0].TrailingTrivias.Count.ShouldBe( 2 );
+        tokens[0].TrailingTrivias[0].TokenType.ShouldBe( SqlTokenType.None );
+        tokens[0].TrailingTrivias[0].Text.ShouldBe( " " );
+        tokens[0].TrailingTrivias[1].TokenType.ShouldBe( SqlTokenType.LineComment );
+        tokens[0].TrailingTrivias[1].Text.ShouldBe( " CancelDate" );
+        tokens[1].TokenType.ShouldBe( SqlTokenType.EndOfInput );
     }
 
     [Test]
@@ -388,17 +386,17 @@ end".ReplaceLineEndings();
 TOKEN";
         SqlTokenizer p = new SqlTokenizer();
         var tokens = p.Parse( s ).ToArray();
-        Assert.That( tokens.Length == 3 );
-        Assert.That( tokens[0].TokenType == SqlTokenType.String );
-        Assert.That( tokens[0].TrailingTrivias.Count == 2 );
-        Assert.That( tokens[0].TrailingTrivias[0].TokenType == SqlTokenType.None );
-        Assert.That( tokens[0].TrailingTrivias[0].Text == " " );
-        Assert.That( tokens[0].TrailingTrivias[1].TokenType == SqlTokenType.LineComment );
-        Assert.That( tokens[0].TrailingTrivias[1].Text == " CancelDate", "No line endings in Text." );
-        Assert.That( tokens[1].TokenType == SqlTokenType.IdentifierStandard );
-        Assert.That( tokens[1].LeadingTrivias.Count == 0 );
-        Assert.That( tokens[1].TrailingTrivias.Count == 0 );
-        Assert.That( tokens[2].TokenType == SqlTokenType.EndOfInput );
+        tokens.Length.ShouldBe( 3 );
+        tokens[0].TokenType.ShouldBe( SqlTokenType.String );
+        tokens[0].TrailingTrivias.Count.ShouldBe( 2 );
+        tokens[0].TrailingTrivias[0].TokenType.ShouldBe( SqlTokenType.None );
+        tokens[0].TrailingTrivias[0].Text.ShouldBe( " " );
+        tokens[0].TrailingTrivias[1].TokenType.ShouldBe( SqlTokenType.LineComment );
+        tokens[0].TrailingTrivias[1].Text.ShouldBe( " CancelDate", "No line endings in Text." );
+        tokens[1].TokenType.ShouldBe( SqlTokenType.IdentifierStandard );
+        tokens[1].LeadingTrivias.Count.ShouldBe( 0 );
+        tokens[1].TrailingTrivias.Count.ShouldBe( 0 );
+        tokens[2].TokenType.ShouldBe( SqlTokenType.EndOfInput );
     }
 
     [Test]
@@ -414,25 +412,25 @@ identifer2";
         SqlTokenizer p = new SqlTokenizer();
         var tokens = p.Parse( s ).ToArray();
 
-        Assert.That( tokens.Length == 3 );
+        tokens.Length.ShouldBe( 3 );
 
-        Assert.That( tokens[0].LeadingTrivias.Count, Is.EqualTo( 1 ) );
-        Assert.That( tokens[0].LeadingTrivias[0].Text, Is.EqualTo( Environment.NewLine ) );
-        Assert.That( tokens[0].IsToken( SqlTokenType.Insert ) );
-        Assert.That( tokens[0].TrailingTrivias.Count, Is.EqualTo( 2 ) );
-        Assert.That( tokens[0].TrailingTrivias[0].Text, Is.EqualTo( " " ) );
-        Assert.That( tokens[0].TrailingTrivias[1].Text, Is.EqualTo( " Comment1" ) );
+        tokens[0].LeadingTrivias.Count.ShouldBe( 1 );
+        tokens[0].LeadingTrivias[0].Text.ShouldBe( Environment.NewLine );
+        tokens[0].IsToken( SqlTokenType.Insert ).ShouldBeTrue();
+        tokens[0].TrailingTrivias.Count.ShouldBe( 2 );
+        tokens[0].TrailingTrivias[0].Text.ShouldBe( " " );
+        tokens[0].TrailingTrivias[1].Text.ShouldBe( " Comment1" );
 
-        Assert.That( tokens[1].LeadingTrivias.Count, Is.EqualTo( 4 ) );
-        Assert.That( tokens[1].LeadingTrivias[0].Text, Is.EqualTo( string.Empty ) );
-        Assert.That( tokens[1].LeadingTrivias[1].Text, Is.EqualTo( " Comment2" ) );
-        Assert.That( tokens[1].LeadingTrivias[2].Text, Is.EqualTo( string.Empty ) );
-        Assert.That( tokens[1].LeadingTrivias[3].Text, Is.EqualTo( " Comment3 X   " ) );
+        tokens[1].LeadingTrivias.Count.ShouldBe( 4 );
+        tokens[1].LeadingTrivias[0].Text.ShouldBe( string.Empty );
+        tokens[1].LeadingTrivias[1].Text.ShouldBe( " Comment2" );
+        tokens[1].LeadingTrivias[2].Text.ShouldBe( string.Empty );
+        tokens[1].LeadingTrivias[3].Text.ShouldBe( " Comment3 X   " );
 
-        Assert.That( tokens[1].IsToken( SqlTokenType.IdentifierStandard ) );
-        Assert.That( tokens[1].TrailingTrivias.Count, Is.EqualTo( 0 ) );
+        tokens[1].IsToken( SqlTokenType.IdentifierStandard ).ShouldBeTrue();
+        tokens[1].TrailingTrivias.Count.ShouldBe( 0 );
 
-        Assert.That( tokens[2].TokenType, Is.EqualTo( SqlTokenType.EndOfInput ) );
+        tokens[2].TokenType.ShouldBe( SqlTokenType.EndOfInput );
 
     }
 
@@ -445,15 +443,15 @@ identifer2";
         result = result.Replace( "x", Environment.NewLine + "x" + Environment.NewLine );
         SqlTokenizer p = new SqlTokenizer();
         var t = p.Parse( text ).Single( x => x.TokenType != SqlTokenType.EndOfInput );
-        Assert.That( t, Is.InstanceOf<SqlTokenIdentifier>().Or.InstanceOf<SqlTokenLiteralString>() );
+        (t is SqlTokenIdentifier or SqlTokenLiteralString).ShouldBeTrue();
         if( t is SqlTokenIdentifier id )
         {
-            Assert.That( id.Name, Is.EqualTo( result ) );
+            id.Name.ShouldBe( result );
         }
         else
         {
             var str = (SqlTokenLiteralString)t;
-            Assert.That( str.Value, Is.EqualTo( result ) );
+            str.Value.ShouldBe( result );
         }
     }
 
@@ -469,11 +467,11 @@ identifer2";
     {
         SqlTokenizer p = new SqlTokenizer();
         var t = p.Parse( text ).Single( x => x.TokenType != SqlTokenType.EndOfInput );
-        Assert.That( t, Is.InstanceOf<SqlTokenLiteralBinary>() );
+        t.ShouldBeAssignableTo<SqlTokenLiteralBinary>().ShouldNotBeNull();
         SqlBasicValue v = new SqlBasicValue( null, (SqlTokenLiteralBinary)t );
         byte[] val = (byte[])v.NullOrLitteralDotNetValue;
         var actual = "[" + val.Select( b => b.ToString() ).Concatenate( "," ) + "]";
-        Assert.That( actual, Is.EqualTo( result ) );
+        actual.ShouldBe( result );
     }
 
 }

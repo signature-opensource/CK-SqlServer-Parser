@@ -1,5 +1,5 @@
 using CK.SqlServer.Parser;
-using AwesomeAssertions;
+using Shouldly;
 using NUnit.Framework;
 using System;
 using static CK.Testing.SqlTransformTestHelper;
@@ -17,31 +17,31 @@ public class SimpleTransformViaModelTests
     {
         ISqlServerObject sqlObject;
         var r = new SqlAnalyser( "create " + text ).ParseStatement( out sqlObject );
-        r.IsError.Should().BeFalse();
+        r.IsError.ShouldBeFalse();
         ISqlServerAlterOrCreateStatement st = sqlObject as ISqlServerAlterOrCreateStatement;
-        st.Should().NotBeNull();
-        st.StatementPrefix.Should().Be( CreateOrAlterStatementPrefix.Create );
+        st.ShouldNotBeNull();
+        st.StatementPrefix.ShouldBe( CreateOrAlterStatementPrefix.Create );
         ISqlServerAlterOrCreateStatement stA = st.WithStatementPrefix( CreateOrAlterStatementPrefix.Alter );
-        stA.StatementPrefix.Should().Be( CreateOrAlterStatementPrefix.Alter );
+        stA.StatementPrefix.ShouldBe( CreateOrAlterStatementPrefix.Alter );
         string alterV = stA.ToFullString();
-        alterV.Should().Be( "alter " + text );
+        alterV.ShouldBe( "alter " + text );
 
         var r2 = new SqlAnalyser( alterV ).ParseStatement( out sqlObject );
-        r2.IsError.Should().BeFalse();
+        r2.IsError.ShouldBeFalse();
         ISqlServerAlterOrCreateStatement st2 = sqlObject as ISqlServerAlterOrCreateStatement;
         string alter2V = st2.ToFullString();
-        Assert.That( alter2V, Is.EqualTo( "alter " + text ) );
+        alter2V.ShouldBe( "alter " + text );
         ISqlServerAlterOrCreateStatement stCA = st2.WithStatementPrefix( CreateOrAlterStatementPrefix.CreateOrAlter );
-        stCA.StatementPrefix.Should().Be( CreateOrAlterStatementPrefix.CreateOrAlter );
+        stCA.StatementPrefix.ShouldBe( CreateOrAlterStatementPrefix.CreateOrAlter );
         string alterCA = stCA.ToFullString();
-        alterCA.Should().Be( "create or alter " + text );
+        alterCA.ShouldBe( "create or alter " + text );
 
         var r3 = new SqlAnalyser( alterCA ).ParseStatement( out sqlObject );
-        r3.IsError.Should().BeFalse();
+        r3.IsError.ShouldBeFalse();
         ISqlServerAlterOrCreateStatement st3 = sqlObject as ISqlServerAlterOrCreateStatement;
-        st3.StatementPrefix.Should().Be( CreateOrAlterStatementPrefix.CreateOrAlter );
+        st3.StatementPrefix.ShouldBe( CreateOrAlterStatementPrefix.CreateOrAlter );
         string alter3V = st3.ToFullString();
-        alter3V.Should().Be( "create or alter " + text );
+        alter3V.ShouldBe( "create or alter " + text );
     }
 
     [TestCase( "create procedure X.test( @i int ) as begin select 0; end", " $ ", "create procedure [ $ ].test" )]
@@ -52,9 +52,9 @@ public class SimpleTransformViaModelTests
     {
         ISqlServerObject sqlObject;
         var r = new SqlAnalyser( text ).ParseStatement( out sqlObject );
-        r.IsError.Should().BeFalse();
+        r.IsError.ShouldBeFalse();
         ISqlServerObject o2 = sqlObject.SetSchema( schema );
-        o2.ToFullString().Should().StartWith( resultStart );
+        o2.ToFullString().ShouldStartWith( resultStart );
     }
 
     [TestCase( "One", 1, "Two", "Two" )]
@@ -78,16 +78,16 @@ public class SimpleTransformViaModelTests
     {
         ISqlIdentifier t = (ISqlIdentifier)new SqlAnalyser( id ).IsOneExpression( true );
         if( result == "ArgumentException" )
-            t.Invoking( i => i.SetPartName( idxPart, name ) ).Should().Throw<ArgumentException>();
+            Should.Throw<ArgumentException>( () => t.SetPartName( idxPart, name ) );
         else if( result == "InvalidOperationException" )
-            t.Invoking( i => i.SetPartName( idxPart, name ) ).Should().Throw<InvalidOperationException>();
+            Should.Throw<InvalidOperationException>( () => t.SetPartName( idxPart, name ) );
         else
         {
             var r = t.SetPartName( idxPart, name );
-            r.ToString().Should().Be( result );
+            r.ToString().ShouldBe( result );
             if( name != null )
             {
-                r.GetPartName( idxPart ).Should().Be( name );
+                r.GetPartName( idxPart ).ShouldBe( name );
             }
         }
     }
@@ -98,11 +98,11 @@ public class SimpleTransformViaModelTests
     {
         SqlServerParser p = new SqlServerParser();
         ISqlServerParsedText o = p.Parse( original ).Result;
-        o.Should().NotBeNull();
+        o.ShouldNotBeNull();
         ISqlServerTransformer t = p.ParseTransformer( transform ).Result;
-        t.Should().NotBeNull();
+        t.ShouldNotBeNull();
         ISqlServerParsedText oT = t.SafeTransform( TestHelper.Monitor, o );
-        oT.Should().NotBeNull();
-        oT.ToFullString().Should().Be( final );
+        oT.ShouldNotBeNull();
+        oT.ToFullString().ShouldBe( final );
     }
 }

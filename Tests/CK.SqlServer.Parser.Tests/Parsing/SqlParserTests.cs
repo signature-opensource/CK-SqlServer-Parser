@@ -1,5 +1,6 @@
 using CK.SqlServer.UtilTests;
 using NUnit.Framework;
+using Shouldly;
 using System;
 using System.Linq;
 using static CK.Testing.SqlTransformTestHelper;
@@ -20,12 +21,13 @@ public class SqlParserTests
     {
         string text = TestHelper.LoadTextFromParsingScripts( name );
         var result = new SqlServerParser().Parse( text );
-        Assert.That( result.IsError, Is.False );
-        Assert.That( result.Result, Is.InstanceOf( expectedType ) );
+        result.IsError.ShouldBeFalse();
+        result.Result.ShouldNotBeNull();
+        result.Result.ShouldBeAssignableTo( expectedType );
         ISqlServerObject oSql = result.Result as ISqlServerObject;
         if( oSql != null )
         {
-            Assert.That( oSql.Options.SchemaBinding, Is.EqualTo( schemaBinding ) );
+            oSql.Options.SchemaBinding.ShouldBe( schemaBinding );
         }
     }
 
@@ -39,13 +41,13 @@ public class SqlParserTests
         var result = new SqlServerParser().ParseView( text );
         if( columns == "THIS IS AN ERROR" )
         {
-            Assert.That( result.IsError );
+            result.IsError.ShouldBeTrue();
         }
         else
         {
-            Assert.That( result.IsError, Is.False );
-            Assert.That( (result.Result.FormalColumnList == null && columns == null)
-                            || columns.Split( ',' ).SequenceEqual( result.Result.FormalColumnList ) );
+            result.IsError.ShouldBeFalse();
+            ((result.Result.FormalColumnList == null && columns == null)
+                            || columns.Split( ',' ).SequenceEqual( result.Result.FormalColumnList )).ShouldBeTrue();
         }
     }
 
@@ -75,10 +77,10 @@ nimp!]" )]
     public void check_schema_and_name( string text, string schema, string name, string schemaName )
     {
         var result = new SqlServerParser().ParseView( text );
-        Assert.That( result.IsError, Is.False );
-        Assert.That( result.Result.Name, Is.EqualTo( name ) );
-        Assert.That( result.Result.Schema, Is.EqualTo( schema ) );
-        Assert.That( result.Result.SchemaName, Is.EqualTo( schemaName ) );
+        result.IsError.ShouldBeFalse();
+        result.Result.Name.ShouldBe( name );
+        result.Result.Schema.ShouldBe( schema );
+        result.Result.SchemaName.ShouldBe( schemaName );
     }
 
 }
