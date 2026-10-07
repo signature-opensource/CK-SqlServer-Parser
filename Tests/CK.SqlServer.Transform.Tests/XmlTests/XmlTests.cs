@@ -8,7 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
-using static CK.Testing.SqlTransformTestHelper;
+using static CK.Testing.MonitorTestHelper;
 
 namespace CK.SqlServer.Transform.Tests.XmlTests;
 

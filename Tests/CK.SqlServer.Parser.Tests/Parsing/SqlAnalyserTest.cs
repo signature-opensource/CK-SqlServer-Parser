@@ -9,7 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
-using static CK.Testing.SqlTransformTestHelper;
+using static CK.Testing.MonitorTestHelper;
 
 namespace CK.SqlServer.Parser.Tests;
 

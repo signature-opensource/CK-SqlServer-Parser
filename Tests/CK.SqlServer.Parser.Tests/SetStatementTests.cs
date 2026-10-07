@@ -1,7 +1,7 @@
 using CK.SqlServer.UtilTests;
 using Shouldly;
 using NUnit.Framework;
-using static CK.Testing.SqlTransformTestHelper;
+using static CK.Testing.MonitorTestHelper;
 
 namespace CK.SqlServer.Parser.Tests;
 

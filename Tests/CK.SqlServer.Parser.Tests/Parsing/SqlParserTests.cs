@@ -3,7 +3,7 @@ using NUnit.Framework;
 using Shouldly;
 using System;
 using System.Linq;
-using static CK.Testing.SqlTransformTestHelper;
+using static CK.Testing.MonitorTestHelper;
 
 namespace CK.SqlServer.Parser.Tests;
 

@@ -8,27 +8,27 @@ using System.Diagnostics;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
-using static CK.Testing.SqlTransformTestHelper;
+using static CK.Testing.MonitorTestHelper;
 
 namespace CK.SqlServer.UtilTests;
 
 
 public static class TestHelperExtensions
 {
-    public static string BuildPathInCurrentTestProject( this IBasicTestHelper @this, params string[] subNames )
+    public static string BuildPathInCurrentTestProject( this IMonitorTestHelper helper, params string[] subNames )
     {
         var all = new List<string>();
-        all.Add( BasicTestHelper.TestHelper.TestProjectFolder.ToString().Replace( ".NetCore", "" ) );
+        all.Add( helper.TestProjectFolder.ToString().Replace( ".NetCore", "" ) );
         all.AddRangeArray( subNames );
         return Path.Combine( all.ToArray() );
     }
 
-    public static string LoadTextFromParsingScripts( this IBasicTestHelper @this, string fileName )
+    public static string LoadTextFromParsingScripts( this IMonitorTestHelper helper, string fileName )
     {
-        return File.ReadAllText( BuildPathInCurrentTestProject( @this, "Parsing", "Scripts", fileName ) ).ReplaceLineEndings();
+        return File.ReadAllText( BuildPathInCurrentTestProject( helper, "Parsing", "Scripts", fileName ) ).ReplaceLineEndings();
     }
 
-    public static void AssertXmlStringEqual( this IBasicTestHelper @this, string visitedString, XElement expected )
+    public static void AssertXmlStringEqual( this IMonitorTestHelper @this, string visitedString, XElement expected )
     {
         visitedString = Regex.Replace( visitedString, @"\s+", " ", RegexOptions.CultureInvariant );
         string es = expected.ToString();
@@ -38,16 +38,16 @@ public static class TestHelperExtensions
 
 
     [DebuggerStepThrough]
-    public static T ParseOneStatementAndCheckString<T>( this IBasicTestHelper @this, string text, bool addSemiColon = false ) where T : class, ISqlStatement
+    public static T ParseOneStatementAndCheckString<T>( this IMonitorTestHelper helper, string text, bool addSemiColon = false ) where T : class, ISqlStatement
     {
         text = text.ReplaceLineEndings();
         if( addSemiColon ) text += ';';
-        ISqlStatement statement;
+        ISqlStatement? statement;
         SqlAnalyser.ErrorResult r = SqlAnalyser.ParseStatement( out statement, text );
         r.IsError.ShouldBeFalse( r.ToString() );
         T s = statement.ShouldBeAssignableTo<T>().ShouldNotBeNull();
         s.ToString( true ).ReplaceLineEndings().ShouldBe( text );
-        if( MonitorTestHelper.TestHelper.LogToConsole ) Console.WriteLine( s.ToXml() );
+        if( helper.LogToConsole ) Console.WriteLine( s.ToXml() );
         return s;
     }
 
@@ -58,10 +58,10 @@ public static class TestHelperExtensions
     /// <param name="text">Text to parse.</param>
     /// <returns>Statement.</returns>
     [DebuggerStepThrough]
-    public static T ParseOneStatement<T>( this IBasicTestHelper @this, string text ) where T : class, ISqlStatement
+    public static T ParseOneStatement<T>( this IMonitorTestHelper helper, string text ) where T : class, ISqlStatement
     {
         text = text.ReplaceLineEndings();
-        ISqlStatement statement;
+        ISqlStatement? statement;
         SqlAnalyser.ErrorResult r = SqlAnalyser.ParseStatement( out statement, text );
         r.IsError.ShouldBeFalse( r.ToString() );
         return statement.ShouldBeAssignableTo<T>().ShouldNotBeNull();

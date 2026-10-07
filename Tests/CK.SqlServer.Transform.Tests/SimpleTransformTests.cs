@@ -5,7 +5,7 @@ using Shouldly;
 using NUnit.Framework;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using static CK.Testing.SqlTransformTestHelper;
+using static CK.Testing.MonitorTestHelper;
 
 namespace CK.SqlServer.Transform.Tests;
 

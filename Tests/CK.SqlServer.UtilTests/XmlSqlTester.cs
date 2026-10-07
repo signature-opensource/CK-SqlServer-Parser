@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
 
-using static CK.Testing.SqlTransformTestHelper;
+using static CK.Testing.MonitorTestHelper;
 
 namespace CK.SqlServer.UtilTests;
 
@@ -14,14 +14,14 @@ public class XmlSqlTester
 {
     public readonly XElement TestElement;
     public readonly string Text;
-    public readonly string Description;
+    public readonly string? Description;
     public readonly ParseMode Mode;
 
-    public readonly XElement ExpectedXml;
+    public readonly XElement? ExpectedXml;
     public readonly bool CombineElementType;
     public readonly string[] ToStringCompactForms;
 
-    public readonly XElement ExpectedStatementsXml;
+    public readonly XElement? ExpectedStatementsXml;
 
     /// <summary>
     /// If &lt;AutoCorrectedText&gt; is not present, defaults to Text.
@@ -33,11 +33,11 @@ public class XmlSqlTester
         TestElement = t;
         Mode = t.AttributeEnum( "Mode", ParseMode.OneOrMoreStatements );
         // TrimEnd the text because the last trivia is skipped.
-        Text = ((string)t.Element( "Text" )).TrimEnd().ReplaceLineEndings();
-        AutoCorrectedText = ((string)t.Element( "AutoCorrectedText" ))?.TrimEnd().ReplaceLineEndings() ?? Text;
+        Text = ((string?)t.Element( "Text" )).ShouldNotBeNull().TrimEnd().ReplaceLineEndings();
+        AutoCorrectedText = ((string?)t.Element( "AutoCorrectedText" ))?.TrimEnd().ReplaceLineEndings() ?? Text;
         Description = t.Elements( "Description" ).Select( e => e.Value.ReplaceLineEndings() ).FirstOrDefault();
 
-        XElement xmlTestElement = t.Element( "Xml" );
+        XElement? xmlTestElement = t.Element( "Xml" );
         if( xmlTestElement != null )
         {
             var ce = xmlTestElement.Attribute( "CombineElementType" );
@@ -47,9 +47,9 @@ public class XmlSqlTester
             {
                 ExpectedXml.DescendantNodes().OfType<XComment>().Remove();
             }
-            var s = (string)xmlTestElement.Attribute( "ToStringCompact" );
-            if( s != null ) ToStringCompactForms = s.Split( ',' ).Select( f => f.Trim() ).ToArray();
-            else ToStringCompactForms = Array.Empty<string>();
+
+            var s = (string?)xmlTestElement.Attribute( "ToStringCompact" );
+            if( s != null ) ToStringCompactForms = s.Split( ',', StringSplitOptions.TrimEntries|StringSplitOptions.RemoveEmptyEntries );
 
             ExpectedStatementsXml = xmlTestElement.Element( "Statements" );
             if( ExpectedStatementsXml != null )
@@ -57,6 +57,7 @@ public class XmlSqlTester
                 ExpectedStatementsXml.DescendantNodes().OfType<XComment>().Remove();
             }
         }
+        ToStringCompactForms ??= Array.Empty<string>();
     }
 
     public virtual void ParseAndCheck()
@@ -96,7 +97,7 @@ public class XmlSqlTester
 
     protected ISqlNode ParseAndCheckSqlText( string text, string rewrittenText )
     {
-        ISqlNode e;
+        ISqlNode? e;
         SqlAnalyser.ErrorResult r = SqlAnalyser.Parse( out e, Mode, text );
         r.IsError.ShouldBeFalse( r.ToString() );
         string backFromTree = e.ToString( true, true );
