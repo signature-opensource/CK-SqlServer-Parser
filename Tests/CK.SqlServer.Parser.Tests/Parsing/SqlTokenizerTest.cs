@@ -98,14 +98,17 @@ public class SqlTokenizerTest
         p.Reset( "" );
         IsEndOfInput( p );
 
+        // The tokenizer writes the end of lines of the white spaces with Environment.NewLine, whatever the input has.
+        // The content of a comment is kept as it is.
+        var nl = Environment.NewLine;
         p.Reset( "\r\n\t " );
         IsEndOfInput( p );
-        p.Token.LeadingTrivias.Select( t => t.Text ).ShouldBe( new[] { "\r\n\t " } );
+        p.Token.LeadingTrivias.Select( t => t.Text ).ShouldBe( new[] { $"{nl}\t " } );
         p.Token.TrailingTrivias.ShouldBeEmpty();
 
         p.Reset( "\r\n\t  --Comment\r\n \t\r\n /*Other\r\nComment...*/ \r\n" );
         IsEndOfInput( p );
-        p.Token.LeadingTrivias.Select( t => t.Text ).ShouldBe( new[] { "\r\n\t  ", "Comment", " \t\r\n ", "Other\r\nComment...", " \r\n" } );
+        p.Token.LeadingTrivias.Select( t => t.Text ).ShouldBe( new[] { $"{nl}\t  ", "Comment", $" \t{nl} ", "Other\r\nComment...", $" {nl}" } );
         p.Token.TrailingTrivias.ShouldBeEmpty();
     }
 
