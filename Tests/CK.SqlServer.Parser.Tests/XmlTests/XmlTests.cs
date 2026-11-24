@@ -18,7 +18,7 @@ public class XmlTests
     [TestCase( "_Current.xml" )]
     [TestCase( "Apply.xml" )]
     [TestCase( "Between expressions.xml" )]
-    [TestCase( "Big Procedures.xml" )]
+    [TestCase( "Big procedures.xml" )]
     [TestCase( "Comma lists.xml" )]
     [TestCase( "CTE.xml" )]
     [TestCase( "Cursors.xml" )]

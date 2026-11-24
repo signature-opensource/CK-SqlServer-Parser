@@ -11,7 +11,7 @@ namespace CK.SqlServer.Parser.Tests;
 public class SqlParserTests
 {
     [TestCase( "typedView.sql", typeof( ISqlServerView ), true )]
-    [TestCase( "typedprocedure.sql", typeof( ISqlServerStoredProcedure ), false )]
+    [TestCase( "typedProcedure.sql", typeof( ISqlServerStoredProcedure ), false )]
     [TestCase( "typedInlineTableFunction.sql", typeof( ISqlServerFunctionInlineTable ), false )]
     [TestCase( "typedScalarFunction.sql", typeof( ISqlServerFunctionScalar ), true )]
     [TestCase( "typedTableFunction.sql", typeof( ISqlServerFunctionTable ), false )]
