@@ -2,7 +2,6 @@
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <LangVersion>8.0</LangVersion>
-    <Description>T-Sql transformers and TQL DSL implementation.</Description>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\CK.SqlServer.Parser\CK.SqlServer.Parser.csproj" />
